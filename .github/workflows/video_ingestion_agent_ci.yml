@@ -1,3 +1,4 @@
+# Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/
 # Copyright (c) 2026, NVIDIA CORPORATION. All rights reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
@@ -11,12 +12,12 @@ on:
   push:
     branches: [main]
     paths:
-      - 'video_ingestion_agent/**'
+      - 'baseline/video_ingestion_agent/**'
       - '.github/workflows/video_ingestion_agent_ci.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'video_ingestion_agent/**'
+      - 'baseline/video_ingestion_agent/**'
       - '.github/workflows/video_ingestion_agent_ci.yml'
   workflow_dispatch:
 
@@ -27,7 +28,7 @@ concurrency:
 
 defaults:
   run:
-    working-directory: video_ingestion_agent
+    working-directory: baseline/video_ingestion_agent
 
 jobs:
   ## ------------------------------------------
@@ -55,14 +56,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pre-commit
-          key: pre-commit-${{ hashFiles('video_ingestion_agent/.pre-commit-config.yaml') }}
+          key: pre-commit-${{ hashFiles('baseline/video_ingestion_agent/.pre-commit-config.yaml') }}
           restore-keys: |
             pre-commit-
 
       - name: Run pre-commit (scoped to video_ingestion_agent files)
         # Scoping via `--files` avoids walking sibling subprojects in the
         # monorepo. pre-commit auto-discovers the local
-        # `video_ingestion_agent/.pre-commit-config.yaml` because of the
+        # `baseline/video_ingestion_agent/.pre-commit-config.yaml` because of the
         # `working-directory` default at the top of this workflow.
         run: pre-commit run --show-diff-on-failure --files $(git ls-files .)
 
@@ -105,8 +106,8 @@ jobs:
         with:
           path: |
             ~/.cache/uv
-            video_ingestion_agent/.venv
-          key: vi-agent-venv-${{ runner.os }}-py311-${{ hashFiles('video_ingestion_agent/pyproject.toml') }}
+            baseline/video_ingestion_agent/.venv
+          key: vi-agent-venv-${{ runner.os }}-py311-${{ hashFiles('baseline/video_ingestion_agent/pyproject.toml') }}
           restore-keys: |
             vi-agent-venv-${{ runner.os }}-py311-
 
@@ -142,7 +143,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pytest-log-${{ github.run_id }}
-          path: video_ingestion_agent/.pytest_cache/
+          path: baseline/video_ingestion_agent/.pytest_cache/
           retention-days: 7
 
   ## ------------------------------------------
@@ -181,5 +182,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: video-ingestion-agent-docs-${{ github.run_id }}
-          path: video_ingestion_agent/docs/_build/current/html/
+          path: baseline/video_ingestion_agent/docs/_build/current/html/
           retention-days: 14

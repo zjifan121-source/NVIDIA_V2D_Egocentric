@@ -1,8 +1,9 @@
+<!-- Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/ layout -->
 # Run Ego Reconstruction Video Reference
 
 ## Entrypoints
 
-Use `reconstruction/modules/v2d_pipelines/run_ego_reconstruction.py` for user-facing runs. It accepts both `--video` and `--video_path`, both `--object_prompt` and `--prompt`, and both `--object_mesh` and `--object_mesh_path`.
+Use `baseline/reconstruction/modules/v2d_pipelines/run_ego_reconstruction.py` for user-facing runs. It accepts both `--video` and `--video_path`, both `--object_prompt` and `--prompt`, and both `--object_mesh` and `--object_mesh_path`.
 
 `--hand_tracking hamer` maps to `run_ego_wilor.py` with HaMeR as the primary hand source. It supports:
 
@@ -85,7 +86,7 @@ best final directory is usually `result_slam_gravity_aligned/`; otherwise prefer
 
 ## Example From The Repo
 
-`reconstruction/data/garage/tissue_box/run_wilor_pipeline.sh` runs:
+`baseline/reconstruction/data/garage/tissue_box/run_wilor_pipeline.sh` runs:
 
 ```bash
 python modules/v2d_pipelines/run_ego_reconstruction.py \

@@ -2,6 +2,7 @@
 name: run-ego-reconstruction-video
 description: Run the egocentric reconstruction pipeline on an input video. Use when a user asks Codex to process an MP4 or video with the reconstruction ego pipeline, choose between HaMeR/WiLoR and DynHaMR hand tracking, pass an object prompt or object mesh, enable undistortion, SLAM, gravity alignment, gsplat refinement, or export/check the final result bundle and Three.js scene.
 ---
+<!-- Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/ layout -->
 
 # Run Ego Reconstruction Video
 
@@ -10,7 +11,7 @@ description: Run the egocentric reconstruction pipeline on an input video. Use w
 Use the consolidated entrypoint unless the user explicitly asks for a legacy script:
 
 ```bash
-cd reconstruction
+cd baseline/reconstruction
 python modules/v2d_pipelines/run_ego_reconstruction.py --help
 ```
 
@@ -21,7 +22,7 @@ and the manual MANO/BMC assets are present.
 
 Before running, gather or infer:
 
-- input video path, preferably absolute or relative to `reconstruction/`
+- input video path, preferably absolute or relative to `baseline/reconstruction/`
 - object prompt, such as `"a tissue box"`
 - output directory
 - whether the video is fisheye/wide angle and should use `--undistort`
@@ -35,7 +36,7 @@ If setup may be incomplete, use `$ego-reconstruction-setup` first.
 Minimal HaMeR/WiLoR run:
 
 ```bash
-cd reconstruction
+cd baseline/reconstruction
 python modules/v2d_pipelines/run_ego_reconstruction.py \
   --video data/path/to/video.mp4 \
   --output_dir data/outputs/my_run \
@@ -47,7 +48,7 @@ python modules/v2d_pipelines/run_ego_reconstruction.py \
 Fuller HaMeR/WiLoR run with common postprocessing:
 
 ```bash
-cd reconstruction
+cd baseline/reconstruction
 python modules/v2d_pipelines/run_ego_reconstruction.py \
   --video data/path/to/video.mp4 \
   --output_dir data/outputs/my_run \
@@ -64,7 +65,7 @@ python modules/v2d_pipelines/run_ego_reconstruction.py \
 HaMeR/WiLoR with a provided object mesh:
 
 ```bash
-cd reconstruction
+cd baseline/reconstruction
 python modules/v2d_pipelines/run_ego_reconstruction.py \
   --video data/path/to/video.mp4 \
   --output_dir data/outputs/my_mesh_run \
@@ -77,7 +78,7 @@ python modules/v2d_pipelines/run_ego_reconstruction.py \
 DynHaMR path:
 
 ```bash
-cd reconstruction
+cd baseline/reconstruction
 python modules/v2d_pipelines/run_ego_reconstruction.py \
   --video data/path/to/video.mp4 \
   --output_dir data/outputs/my_dynhamr_run \
@@ -95,7 +96,7 @@ Rerun the exact same command after an interruption. The runner checks many stage
 outputs and prints `[skip]` for completed stages. Use `--dev` only when actively
 editing module source and wanting containers to mount local code.
 
-For repo examples, inspect `reconstruction/data/garage/tissue_box/run_wilor_pipeline.sh`.
+For repo examples, inspect `baseline/reconstruction/data/garage/tissue_box/run_wilor_pipeline.sh`.
 Use it as a shape reference, not as a hard-coded path template.
 
 ## Verify Results
@@ -129,8 +130,8 @@ ls data/outputs/my_run/*overlay*.mp4
 
 ## Debugging
 
-- Missing Python module: re-run `bash reconstruction/scripts/install_ego_reconstruction_packages.sh` in the active environment.
-- Missing Docker image: re-run `bash reconstruction/scripts/build_ego_reconstruction_packages.sh`.
+- Missing Python module: re-run `bash baseline/reconstruction/scripts/install_ego_reconstruction_packages.sh` in the active environment.
+- Missing Docker image: re-run `bash baseline/reconstruction/scripts/build_ego_reconstruction_packages.sh`.
 - Missing weights: use `$ego-reconstruction-setup` and choose the download mode that matches the run mode.
 - No object detection: adjust `--object_prompt` and/or `--reference_frame`.
 - Bad fisheye geometry: add `--undistort` and re-run into a fresh output directory.

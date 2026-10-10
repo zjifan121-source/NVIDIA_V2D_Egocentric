@@ -2,10 +2,11 @@
 name: hoi-object-reconstruction-doctor
 description: Diagnose and repair failures in this repository's BundleSDF or SAM3D HOI object reconstruction workflow. Use when setup checks fail, Docker or GPU access is broken, weights or images are missing, input preflight fails, CuSFM or scan-quality gates fail, a BundleSDF stage produces bad geometry, FoundationPose alignment fails, SAM3D inference or EGL rendering fails, a job stalls, or final GLB and review artifacts are missing or invalid.
 ---
+<!-- Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/ layout -->
 
 # HOI Object Reconstruction Doctor
 
-Inspect evidence first and ask later. Work from `reconstruction/`, preserve the
+Inspect evidence first and ask later. Work from `baseline/reconstruction/`, preserve the
 job directory, and diagnose the first bad stage instead of rebuilding
 everything.
 

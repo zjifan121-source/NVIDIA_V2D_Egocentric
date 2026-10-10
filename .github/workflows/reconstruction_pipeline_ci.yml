@@ -1,3 +1,4 @@
+# Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/
 # Copyright (c) 2026, NVIDIA CORPORATION. All rights reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
@@ -31,20 +32,20 @@ jobs:
           python-version: "3.11"
 
       - name: Build Docker image
-        working-directory: reconstruction/modules
+        working-directory: baseline/reconstruction/modules
         run: |
           echo "::group::Build v2d_mesh"
           python v2d_mesh/docker/build.py
           echo "::endgroup::"
 
       - name: Install pipeline packages
-        working-directory: reconstruction/modules
+        working-directory: baseline/reconstruction/modules
         run: |
           pip install --upgrade pip
           pip install -e v2d_mesh/docker
 
       - name: Run unit tests
-        working-directory: reconstruction
+        working-directory: baseline/reconstruction
         run: |
           python -m v2d.mesh.docker.run_tests
 
@@ -67,20 +68,20 @@ jobs:
           python-version: "3.11"
 
       - name: Build Docker image
-        working-directory: reconstruction/modules
+        working-directory: baseline/reconstruction/modules
         run: |
           echo "::group::Build v2d_mesh"
           python v2d_mesh/docker/build.py
           echo "::endgroup::"
 
       - name: Install pipeline packages
-        working-directory: reconstruction/modules
+        working-directory: baseline/reconstruction/modules
         run: |
           pip install --upgrade pip
           pip install pytest -e v2d_mesh/docker
 
       - name: Run mesh docker tests
-        working-directory: reconstruction
+        working-directory: baseline/reconstruction
         run: |
           pytest modules/v2d_mesh/docker/tests/ -v \
             --output-dir data/outputs/v2d_mesh/
@@ -90,7 +91,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: v2d-mesh-docker-outputs-${{ github.run_id }}
-          path: reconstruction/data/outputs/v2d_mesh/
+          path: baseline/reconstruction/data/outputs/v2d_mesh/
           retention-days: 7
 
       - name: Cleanup Docker image
@@ -114,14 +115,14 @@ jobs:
           python-version: "3.11"
 
       - name: Build Docker image
-        working-directory: reconstruction/modules
+        working-directory: baseline/reconstruction/modules
         run: |
           echo "::group::Build v2d_moge"
           python v2d_moge/docker/build.py
           echo "::endgroup::"
 
       - name: Install pipeline packages
-        working-directory: reconstruction/modules
+        working-directory: baseline/reconstruction/modules
         run: |
           pip install --upgrade pip
           pip install -e v2d_moge/docker
@@ -130,19 +131,19 @@ jobs:
         id: cache-weights
         uses: actions/cache@v4
         with:
-          path: reconstruction/data/weights/moge
-          key: v2d-moge-weights-${{ hashFiles('reconstruction/modules/v2d_moge/lib/download_weights.py') }}
+          path: baseline/reconstruction/data/weights/moge
+          key: v2d-moge-weights-${{ hashFiles('baseline/reconstruction/modules/v2d_moge/lib/download_weights.py') }}
           restore-keys: |
             v2d-moge-weights-
 
       - name: Download model weights
         if: steps.cache-weights.outputs.cache-hit != 'true'
-        working-directory: reconstruction
+        working-directory: baseline/reconstruction
         run: |
           python -c "from v2d.moge.docker.run_download_weights import run_download; run_download('data/weights/moge')"
 
       - name: Run MoGe video to depth
-        working-directory: reconstruction
+        working-directory: baseline/reconstruction
         run: |
           python -c "
           from v2d.moge.docker.run_video_to_depth import run_video_to_depth
@@ -159,7 +160,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pipeline-outputs-${{ github.run_id }}
-          path: reconstruction/data/outputs/
+          path: baseline/reconstruction/data/outputs/
           retention-days: 7
 
       - name: Cleanup Docker image

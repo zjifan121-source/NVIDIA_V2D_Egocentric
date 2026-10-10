@@ -2,11 +2,12 @@
 name: hoi-object-reconstruction-setup
 description: Prepare this repository's HOI object reconstruction environment for BundleSDF or SAM3D. Use when a user asks to install host orchestration packages, validate Docker/GPU access, build missing reconstruction images, download mode-specific weights, preflight calibrated stereo input, or make the checkout ready before an HOI reconstruction run.
 ---
+<!-- Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/ layout -->
 
 # HOI Object Reconstruction Setup
 
 Prepare the selected reconstruction mode and prove that it is runnable. Work
-from the repository checkout; run host orchestration from `reconstruction/`.
+from the repository checkout; run host orchestration from `baseline/reconstruction/`.
 
 ## Act before asking
 
@@ -28,7 +29,7 @@ from the repository checkout; run host orchestration from `reconstruction/`.
 
 ```bash
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-cd "$REPO_ROOT/reconstruction"
+cd "$REPO_ROOT/baseline/reconstruction"
 git status --short
 python --version
 docker version
@@ -69,7 +70,7 @@ Test the import first:
 python -c 'from v2d_hoi_object_reconstruction.docker.run_reconstruction import main'
 ```
 
-If it fails, install repository host packages from `reconstruction/`:
+If it fails, install repository host packages from `baseline/reconstruction/`:
 
 ```bash
 ./scripts/install_packages.sh

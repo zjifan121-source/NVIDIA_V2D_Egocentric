@@ -2,6 +2,7 @@
 name: robotic_grounding_doctor
 description: Troubleshooting skill for robotic_grounding failures — Docker/container issues, GPU-not-visible, missing MANO or object assets, motion-file-not-found, Isaac Lab startup crashes, permission errors, and pipeline-stage failures. Use this skill whenever something in robotic_grounding is broken or erroring: "the dummy agent crashes", "missing asset", "MANO not found", "Isaac won't start", "container permission denied", "0 URDFs generated", "motion file not found", "CUDA/GPU not available in the container", "the pipeline failed at stage X", or when a robotic_grounding command from another skill errors out. For first-time setup use robotic_grounding_onboard; to generate a working command use robotic_grounding_run.
 ---
+<!-- Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/ layout -->
 
 # robotic_grounding — Troubleshooting
 
@@ -51,7 +52,7 @@ docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi   # GP
 | `MANO ... not found` / load stage fails | MANO `.pkl` files missing or misplaced | Place `MANO_LEFT.pkl` / `MANO_RIGHT.pkl` under `<HMD>/mano/models/` and pass `--mano-dir <HMD>/mano` (docs/SETUP.md §5). MANO is read only at the load stage and never committed |
 | `<ds>_loaded` missing when retarget starts | The load stage (IMAGE 1) didn't run/produce output | Run the pipeline from the host with `run_pipeline_docker.py` (it handles both images), or `run_load_local.sh` first; check the MANO path |
 | Dataset dir empty / wrong layout | Data not laid out as the loader expects | Re-check the per-dataset `docs/<DATASET>_SETUP.md`; sequence ids/patterns are dataset-specific |
-| Adding a brand-new dataset (not one of the seven supported) | It's not in the registry | That's a different flow — follow "Adding a New Dataset" in `robotic_grounding/workflow/data_pipeline.md`, not this skill |
+| Adding a brand-new dataset (not one of the seven supported) | It's not in the registry | That's a different flow — follow "Adding a New Dataset" in `baseline/robotic_grounding/workflow/data_pipeline.md`, not this skill |
 
 ## Section 4: Object assets & URDFs
 

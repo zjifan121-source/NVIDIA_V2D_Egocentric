@@ -1,11 +1,12 @@
 ---
 name: ego-reconstruction-setup
-description: Prepare this repository’s egocentric reconstruction pipeline. Use when a user asks to install host packages, build Docker images, download model weights, verify Docker/GPU prerequisites, or diagnose missing setup for `reconstruction/modules/v2d_pipelines/run_ego_reconstruction.py`.
+description: Prepare this repository’s egocentric reconstruction pipeline. Use when a user asks to install host packages, build Docker images, download model weights, verify Docker/GPU prerequisites, or diagnose missing setup for `baseline/reconstruction/modules/v2d_pipelines/run_ego_reconstruction.py`.
 ---
+<!-- Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/ layout -->
 
 # Ego Reconstruction Setup
 
-Work from `reconstruction/`. Install the lightweight host wrappers, then build
+Work from `baseline/reconstruction/`. Install the lightweight host wrappers, then build
 only the pipeline images and download the matching weights:
 
 ```bash

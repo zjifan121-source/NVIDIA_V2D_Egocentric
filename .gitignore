@@ -1,5 +1,6 @@
-# Root-only rules. Each subproject (reconstruction/, video_ingestion_agent/,
-# robotic_grounding/) has its own .gitignore for package-specific artifacts.
+# Modified for V2D Track 3 by zjifan121, 2026-10: packages moved under baseline/; Track 3 rules below
+# Root-only rules. Each subproject (baseline/reconstruction/, baseline/video_ingestion_agent/,
+# baseline/robotic_grounding/) has its own .gitignore for package-specific artifacts.
 **.egg-info
 
 # Editor workspace files
@@ -9,7 +10,12 @@
 .envrc.local
 
 # Track 3 additions
-data/
+# Local inputs (Track 3 dataset, other downloads). Weights and run outputs live in
+# baseline/reconstruction/data/, which baseline/reconstruction/.gitignore covers.
+/assets/data/
+.DS_Store
+__pycache__/
+*.py[cod]
 third_party/
 *.pt
 *.pth

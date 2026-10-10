@@ -9,7 +9,9 @@ It is built on NVIDIA's [`video_to_data`](https://github.com/nvidia-isaac/video_
 
 Both paths are scored by the same shared evaluator, so their results are directly comparable.
 
-> NVIDIA's original README is kept at [`docs/NVIDIA_README.md`](docs/NVIDIA_README.md).
+> NVIDIA's original README is kept at [`assets/docs/NVIDIA_README.md`](assets/docs/NVIDIA_README.md).
+>
+> **Paths in NVIDIA's own docs:** NVIDIA's packages live under `baseline/` here. Their docs and skills write paths from NVIDIA's repo root (e.g. `reconstruction/scripts/...`). In this repo, prepend `baseline/`.
 
 ---
 
@@ -46,52 +48,51 @@ Both paths are scored by the same shared evaluator, so their results are directl
 
 ## 2. Repository structure
 
-Legend: **[N]** NVIDIA code · **[S]** shared team code (on `main`) · **[A]** Path A only · **[B]** Path B only · **[L]** local only, never committed · *(planned)* = not created yet
+Three top-level areas: **`baseline/`** (NVIDIA's code), **`assets/`** (inputs and docs), and one folder per path (**`path_a/`**, **`path_b/`**).
+
+Legend: **[N]** NVIDIA · **[S]** team, on `main` · **[A]** Path A only · **[B]** Path B only · **[L]** local only, never committed
 
 ```
 NVIDIA_V2D_Egocentric/
 ├── README.md                       [S] this file
 ├── NOTICE                          [S] attribution to NVIDIA + what is ours
 ├── LICENSE                         [N] NVIDIA's license (Apache-2.0 code / CC-BY-4.0 docs), unchanged
-├── .gitignore                      [N]+[S] NVIDIA rules + Track 3 additions
-├── .claude/skills/                 [N] agent skills: ego-reconstruction-setup, run-ego-reconstruction-video
-├── docs/
-│   ├── NVIDIA_README.md            [N] NVIDIA's original top-level README
-│   └── figures/                    [N]
+├── SECURITY.md                     [N]
+├── .gitignore .gitattributes       [N]+[S] NVIDIA rules + Track 3 additions
+├── .github/                        [N] CI (Docs and Robotic Grounding CI are manual-only on this fork)
+├── .claude/skills/ .codex/skills/  [N] agent skills (paths updated for baseline/)
 │
-├── reconstruction/                 [N] video → depth, masks, mesh, 6-DoF object pose, MANO hands
-│   ├── scripts/                    install / build / download-weights scripts
-│   ├── docs/ego_e2e_setup.md       NVIDIA's ego pipeline guide (source for §5)
-│   ├── assets/airplane.mp4         sample video (Git LFS)
-│   ├── modules/
-│   │   ├── v2d_pipelines/          entrypoints: run_ego_reconstruction.py, run_ego_wilor.py, ...
-│   │   ├── v2d_common/             typed data contracts, result bundle writer
-│   │   ├── v2d_docker/             host-side launcher that runs each module in Docker
-│   │   ├── v2d_moge/ v2d_droid_slam/ v2d_wilor/ v2d_grounding_dino/ v2d_sam2/
-│   │   ├── v2d_sam3d/ v2d_foundation_pose/ v2d_hamer/ v2d_gsplat_refinement/ v2d_geocalib/ ...
-│   │   └── v2d_t3_<name>/          [A] new Path A modules (prefix t3_ = ours)  (planned)
-│   └── data/                       [L] all runtime data lives here (paths are relative to reconstruction/)
-│       ├── weights/                model weights, incl. hand/models/MANO_RIGHT.pkl
-│       ├── track_3/                challenge dataset
-│       └── outputs/<branch>/<episode>/   one folder per run
+├── baseline/                       [N] NVIDIA video_to_data release/0.2.0
+│   ├── reconstruction/             video → depth, masks, mesh, 6-DoF object pose, MANO hands
+│   │   ├── scripts/                install / build / download-weights scripts
+│   │   ├── docs/ego_e2e_setup.md   NVIDIA's ego pipeline guide (source for §5)
+│   │   ├── assets/airplane.mp4     NVIDIA's sample video (Git LFS)
+│   │   ├── modules/
+│   │   │   ├── v2d_pipelines/      entrypoints: run_ego_reconstruction.py, run_ego_wilor.py, ...
+│   │   │   ├── v2d_common/         typed data contracts, result bundle writer
+│   │   │   ├── v2d_docker/         host-side launcher that runs each module in Docker
+│   │   │   ├── v2d_moge/ v2d_droid_slam/ v2d_wilor/ v2d_grounding_dino/ v2d_sam2/
+│   │   │   ├── v2d_sam3d/ v2d_foundation_pose/ v2d_hamer/ v2d_gsplat_refinement/ v2d_geocalib/ ...
+│   │   │   └── v2d_t3_<name>/      [A] new Path A Docker modules (prefix t3_ = ours)
+│   │   └── data/                   [L] runtime cache (paths are relative to baseline/reconstruction/)
+│   │       ├── weights/            model weights, incl. hand/models/MANO_RIGHT.pkl
+│   │       └── outputs/<branch>/<episode>/   one folder per run
+│   ├── robotic_grounding/          retargeting + Isaac Lab PPO (not covered by this README yet)
+│   └── video_ingestion_agent/      not used for Track 3
 │
-├── robotic_grounding/              [N] retargeting + Isaac Lab PPO (not covered by this README yet)
-├── video_ingestion_agent/          [N] not used for Track 3
+├── assets/                         [S] non-code (see assets/README.md)
+│   ├── docs/                       [N] NVIDIA's top-level docs site + original README
+│   └── data/                       [L] Track 3 dataset and other large inputs
 │
-├── track3/                         [S] shared code used by BOTH paths  (planned)
-│   ├── common/                     result schema, Track 3 data loader, calibration helpers
-│   ├── eval/                       ground-truth scorer for public episodes + GT-free proxy checks
-│   ├── configs/                    episode list, object prompts, local train/val split
-│   └── scripts/                    data download, submission packaging
-│
-└── pipeline_b/                     [B] Path B's own pipeline (exists only on path-b branches)  (planned)
+├── path_a/                         [A] Path A's own code (README only on main)
+└── path_b/                         [B] Path B's pipeline (README only on main)
 ```
 
 Rules that keep this layout working:
 
-- `track3/` changes only through a PR into `main`.
-- Path A may edit NVIDIA files. Path B never does: it lives entirely in `pipeline_b/` and only *calls* NVIDIA modules.
-- Both paths write results in the `track3/common` result format, and both are scored by `track3/eval`.
+- On `main`, `baseline/` is byte-identical to NVIDIA's `release/0.2.0`, only moved. The check command is in §3.
+- Path A may edit files under `baseline/`, only on path-a branches (see `path_a/README.md`). Path B never does: it lives entirely in `path_b/` and only *calls* NVIDIA code.
+- Shared code for both paths (common result format, evaluator) will be added later through a `shared/<topic>` PR into `main`.
 
 ---
 
@@ -100,7 +101,7 @@ Rules that keep this layout working:
 ```
 upstream (NVIDIA)   release/0.2.0 ──► tag baseline-0.2.0
                                          │
-origin (this repo)                      main  ◄── shared/*        (track3/, README, NOTICE)
+origin (this repo)                      main  ◄── shared/*        (README, NOTICE, assets/, shared tooling)
                                          │    ◄── sync/upstream-* (future NVIDIA releases)
                          ┌───────────────┴───────────────┐
                     path-a/main                     path-b/main
@@ -112,7 +113,7 @@ origin (this repo)                      main  ◄── shared/*        (track3/
 | Branch | Purpose | Merges into |
 |---|---|---|
 | `main` | Baseline + shared code. Always runnable. Protected. | — |
-| `shared/<topic>` | Changes to `track3/`, README, NOTICE | `main` |
+| `shared/<topic>` | Changes to README, NOTICE, `assets/`, CI, shared code | `main` |
 | `path-a/main` | Integration branch for Path A. Protected. | — |
 | `a/<topic>` | One Path A change | `path-a/main` |
 | `path-b/main` | Integration branch for Path B. Protected. | — |
@@ -154,7 +155,13 @@ git worktree add ../v2d-path-a path-a/main
 git worktree add ../v2d-path-b path-b/main
 ```
 
-**See everything the team changed vs. NVIDIA:** `git diff baseline-0.2.0 -- reconstruction/`
+**See everything the team changed vs. NVIDIA** (lists every NVIDIA file that is not a pure move):
+
+```bash
+git diff -M --name-status baseline-0.2.0 -- baseline reconstruction robotic_grounding video_ingestion_agent | grep -v '^R100'
+```
+
+Name both `baseline` and the old root folders: NVIDIA's tag has the packages at the repo root, and git can only pair moved files when both sides are in the pathspec. Otherwise every file shows as newly added.
 
 **Pull in a later NVIDIA release** (never straight into `main`):
 
@@ -164,6 +171,9 @@ git switch -c sync/upstream-<ver> main
 git merge upstream/<release-branch>
 # resolve conflicts; this README will conflict with NVIDIA's README → keep ours:
 #   git checkout --ours README.md
+# NVIDIA's edits to existing files follow the move into baseline/ and assets/docs/.
+# New files inside moved folders show as "CONFLICT (file location)": accept git's suggested path.
+# New top-level items (e.g. tools/, run_e2e.sh in v0.3.0+) land at the root: git mv them into baseline/
 # re-run the smoke test (§5.4), then open a PR into main
 ```
 
@@ -187,7 +197,7 @@ git merge upstream/<release-branch>
    git lfs install
    git lfs pull upstream          # LFS files (sample video, assets) come from NVIDIA's public repo
    ```
-   Check with `ls -lh reconstruction/assets/airplane.mp4`. It should be several MB, not a ~130-byte pointer file.
+   Check with `ls -lh baseline/reconstruction/assets/airplane.mp4`. It should be several MB, not a ~130-byte pointer file.
 
 ### 4.2 Personal accounts and licenses (each person, once)
 
@@ -210,9 +220,9 @@ Never share `MANO_RIGHT.pkl` or tokens through this repo or chat.
 
 ## 5. Running the baseline (reconstruction)
 
-This section covers **video → reconstruction result bundle**. Robotic grounding (retargeting + PPO policy) is the next stage and will be documented separately. NVIDIA's guide is `reconstruction/docs/ego_e2e_setup.md`.
+This section covers **video → reconstruction result bundle**. Robotic grounding (retargeting + PPO policy) is the next stage and will be documented separately. NVIDIA's guide is `baseline/reconstruction/docs/ego_e2e_setup.md`.
 
-**All commands below run from `reconstruction/`.**
+**All commands below run from `baseline/reconstruction/`.** The Track 3 dataset lives at `../../assets/data/track_3/` from there.
 
 ### 5.1 Prerequisites on the GPU machine
 
@@ -226,7 +236,7 @@ This section covers **video → reconstruction result bundle**. Robotic groundin
 ### 5.2 Install, build, download weights (once per machine)
 
 ```bash
-cd reconstruction
+cd baseline/reconstruction
 ./scripts/install_ego_reconstruction_packages.sh      # host-side Python wrappers (no ML deps)
 ./scripts/build_ego_reconstruction_packages.sh        # builds the per-module Docker images (slow)
 export HF_TOKEN=<your token>                          # or: huggingface-cli login
@@ -245,7 +255,7 @@ Weight modes:
 ### 5.3 Place the MANO model
 
 ```
-reconstruction/data/weights/hand/
+baseline/reconstruction/data/weights/hand/
 ├── models/
 │   └── MANO_RIGHT.pkl        ← your own download
 └── BMC/
@@ -279,11 +289,13 @@ Success means a `result*/result.npz` file exists and the overlay videos look sen
 
 ```bash
 huggingface-cli download nvidia/video_to_data_challenge --repo-type dataset \
-    --include "track_3/*" --local-dir data/
-ls data/track_3/public            # data/ videos/ mesh/ urdf/ meta/
+    --include "track_3/*" --local-dir ../../assets/data/
+ls ../../assets/data/track_3/public   # data/ videos/ mesh/ urdf/ meta/
 ```
 
-`data/track_3/evaluation/` holds videos only; its ground truth is hidden. Only `public/` (20 episodes) can be scored locally.
+`assets/data/track_3/evaluation/` holds videos only; its ground truth is hidden. Only `public/` (20 episodes) can be scored locally. Full layout and file naming: [`assets/README.md`](assets/README.md).
+
+Clip path pattern: `../../assets/data/track_3/public/videos/chunk-000/observation.images.ego_cam_a/episode_XXXXXX.mp4`
 
 ### 5.6 Prepare a Track 3 clip
 
@@ -322,7 +334,7 @@ Variant using the **provided scanned mesh** instead of SAM3D (download weights w
 python modules/v2d_pipelines/run_ego_reconstruction.py \
     --video <clip>.mp4 \
     --object_prompt "white pot" \
-    --object_mesh data/track_3/public/mesh/white_pot/white_pot.obj \
+    --object_mesh ../../assets/data/track_3/public/mesh/white_pot/white_pot.obj \
     --skip_object_scale_estimation \
     --output_dir data/outputs/main/<episode>_scanmesh \
     --reference_frame <N> --undistort --hand_tracking hamer \
@@ -332,6 +344,7 @@ python modules/v2d_pipelines/run_ego_reconstruction.py \
 
 Scans ship as `.glb`. NVIDIA's example uses `.obj`, and `.glb` input is untested. To convert:
 `python -c "import trimesh; trimesh.load('white_pot.glb', force='mesh').export('white_pot.obj')"`.
+`mini_sweeper`, `wooden_piece_1` and `wooden_piece_2` ship `<name>_visual.glb` + `<name>_collision.glb` instead of `<name>.glb`; convert the `_visual.glb`.
 The prompt is still required, because it drives detection, masks and pose initialisation.
 
 **Output folder convention:** `data/outputs/<branch>/<episode>[_variant]`. Never reuse another branch's output folder (see §5.9).
@@ -371,7 +384,7 @@ The run prints the final bundle as `final_result_bundle:`. When debugging, **wat
 **Status: not working yet. Treat this as an open shared task (`shared/apptainer-launcher`).**
 
 - Bridges-2 has **L40S nodes** (8× L40S 48 GB per node), a validated GPU.
-- Bridges-2 provides **Apptainer/Singularity, not Docker**. The baseline's host launcher (`reconstruction/modules/v2d_docker/`) calls `docker run` for every step, so the pipeline cannot run there unchanged.
+- Bridges-2 provides **Apptainer/Singularity, not Docker**. The baseline's host launcher (`baseline/reconstruction/modules/v2d_docker/`) calls `docker run` for every step, so the pipeline cannot run there unchanged.
 
 Plan for the port:
 1. Build the module Docker images on any Linux x86-64 machine with Docker (§5.2) and push them to a private registry, e.g. GitHub Container Registry.
@@ -385,11 +398,12 @@ Until this lands, run the baseline on a Linux GPU machine with Docker.
 
 ## 6. Track 3 data essentials
 
-Read `data/track_3/README.md` once. The parts that bite:
+Read `assets/data/track_3/README.md` once. The parts that bite:
 
 | Fact | Consequence |
 |---|---|
 | 20 public episodes, 10 tasks, 10 objects, ~262 frames each at 20.25 fps | Small. Use all of it for local validation; don't overfit to one clip. |
+| Episode indices are not contiguous (public: 0, 2, 11, …, 45) | Iterate over files or `meta/info.json` → `episode_indices`, not `range(20)` |
 | Video frame *i* = parquet row *i* in every clip | No time sync needed |
 | `pose` = `[x, y, z, qw, qx, qy, qz]`, **w-first** quaternion, metres | SciPy wants x, y, z, w. Reorder before `Rotation.from_quat`. |
 | Poses are `world_T_object` **in the scanned mesh's frame** | A SAM3D mesh's frame is arbitrary (reference-camera axes). Compare against scans, or solve the rotation. |
@@ -409,14 +423,17 @@ Read `data/track_3/README.md` once. The parts that bite:
 
 - The host runs thin Python wrappers. Each step launches its own Docker image.
 - Steps communicate **only through files** in `--output_dir`, with typed formats from `v2d_common`.
-- Entrypoint: `reconstruction/modules/v2d_pipelines/run_ego_reconstruction.py`, which in HaMeR mode calls `run_ego_wilor.py`.
+- Entrypoint: `baseline/reconstruction/modules/v2d_pipelines/run_ego_reconstruction.py`, which in HaMeR mode calls `run_ego_wilor.py`.
 
 ### Path A: editing NVIDIA code
+
+Full rules and where each kind of change goes: [`path_a/README.md`](path_a/README.md).
 
 - One concern per branch (`a/<topic>`), small diffs.
 - Every edited NVIDIA file gets a header comment, as Apache-2.0 requires:
   `# Modified for V2D Track 3 by <name>, <YYYY-MM>: <what changed>`
-- New standalone steps go in a new module, `reconstruction/modules/v2d_t3_<name>/`. Follow NVIDIA's module contract: its own Docker image, a `run_download_weights` entry point if it needs weights, a `run_shell` entry point, and types from `v2d_common`.
+- Path A's own host-side code (entrypoints, configs, scripts) goes in `path_a/`.
+- New standalone steps go in a new module, `baseline/reconstruction/modules/v2d_t3_<name>/` (`--dev` only mounts that folder into containers). Follow NVIDIA's module contract: its own Docker image, a `run_download_weights` entry point if it needs weights, a `run_shell` entry point, and types from `v2d_common`.
 - Compare against the baseline on the same episodes, using the same evaluator.
 
 Known weak points of the baseline (good first targets):
@@ -434,14 +451,14 @@ Known weak points of the baseline (good first targets):
 
 ### Path B: a new pipeline
 
-- All code lives in `pipeline_b/`, with its own entrypoint, stages and Docker images.
-- It may call NVIDIA modules (e.g. `robotic_grounding/`), but **never edits NVIDIA files**. This keeps Path B conflict-free and easy to extract later.
-- It must write the shared result format (`track3/common`) so `track3/eval` can score it.
+- All code lives in `path_b/`, with its own entrypoint, stages and Docker images. See [`path_b/README.md`](path_b/README.md).
+- It may call NVIDIA modules (e.g. `baseline/robotic_grounding/`), but **never edits NVIDIA files**. This keeps Path B conflict-free and easy to extract later.
+- Once the shared result format and evaluator exist, it must write that format so both paths are scored the same way.
 
 ### Before opening a PR
 
 - [ ] Ran on at least the agreed validation episodes, from a clean output folder
-- [ ] Scored with `track3/eval` (once available) and pasted the numbers into the PR, alongside the baseline numbers
+- [ ] Scored with the shared evaluator (once available) and pasted the numbers into the PR, alongside the baseline numbers
 - [ ] No data, weights, outputs or tokens in the diff (`git status`, `git diff --stat`)
 - [ ] Modification notices added to edited NVIDIA files
 
@@ -451,7 +468,7 @@ Known weak points of the baseline (good first targets):
 
 | Never commit | Instead |
 |---|---|
-| `reconstruction/data/` (dataset, weights, outputs) | Each person downloads; outputs stay local or on shared storage |
+| `baseline/reconstruction/data/` (weights, outputs), `assets/data/` (dataset) | Each person downloads; outputs stay local or on shared storage |
 | `MANO_RIGHT.pkl` | Each person registers and downloads |
 | `HF_TOKEN`, any `.env`, credentials | Environment variables |
 | Model checkpoints (`*.pt`, `*.pth`, `*.ckpt`), `*.npz` | Shared storage (e.g. PSC Ocean) |
@@ -464,7 +481,7 @@ These patterns are already in `.gitignore`. Check before committing with `git st
 ## 9. Licensing
 
 - **NVIDIA code:** Apache-2.0. **NVIDIA docs and skills:** CC-BY-4.0. See `LICENSE`, which must stay unchanged.
-- **Our code** (`track3/`, `pipeline_b/`, `v2d_t3_*` modules): Apache-2.0, see `NOTICE`.
+- **Our code** (`path_a/`, `path_b/`, `v2d_t3_*` modules): Apache-2.0, see `NOTICE`.
 - **Track 3 dataset:** CC-BY-4.0 (attribution required).
 - **Third-party models** (MANO, SAM3D, HaMeR, WiLoR, Grounding DINO, ...) have their own licenses. Some are gated or non-commercial.
 - The challenge requires releasing the submitted code under a research license. Before this repo or any branch goes public, scan the full history for secrets, and confirm the challenge's timing rules.
@@ -485,6 +502,8 @@ These patterns are already in `.gitignore`. Check before committing with `git st
 | Results differ between identical runs | Known: unseeded SAM3D (HaMeR mode), DROID-SLAM and GPU non-determinism. Compare over several runs. |
 | SAM3D download or access error | Request access on its Hugging Face page and set `HF_TOKEN` |
 | Merge conflict in `README.md` when syncing NVIDIA | Keep ours: `git checkout --ours README.md` |
+| Imports or scripts still point at the old `reconstruction/` path (installed before the `baseline/` move) | Editable installs record absolute paths: re-run `./scripts/install_ego_reconstruction_packages.sh` from `baseline/reconstruction/` |
+| A command from NVIDIA's docs says `reconstruction/...` and fails | Prepend `baseline/` (NVIDIA's docs use their repo root) |
 | Stuck in the vim editor during `git commit` / merge | `Esc`, then `:wq` (save) or `:cq` (abort). To avoid it: `git config --global core.editor nano` |
 
 ---
@@ -493,8 +512,8 @@ These patterns are already in `.gitignore`. Check before committing with `git st
 
 - NVIDIA repo: https://github.com/nvidia-isaac/video_to_data (baseline: `release/0.2.0`)
 - NVIDIA docs: https://nvidia-isaac.github.io/video_to_data/
-- Ego pipeline guide: `reconstruction/docs/ego_e2e_setup.md`
-- Robotic grounding guide: `robotic_grounding/docs/SETUP.md`
+- Ego pipeline guide: `baseline/reconstruction/docs/ego_e2e_setup.md`
+- Robotic grounding guide: `baseline/robotic_grounding/docs/SETUP.md`
 - Track 3 dataset: https://huggingface.co/datasets/nvidia/video_to_data_challenge/tree/main/track_3
 - CHORD (grounding method) paper: https://arxiv.org/abs/2607.00033
 - Challenge contact: v2d_challenge@nvidia.com

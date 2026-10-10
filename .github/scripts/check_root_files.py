@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Modified for V2D Track 3 by zjifan121, 2026-10: packages moved under baseline/
 # Copyright (c) 2026, NVIDIA CORPORATION. All rights reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
@@ -8,8 +9,8 @@
 # license agreement from NVIDIA CORPORATION is strictly prohibited.
 """Enforce that root-level shared files don't carry package-specific rules.
 
-The monorepo intentionally keeps three subprojects (video_ingestion_agent,
-reconstruction, robotic_grounding) self-contained. Anything anchored to a
+The monorepo intentionally keeps three subprojects (baseline/video_ingestion_agent,
+baseline/reconstruction, baseline/robotic_grounding) self-contained. Anything anchored to a
 specific subproject must live inside that subproject's own version of the
 shared file (.gitignore, .gitattributes, .pre-commit-config.yaml, .envrc),
 not at the repo root. This check enforces that rule on every PR.
@@ -20,7 +21,11 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-PACKAGES = ("video_ingestion_agent", "reconstruction", "robotic_grounding")
+PACKAGES = (
+    "baseline/video_ingestion_agent",
+    "baseline/reconstruction",
+    "baseline/robotic_grounding",
+)
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Files that must not exist at repo root because their content is
