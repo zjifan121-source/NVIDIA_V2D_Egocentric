@@ -2,10 +2,11 @@
 name: hoi-object-reconstruction-run
 description: Launch, monitor, resume, and verify this repository's BundleSDF or SAM3D HOI object reconstruction pipeline. Use when a user asks to run object reconstruction, process calibrated stereo mapping data, try the included basketball example, produce a BundleSDF GLB, produce a SAM3D candidate mesh, resume a partial reconstruction job, or verify the final mesh and alignment artifacts.
 ---
+<!-- Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/ layout -->
 
 # Run HOI Object Reconstruction
 
-Run the top-level host orchestrator from `reconstruction/`. Unless the user
+Run the top-level host orchestrator from `baseline/reconstruction/`. Unless the user
 explicitly requests a command only, launch the pipeline and verify that a real
 stage starts; do not stop after printing a command.
 
@@ -35,7 +36,7 @@ directory as a resume after inspecting its artifacts; never delete it.
 
 ```bash
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-cd "$REPO_ROOT/reconstruction"
+cd "$REPO_ROOT/baseline/reconstruction"
 python ../.claude/skills/hoi-object-reconstruction-setup/scripts/preflight_input.py \
   <absolute-mapping-data-dir>
 python -c 'from v2d_hoi_object_reconstruction.docker.run_reconstruction import main'

@@ -2,6 +2,7 @@
 name: ingestion_agent_onboard
 description: Interactive first-time-user walkthrough for the Video Ingestion Agent (segmentation -> entity graph DB -> retrieval -> webapp). Drives the user through setup ONE STEP AT A TIME with verification between steps, not as a reference dump. Use this skill whenever the user is setting up the package for the first time, says things like "how do I get started with video ingestion agent", "first time running the pipeline", "set up the video ingestion agent", "onboard me", "video ingestion quickstart", "I want to run my first ingest", "how do I install this", or asks generally how to use ingestion + retrieval + the webapp end-to-end. Also trigger when the user says they cloned the repo and aren't sure what to run, mentions a fresh `.venv`, or asks for an end-to-end demo of the package.
 ---
+<!-- Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/ layout -->
 
 # Video Ingestion Agent — Interactive First-Run Walkthrough
 
@@ -26,7 +27,7 @@ The right shape of your first turn:
 >
 > A few quick questions before we start:
 >
-> 1. Are you in `video_ingestion_agent/` with the repo cloned?
+> 1. Are you in `baseline/video_ingestion_agent/` with the repo cloned?
 > 2. What's your goal — full first-run setup, or do you already have an `outputs/graph.db` and just want to query it (or just see the webapp)?
 > 3. Which inference backend do you want for the VLM (and LLM — typically the same)?
 >    - **vllm** *(default, recommended)* — fast local server, needs a GPU with ≥16 GB free VRAM for the default 8B model. I'll only start `scripts/serve.py` if you pick this.

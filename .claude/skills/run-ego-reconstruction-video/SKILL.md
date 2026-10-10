@@ -2,10 +2,11 @@
 name: run-ego-reconstruction-video
 description: Run this repository’s egocentric reconstruction pipeline on a video. Use when a user asks to process an MP4 with HaMeR or DynHaMR hand tracking, an object prompt or mesh, undistortion, DROID-SLAM, gravity alignment, gsplat refinement, or a Three.js result export.
 ---
+<!-- Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/ layout -->
 
 # Run Ego Reconstruction Video
 
-Run from `reconstruction/`. Prefer the consolidated entrypoint and use HaMeR
+Run from `baseline/reconstruction/`. Prefer the consolidated entrypoint and use HaMeR
 unless the user explicitly needs legacy DynHaMR:
 
 ```bash

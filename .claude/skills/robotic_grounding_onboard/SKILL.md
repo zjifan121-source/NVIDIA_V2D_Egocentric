@@ -2,6 +2,7 @@
 name: robotic_grounding_onboard
 description: Interactive first-run walkthrough for robotic_grounding (build the Docker image → provide MANO + a dataset → run the retarget pipeline → dummy-agent smoke test → optional train/eval). Drives the user ONE STEP AT A TIME with verification between steps, not as a reference dump. Use this skill whenever the user is setting up robotic_grounding for the first time: "how do I get started with robotic_grounding", "first time running the pipeline", "onboard me", "robotic grounding quickstart", "I cloned the repo, what do I run", "run my first retarget/smoke test", or generally asks how to go from a fresh clone to a working motion + smoke test. For generating a single command use robotic_grounding_run; for failures use robotic_grounding_doctor; for whole-body G1 use robotic_grounding_whole_body.
 ---
+<!-- Modified for V2D Track 3 by zjifan121, 2026-10: paths updated for baseline/ layout -->
 
 # robotic_grounding — Interactive First-Run Walkthrough
 
@@ -33,7 +34,7 @@ The right shape of your first turn:
 >
 > A few quick questions before we start:
 >
-> 1. Are you in the `robotic_grounding/` directory with the repo cloned?
+> 1. Are you in the `baseline/robotic_grounding/` directory with the repo cloned?
 > 2. What's your goal — full first-run from scratch, or do you already have retargeted motion
 >    (`<ds>_processed/...`) locally and just want to run a smoke test / train?
 > 3. Which dataset do you want to start with? (`arctic` is the easiest first run; also supported:
@@ -139,7 +140,7 @@ ls <HMD>/<dataset>/
 Pass: both MANO `.pkl` files exist and the dataset directory is populated.
 
 **If this fails:** wrong layout is the usual cause — re-check the per-dataset `*_SETUP.md`. For adding
-a *new* dataset (not one of the seven supported), that's a different flow — follow "Adding a New Dataset" in `robotic_grounding/workflow/data_pipeline.md`.
+a *new* dataset (not one of the seven supported), that's a different flow — follow "Adding a New Dataset" in `baseline/robotic_grounding/workflow/data_pipeline.md`.
 
 Confirm: "MANO and `<dataset>` are in place. Ready to run the retarget pipeline?"
 
@@ -208,4 +209,4 @@ smoke-train + eval pair from `README.md`. Verify a checkpoint was written under 
 `eval.py` runs an episode.
 
 Wrap-up: point the user at `docs/ARCHITECTURE.md` for the full map, `robotic_grounding_run` for
-day-to-day commands, and the "Adding a New Dataset" procedure in `robotic_grounding/workflow/data_pipeline.md` if they'll integrate a new dataset.
+day-to-day commands, and the "Adding a New Dataset" procedure in `baseline/robotic_grounding/workflow/data_pipeline.md` if they'll integrate a new dataset.

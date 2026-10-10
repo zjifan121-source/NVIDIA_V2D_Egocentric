@@ -1,3 +1,4 @@
+# Modified for V2D Track 3 by zjifan121, 2026-10: manual trigger only; paths updated for baseline/ and assets/docs/
 # Copyright (c) 2026, NVIDIA CORPORATION. All rights reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
@@ -14,29 +15,13 @@
 # and avoids duplicating that lint-quality check.
 #
 # To add a new package: append it to `matrix.package`, add its source
-# globs to the `paths:` filter, and add a list item to docs/index.html.
+# globs to the `paths:` filter, and add a list item to assets/docs/index.html.
 
 name: Docs
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'video_ingestion_agent/docs/**'
-      - 'video_ingestion_agent/pyproject.toml'
-      - 'docs/**'
-      - '.github/workflows/docs.yml'
-  # Build (but don't deploy) on PRs targeting main so changes to the
-  # workflow itself or to package docs are validated before merge.
-  # The deploy job's `if: github.event_name != 'pull_request'` guard
-  # keeps PRs from publishing.
-  pull_request:
-    branches: [main]
-    paths:
-      - 'video_ingestion_agent/docs/**'
-      - 'video_ingestion_agent/pyproject.toml'
-      - 'docs/**'
-      - '.github/workflows/docs.yml'
+  # Track 3 fork: automatic runs disabled. GitHub Pages is not enabled on this
+  # private repo, so the deploy job always failed. Run manually if Pages is set up.
   workflow_dispatch: {}
 
 permissions:
@@ -56,7 +41,7 @@ jobs:
     timeout-minutes: 20
     # sphinx-multiversion runs `git worktree add` for each version, which
     # materializes the full repo at that SHA and triggers Git LFS smudging
-    # on sibling-package assets (parquet / pkl / npz under robotic_grounding/).
+    # on sibling-package assets (parquet / pkl / npz under baseline/robotic_grounding/).
     # We never need those file contents to build docs -- skipping smudging
     # keeps them as LFS pointer files in the worktree.
     env:
@@ -80,13 +65,13 @@ jobs:
           python-version: "3.11"
 
       - name: Install docs dependencies
-        working-directory: ${{ matrix.package }}
+        working-directory: baseline/${{ matrix.package }}
         run: |
           python -m pip install --upgrade pip
           pip install -r docs/requirements.txt
 
       - name: Build multiversion docs
-        working-directory: ${{ matrix.package }}/docs
+        working-directory: baseline/${{ matrix.package }}/docs
         # `make multi-docs` runs sphinx-multiversion across the
         # branch / tag whitelist defined in conf.py and copies
         # _redirect/index.html to _build/index.html.
@@ -96,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: docs-${{ matrix.package }}
-          path: ${{ matrix.package }}/docs/_build/
+          path: baseline/${{ matrix.package }}/docs/_build/
           retention-days: 7
           if-no-files-found: error
 
@@ -116,7 +101,7 @@ jobs:
       - name: Stage static docs site
         run: |
           mkdir -p _site
-          cp -r docs/. _site/
+          cp -r assets/docs/. _site/
 
       - name: Download all package docs artifacts
         uses: actions/download-artifact@v4

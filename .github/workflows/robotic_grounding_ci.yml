@@ -1,3 +1,4 @@
+# Modified for V2D Track 3 by zjifan121, 2026-10: manual trigger only; paths updated for baseline/
 # Copyright (c) 2026, NVIDIA CORPORATION. All rights reserved.
 #
 # NVIDIA CORPORATION and its licensors retain all intellectual property
@@ -8,16 +9,8 @@
 name: Robotic Grounding CI
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'robotic_grounding/**'
-      - '.github/workflows/robotic_grounding_ci.yml'
-  pull_request:
-    branches: [main]
-    paths:
-      - 'robotic_grounding/**'
-      - '.github/workflows/robotic_grounding_ci.yml'
+  # Track 3 fork: automatic runs disabled. The build_and_test job needs NVIDIA's
+  # self-hosted GPU runner, so it sat queued forever on this repo.
   workflow_dispatch:
 
 # Cancel in-progress runs for the same PR
@@ -47,12 +40,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pre-commit
-          key: pre-commit-${{ hashFiles('robotic_grounding/.pre-commit-config.yaml') }}
+          key: pre-commit-${{ hashFiles('baseline/robotic_grounding/.pre-commit-config.yaml') }}
           restore-keys: |
             pre-commit-
       - name: Run pre-commit
         run: |
-          cd robotic_grounding
+          cd baseline/robotic_grounding
           pre-commit run --show-diff-on-failure --files $(git ls-files .)
 
   ## ------------------------------------------
@@ -83,14 +76,14 @@ jobs:
       - name: Build Docker image
         run: |
           echo "::group::Build Docker image"
-          time docker build -f robotic_grounding/workflow/Dockerfile -t $DOCKER_IMAGE ./robotic_grounding
+          time docker build -f baseline/robotic_grounding/workflow/Dockerfile -t $DOCKER_IMAGE ./baseline/robotic_grounding
           echo "::endgroup::"
       - name: Run E2E tests
         run: |
           echo "::group::E2E Tests"
           docker run --name robotic-grounding-e2e-${{ github.run_id }} \
             --entrypoint bash --gpus all --network=host \
-            -v ${{ github.workspace }}/robotic_grounding/tests:/workspace/video_to_data/robotic_grounding/tests \
+            -v ${{ github.workspace }}/baseline/robotic_grounding/tests:/workspace/video_to_data/robotic_grounding/tests \
             -e ACCEPT_EULA=Y \
             -e OMNI_KIT_ACCEPT_EULA=yes \
             -e OMNI_KIT_DISABLE_CUP=1 \
