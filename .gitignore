@@ -1,25 +1,24 @@
-# Modified for V2D Track 3 by zjifan121, 2026-10: packages moved under baseline/; Track 3 rules below
-# Root-only rules. Each subproject (baseline/reconstruction/, baseline/video_ingestion_agent/,
-# baseline/robotic_grounding/) has its own .gitignore for package-specific artifacts.
-**.egg-info
+# Team rules for the whole repo. NVIDIA's own rules live in baseline/.gitignore
+# and baseline/<package>/.gitignore.
 
-# Editor workspace files
-*.code-workspace
+# Track 3 dataset from Hugging Face (~1.5 GB, each person downloads it). Weights and run
+# outputs live in baseline/reconstruction/data/, which NVIDIA's baseline/reconstruction/.gitignore covers.
+/assets/data/track_3/
+/assets/data/.cache/
 
-# Local direnv overrides (only meaningful at repo root)
-.envrc.local
-
-# Track 3 additions
-# Local inputs (Track 3 dataset, other downloads). Weights and run outputs live in
-# baseline/reconstruction/data/, which baseline/reconstruction/.gitignore covers.
-/assets/data/
+# OS / editor / Python
 .DS_Store
+*.code-workspace
 __pycache__/
 *.py[cod]
+*.egg-info/
+.venv/
+
+# Never commit: secrets, licensed models, large artifacts
+.env
+MANO_RIGHT.pkl
 third_party/
 *.pt
 *.pth
 *.ckpt
 *.npz
-.env
-MANO_RIGHT.pkl
