@@ -2,14 +2,14 @@
 
 Private team repository for the **NVIDIA Isaac Video-to-Data (V2D) Challenge, Track 3: Egocentric Video → Policy**.
 
-It is built on NVIDIA's [`video_to_data`](https://github.com/nvidia-isaac/video_to_data) at `release/0.2.0`. The team works on two independent approaches, kept on separate branches:
+It is built on NVIDIA's [`video_to_data`](https://github.com/nvidia-isaac/video_to_data) at `release/0.2.0`. `main` holds only challenge material (NVIDIA's code, docs, inputs and the official evaluator), none of the team's work. The team works on two independent approaches, each on its own branch:
 
-- **Path A: build on the baseline.** Add to and fix NVIDIA's pipeline inside `baseline/`, on the `path-a` branch.
-- **Path B: a completely new approach.** Lives in `path_b/` on the `path-b` branch. It shares only the inputs and the evaluator with the rest of the repo.
+- **Path A: build on the baseline** (`path-a` branch). New code goes in `path_a/`; fixes to NVIDIA's files are made in place under `baseline/`.
+- **Path B: a completely new approach** (`path-b` branch). Lives in `path_b/` and shares only the inputs, docs and evaluation from `assets/`.
 
-Both paths are scored by the same shared evaluator, so their results are directly comparable.
+Both paths are scored with the same official evaluator, so their results are directly comparable.
 
-> **`baseline/` is NVIDIA's repository exactly as released**, including NVIDIA's own [README](baseline/README.md), docs and agent skills. Their paths are relative to `baseline/`, so run NVIDIA's commands from there, and start an agent inside `baseline/` to use NVIDIA's skills.
+> **`baseline/` is NVIDIA's repository as released**, except its `docs/` folder, which lives in `assets/docs/nvidia/`. NVIDIA's [README](baseline/README.md) and agent skills use paths relative to `baseline/`, so run NVIDIA's commands from there, and start an agent inside `baseline/` to use NVIDIA's skills.
 
 ---
 
@@ -47,16 +47,15 @@ Both paths are scored by the same shared evaluator, so their results are directl
 
 ## 2. Repository structure
 
-Legend: **[N]** NVIDIA, unmodified · **[S]** shared, on `main` · **[A]** `path-a` branch only · **[B]** `path-b` branch only · **[L]** local only, never committed
+Legend: **[N]** NVIDIA / official challenge material, unmodified · **[A]** `path-a` branch only · **[B]** `path-b` branch only · **[L]** local only, never committed
 
 ```
 NVIDIA_V2D_Egocentric/
-├── README.md  NOTICE  LICENSE  .gitignore   [S] team files (LICENSE is a copy of NVIDIA's)
+├── README.md  NOTICE  LICENSE  .gitignore   repo files (LICENSE is a copy of NVIDIA's)
 │
-├── baseline/                       [N] NVIDIA video_to_data release/0.2.0, exactly as released
+├── baseline/                       [N] NVIDIA video_to_data release/0.2.0, minus docs/ (moved to assets/)
 │   ├── README.md  LICENSE  SECURITY.md  .gitignore  .gitattributes
 │   ├── .github/ .claude/ .codex/   NVIDIA's CI and agent skills (CI does not run from here)
-│   ├── docs/                       NVIDIA's docs site
 │   ├── reconstruction/             video → depth, masks, mesh, 6-DoF object pose, MANO hands
 │   │   ├── scripts/                install / build / download-weights scripts
 │   │   ├── docs/ego_e2e_setup.md   NVIDIA's ego pipeline guide (source for §5)
@@ -67,27 +66,33 @@ NVIDIA_V2D_Egocentric/
 │   │   │   ├── v2d_docker/         host-side launcher that runs each module in Docker
 │   │   │   ├── v2d_moge/ v2d_droid_slam/ v2d_wilor/ v2d_grounding_dino/ v2d_sam2/
 │   │   │   ├── v2d_sam3d/ v2d_foundation_pose/ v2d_hamer/ v2d_gsplat_refinement/ v2d_geocalib/ ...
-│   │   │   └── v2d_t3_<name>/      [A] new Path A modules (prefix t3_ = ours)
+│   │   │   └── v2d_t3_<name>/      [A] new Path A Docker modules (prefix t3_ = ours)
 │   │   └── data/                   [L] runtime cache (paths are relative to baseline/reconstruction/)
 │   │       ├── weights/            model weights, incl. hand/models/MANO_RIGHT.pkl
 │   │       └── outputs/<branch>/<episode>/   one folder per run
 │   ├── robotic_grounding/          retargeting + Isaac Lab PPO (not covered by this README yet)
 │   └── video_ingestion_agent/      not used for Track 3
 │
-├── assets/                         [S] shared inputs (see assets/README.md)
-│   └── data/                       [L] Track 3 dataset
+├── assets/                         [N] everything about the challenge (see assets/README.md)
+│   ├── docs/
+│   │   ├── nvidia/                 NVIDIA's docs/ from release/0.2.0
+│   │   └── challenge/              official challenge website snapshot: rules, FAQ, submission kit zip
+│   └── data/
+│       ├── v2d_submission_kit/     official evaluator: scorers, policy evaluator, packer, uploader
+│       └── track_3/                [L] Hugging Face dataset: public/ (inputs + ground truth), evaluation/ (videos)
 │
-├── shared/                         [S] shared code: evaluator, result format (not created yet)
+├── path_a/                         [A] Path A's new code
 └── path_b/                         [B] Path B's pipeline
 ```
 
 Rules that keep this layout working:
 
-- **Everything about the baseline sits in `baseline/`.** On `main` it is exactly NVIDIA's `release/0.2.0`; this prints nothing:
-  `git diff --stat baseline-0.2.0 main:baseline`
-- **Path A** adds to and edits `baseline/`, and only on the `path-a` branch. There is no separate Path A folder.
-- **Path B** lives entirely in `path_b/`, only on the `path-b` branch. It uses only the shared inputs (`assets/`) and the shared evaluator (`shared/`), and never touches `baseline/`.
-- **Shared things** (inputs, evaluator, this README) change only on `main`.
+- **`main` holds only challenge material**, none of the team's work.
+- **`baseline/` matches NVIDIA's `release/0.2.0`** on `main`. Both commands print nothing:
+  `git diff --stat baseline-0.2.0 main:baseline -- . ':!docs'` (code)
+  `git diff --stat baseline-0.2.0:docs main:assets/docs/nvidia` (docs)
+- **Path A** puts new code in `path_a/` and edits `baseline/` in place, only on the `path-a` branch.
+- **Path B** lives entirely in `path_b/`, only on the `path-b` branch. It uses only `assets/` (inputs, docs, evaluation) and never touches `baseline/`.
 
 ---
 
@@ -98,17 +103,17 @@ Three branches:
 ```
 upstream (NVIDIA)   release/0.2.0 ──► tag baseline-0.2.0
                                          │
-origin (this repo)                      main      shared: baseline/ (unmodified), assets/, shared/, README
+origin (this repo)                      main      challenge material: baseline/, assets/
                          ┌───────────────┴───────────────┐
                        path-a                         path-b
-               main + changes inside baseline/   main + path_b/
+          main + path_a/ + edits in baseline/      main + path_b/
 ```
 
 | Branch | Contains | Merges into |
 |---|---|---|
-| `main` | Unmodified baseline + shared inputs, evaluator and docs | — |
-| `path-a` | `main` + Path A's additions/edits inside `baseline/` | nothing |
-| `path-b` | `main` + `path_b/` | nothing |
+| `main` | NVIDIA's baseline, docs, inputs and the official evaluator | — |
+| `path-a` | `main` + `path_a/` + Path A's edits inside `baseline/` | nothing |
+| `path-b` | `main` + `path_b/` (`baseline/` present but unused) | nothing |
 
 **The rules:**
 
@@ -124,13 +129,13 @@ GitHub does not enforce branch protection on this private repo's plan, so these 
 
 ```bash
 git switch path-a && git pull
-# ...edit inside baseline/, run, score...
+# ...edit path_a/ or baseline/, run, score...
 git add -p
 git commit -m "Seed SAM3D in HaMeR mode"
 git push
 ```
 
-**Bring shared changes from `main` into your path branch:**
+**Bring changes from `main` into your path branch:**
 
 ```bash
 git switch path-a && git pull
@@ -145,22 +150,25 @@ git worktree add ../v2d-path-a path-a
 git worktree add ../v2d-path-b path-b
 ```
 
-**See everything Path A changed vs. NVIDIA:**
+**See every NVIDIA file Path A changed:**
 
 ```bash
-git diff --stat baseline-0.2.0 origin/path-a:baseline
+git diff --stat baseline-0.2.0 origin/path-a:baseline -- . ':!docs'
 ```
 
-**Bring in a newer NVIDIA release** (e.g. for FlashCHORD). Because `baseline/` on `main` is unmodified, it is replaced wholesale on a short-lived branch, then merged into the path branches as usual:
+**Bring in a newer NVIDIA release** (e.g. for FlashCHORD) on a short-lived branch, then merge into the path branches as usual:
 
 ```bash
 git fetch upstream --tags
 git switch -c sync-upstream main
-git rm -r -q baseline
+git rm -r -q baseline assets/docs/nvidia
 git read-tree --prefix=baseline/ -u upstream/<release-branch>
+git mv baseline/docs assets/docs/nvidia
 git commit -m "Update baseline/ to NVIDIA <release>"
 # re-run the smoke test (§5.4), tag the new baseline, open a PR into main
 ```
+
+When NVIDIA updates the challenge site or submission kit, refresh `assets/docs/challenge/` and `assets/data/v2d_submission_kit/` the same way (see `assets/README.md`).
 
 ---
 
@@ -412,7 +420,7 @@ Read `assets/data/track_3/README.md` once. The parts that bite:
 
 ### Path A: building on the baseline
 
-- All Path A work, edits and new code alike, goes inside `baseline/` on the `path-a` branch.
+- Path A works on the `path-a` branch: new code in `path_a/`, fixes to NVIDIA's files in place under `baseline/`.
 - Small, focused commits, one concern each.
 - Every edited NVIDIA file gets a header comment, as Apache-2.0 requires:
   `# Modified for V2D Track 3 by <name>, <YYYY-MM>: <what changed>`
@@ -435,13 +443,12 @@ Known weak points of the baseline (good first targets):
 ### Path B: a completely new approach
 
 - All code lives in `path_b/` on the `path-b` branch, with its own entrypoint, stages and Docker images.
-- It uses only the shared inputs (`assets/`) and the shared evaluator (`shared/`). It does not use or edit `baseline/`.
-- Once the shared result format and evaluator exist, it must write that format so both paths are scored the same way.
+- It uses only `assets/` (inputs, docs and the official evaluator). It does not use or edit `baseline/`.
 
 ### Before opening a PR
 
 - [ ] Ran on at least the agreed validation episodes, from a clean output folder
-- [ ] Scored with the shared evaluator (once available) and pasted the numbers into the PR, alongside the baseline numbers
+- [ ] Scored with the official evaluator (`assets/data/v2d_submission_kit/`) and noted the numbers alongside the baseline numbers
 - [ ] No data, weights, outputs or tokens in the diff (`git status`, `git diff --stat`)
 - [ ] Modification notices added to edited NVIDIA files
 
@@ -464,7 +471,8 @@ These patterns are already in `.gitignore`. Check before committing with `git st
 ## 9. Licensing
 
 - **NVIDIA code:** Apache-2.0. **NVIDIA docs and skills:** CC-BY-4.0. See `baseline/LICENSE`, which must stay unchanged. The root `LICENSE` is a copy.
-- **Our code** (`shared/`, `path_b/`, Path A's `v2d_t3_*` modules and marked edits): Apache-2.0, see `NOTICE`.
+- **Our code** (`path_a/`, `path_b/`, Path A's `v2d_t3_*` modules and marked edits): Apache-2.0, see `NOTICE`.
+- **Challenge site and submission kit** (`assets/docs/challenge/`, `assets/data/v2d_submission_kit/`): NVIDIA's, copied unmodified.
 - **Track 3 dataset:** CC-BY-4.0 (attribution required).
 - **Third-party models** (MANO, SAM3D, HaMeR, WiLoR, Grounding DINO, ...) have their own licenses. Some are gated or non-commercial.
 - Winning submissions must release their code under Apache-2.0 (challenge FAQ). Before this repo or any branch goes public, scan the full history for secrets.

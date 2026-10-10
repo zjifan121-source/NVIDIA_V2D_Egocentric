@@ -1,9 +1,9 @@
 # Team rules for the whole repo. NVIDIA's own rules live in baseline/.gitignore
 # and baseline/<package>/.gitignore.
 
-# Local inputs (Track 3 dataset, other downloads). Weights and run outputs live in
-# baseline/reconstruction/data/, which NVIDIA's baseline/reconstruction/.gitignore covers.
-/assets/data/
+# Track 3 dataset from Hugging Face (~1.5 GB, each person downloads it). Weights and run
+# outputs live in baseline/reconstruction/data/, which NVIDIA's baseline/reconstruction/.gitignore covers.
+/assets/data/track_3/
 
 # OS / editor / Python
 .DS_Store

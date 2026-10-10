@@ -4,11 +4,13 @@ This project builds on NVIDIA's video_to_data
 NVIDIA source code: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES, Apache-2.0.
 NVIDIA documentation and skills: CC-BY-4.0.
 
-NVIDIA's repository is kept unmodified in baseline/ on the main branch.
-On the path-a branch, modified NVIDIA files carry a modification notice at the top.
+On the main branch, NVIDIA's repository is kept unmodified in baseline/, except
+its docs/ folder, which is kept unmodified in assets/docs/nvidia/.
+assets/docs/challenge/ and assets/data/v2d_submission_kit/ are NVIDIA's challenge
+website and submission kit, copied unmodified.
 The root LICENSE is a copy of NVIDIA's baseline/LICENSE.
 
-The contents of shared/, path_b/, assets/README.md and
-baseline/reconstruction/modules/v2d_t3_*/ are original work by the team,
-licensed under Apache-2.0.
+On the path-a branch, modified NVIDIA files carry a modification notice at the top.
+The contents of path_a/, path_b/ and baseline/reconstruction/modules/v2d_t3_*/
+are original work by the team, licensed under Apache-2.0.
 This project is not affiliated with or endorsed by NVIDIA.
