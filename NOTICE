@@ -1,0 +1,10 @@
+NVIDIA_V2D_Egocentric
+This project builds on NVIDIA's video_to_data
+(https://github.com/nvidia-isaac/video_to_data), release/0.2.0 (commit 43a3f5b).
+NVIDIA source code: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES, Apache-2.0.
+NVIDIA documentation and skills: CC-BY-4.0.
+Modified NVIDIA files carry a modification notice at the top.
+
+The contents of track3/, pipeline_b/ and reconstruction/modules/v2d_t3_*/
+are original work by the team, licensed under Apache-2.0.
+This project is not affiliated with or endorsed by NVIDIA.
