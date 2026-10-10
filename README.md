@@ -196,7 +196,7 @@ When NVIDIA updates the challenge site or submission kit, refresh `assets/docs/c
 
 | What | Why | How |
 |---|---|---|
-| Hugging Face account + token | SAM3D weights are gated; dataset download | Create a token at huggingface.co → Settings → Access Tokens. Request access on the SAM 3D model page. Then `huggingface-cli login` or `export HF_TOKEN=...` |
+| Hugging Face account + token | SAM3D weights are gated; dataset download | Create a token at huggingface.co → Settings → Access Tokens. Request access on the SAM 3D model page. Then `hf auth login` or `export HF_TOKEN=...` |
 | MANO license | Hand model used by every hand step; it cannot be redistributed | Register at https://mano.is.tue.mpg.de/ and download `MANO_RIGHT.pkl` yourself |
 
 Never share `MANO_RIGHT.pkl` or tokens through this repo or chat.
@@ -232,7 +232,7 @@ This section covers **video → reconstruction result bundle**. Robotic groundin
 cd baseline/reconstruction
 ./scripts/install_ego_reconstruction_packages.sh      # host-side Python wrappers (no ML deps)
 ./scripts/build_ego_reconstruction_packages.sh        # builds the per-module Docker images (slow)
-export HF_TOKEN=<your token>                          # or: huggingface-cli login
+export HF_TOKEN=<your token>                          # or: hf auth login
 ./scripts/download_ego_reconstruction_weights.sh --mode hamer_prompt
 ```
 
@@ -281,7 +281,7 @@ Success means a `result*/result.npz` file exists and the overlay videos look sen
 ### 5.5 Download the Track 3 data
 
 ```bash
-huggingface-cli download nvidia/video_to_data_challenge --repo-type dataset \
+hf download nvidia/video_to_data_challenge --repo-type dataset \
     --include "track_3/*" --local-dir ../../assets/data/
 ls ../../assets/data/track_3/public   # data/ videos/ mesh/ urdf/ meta/
 ```

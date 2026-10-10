@@ -35,12 +35,14 @@ unzip -q assets/docs/challenge/assets/v2d_submission_kit.zip -d assets/data/
 
 ## Track 3 dataset
 
-CC-BY-4.0, ~1.5 GB, 196 files. Download from the repo root:
+CC-BY-4.0, ~1.5 GB, 169 files. Download from the repo root:
 
 ```bash
-huggingface-cli download nvidia/video_to_data_challenge --repo-type dataset \
+hf download nvidia/video_to_data_challenge --repo-type dataset \
     --include "track_3/*" --local-dir assets/data/
 ```
+
+`hf` comes with `pip install -U huggingface_hub` (older versions call it `huggingface-cli download`). The download also writes `assets/data/.cache/`, which is gitignored.
 
 Resulting layout:
 

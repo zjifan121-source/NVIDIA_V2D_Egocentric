@@ -4,6 +4,7 @@
 # Track 3 dataset from Hugging Face (~1.5 GB, each person downloads it). Weights and run
 # outputs live in baseline/reconstruction/data/, which NVIDIA's baseline/reconstruction/.gitignore covers.
 /assets/data/track_3/
+/assets/data/.cache/
 
 # OS / editor / Python
 .DS_Store
