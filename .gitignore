@@ -218,3 +218,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+data/
+*.npz
+*.mp4
+*.pt
+*.pth
+*.ckpt
+data/weights/
+MANO_RIGHT.pkl
+.env
+*.token
