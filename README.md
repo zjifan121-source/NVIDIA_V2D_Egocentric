@@ -2,16 +2,14 @@
 
 Private team repository for the **NVIDIA Isaac Video-to-Data (V2D) Challenge, Track 3: Egocentric Video → Policy**.
 
-It is built on NVIDIA's [`video_to_data`](https://github.com/nvidia-isaac/video_to_data) at `release/0.2.0`, which is the official Track 3 baseline. The team works on two independent approaches, kept on separate branches:
+It is built on NVIDIA's [`video_to_data`](https://github.com/nvidia-isaac/video_to_data) at `release/0.2.0`. The team works on two independent approaches, kept on separate branches:
 
-- **Path A: improve the baseline.** Fix and extend NVIDIA's reconstruction pipeline in place.
-- **Path B: a new pipeline.** Same inputs, same output format, a different method.
+- **Path A: build on the baseline.** Add to and fix NVIDIA's pipeline inside `baseline/`, on the `path-a` branch.
+- **Path B: a completely new approach.** Lives in `path_b/` on the `path-b` branch. It shares only the inputs and the evaluator with the rest of the repo.
 
 Both paths are scored by the same shared evaluator, so their results are directly comparable.
 
-> NVIDIA's original README is kept at [`assets/docs/NVIDIA_README.md`](assets/docs/NVIDIA_README.md).
->
-> **Paths in NVIDIA's own docs:** NVIDIA's packages live under `baseline/` here. Their docs and skills write paths from NVIDIA's repo root (e.g. `reconstruction/scripts/...`). In this repo, prepend `baseline/`.
+> **`baseline/` is NVIDIA's repository exactly as released**, including NVIDIA's own [README](baseline/README.md), docs and agent skills. Their paths are relative to `baseline/`, so run NVIDIA's commands from there, and start an agent inside `baseline/` to use NVIDIA's skills.
 
 ---
 
@@ -37,6 +35,7 @@ Both paths are scored by the same shared evaluator, so their results are directl
 |---|---|
 | Baseline | `nvidia-isaac/video_to_data` `release/0.2.0` |
 | Baseline tag in this repo | `baseline-0.2.0` (NVIDIA's exact commit, unmodified) |
+| Newer NVIDIA releases | v0.3.0 (end-to-end GR00T workflow), v0.4.0 (FlashCHORD). Brought in only when needed ([§3](#3-branches-and-workflow)). |
 | Remotes | `origin` = this repo, `upstream` = NVIDIA |
 | Dataset | [`nvidia/video_to_data_challenge`](https://huggingface.co/datasets/nvidia/video_to_data_challenge) → `track_3/` (CC-BY-4.0, ~1.5 GB) |
 | Validated GPUs | RTX A6000 (SM 86), L40S (SM 89) |
@@ -48,21 +47,16 @@ Both paths are scored by the same shared evaluator, so their results are directl
 
 ## 2. Repository structure
 
-Three top-level areas: **`baseline/`** (NVIDIA's code), **`assets/`** (inputs and docs), and one folder per path (**`path_a/`**, **`path_b/`**).
-
-Legend: **[N]** NVIDIA · **[S]** team, on `main` · **[A]** Path A only · **[B]** Path B only · **[L]** local only, never committed
+Legend: **[N]** NVIDIA, unmodified · **[S]** shared, on `main` · **[A]** `path-a` branch only · **[B]** `path-b` branch only · **[L]** local only, never committed
 
 ```
 NVIDIA_V2D_Egocentric/
-├── README.md                       [S] this file
-├── NOTICE                          [S] attribution to NVIDIA + what is ours
-├── LICENSE                         [N] NVIDIA's license (Apache-2.0 code / CC-BY-4.0 docs), unchanged
-├── SECURITY.md                     [N]
-├── .gitignore .gitattributes       [N]+[S] NVIDIA rules + Track 3 additions
-├── .github/                        [N] CI (Docs and Robotic Grounding CI are manual-only on this fork)
-├── .claude/skills/ .codex/skills/  [N] agent skills (paths updated for baseline/)
+├── README.md  NOTICE  LICENSE  .gitignore   [S] team files (LICENSE is a copy of NVIDIA's)
 │
-├── baseline/                       [N] NVIDIA video_to_data release/0.2.0
+├── baseline/                       [N] NVIDIA video_to_data release/0.2.0, exactly as released
+│   ├── README.md  LICENSE  SECURITY.md  .gitignore  .gitattributes
+│   ├── .github/ .claude/ .codex/   NVIDIA's CI and agent skills (CI does not run from here)
+│   ├── docs/                       NVIDIA's docs site
 │   ├── reconstruction/             video → depth, masks, mesh, 6-DoF object pose, MANO hands
 │   │   ├── scripts/                install / build / download-weights scripts
 │   │   ├── docs/ego_e2e_setup.md   NVIDIA's ego pipeline guide (source for §5)
@@ -73,77 +67,73 @@ NVIDIA_V2D_Egocentric/
 │   │   │   ├── v2d_docker/         host-side launcher that runs each module in Docker
 │   │   │   ├── v2d_moge/ v2d_droid_slam/ v2d_wilor/ v2d_grounding_dino/ v2d_sam2/
 │   │   │   ├── v2d_sam3d/ v2d_foundation_pose/ v2d_hamer/ v2d_gsplat_refinement/ v2d_geocalib/ ...
-│   │   │   └── v2d_t3_<name>/      [A] new Path A Docker modules (prefix t3_ = ours)
+│   │   │   └── v2d_t3_<name>/      [A] new Path A modules (prefix t3_ = ours)
 │   │   └── data/                   [L] runtime cache (paths are relative to baseline/reconstruction/)
 │   │       ├── weights/            model weights, incl. hand/models/MANO_RIGHT.pkl
 │   │       └── outputs/<branch>/<episode>/   one folder per run
 │   ├── robotic_grounding/          retargeting + Isaac Lab PPO (not covered by this README yet)
 │   └── video_ingestion_agent/      not used for Track 3
 │
-├── assets/                         [S] non-code (see assets/README.md)
-│   ├── docs/                       [N] NVIDIA's top-level docs site + original README
-│   └── data/                       [L] Track 3 dataset and other large inputs
+├── assets/                         [S] shared inputs (see assets/README.md)
+│   └── data/                       [L] Track 3 dataset
 │
-├── path_a/                         [A] Path A's own code (README only on main)
-└── path_b/                         [B] Path B's pipeline (README only on main)
+├── shared/                         [S] shared code: evaluator, result format (not created yet)
+└── path_b/                         [B] Path B's pipeline
 ```
 
 Rules that keep this layout working:
 
-- On `main`, `baseline/` is byte-identical to NVIDIA's `release/0.2.0`, only moved. The check command is in §3.
-- Path A may edit files under `baseline/`, only on path-a branches (see `path_a/README.md`). Path B never does: it lives entirely in `path_b/` and only *calls* NVIDIA code.
-- Shared code for both paths (common result format, evaluator) will be added later through a `shared/<topic>` PR into `main`.
+- **Everything about the baseline sits in `baseline/`.** On `main` it is exactly NVIDIA's `release/0.2.0`; this prints nothing:
+  `git diff --stat baseline-0.2.0 main:baseline`
+- **Path A** adds to and edits `baseline/`, and only on the `path-a` branch. There is no separate Path A folder.
+- **Path B** lives entirely in `path_b/`, only on the `path-b` branch. It uses only the shared inputs (`assets/`) and the shared evaluator (`shared/`), and never touches `baseline/`.
+- **Shared things** (inputs, evaluator, this README) change only on `main`.
 
 ---
 
 ## 3. Branches and workflow
 
+Three branches:
+
 ```
 upstream (NVIDIA)   release/0.2.0 ──► tag baseline-0.2.0
                                          │
-origin (this repo)                      main  ◄── shared/*        (README, NOTICE, assets/, shared tooling)
-                                         │    ◄── sync/upstream-* (future NVIDIA releases)
+origin (this repo)                      main      shared: baseline/ (unmodified), assets/, shared/, README
                          ┌───────────────┴───────────────┐
-                    path-a/main                     path-b/main
-                    ├── a/sam3d-seed                ├── b/<experiment>
-                    ├── a/true-calibration          └── ...
-                    └── a/contact-repair
+                       path-a                         path-b
+               main + changes inside baseline/   main + path_b/
 ```
 
-| Branch | Purpose | Merges into |
+| Branch | Contains | Merges into |
 |---|---|---|
-| `main` | Baseline + shared code. Always runnable. Protected. | — |
-| `shared/<topic>` | Changes to README, NOTICE, `assets/`, CI, shared code | `main` |
-| `path-a/main` | Integration branch for Path A. Protected. | — |
-| `a/<topic>` | One Path A change | `path-a/main` |
-| `path-b/main` | Integration branch for Path B. Protected. | — |
-| `b/<topic>` | One Path B change | `path-b/main` |
-| `sync/upstream-<ver>` | Pull in a new NVIDIA release | `main` |
+| `main` | Unmodified baseline + shared inputs, evaluator and docs | — |
+| `path-a` | `main` + Path A's additions/edits inside `baseline/` | nothing |
+| `path-b` | `main` + `path_b/` | nothing |
 
 **The rules:**
 
-1. Never push directly to `main`, `path-a/main` or `path-b/main`. Open a pull request.
-2. After anything merges into `main`, merge `main` into both path branches.
-3. **Never merge Path A into Path B, or B into A.**
-4. Use **Create a merge commit** on GitHub, not squash or rebase. Squash and rebase rewrite NVIDIA's history and break the `baseline-0.2.0` comparison.
+1. Changes to `main` go through a pull request from a short-lived branch, deleted after merging.
+2. After anything merges into `main`, merge `main` into `path-a` and `path-b`.
+3. **Never merge `path-a` into `path-b` or the reverse, and never merge a path branch into `main`.**
+4. Use **Create a merge commit** on GitHub, not squash or rebase.
 5. Tag every leaderboard submission: `submit/a-YYYY-MM-DD-N` or `submit/b-YYYY-MM-DD-N`. There are only 5 submissions per week, so each score must be traceable to exact code.
 
-**Typical feature cycle:**
+GitHub does not enforce branch protection on this private repo's plan, so these rules hold only by convention.
+
+**Typical cycle on a path branch:**
 
 ```bash
-git switch path-a/main && git pull
-git switch -c a/sam3d-seed
-# ...edit, run, score...
+git switch path-a && git pull
+# ...edit inside baseline/, run, score...
 git add -p
 git commit -m "Seed SAM3D in HaMeR mode"
-git push -u origin a/sam3d-seed
-# open a PR into path-a/main on GitHub
+git push
 ```
 
-**Keep `main` in sync with your path branch:**
+**Bring shared changes from `main` into your path branch:**
 
 ```bash
-git switch path-a/main && git pull
+git switch path-a && git pull
 git merge origin/main
 git push
 ```
@@ -151,30 +141,25 @@ git push
 **Work on both paths at once** with worktrees, so each folder is a separate checkout:
 
 ```bash
-git worktree add ../v2d-path-a path-a/main
-git worktree add ../v2d-path-b path-b/main
+git worktree add ../v2d-path-a path-a
+git worktree add ../v2d-path-b path-b
 ```
 
-**See everything the team changed vs. NVIDIA** (lists every NVIDIA file that is not a pure move):
+**See everything Path A changed vs. NVIDIA:**
 
 ```bash
-git diff -M --name-status baseline-0.2.0 -- baseline reconstruction robotic_grounding video_ingestion_agent | grep -v '^R100'
+git diff --stat baseline-0.2.0 origin/path-a:baseline
 ```
 
-Name both `baseline` and the old root folders: NVIDIA's tag has the packages at the repo root, and git can only pair moved files when both sides are in the pathspec. Otherwise every file shows as newly added.
-
-**Pull in a later NVIDIA release** (never straight into `main`):
+**Bring in a newer NVIDIA release** (e.g. for FlashCHORD). Because `baseline/` on `main` is unmodified, it is replaced wholesale on a short-lived branch, then merged into the path branches as usual:
 
 ```bash
-git fetch upstream
-git switch -c sync/upstream-<ver> main
-git merge upstream/<release-branch>
-# resolve conflicts; this README will conflict with NVIDIA's README → keep ours:
-#   git checkout --ours README.md
-# NVIDIA's edits to existing files follow the move into baseline/ and assets/docs/.
-# New files inside moved folders show as "CONFLICT (file location)": accept git's suggested path.
-# New top-level items (e.g. tools/, run_e2e.sh in v0.3.0+) land at the root: git mv them into baseline/
-# re-run the smoke test (§5.4), then open a PR into main
+git fetch upstream --tags
+git switch -c sync-upstream main
+git rm -r -q baseline
+git read-tree --prefix=baseline/ -u upstream/<release-branch>
+git commit -m "Update baseline/ to NVIDIA <release>"
+# re-run the smoke test (§5.4), tag the new baseline, open a PR into main
 ```
 
 ---
@@ -381,7 +366,7 @@ The run prints the final bundle as `final_result_bundle:`. When debugging, **wat
 
 ### 5.10 Running on PSC Bridges-2
 
-**Status: not working yet. Treat this as an open shared task (`shared/apptainer-launcher`).**
+**Status: not working yet. Treat this as an open shared task.** The launcher lives in `baseline/`, so the port is a Path A-style change unless the team agrees to carry it on `main`.
 
 - Bridges-2 has **L40S nodes** (8× L40S 48 GB per node), a validated GPU.
 - Bridges-2 provides **Apptainer/Singularity, not Docker**. The baseline's host launcher (`baseline/reconstruction/modules/v2d_docker/`) calls `docker run` for every step, so the pipeline cannot run there unchanged.
@@ -425,14 +410,12 @@ Read `assets/data/track_3/README.md` once. The parts that bite:
 - Steps communicate **only through files** in `--output_dir`, with typed formats from `v2d_common`.
 - Entrypoint: `baseline/reconstruction/modules/v2d_pipelines/run_ego_reconstruction.py`, which in HaMeR mode calls `run_ego_wilor.py`.
 
-### Path A: editing NVIDIA code
+### Path A: building on the baseline
 
-Full rules and where each kind of change goes: [`path_a/README.md`](path_a/README.md).
-
-- One concern per branch (`a/<topic>`), small diffs.
+- All Path A work, edits and new code alike, goes inside `baseline/` on the `path-a` branch.
+- Small, focused commits, one concern each.
 - Every edited NVIDIA file gets a header comment, as Apache-2.0 requires:
   `# Modified for V2D Track 3 by <name>, <YYYY-MM>: <what changed>`
-- Path A's own host-side code (entrypoints, configs, scripts) goes in `path_a/`.
 - New standalone steps go in a new module, `baseline/reconstruction/modules/v2d_t3_<name>/` (`--dev` only mounts that folder into containers). Follow NVIDIA's module contract: its own Docker image, a `run_download_weights` entry point if it needs weights, a `run_shell` entry point, and types from `v2d_common`.
 - Compare against the baseline on the same episodes, using the same evaluator.
 
@@ -449,10 +432,10 @@ Known weak points of the baseline (good first targets):
 | Late-appearing hand/object lost | All SAM2 tracks start on `--reference_frame` |
 | Approximate intrinsics | MoGe forces the principal point to the image centre; the real calibration is ignored |
 
-### Path B: a new pipeline
+### Path B: a completely new approach
 
-- All code lives in `path_b/`, with its own entrypoint, stages and Docker images. See [`path_b/README.md`](path_b/README.md).
-- It may call NVIDIA modules (e.g. `baseline/robotic_grounding/`), but **never edits NVIDIA files**. This keeps Path B conflict-free and easy to extract later.
+- All code lives in `path_b/` on the `path-b` branch, with its own entrypoint, stages and Docker images.
+- It uses only the shared inputs (`assets/`) and the shared evaluator (`shared/`). It does not use or edit `baseline/`.
 - Once the shared result format and evaluator exist, it must write that format so both paths are scored the same way.
 
 ### Before opening a PR
@@ -480,11 +463,11 @@ These patterns are already in `.gitignore`. Check before committing with `git st
 
 ## 9. Licensing
 
-- **NVIDIA code:** Apache-2.0. **NVIDIA docs and skills:** CC-BY-4.0. See `LICENSE`, which must stay unchanged.
-- **Our code** (`path_a/`, `path_b/`, `v2d_t3_*` modules): Apache-2.0, see `NOTICE`.
+- **NVIDIA code:** Apache-2.0. **NVIDIA docs and skills:** CC-BY-4.0. See `baseline/LICENSE`, which must stay unchanged. The root `LICENSE` is a copy.
+- **Our code** (`shared/`, `path_b/`, Path A's `v2d_t3_*` modules and marked edits): Apache-2.0, see `NOTICE`.
 - **Track 3 dataset:** CC-BY-4.0 (attribution required).
 - **Third-party models** (MANO, SAM3D, HaMeR, WiLoR, Grounding DINO, ...) have their own licenses. Some are gated or non-commercial.
-- The challenge requires releasing the submitted code under a research license. Before this repo or any branch goes public, scan the full history for secrets, and confirm the challenge's timing rules.
+- Winning submissions must release their code under Apache-2.0 (challenge FAQ). Before this repo or any branch goes public, scan the full history for secrets.
 
 ---
 
@@ -501,16 +484,15 @@ These patterns are already in `.gitignore`. Check before committing with `git st
 | Edits have no effect | Cached outputs: delete the step's output folder. Also check you passed `--dev`. |
 | Results differ between identical runs | Known: unseeded SAM3D (HaMeR mode), DROID-SLAM and GPU non-determinism. Compare over several runs. |
 | SAM3D download or access error | Request access on its Hugging Face page and set `HF_TOKEN` |
-| Merge conflict in `README.md` when syncing NVIDIA | Keep ours: `git checkout --ours README.md` |
 | Imports or scripts still point at the old `reconstruction/` path (installed before the `baseline/` move) | Editable installs record absolute paths: re-run `./scripts/install_ego_reconstruction_packages.sh` from `baseline/reconstruction/` |
-| A command from NVIDIA's docs says `reconstruction/...` and fails | Prepend `baseline/` (NVIDIA's docs use their repo root) |
+| A command from NVIDIA's docs or skills can't find a path | NVIDIA's paths are relative to `baseline/`: run it from there |
 | Stuck in the vim editor during `git commit` / merge | `Esc`, then `:wq` (save) or `:cq` (abort). To avoid it: `git config --global core.editor nano` |
 
 ---
 
 ## 11. Links
 
-- NVIDIA repo: https://github.com/nvidia-isaac/video_to_data (baseline: `release/0.2.0`)
+- NVIDIA repo: https://github.com/nvidia-isaac/video_to_data (baseline: `release/0.2.0`; NVIDIA's README: `baseline/README.md`)
 - NVIDIA docs: https://nvidia-isaac.github.io/video_to_data/
 - Ego pipeline guide: `baseline/reconstruction/docs/ego_e2e_setup.md`
 - Robotic grounding guide: `baseline/robotic_grounding/docs/SETUP.md`

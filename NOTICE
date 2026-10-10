@@ -3,11 +3,12 @@ This project builds on NVIDIA's video_to_data
 (https://github.com/nvidia-isaac/video_to_data), release/0.2.0 (commit 43a3f5b).
 NVIDIA source code: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES, Apache-2.0.
 NVIDIA documentation and skills: CC-BY-4.0.
-Modified NVIDIA files carry a modification notice at the top.
 
-NVIDIA's packages live under baseline/ (moved from the repository root; file contents unchanged). NVIDIA's top-level docs live under assets/docs/.
+NVIDIA's repository is kept unmodified in baseline/ on the main branch.
+On the path-a branch, modified NVIDIA files carry a modification notice at the top.
+The root LICENSE is a copy of NVIDIA's baseline/LICENSE.
 
-The contents of path_a/, path_b/, assets/README.md and
+The contents of shared/, path_b/, assets/README.md and
 baseline/reconstruction/modules/v2d_t3_*/ are original work by the team,
 licensed under Apache-2.0.
 This project is not affiliated with or endorsed by NVIDIA.

@@ -1,10 +1,9 @@
-# assets/ — inputs and documentation
+# assets/ — shared inputs
 
-Everything here is non-code. Pipeline code lives in `baseline/`, `path_a/` and `path_b/`.
+The inputs both paths use. Code lives in `baseline/` (NVIDIA + Path A) and `path_b/` (Path B).
 
 ```
 assets/
-├── docs/        NVIDIA's top-level docs site (NVIDIA_README.md, figures/, chord/, reconstruction/, index.html)
 └── data/        [local only, gitignored] Track 3 dataset and other large inputs
 ```
 
@@ -41,5 +40,5 @@ Notes:
 
 - **Episode indices are not contiguous.** Public: 0, 2, 11, 12, 13, 18, 21, 22, 23, 24, 26, 27, 31, 39–45. Evaluation episodes use the remaining indices.
 - **Three objects have split meshes.** `mini_sweeper`, `wooden_piece_1` and `wooden_piece_2` ship `<object>_visual.glb` + `<object>_collision.glb` instead of `<object>.glb`. Use `_visual.glb` for tracking.
-- **`ego_cam_a`** (2028×1520, colour) is the camera to feed the baseline. Its calibration has `rotation_deg: 180`, so check frames are upright first (root README §5.6).
+- **`ego_cam_a`** (2028×1520, colour) is the camera to feed the baseline. Its calibration has `rotation_deg: 180`, so check frames are upright first (README §5.6).
 - There is no `meta/` under `evaluation/`. Use `public/meta/camera_calibration.json` for both splits (same rig).
