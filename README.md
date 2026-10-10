@@ -90,7 +90,7 @@ NVIDIA_V2D_Egocentric/
 
 Rules that keep this layout working:
 
-- On `main`, `baseline/` is NVIDIA's code, moved but unedited apart from path fixes (each marked with a modification header).
+- On `main`, `baseline/` is byte-identical to NVIDIA's `release/0.2.0`, only moved. The check command is in §3.
 - Path A may edit files under `baseline/`, only on path-a branches (see `path_a/README.md`). Path B never does: it lives entirely in `path_b/` and only *calls* NVIDIA code.
 - Shared code for both paths (common result format, evaluator) will be added later through a `shared/<topic>` PR into `main`.
 

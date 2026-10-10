@@ -5,8 +5,7 @@ NVIDIA source code: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES, Apache-2
 NVIDIA documentation and skills: CC-BY-4.0.
 Modified NVIDIA files carry a modification notice at the top.
 
-NVIDIA's packages live under baseline/ (moved from the repository root; file contents unchanged
-unless marked). NVIDIA's top-level docs live under assets/docs/.
+NVIDIA's packages live under baseline/ (moved from the repository root; file contents unchanged). NVIDIA's top-level docs live under assets/docs/.
 
 The contents of path_a/, path_b/, assets/README.md and
 baseline/reconstruction/modules/v2d_t3_*/ are original work by the team,
