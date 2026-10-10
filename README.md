@@ -1,180 +1,501 @@
-# Video to Data (V2D)
+# NVIDIA V2D Egocentric — Track 3 Team Repository
 
-> An end-to-end pipeline that converts human demonstration videos into simulation-ready assets and physics-grounded robot training data.
+Private team repository for the **NVIDIA Isaac Video-to-Data (V2D) Challenge, Track 3: Egocentric Video → Policy**.
 
-**[Documentation](https://nvidia-isaac.github.io/video_to_data/)** · **[Robotic Grounding Project Page](https://nvidia-isaac.github.io/video_to_data/chord/)** · **[Robotic Grounding Tech Report](https://nvidia-isaac.github.io/video_to_data/chord/chord.pdf)**
+It is built on NVIDIA's [`video_to_data`](https://github.com/nvidia-isaac/video_to_data) at `release/0.2.0`, which is the official Track 3 baseline. The team works on two independent approaches, kept on separate branches:
 
-![Video to Data pipeline — from human demonstration video through ingestion, reconstruction, and robotic grounding in Isaac Lab to a physics-grounded policy, dataset, and real-robot deployment](docs/figures/v2d_overview.png)
+- **Path A: improve the baseline.** Fix and extend NVIDIA's reconstruction pipeline in place.
+- **Path B: a new pipeline.** Same inputs, same output format, a different method.
+
+Both paths are scored by the same shared evaluator, so their results are directly comparable.
+
+> NVIDIA's original README is kept at [`docs/NVIDIA_README.md`](docs/NVIDIA_README.md).
 
 ---
 
 ## Contents
 
-- [Overview](#overview)
-- [Demos](#demos)
-- [Packages](#packages)
-- [Prerequisites](#prerequisites)
-- [Quickstart](#quickstart)
-  - [Video Ingestion Agent](#video-ingestion-agent-video--queryable-action-database)
-  - [Reconstruction](#reconstruction-video--3d-data)
-  - [Robotic Grounding](#robotic-grounding-data--rl-policy)
-- [Design philosophy](#design-philosophy)
-- [Contributing](#contributing)
+1. [Quick facts](#1-quick-facts)
+2. [Repository structure](#2-repository-structure)
+3. [Branches and workflow](#3-branches-and-workflow)
+4. [First-time setup](#4-first-time-setup)
+5. [Running the baseline (reconstruction)](#5-running-the-baseline-reconstruction)
+6. [Track 3 data essentials](#6-track-3-data-essentials)
+7. [Modifying the pipeline](#7-modifying-the-pipeline)
+8. [What never goes into git](#8-what-never-goes-into-git)
+9. [Licensing](#9-licensing)
+10. [Troubleshooting](#10-troubleshooting)
+11. [Links](#11-links)
 
 ---
 
-## Overview
+## 1. Quick facts
 
-Video to Data (V2D) turns raw human demonstrations into robot-ready training data through three composable stages. Each stage runs independently and writes its artifacts to disk, so you can stop, inspect, cache, and recompose the pipeline at any boundary.
+| | |
+|---|---|
+| Baseline | `nvidia-isaac/video_to_data` `release/0.2.0` |
+| Baseline tag in this repo | `baseline-0.2.0` (NVIDIA's exact commit, unmodified) |
+| Remotes | `origin` = this repo, `upstream` = NVIDIA |
+| Dataset | [`nvidia/video_to_data_challenge`](https://huggingface.co/datasets/nvidia/video_to_data_challenge) → `track_3/` (CC-BY-4.0, ~1.5 GB) |
+| Validated GPUs | RTX A6000 (SM 86), L40S (SM 89) |
+| Unsupported GPUs | Blackwell `sm_120` (e.g. RTX PRO 6000 Blackwell). Others (H100, V100) are not validated. |
+| Runtime | Linux + Docker + NVIDIA Container Toolkit. **Macs and Colab cannot run the pipeline.** |
+| Team compute | CMU / PSC Bridges-2 (see [§5.10](#510-running-on-psc-bridges-2) for status) |
 
-1. **Video Ingestion Agent** — a LangGraph-driven agentic workflow that segments demonstration videos into temporally-bounded action clips, extracts an entity-relation scene graph, and stores per-frame SigLIP-2 embeddings. The result is a queryable action database (`graph.db` + `vector.db`) that lets downstream stages select which clips to process via natural-language retrieval, instead of brute-forcing the full video.
-2. **Reconstruction** — containerized vision modules turn the selected RGB (or stereo) clips into per-frame depth, object masks, textured meshes, 6-DoF object poses, and SMPL human body parameters. Multi-view pipelines (`run_mv_hoi_reconstruction`, `run_mv_calibration`) orchestrate the full reconstruction from a rosbag.
-3. **Robotic Grounding** — human motion (e.g. Arctic) is retargeted onto the target robot embodiment (Sharpa), then the reconstructed scene and retargeted motion drive Isaac Lab environments trained with RSL-RL PPO to produce deployable policies.
+---
 
-## Demos
+## 2. Repository structure
 
-The pipeline in action — from a raw human demonstration, to grounded policies trained in Isaac Lab, to deployment on a physical robot.
+Legend: **[N]** NVIDIA code · **[S]** shared team code (on `main`) · **[A]** Path A only · **[B]** Path B only · **[L]** local only, never committed · *(planned)* = not created yet
 
-<img src="docs/figures/human.gif" width="270" alt="Raw human demonstration"> <img src="docs/figures/sim.gif" width="270" alt="Grounded robot policies in Isaac Lab"> <img src="docs/figures/real.gif" width="270" alt="Deploy to real robot">
-
-## Packages
-
-| Package | Role | Runtime |
-|---|---|---|
-| [`video_ingestion_agent/`](video_ingestion_agent/) | Video → action segments + entity scene graph + frame embeddings. LangGraph pipeline (segment → verify/refine → entity graph → embeddings) plus an EGAgent-style natural-language retrieval agent and an optional Gradio UI. | Python venv + vLLM server |
-| [`reconstruction/`](reconstruction/) | Video → depth, masks, meshes, 6D poses, human body. 18 containerized modules + multi-view pipelines. | Docker (per-module images) |
-| [`robotic_grounding/`](robotic_grounding/) | RL training on NVIDIA Isaac Lab 2.3.1 with RSL-RL (PPO); motion retargeting utilities. | Docker (build locally or configure your registry) |
-
-## Prerequisites
-
-- Docker with GPU support ([install](https://docs.docker.com/engine/install/ubuntu/))
-- [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
-- Python 3.10+
-- NVIDIA driver 580.126.09 / CUDA 13.0 recommended (for `robotic_grounding`)
-
-The v0.2 HOI object-reconstruction pipeline is validated on RTX A6000 (SM 86)
-and L40S (SM 89). Blackwell GPUs with compute capability 12.0 (`sm_120`),
-including RTX PRO 6000 Blackwell, are not supported by the TensorRT and cuVSLAM
-versions in `v2d_cusfm`. The reconstruction container build and pipeline
-launcher check this before starting; see the
-[HOI GPU compatibility notes](reconstruction/modules/v2d_hoi_object_reconstruction/README.md#gpu-compatibility).
-
-## Quickstart
-
-### Video Ingestion Agent (video → queryable action database)
-
-```bash
-cd video_ingestion_agent
-
-uv venv .venv && source .venv/bin/activate
-uv pip install -e ".[all]"     # vLLM, webapp, benchmark, dev tools
-
-# 1. Start the vLLM server (loads the VLM, ~1 minute)
-python scripts/serve.py -c configs/ingestion.yaml
-
-# 2. Ingest a video — segmentation → entity graph → report
-python scripts/run_ingestion.py path/to/video.mp4 \
-  -c configs/ingestion.yaml --no-verify -o runs/my_run
-
-# 3. Retrieve clips with natural language
-python scripts/run_retrieval.py "Find clips where someone picks up a mug" \
-  -d outputs/ -c configs/retrieval.yaml
-
-# 4. Or browse interactively in the web UI
-python scripts/run_webapp.py
+```
+NVIDIA_V2D_Egocentric/
+├── README.md                       [S] this file
+├── NOTICE                          [S] attribution to NVIDIA + what is ours
+├── LICENSE                         [N] NVIDIA's license (Apache-2.0 code / CC-BY-4.0 docs), unchanged
+├── .gitignore                      [N]+[S] NVIDIA rules + Track 3 additions
+├── .claude/skills/                 [N] agent skills: ego-reconstruction-setup, run-ego-reconstruction-video
+├── docs/
+│   ├── NVIDIA_README.md            [N] NVIDIA's original top-level README
+│   └── figures/                    [N]
+│
+├── reconstruction/                 [N] video → depth, masks, mesh, 6-DoF object pose, MANO hands
+│   ├── scripts/                    install / build / download-weights scripts
+│   ├── docs/ego_e2e_setup.md       NVIDIA's ego pipeline guide (source for §5)
+│   ├── assets/airplane.mp4         sample video (Git LFS)
+│   ├── modules/
+│   │   ├── v2d_pipelines/          entrypoints: run_ego_reconstruction.py, run_ego_wilor.py, ...
+│   │   ├── v2d_common/             typed data contracts, result bundle writer
+│   │   ├── v2d_docker/             host-side launcher that runs each module in Docker
+│   │   ├── v2d_moge/ v2d_droid_slam/ v2d_wilor/ v2d_grounding_dino/ v2d_sam2/
+│   │   ├── v2d_sam3d/ v2d_foundation_pose/ v2d_hamer/ v2d_gsplat_refinement/ v2d_geocalib/ ...
+│   │   └── v2d_t3_<name>/          [A] new Path A modules (prefix t3_ = ours)  (planned)
+│   └── data/                       [L] all runtime data lives here (paths are relative to reconstruction/)
+│       ├── weights/                model weights, incl. hand/models/MANO_RIGHT.pkl
+│       ├── track_3/                challenge dataset
+│       └── outputs/<branch>/<episode>/   one folder per run
+│
+├── robotic_grounding/              [N] retargeting + Isaac Lab PPO (not covered by this README yet)
+├── video_ingestion_agent/          [N] not used for Track 3
+│
+├── track3/                         [S] shared code used by BOTH paths  (planned)
+│   ├── common/                     result schema, Track 3 data loader, calibration helpers
+│   ├── eval/                       ground-truth scorer for public episodes + GT-free proxy checks
+│   ├── configs/                    episode list, object prompts, local train/val split
+│   └── scripts/                    data download, submission packaging
+│
+└── pipeline_b/                     [B] Path B's own pipeline (exists only on path-b branches)  (planned)
 ```
 
-See [video_ingestion_agent/README.md](video_ingestion_agent/README.md) for hardware requirements, the full extras list, the verify/refine loop, and batch-ingestion across multiple GPUs.
+Rules that keep this layout working:
 
-### Reconstruction (video → 3D data)
+- `track3/` changes only through a PR into `main`.
+- Path A may edit NVIDIA files. Path B never does: it lives entirely in `pipeline_b/` and only *calls* NVIDIA modules.
+- Both paths write results in the `track3/common` result format, and both are scored by `track3/eval`.
+
+---
+
+## 3. Branches and workflow
+
+```
+upstream (NVIDIA)   release/0.2.0 ──► tag baseline-0.2.0
+                                         │
+origin (this repo)                      main  ◄── shared/*        (track3/, README, NOTICE)
+                                         │    ◄── sync/upstream-* (future NVIDIA releases)
+                         ┌───────────────┴───────────────┐
+                    path-a/main                     path-b/main
+                    ├── a/sam3d-seed                ├── b/<experiment>
+                    ├── a/true-calibration          └── ...
+                    └── a/contact-repair
+```
+
+| Branch | Purpose | Merges into |
+|---|---|---|
+| `main` | Baseline + shared code. Always runnable. Protected. | — |
+| `shared/<topic>` | Changes to `track3/`, README, NOTICE | `main` |
+| `path-a/main` | Integration branch for Path A. Protected. | — |
+| `a/<topic>` | One Path A change | `path-a/main` |
+| `path-b/main` | Integration branch for Path B. Protected. | — |
+| `b/<topic>` | One Path B change | `path-b/main` |
+| `sync/upstream-<ver>` | Pull in a new NVIDIA release | `main` |
+
+**The rules:**
+
+1. Never push directly to `main`, `path-a/main` or `path-b/main`. Open a pull request.
+2. After anything merges into `main`, merge `main` into both path branches.
+3. **Never merge Path A into Path B, or B into A.**
+4. Use **Create a merge commit** on GitHub, not squash or rebase. Squash and rebase rewrite NVIDIA's history and break the `baseline-0.2.0` comparison.
+5. Tag every leaderboard submission: `submit/a-YYYY-MM-DD-N` or `submit/b-YYYY-MM-DD-N`. There are only 5 submissions per week, so each score must be traceable to exact code.
+
+**Typical feature cycle:**
+
+```bash
+git switch path-a/main && git pull
+git switch -c a/sam3d-seed
+# ...edit, run, score...
+git add -p
+git commit -m "Seed SAM3D in HaMeR mode"
+git push -u origin a/sam3d-seed
+# open a PR into path-a/main on GitHub
+```
+
+**Keep `main` in sync with your path branch:**
+
+```bash
+git switch path-a/main && git pull
+git merge origin/main
+git push
+```
+
+**Work on both paths at once** with worktrees, so each folder is a separate checkout:
+
+```bash
+git worktree add ../v2d-path-a path-a/main
+git worktree add ../v2d-path-b path-b/main
+```
+
+**See everything the team changed vs. NVIDIA:** `git diff baseline-0.2.0 -- reconstruction/`
+
+**Pull in a later NVIDIA release** (never straight into `main`):
+
+```bash
+git fetch upstream
+git switch -c sync/upstream-<ver> main
+git merge upstream/<release-branch>
+# resolve conflicts; this README will conflict with NVIDIA's README → keep ours:
+#   git checkout --ours README.md
+# re-run the smoke test (§5.4), then open a PR into main
+```
+
+---
+
+## 4. First-time setup
+
+### 4.1 Repository access
+
+1. Accept the GitHub collaborator invitation (check your email).
+2. Install the GitHub CLI and Git LFS. On macOS: `brew install gh git-lfs`. On Linux, use your package manager.
+3. Authenticate. GitHub no longer accepts passwords for git, so use:
+   ```bash
+   gh auth login        # GitHub.com → HTTPS → Yes → Login with a web browser
+   ```
+4. Clone and wire up NVIDIA as `upstream`:
+   ```bash
+   git clone https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric.git
+   cd NVIDIA_V2D_Egocentric
+   git remote add upstream https://github.com/nvidia-isaac/video_to_data.git
+   git lfs install
+   git lfs pull upstream          # LFS files (sample video, assets) come from NVIDIA's public repo
+   ```
+   Check with `ls -lh reconstruction/assets/airplane.mp4`. It should be several MB, not a ~130-byte pointer file.
+
+### 4.2 Personal accounts and licenses (each person, once)
+
+| What | Why | How |
+|---|---|---|
+| Hugging Face account + token | SAM3D weights are gated; dataset download | Create a token at huggingface.co → Settings → Access Tokens. Request access on the SAM 3D model page. Then `huggingface-cli login` or `export HF_TOKEN=...` |
+| MANO license | Hand model used by every hand step; it cannot be redistributed | Register at https://mano.is.tue.mpg.de/ and download `MANO_RIGHT.pkl` yourself |
+
+Never share `MANO_RIGHT.pkl` or tokens through this repo or chat.
+
+### 4.3 Where code runs
+
+| Machine | Use for |
+|---|---|
+| Your laptop (incl. Mac) | Editing, git, reviewing outputs (overlay videos, Three.js viewer) |
+| Linux GPU machine with Docker (A6000 / L40S) | Running the pipeline, works as documented |
+| PSC Bridges-2 L40S nodes | Target team compute; **needs a launcher port first** ([§5.10](#510-running-on-psc-bridges-2)) |
+
+---
+
+## 5. Running the baseline (reconstruction)
+
+This section covers **video → reconstruction result bundle**. Robotic grounding (retargeting + PPO policy) is the next stage and will be documented separately. NVIDIA's guide is `reconstruction/docs/ego_e2e_setup.md`.
+
+**All commands below run from `reconstruction/`.**
+
+### 5.1 Prerequisites on the GPU machine
+
+- Linux, an RTX A6000 or L40S (≥ 24 GB VRAM), and a working NVIDIA driver
+- Docker + [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html). Check with:
+  `docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi`
+- Your user can run Docker without `sudo` (member of the `docker` group)
+- Python 3.10+, `ffmpeg` on `PATH`, Git LFS
+- Plenty of disk space: Docker images and weights are large
+
+### 5.2 Install, build, download weights (once per machine)
 
 ```bash
 cd reconstruction
-
-# Install host-side orchestration wrappers (lightweight, no ML deps)
-./scripts/install_pacakages.sh
-
-# Build per-module Docker images
-./scripts/build_containers.sh
-
-# Run a minimal video→depth example (MoGe)
-python -m v2d.moge.docker.run_download_weights --output_dir data/weights/moge
-python -m v2d.moge.docker.run_video_to_depth \
-  --video_path modules/v2d_moge/assets/test_video.mp4 \
-  --depth_folder data/outputs/moge/depth \
-  --intrinsics_folder data/outputs/moge/intrinsics \
-  --weights_path data/weights/moge
+./scripts/install_ego_reconstruction_packages.sh      # host-side Python wrappers (no ML deps)
+./scripts/build_ego_reconstruction_packages.sh        # builds the per-module Docker images (slow)
+export HF_TOKEN=<your token>                          # or: huggingface-cli login
+./scripts/download_ego_reconstruction_weights.sh --mode hamer_prompt
 ```
 
-Full multi-view HOI pipeline (rosbag → textured object mesh + SMPL body):
+Weight modes:
+
+| Mode | Use when |
+|---|---|
+| `hamer_prompt` | Recommended. HaMeR hands + SAM3D-generated object mesh |
+| `hamer_mesh` | HaMeR hands + a provided object mesh (e.g. Track 3 scans) |
+| `dynhamr_prompt` | Legacy ViPE + Dyn-HaMR hands |
+| *(no flag)* | Everything |
+
+### 5.3 Place the MANO model
+
+```
+reconstruction/data/weights/hand/
+├── models/
+│   └── MANO_RIGHT.pkl        ← your own download
+└── BMC/
+    └── *.npy                 ← only needed for the DynHaMR mode
+```
+
+Put it only here. The HaMeR pipeline copies it where its container needs it, so don't place it anywhere else.
+
+### 5.4 Smoke test on NVIDIA's sample video
+
+Run this first, unmodified, to prove the machine works:
 
 ```bash
-python -m v2d.pipelines.run_mv_hoi_reconstruction \
-  --rosbag_path /data/rosbags/session1 \
-  --output_dir  /data/datasets/session1 \
-  --extrinsics_camera_params_path /data/datasets/calibration/extrinsics/edex \
-  --obj_mesh_path /data/meshes/object.glb
+python modules/v2d_pipelines/run_ego_reconstruction.py \
+    --video assets/airplane.mp4 \
+    --object_prompt "A toy airplane" \
+    --output_dir data/outputs/smoke/airplane_hamer \
+    --reference_frame 0 \
+    --undistort \
+    --hand_tracking hamer \
+    --run_droid_slam \
+    --run_gravity_alignment \
+    --run_gsplat_refinement \
+    --export_threejs_result \
+    --dev
 ```
 
-See [reconstruction/README.md](reconstruction/README.md) for the complete module reference, including [Grounding DINO](reconstruction/README.md#v2d_grounding_dino), [SAM2](reconstruction/README.md#v2d_sam2), [FoundationPose](reconstruction/README.md#v2d_foundation_pose), [SAM3D-Body](reconstruction/README.md#v2d_sam3d_body), and others.
+Success means a `result*/result.npz` file exists and the overlay videos look sensible.
 
-### Robotic Grounding (data → RL policy)
-
-**Quick start:** the from-scratch setup & run guide is
-[robotic_grounding/docs/SETUP.md](robotic_grounding/docs/SETUP.md) — it covers the two
-Docker images, downloading each dataset from its original public source, the directory
-layout, and how to run the full hand→robot retargeting pipeline.
-
-Throughout, `<HMD>` (human-motion-data root) is a directory you choose — e.g.
-`~/datasets/human_motion_data` — that holds `mano/` and one subdirectory per dataset
-(`taco/`, `hot3d/`, …); see [docs/SETUP.md §4](robotic_grounding/docs/SETUP.md).
+### 5.5 Download the Track 3 data
 
 ```bash
-cd robotic_grounding
-
-# One-time host setup (git-lfs, pre-commit) + robot assets (LFS)
-bash workflow/setup_deps.sh
-git lfs pull
-
-# Build both pipeline images (loader + robotic-grounding) in one shot
-python scripts/run_pipeline_docker.py --build-only
-
-# Run the full pipeline on a dataset (download it first per docs/SETUP.md §6).
-# <HMD> is the data root holding mano/ and each <dataset>/.
-python scripts/run_pipeline_docker.py taco \
-    --hmd <HMD> --mano-dir <HMD>/mano --max-sequences 2     # small smoke test
+huggingface-cli download nvidia/video_to_data_challenge --repo-type dataset \
+    --include "track_3/*" --local-dir data/
+ls data/track_3/public            # data/ videos/ mesh/ urdf/ meta/
 ```
 
-Reproduce the sequences end-to-end (arctic / hot3d / taco) in a self-contained
-workspace — see [robotic_grounding/docs/EXAMPLE_SEQUENCES.md](robotic_grounding/docs/EXAMPLE_SEQUENCES.md)
-for the sequence list and prerequisites:
+`data/track_3/evaluation/` holds videos only; its ground truth is hidden. Only `public/` (20 episodes) can be scored locally.
+
+### 5.6 Prepare a Track 3 clip
+
+1. **Use the head colour camera `ego_cam_a`** (2028×1520). `ego_cam_b`/`ego_cam_c` are the mono stereo pair.
+2. **Check that frames are upright.** The calibration file lists a 180° rotation for this camera, and the hand and object detectors fail on upside-down images.
+   ```bash
+   ffmpeg -y -i <clip>.mp4 -frames:v 1 /tmp/frame0.png     # open and look
+   # if upside down, rotate 180° into a new file:
+   ffmpeg -i <clip>.mp4 -vf "hflip,vflip" -c:v libx264 -crf 17 <clip>_upright.mp4
+   ```
+3. **Choose the object prompt.** The episode's objects are in its parquet schema metadata (`objects`), e.g. `white_pot` → prompt `"white pot"`. The baseline tracks **one** object: the top Grounding DINO box. For two-object episodes, prompt the manipulated one.
+4. **Choose `--reference_frame`.** Pick a frame where the object and both hands are fully visible. Frame 0 is not always a good choice, and if no hand or no object is detected on it, the run stops with an error.
+
+### 5.7 Run on a Track 3 episode
+
+Standard baseline (HaMeR hands, SAM3D mesh):
 
 ```bash
-HMD=<HMD> ./run_example_sequences.sh        # → RL-ready parquets under <HMD>/example_sequences/<ds>/<ds>_processed/
+python modules/v2d_pipelines/run_ego_reconstruction.py \
+    --video <clip>.mp4 \
+    --object_prompt "white pot" \
+    --output_dir data/outputs/main/<episode> \
+    --reference_frame <N> \
+    --undistort \
+    --hand_tracking hamer \
+    --run_droid_slam \
+    --run_gravity_alignment \
+    --run_gsplat_refinement \
+    --export_threejs_result \
+    --dev
 ```
 
-Then enter the Isaac Lab container and train a policy on the retargeted motion:
+Variant using the **provided scanned mesh** instead of SAM3D (download weights with `--mode hamer_mesh`):
 
 ```bash
-./workflow/run.sh build
-./workflow/run.sh start [version] [gpu_id]              # build + enter the container
-python scripts/rsl_rl/train.py --task Sharpa-V2D-v0    # inside the container
+python modules/v2d_pipelines/run_ego_reconstruction.py \
+    --video <clip>.mp4 \
+    --object_prompt "white pot" \
+    --object_mesh data/track_3/public/mesh/white_pot/white_pot.obj \
+    --skip_object_scale_estimation \
+    --output_dir data/outputs/main/<episode>_scanmesh \
+    --reference_frame <N> --undistort --hand_tracking hamer \
+    --run_droid_slam --run_gravity_alignment --run_gsplat_refinement \
+    --export_threejs_result --dev
 ```
 
-See [robotic_grounding/README.md](robotic_grounding/README.md) for retargeting, debug environments, and task definitions.
+Scans ship as `.glb`. NVIDIA's example uses `.obj`, and `.glb` input is untested. To convert:
+`python -c "import trimesh; trimesh.load('white_pot.glb', force='mesh').export('white_pot.obj')"`.
+The prompt is still required, because it drives detection, masks and pose initialisation.
 
-### Visualizer (retargeting gallery)
+**Output folder convention:** `data/outputs/<branch>/<episode>[_variant]`. Never reuse another branch's output folder (see §5.9).
 
-Browse retargeted sequences as interactive 3D animations in your browser.
+### 5.8 Outputs and how to inspect them
 
-See [robotic_grounding/README.md#visualizer](robotic_grounding/README.md#visualizer) for setup instructions.
+```
+<output_dir>/
+├── result/                         base bundle
+├── result_slam/                    with DROID-SLAM camera
+├── result_slam_gravity_aligned/    final bundle when SLAM + gravity alignment ran
+│   ├── result.npz                  per-frame camera, object and both-hand poses
+│   ├── mesh.obj (+ .mtl, texture)  object mesh used for tracking
+│   ├── manifest.json               which sources/settings produced it
+│   └── threejs_scene/index.html    3D viewer (open in a browser)
+├── masks_overlay.mp4, hamer_aligned_overlay.mp4, refined_simple_overlay.mp4, ...
+└── per-step intermediate folders (frames/, depth/, masks/, poses/, hamer*/ ...)
+```
 
-## Design philosophy
+The run prints the final bundle as `final_result_bundle:`. When debugging, **watch the overlay videos first**: most failures (wrong object, lost mask, flipped object) are visible there.
 
-- **Host orchestration, containerized inference.** The host runs thin Python wrappers that `docker run` each module; all ML dependencies live inside their respective images. No CUDA or PyTorch is ever installed on the host.
-- **Typed contracts between packages.** Modules communicate through strongly-typed dataclasses in [`v2d_common`](reconstruction/modules/v2d_common/) (`DepthImage`, `CameraIntrinsics`, `Transform3d`, `BoundingBox`, `Mask`) — never raw arrays across package boundaries.
-- **File-based dataflow.** Modules write intermediate artifacts to disk (depth PNGs, pose JSONs, mask PNGs, etc.), enabling independent execution, caching, and pipeline composition via [`v2d_pipelines`](reconstruction/modules/v2d_pipelines/).
+`result.npz` key facts:
+- Poses are 4×4 `A_to_B` matrices.
+- Camera frame is OpenCV (+X right, +Y down, +Z forward, metres).
+- After gravity alignment, world is +Z up.
+- Hand "wrist" transforms are MANO parameters (`[R(global_orient) | cam_t]`), not the wrist joint pose. Run MANO forward to get joints.
 
-## Contributing
+### 5.9 Caching and re-running
 
-See the contributing guide in [reconstruction/README.md](reconstruction/README.md#contributing) for adding new reconstruction modules. Each new module must expose a Docker image, a `run_download_weights` entry point (if weights are required), a `run_shell` entry point, and a typed API surface consistent with `v2d_common`.
+- Every step is skipped if its main output already exists (it prints `[skip]`). Re-running the same command resumes.
+- **To redo a step, delete that step's output folder** (and anything downstream that depends on it), or use a fresh `--output_dir`.
+- Changing code does **not** invalidate the cache. After editing a module, delete the affected outputs or you'll be looking at old results.
+- `--dev` mounts your local module source into the containers, so Python edits take effect without rebuilding images. Rebuild (§5.2) only after changing a Dockerfile or dependencies.
+
+### 5.10 Running on PSC Bridges-2
+
+**Status: not working yet. Treat this as an open shared task (`shared/apptainer-launcher`).**
+
+- Bridges-2 has **L40S nodes** (8× L40S 48 GB per node), a validated GPU.
+- Bridges-2 provides **Apptainer/Singularity, not Docker**. The baseline's host launcher (`reconstruction/modules/v2d_docker/`) calls `docker run` for every step, so the pipeline cannot run there unchanged.
+
+Plan for the port:
+1. Build the module Docker images on any Linux x86-64 machine with Docker (§5.2) and push them to a private registry, e.g. GitHub Container Registry.
+2. On Bridges-2, convert each one: `apptainer pull <name>.sif docker://ghcr.io/<owner>/<image>:<tag>`. Store `.sif` files, weights and data on Ocean (`$PROJECT`), not in your home directory.
+3. Add an Apptainer backend to the launcher: `apptainer exec --nv --bind <output_dir>,<weights>,<repo> <name>.sif ...` in place of `docker run --gpus all -v ...`. Do this behind a flag, so Docker machines keep working.
+4. Run inside a Slurm job on an L40S node (interactive for debugging, batch for many episodes). Check PSC's Bridges-2 user guide for the current partition and GPU-type names.
+
+Until this lands, run the baseline on a Linux GPU machine with Docker.
+
+---
+
+## 6. Track 3 data essentials
+
+Read `data/track_3/README.md` once. The parts that bite:
+
+| Fact | Consequence |
+|---|---|
+| 20 public episodes, 10 tasks, 10 objects, ~262 frames each at 20.25 fps | Small. Use all of it for local validation; don't overfit to one clip. |
+| Video frame *i* = parquet row *i* in every clip | No time sync needed |
+| `pose` = `[x, y, z, qw, qx, qy, qz]`, **w-first** quaternion, metres | SciPy wants x, y, z, w. Reorder before `Rotation.from_quat`. |
+| Poses are `world_T_object` **in the scanned mesh's frame** | A SAM3D mesh's frame is arbitrary (reference-camera axes). Compare against scans, or solve the rotation. |
+| x, y centred per episode; z absolute (table ≈ 0.61 m) | Episodes don't share an origin |
+| `visible == False` → pose is all zeros | **Filter on `visible`** before using any pose |
+| No camera-to-mocap extrinsic is provided | Reconstruction and ground truth live in different worlds. Solve an alignment before computing any error. |
+| 1–2 objects per episode (sometimes more) | Baseline tracks only one |
+| Real factory calibration in `meta/camera_calibration.json` (14-coeff distortion) | Better than the baseline's learned AnyCalib/MoGe estimates |
+| Stereo pair, 75 mm baseline | Possible metric-depth source; the baseline ignores it |
+| License: CC-BY-4.0 | Free to use with attribution. Still never commit it (size). |
+
+---
+
+## 7. Modifying the pipeline
+
+### How the pipeline is built
+
+- The host runs thin Python wrappers. Each step launches its own Docker image.
+- Steps communicate **only through files** in `--output_dir`, with typed formats from `v2d_common`.
+- Entrypoint: `reconstruction/modules/v2d_pipelines/run_ego_reconstruction.py`, which in HaMeR mode calls `run_ego_wilor.py`.
+
+### Path A: editing NVIDIA code
+
+- One concern per branch (`a/<topic>`), small diffs.
+- Every edited NVIDIA file gets a header comment, as Apache-2.0 requires:
+  `# Modified for V2D Track 3 by <name>, <YYYY-MM>: <what changed>`
+- New standalone steps go in a new module, `reconstruction/modules/v2d_t3_<name>/`. Follow NVIDIA's module contract: its own Docker image, a `run_download_weights` entry point if it needs weights, a `run_shell` entry point, and types from `v2d_common`.
+- Compare against the baseline on the same episodes, using the same evaluator.
+
+Known weak points of the baseline (good first targets):
+
+| Symptom | Cause in code |
+|---|---|
+| Different mesh every run | SAM3D called with `seed=None` in HaMeR mode (`run_ego_wilor.py`) |
+| Wrong object scale | Scale fitted to MoGe depth on a single frame (SAM3D + FoundationPose scale search) |
+| Object flips ~180° | FoundationPose re-registers from scratch when mask IoU < 0.3, with no temporal or symmetry prior |
+| Hands not touching the object | Hands and object fitted to depth independently; gsplat penetration loss weight is 0 by default |
+| Jittery hands | HaMeR is per-frame; only gsplat refinement smooths |
+| Only one object | Only the top Grounding DINO box is tracked |
+| Late-appearing hand/object lost | All SAM2 tracks start on `--reference_frame` |
+| Approximate intrinsics | MoGe forces the principal point to the image centre; the real calibration is ignored |
+
+### Path B: a new pipeline
+
+- All code lives in `pipeline_b/`, with its own entrypoint, stages and Docker images.
+- It may call NVIDIA modules (e.g. `robotic_grounding/`), but **never edits NVIDIA files**. This keeps Path B conflict-free and easy to extract later.
+- It must write the shared result format (`track3/common`) so `track3/eval` can score it.
+
+### Before opening a PR
+
+- [ ] Ran on at least the agreed validation episodes, from a clean output folder
+- [ ] Scored with `track3/eval` (once available) and pasted the numbers into the PR, alongside the baseline numbers
+- [ ] No data, weights, outputs or tokens in the diff (`git status`, `git diff --stat`)
+- [ ] Modification notices added to edited NVIDIA files
+
+---
+
+## 8. What never goes into git
+
+| Never commit | Instead |
+|---|---|
+| `reconstruction/data/` (dataset, weights, outputs) | Each person downloads; outputs stay local or on shared storage |
+| `MANO_RIGHT.pkl` | Each person registers and downloads |
+| `HF_TOKEN`, any `.env`, credentials | Environment variables |
+| Model checkpoints (`*.pt`, `*.pth`, `*.ckpt`), `*.npz` | Shared storage (e.g. PSC Ocean) |
+| Large videos / meshes | Git LFS only if essential, after team agreement |
+
+These patterns are already in `.gitignore`. Check before committing with `git status`. If something sensitive was committed, tell the team immediately: deleting it in a new commit does not remove it from history.
+
+---
+
+## 9. Licensing
+
+- **NVIDIA code:** Apache-2.0. **NVIDIA docs and skills:** CC-BY-4.0. See `LICENSE`, which must stay unchanged.
+- **Our code** (`track3/`, `pipeline_b/`, `v2d_t3_*` modules): Apache-2.0, see `NOTICE`.
+- **Track 3 dataset:** CC-BY-4.0 (attribution required).
+- **Third-party models** (MANO, SAM3D, HaMeR, WiLoR, Grounding DINO, ...) have their own licenses. Some are gated or non-commercial.
+- The challenge requires releasing the submitted code under a research license. Before this repo or any branch goes public, scan the full history for secrets, and confirm the challenge's timing rules.
+
+---
+
+## 10. Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| `Password authentication is not supported` on clone or push | Use `gh auth login` (§4.1), not your GitHub password |
+| `airplane.mp4` is ~130 bytes / video won't open | It's an LFS pointer: `git lfs install && git lfs pull upstream` |
+| `docker: permission denied` | Add yourself to the `docker` group, then log out and back in |
+| `could not select device driver "nvidia"` | NVIDIA Container Toolkit not installed or configured |
+| Launcher refuses to start on the GPU | Blackwell `sm_120` is unsupported. Use an A6000 / L40S. |
+| `RuntimeError` about no hands or no object detected | Pick a different `--reference_frame`, or rephrase `--object_prompt` |
+| Edits have no effect | Cached outputs: delete the step's output folder. Also check you passed `--dev`. |
+| Results differ between identical runs | Known: unseeded SAM3D (HaMeR mode), DROID-SLAM and GPU non-determinism. Compare over several runs. |
+| SAM3D download or access error | Request access on its Hugging Face page and set `HF_TOKEN` |
+| Merge conflict in `README.md` when syncing NVIDIA | Keep ours: `git checkout --ours README.md` |
+| Stuck in the vim editor during `git commit` / merge | `Esc`, then `:wq` (save) or `:cq` (abort). To avoid it: `git config --global core.editor nano` |
+
+---
+
+## 11. Links
+
+- NVIDIA repo: https://github.com/nvidia-isaac/video_to_data (baseline: `release/0.2.0`)
+- NVIDIA docs: https://nvidia-isaac.github.io/video_to_data/
+- Ego pipeline guide: `reconstruction/docs/ego_e2e_setup.md`
+- Robotic grounding guide: `robotic_grounding/docs/SETUP.md`
+- Track 3 dataset: https://huggingface.co/datasets/nvidia/video_to_data_challenge/tree/main/track_3
+- CHORD (grounding method) paper: https://arxiv.org/abs/2607.00033
+- Challenge contact: v2d_challenge@nvidia.com
+- PSC Bridges-2 user guide: https://www.psc.edu/resources/bridges-2/user-guide
