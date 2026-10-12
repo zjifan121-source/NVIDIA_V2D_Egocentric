@@ -1,6 +1,6 @@
 # path_a/ — Path A: build on the baseline
 
-Path A's new code lives here, on the `path-a` branch only.
+Path A's new code lives here.
 
 - **New code** (entrypoints, configs, scripts, analysis) goes in `path_a/`.
 - **Fixes to NVIDIA's files** are made in place under `baseline/`. Every edited NVIDIA file gets a header comment, as Apache-2.0 requires:
@@ -11,5 +11,5 @@ Path A's new code lives here, on the `path-a` branch only.
 List every NVIDIA code file Path A changed:
 
 ```bash
-git diff --stat baseline-0.2.0 origin/path-a:baseline -- . ':!docs'
+git diff --stat baseline-0.2.0 origin/main:baseline -- . ':!docs'
 ```

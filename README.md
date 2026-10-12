@@ -2,14 +2,14 @@
 
 Private team repository for the **NVIDIA Isaac Video-to-Data (V2D) Challenge, Track 3: Egocentric Video → Policy**.
 
-It is built on NVIDIA's [`video_to_data`](https://github.com/nvidia-isaac/video_to_data) at `release/0.2.0`. `main` holds only challenge material (NVIDIA's code, docs, inputs and the official evaluator), none of the team's work. The team works on two independent approaches, each on its own branch:
+It is built on NVIDIA's [`video_to_data`](https://github.com/nvidia-isaac/video_to_data) at `release/0.2.0`. The team works on two independent approaches, side by side in one repo:
 
-- **Path A: build on the baseline** (`path-a` branch). New code goes in `path_a/`; fixes to NVIDIA's files are made in place under `baseline/`.
-- **Path B: a completely new approach** (`path-b` branch). Lives in `path_b/` and shares only the inputs, docs and evaluation from `assets/`.
+- **Path A: build on the baseline.** New code goes in `path_a/`; fixes to NVIDIA's files are made in place under `baseline/`, each marked with a modification header.
+- **Path B: a completely new approach.** Lives in `path_b/` and shares only the inputs, docs and evaluation from `assets/`.
 
-Both paths are scored with the same official evaluator, so their results are directly comparable.
+Both paths are scored with the same official evaluator, so their results are directly comparable. Everyone works on their own branch and sends changes through `main_buffer` before they reach `main` ([§3](#3-branches-and-workflow)).
 
-> **`baseline/` is NVIDIA's repository as released**, except its `docs/` folder, which lives in `assets/docs/nvidia/`. NVIDIA's [README](baseline/README.md) and agent skills use paths relative to `baseline/`, so run NVIDIA's commands from there, and start an agent inside `baseline/` to use NVIDIA's skills.
+> **`baseline/` started as NVIDIA's repository as released**, except its `docs/` folder, which lives in `assets/docs/nvidia/`. NVIDIA's [README](baseline/README.md) and agent skills use paths relative to `baseline/`, so run NVIDIA's commands from there, and start an agent inside `baseline/` to use NVIDIA's skills.
 
 ---
 
@@ -47,13 +47,13 @@ Both paths are scored with the same official evaluator, so their results are dir
 
 ## 2. Repository structure
 
-Legend: **[N]** NVIDIA / official challenge material, unmodified · **[A]** `path-a` branch only · **[B]** `path-b` branch only · **[L]** local only, never committed
+Legend: **[N]** NVIDIA / official challenge material · **[A]** Path A · **[B]** Path B · **[L]** local only, never committed
 
 ```
 NVIDIA_V2D_Egocentric/
 ├── README.md  NOTICE  LICENSE  .gitignore   repo files (LICENSE is a copy of NVIDIA's)
 │
-├── baseline/                       [N] NVIDIA video_to_data release/0.2.0, minus docs/ (moved to assets/)
+├── baseline/                       [N] NVIDIA video_to_data release/0.2.0, minus docs/ (moved to assets/), plus marked Path A edits
 │   ├── README.md  LICENSE  SECURITY.md  .gitignore  .gitattributes
 │   ├── .github/ .claude/ .codex/   NVIDIA's CI and agent skills (CI does not run from here)
 │   ├── reconstruction/             video → depth, masks, mesh, 6-DoF object pose, MANO hands
@@ -87,88 +87,85 @@ NVIDIA_V2D_Egocentric/
 
 Rules that keep this layout working:
 
-- **`main` holds only challenge material**, none of the team's work.
-- **`baseline/` matches NVIDIA's `release/0.2.0`** on `main`. Both commands print nothing:
-  `git diff --stat baseline-0.2.0 main:baseline -- . ':!docs'` (code)
-  `git diff --stat baseline-0.2.0:docs main:assets/docs/nvidia` (docs)
-- **Path A** puts new code in `path_a/` and edits `baseline/` in place, only on the `path-a` branch.
-- **Path B** lives entirely in `path_b/`, only on the `path-b` branch. It uses only `assets/` (inputs, docs, evaluation) and never touches `baseline/`.
+- **`assets/` holds only official challenge material**, copied unmodified.
+- **`baseline/` is NVIDIA's `release/0.2.0` plus Path A's marked edits.** Every edited NVIDIA file carries a modification header. To list every NVIDIA file the team has changed:
+  `git diff --stat baseline-0.2.0 origin/main:baseline -- . ':!docs'`
+- **Path A** puts new code in `path_a/` and edits `baseline/` in place.
+- **Path B** lives entirely in `path_b/`. It uses only `assets/` (inputs, docs, evaluation) and never touches `baseline/`.
 
 ---
 
 ## 3. Branches and workflow
 
-Three branches:
-
 ```
-upstream (NVIDIA)   release/0.2.0 ──► tag baseline-0.2.0
-                                         │
-origin (this repo)                      main      challenge material: baseline/, assets/
-                         ┌───────────────┴───────────────┐
-                       path-a                         path-b
-          main + path_a/ + edits in baseline/      main + path_b/
+your branch ──PR──► main_buffer ──PR──► main
+(one per person)    (default branch,    (stable, released
+                     integration)        from main_buffer)
 ```
 
-| Branch | Contains | Merges into |
-|---|---|---|
-| `main` | NVIDIA's baseline, docs, inputs and the official evaluator | — |
-| `path-a` | `main` + `path_a/` + Path A's edits inside `baseline/` | nothing |
-| `path-b` | `main` + `path_b/` (`baseline/` present but unused) | nothing |
+| Branch | Purpose |
+|---|---|
+| `main` | Stable. Changes only arrive from `main_buffer`. |
+| `main_buffer` | The repo's default branch. Every change goes here first, through a pull request. |
+| Your own branch | Where you work. Name it after yourself, e.g. your GitHub username. |
 
 **The rules:**
 
-1. Changes to `main` go through a pull request from a short-lived branch, deleted after merging.
-2. After anything merges into `main`, merge `main` into `path-a` and `path-b`.
-3. **Never merge `path-a` into `path-b` or the reverse, and never merge a path branch into `main`.**
-4. Use **Create a merge commit** on GitHub, not squash or rebase.
+1. Work only on your own branch, created from `main_buffer`.
+2. Every change goes to `main_buffer` through a pull request. It's the default base on GitHub, so new PRs target it automatically.
+3. `main_buffer` is released to `main` through a pull request (**Create a merge commit**, not squash or rebase). Afterwards, `main_buffer` is brought level with `main`.
+4. Keep your branch current by merging `main_buffer` into it.
 5. Tag every leaderboard submission: `submit/a-YYYY-MM-DD-N` or `submit/b-YYYY-MM-DD-N`. There are only 5 submissions per week, so each score must be traceable to exact code.
 
 GitHub does not enforce branch protection on this private repo's plan, so these rules hold only by convention.
 
-**Typical cycle on a path branch:**
+**Create your branch (once):**
 
 ```bash
-git switch path-a && git pull
-# ...edit path_a/ or baseline/, run, score...
+git fetch origin
+git switch -c <your-name> origin/main_buffer
+git push -u origin <your-name>
+```
+
+**Typical cycle:**
+
+```bash
+git switch <your-name> && git pull
+git merge origin/main_buffer          # pick up everyone else's merged work
+# ...edit path_a/, path_b/ or baseline/, run, score...
 git add -p
 git commit -m "Seed SAM3D in HaMeR mode"
 git push
+gh pr create --base main_buffer       # or open the PR on GitHub
 ```
 
-**Bring changes from `main` into your path branch:**
+**Release `main_buffer` to `main`**, then bring `main_buffer` level again:
 
 ```bash
-git switch path-a && git pull
-git merge origin/main
+gh pr create --base main --head main_buffer --title "Release main_buffer to main"
+# after merging on GitHub:
+git fetch origin
+git switch main_buffer && git pull
+git merge --ff-only origin/main
 git push
 ```
 
-**Work on both paths at once** with worktrees, so each folder is a separate checkout:
-
-```bash
-git worktree add ../v2d-path-a path-a
-git worktree add ../v2d-path-b path-b
-```
-
-**See every NVIDIA file Path A changed:**
-
-```bash
-git diff --stat baseline-0.2.0 origin/path-a:baseline -- . ':!docs'
-```
-
-**Bring in a newer NVIDIA release** (e.g. for FlashCHORD) on a short-lived branch, then merge into the path branches as usual:
+**Bring in a newer NVIDIA release** (e.g. for FlashCHORD). Start from the last commit where `baseline/` was unmodified NVIDIA, so git can apply NVIDIA's changes without losing the team's edits:
 
 ```bash
 git fetch upstream --tags
-git switch -c sync-upstream main
+git switch -c sync-upstream edfd630    # last commit with unmodified NVIDIA 0.2.0; update this after each sync
 git rm -r -q baseline assets/docs/nvidia
 git read-tree --prefix=baseline/ -u upstream/<release-branch>
 git mv baseline/docs assets/docs/nvidia
-git commit -m "Update baseline/ to NVIDIA <release>"
-# re-run the smoke test (§5.4), tag the new baseline, open a PR into main
+git commit -m "NVIDIA <release> into baseline/"
+git push -u origin sync-upstream
+gh pr create --base main_buffer --head sync-upstream
 ```
 
-When NVIDIA updates the challenge site or submission kit, refresh `assets/docs/challenge/` and `assets/data/v2d_submission_kit/` the same way (see `assets/README.md`).
+The PR merge keeps the team's edits and adds NVIDIA's changes; conflicts appear only in files both sides changed. Re-run the smoke test (§5.4) before releasing to `main`, and replace `edfd630` above with the `sync-upstream` commit.
+
+When NVIDIA updates the challenge site or submission kit, refresh `assets/docs/challenge/` and `assets/data/v2d_submission_kit/` (see `assets/README.md`).
 
 ---
 
@@ -420,7 +417,7 @@ Read `assets/data/track_3/README.md` once. The parts that bite:
 
 ### Path A: building on the baseline
 
-- Path A works on the `path-a` branch: new code in `path_a/`, fixes to NVIDIA's files in place under `baseline/`.
+- New code goes in `path_a/`; fixes to NVIDIA's files are made in place under `baseline/`.
 - Small, focused commits, one concern each.
 - Every edited NVIDIA file gets a header comment, as Apache-2.0 requires:
   `# Modified for V2D Track 3 by <name>, <YYYY-MM>: <what changed>`
@@ -442,7 +439,7 @@ Known weak points of the baseline (good first targets):
 
 ### Path B: a completely new approach
 
-- All code lives in `path_b/` on the `path-b` branch, with its own entrypoint, stages and Docker images.
+- All code lives in `path_b/`, with its own entrypoint, stages and Docker images.
 - It uses only `assets/` (inputs, docs and the official evaluator). It does not use or edit `baseline/`.
 
 ### Before opening a PR
