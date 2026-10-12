@@ -24,7 +24,7 @@ Model weights and run outputs are **not** here. The baseline expects them under
 | `data/v2d_submission_kit/` | `v2d_submission_kit.zip` from the challenge website, unzipped | updated by NVIDIA 2026-10-06 (`7806e31`) |
 | `data/track_3/` | [`nvidia/video_to_data_challenge`](https://huggingface.co/datasets/nvidia/video_to_data_challenge/tree/main/track_3) | downloaded by each person |
 
-To refresh the challenge site and kit from NVIDIA's current `main` (on a short-lived branch, then a PR into `main`):
+To refresh the challenge site and kit from NVIDIA's current `main` (on your branch, then a PR into `main_buffer`):
 
 ```bash
 git fetch upstream
