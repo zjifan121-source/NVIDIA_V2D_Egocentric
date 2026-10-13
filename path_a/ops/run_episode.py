@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from storage import episode_directory, volumes
 
 
 def now():
@@ -110,12 +111,14 @@ def main():
     assert sha(video) == cfg['video_sha256'], 'Input video hash mismatch'
     recon = repo / 'baseline/reconstruction'
     root = recon / 'data/outputs/wentacc_dev'
-    root.mkdir(parents=True, exist_ok=True)
     if not Path('/mnt/v2d').is_mount() or not root.resolve().is_relative_to('/mnt/v2d'):
         raise RuntimeError('Output directory must be on the mounted data disk')
+    root.mkdir(parents=True, exist_ok=True)
     lock = (root / '.single_gpu.lock').open('a')
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    out = root / f"ep{cfg['episode']:02d}" / args.object
+    if shutil.disk_usage(root).free < 20 * 2**30:
+        raise RuntimeError('Primary data volume needs 20 GiB headroom for shared temporary files')
+    out = episode_directory(root, f"ep{cfg['episode']:02d}") / args.object
     if out.exists() and any(out.iterdir()) and not args.resume:
         raise RuntimeError('Output exists; inspect cached stages before --resume')
     out.mkdir(parents=True, exist_ok=True)
@@ -139,6 +142,8 @@ def main():
                   'image_lock_sha256': sha(Path(__file__).parent / 'reconstruction_images_afe7dad.json'),
                   'gpu': capture(['nvidia-smi', '--query-gpu=name,uuid,driver_version,memory.total', '--format=csv,noheader']),
                   'reproducibility_note': 'Pinned code and images; upstream HaMeR route does not forward --seed to SAM3D; GPU determinism is not guaranteed.'}
+    provenance['storage_volumes'] = volumes()
+    provenance['output_realpath'] = str(out.resolve())
     provenance['images'] = []
     patch = capture(['git', 'diff', 'HEAD', '--binary'], cwd=repo)
     (run / 'tracked_changes.diff').write_text(patch + '\n')
@@ -158,7 +163,7 @@ def main():
     write_json(run / 'provenance.json', provenance)
     receipts = {}
     for name in ['weight_receipts.json', 'weights_status.json', 'environment.json',
-                 'image_overrides.json', 'mano_layout.json']:
+                 'image_overrides.json', 'mano_layout.json', 'storage_volumes.json']:
         source = Path('/mnt/v2d/logs') / name
         if source.is_file():
             shutil.copy2(source, run / name)

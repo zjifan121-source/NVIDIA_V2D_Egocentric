@@ -12,6 +12,7 @@ import re
 import shutil
 import subprocess
 from pathlib import Path
+from storage import volumes
 
 
 def disk_bytes(path):
@@ -50,12 +51,13 @@ def report(root, inventory):
             'state': 'STOP_NEW_RUNS' if usage.free < 40 * 2**30 else
                      'CAPACITY_WARNING' if usage.free < 60 * 2**30 else 'OK'}
     docker = subprocess.check_output(['docker', 'ps', '--format', '{{.Image}} {{.Status}}'], text=True).strip()
-    return {'observed_utc': now.isoformat(), 'disk': disk, 'docker': docker, 'objects': rows}
+    return {'observed_utc': now.isoformat(), 'disk': disk, 'volumes': volumes(), 'docker': docker, 'objects': rows}
 
 
 def markdown(data):
     lines = ['# Reconstruction checklist', '', f"Observed UTC: {data['observed_utc']}", '',
-             f"Data disk free: {data['disk']['free_gib']} GiB ({data['disk']['state']}).",
+             *[f"{v['mount']}: {v['free_gib']} GiB free ({v['state']})." for v in data['volumes']],
+             'Volumes are separate; a running episode must fit on its own volume.',
              'VALIDATED means numeric QA plus a recorded visual review; it does not mean policy evaluation or an official score.', '',
              '| Episode | Split | Object | State | Latest stage | GiB |',
              '|---|---|---|---|---|---:|']

@@ -10,6 +10,18 @@ weights, caches, datasets, temporary files and outputs are on this volume.
 `setup_hyperstack_storage.sh` is a guarded, one-time provisioning script, not a
 routine startup command. The original root-disk stores have been preserved.
 
+On 2026-10-13 the user attached a second 120 GiB volume, `v2d-data1`.
+After identity, signature and zero-sample checks it was formatted as ext4,
+mounted at `/mnt/v2d-data1`, and added to fstab by UUID
+`ab3b2366-3098-405d-b3c3-448c08df4873`. The two disks are separate filesystems.
+`/mnt/v2d/logs/storage_volumes.json` records both mount points and UUIDs;
+`storage.py` verifies them before placing a new episode on the volume with the
+most free space. A link under the original experiment root preserves discovery.
+Existing episodes never move automatically: ep33 continues on `/mnt/v2d`.
+The status report lists free space and warnings per volume. The attached raw
+capacity is now 400 GiB; keep temporary-render headroom on the primary volume
+too, because the shared shell environment still sets TMPDIR there.
+
 | Content | Host path |
 |---|---|
 | Checkout | `/mnt/v2d/code/NVIDIA_V2D_Egocentric` |
