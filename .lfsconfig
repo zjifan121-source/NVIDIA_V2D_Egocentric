@@ -1,0 +1,6 @@
+# Git LFS files (meshes, sample videos, model assets) are not stored in this
+# repo's own LFS store. They are fetched from NVIDIA's public repository, which
+# holds every LFS object baseline/ references. This makes a plain `git clone`
+# work. Adding new LFS files would need a different setup (see README §8).
+[lfs]
+	url = https://github.com/nvidia-isaac/video_to_data.git/info/lfs
