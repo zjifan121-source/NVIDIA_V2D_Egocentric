@@ -12,4 +12,5 @@ RUN apt-get update && apt-get install -y \
 
 COPY . /workspace
 
-RUN pip install -e /workspace/v2d_common -e /workspace/v2d_moge/lib
+RUN printf 'torch==2.6.0\ntorchvision==0.21.0\n' > /tmp/torch-constraints.txt
+RUN pip install -c /tmp/torch-constraints.txt -e /workspace/v2d_common -e /workspace/v2d_moge/lib

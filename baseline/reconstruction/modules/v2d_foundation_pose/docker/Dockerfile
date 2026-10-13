@@ -47,14 +47,15 @@ RUN pip install \
     imageio \
     open3d \
     transformations \
-    warp-lang \
     einops \
     kornia \
     pyrender
 
+RUN pip install "https://github.com/NVIDIA/warp/releases/download/v1.18.0/warp_lang-1.18.0+cu12-py3-none-manylinux_2_28_x86_64.whl"
+
 RUN pip install kaolin==0.18.0 -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.5.1_cu124.html
 
-RUN TORCH_CUDA_ARCH_LIST="8.0 8.6 8.9 9.0" pip3 install "git+https://github.com/facebookresearch/pytorch3d.git"
+RUN FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="8.0 8.6 8.9 9.0" pip3 install "git+https://github.com/facebookresearch/pytorch3d.git"
 
 RUN git clone https://github.com/NVlabs/nvdiffrast /workspace/third_party/nvdiffrast && \
     cd /workspace/third_party/nvdiffrast && \
