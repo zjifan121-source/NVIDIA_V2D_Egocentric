@@ -1,0 +1,15 @@
+{
+  "episode": 33,
+  "split": "evaluation",
+  "dataset_revision": "5f68335f3acc802033d1e80728c1633197521de8",
+  "camera": "observation.images.ego_cam_a",
+  "video_sha256": "c33dfd0b7109171be3b3535429aecf5d84abaa83766e5a815f066fb4a65dd8af",
+  "frames": 348,
+  "fps": 20,
+  "reference_frame": 0,
+  "orientation": "Already upright; frames 0, 80, 160 visually checked. Do not rotate.",
+  "objects": {
+    "blue_cup": "blue cup",
+    "wooden_spoon": "wooden spoon"
+  }
+}
