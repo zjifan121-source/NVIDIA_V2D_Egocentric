@@ -1,0 +1,2 @@
+# LFS rules for NVIDIA docs moved here from baseline/docs/ (see baseline/.gitattributes).
+docs/nvidia/figures/e2e_workflow/*.webp filter=lfs diff=lfs merge=lfs -text
