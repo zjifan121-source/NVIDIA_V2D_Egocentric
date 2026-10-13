@@ -8,7 +8,8 @@ pipeline itself, so re-running resumes.
 
 Run with the reconstruction host environment (README §5.2), from anywhere:
     baseline/reconstruction/.venv/bin/python tools/track3/run_baseline_reconstruction.py \
-        --episode 0 --reference-frame 30 [--object white_pot] [--dry-run]
+        --episode 0 [--reference-frame 30] [--object white_pot] [--dry-run]
+The reference frame defaults to reference_frames.json (suggest_reference_frames.py).
 On Apptainer hosts, export V2D_CONTAINER_RUNTIME / V2D_APPTAINER_IMAGE_DIR first (README §5.10).
 """
 from __future__ import annotations
@@ -24,6 +25,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 RECON = REPO / "baseline/reconstruction"
 MANIFEST = Path(__file__).with_name("episodes.json")
+REFERENCE_FRAMES = Path(__file__).with_name("reference_frames.json")
 
 # Baseline settings from README §5.7 (HaMeR hands, SAM3D mesh, SLAM, gravity, gsplat).
 BASELINE_FLAGS = ["--undistort", "--hand_tracking", "hamer", "--run_droid_slam", "--run_gravity_alignment",
@@ -37,8 +39,9 @@ def git(*args: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--episode", type=int, required=True)
-    parser.add_argument("--reference-frame", type=int, required=True,
-                        help="frame where both hands and the object are visible (the run fails otherwise)")
+    parser.add_argument("--reference-frame", type=int,
+                        help="frame where both hands and the object are visible (the run fails otherwise); "
+                             "default: the suggestion in reference_frames.json")
     parser.add_argument("--object", action="append", help="only these object(s); default: all in the episode")
     parser.add_argument("--branch", default=None, help="output namespace (default: current git branch)")
     parser.add_argument("--dev", action="store_true", help="mount local module code (not for FoundationPose on Apptainer)")
@@ -49,6 +52,11 @@ def main() -> int:
     if args.episode not in episodes:
         parser.error(f"episode {args.episode} is not in {MANIFEST.name}")
     episode = episodes[args.episode]
+    if args.reference_frame is None:
+        suggested = json.loads(REFERENCE_FRAMES.read_text())["episodes"] if REFERENCE_FRAMES.is_file() else {}
+        if str(args.episode) not in suggested:
+            parser.error("no --reference-frame given and no suggestion in reference_frames.json")
+        args.reference_frame = suggested[str(args.episode)]["suggested"]
     if not 0 <= args.reference_frame < episode["num_frames"]:
         parser.error(f"--reference-frame must be in [0, {episode['num_frames']})")
     objects = [o for o in episode["objects"] if not args.object or o["name"] in args.object]
