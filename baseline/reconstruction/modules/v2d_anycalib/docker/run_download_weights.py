@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+# Modified for V2D Track 3 by Edmond Wang, 2026-10: route docker run through v2d.docker.runtime (opt-in Apptainer).
 import argparse
 import os
-import subprocess
 
 from v2d.anycalib.docker._config import IMAGE_NAME, MODULES_DIR
+from v2d.docker.runtime import run_container_cmd
 
 DEFAULT_MODEL_ID = "anycalib_gen"
 
@@ -29,7 +30,7 @@ def run_download(output_dir: str, model_id: str = DEFAULT_MODEL_ID, dev: bool = 
         "--output_dir", "/data/weights",
         "--model_id", model_id,
     ]
-    subprocess.run(cmd, check=True)
+    run_container_cmd(cmd, check=True)
 
 
 if __name__ == "__main__":

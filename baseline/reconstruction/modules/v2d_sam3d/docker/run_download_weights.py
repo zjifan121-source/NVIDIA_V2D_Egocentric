@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
-import subprocess
+# Modified for V2D Track 3 by Edmond Wang, 2026-10: route docker run through v2d.docker.runtime (opt-in Apptainer).
 import os
 from v2d.sam3d.docker._config import IMAGE_NAME, MODULES_DIR
+from v2d.docker.runtime import run_container_cmd
 
 def run_download(output_dir: str, dev: bool = False) -> None:
     if not os.path.exists(output_dir):
@@ -40,7 +41,7 @@ def run_download(output_dir: str, dev: bool = False) -> None:
         "python", "-m", "v2d.sam3d.lib.download_weights",
         "--output_dir", "/data/weights",
     ]
-    subprocess.run(cmd, check=True, env=run_env)
+    run_container_cmd(cmd, check=True, env=run_env)
 
 
 if __name__ == "__main__":
