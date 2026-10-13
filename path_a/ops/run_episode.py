@@ -119,8 +119,8 @@ def main():
     if out.exists() and any(out.iterdir()) and not args.resume:
         raise RuntimeError('Output exists; inspect cached stages before --resume')
     out.mkdir(parents=True, exist_ok=True)
-    if shutil.disk_usage(out).free < 25 * 2**30:
-        raise RuntimeError('Less than 25 GiB free on data disk')
+    if shutil.disk_usage(out).free < 40 * 2**30:
+        raise RuntimeError('Less than 40 GiB free on data disk; review capacity before launching')
     command = [sys.executable, '-u', 'modules/v2d_pipelines/run_ego_reconstruction.py',
                '--video', str(video), '--object_prompt', prompt, '--output_dir', str(out),
                '--reference_frame', str(cfg['reference_frame']), '--undistort', '--hand_tracking', 'hamer',
@@ -155,6 +155,15 @@ def main():
         elif ref not in actual['RepoDigests']:
             raise RuntimeError('Image digest mismatch: ' + image['local_tag'])
         provenance['images'].append({'tag': image['local_tag'], 'id': actual['Id'], 'base_digest': ref, 'override': override})
+    write_json(run / 'provenance.json', provenance)
+    receipts = {}
+    for name in ['weight_receipts.json', 'weights_status.json', 'environment.json',
+                 'image_overrides.json', 'mano_layout.json']:
+        source = Path('/mnt/v2d/logs') / name
+        if source.is_file():
+            shutil.copy2(source, run / name)
+            receipts[name] = sha(run / name)
+    provenance['setup_receipts_sha256'] = receipts
     write_json(run / 'provenance.json', provenance)
     (run / 'pip_freeze.txt').write_text(capture([sys.executable, '-m', 'pip', 'freeze']) + '\n')
     status = {'episode': cfg['episode'], 'object': args.object, 'started': now(),

@@ -59,6 +59,8 @@ def main():
         subprocess.run(['bash', 'scripts/download_ego_reconstruction_weights.sh',
                         '--mode', 'hamer_prompt', '--accept-nvidia-model-eula', '--dev'],
                        cwd=repo / 'baseline/reconstruction', check=True)
+        from ensure_mano_layout import ensure_layout
+        state['mano_layout'] = ensure_layout(root / 'weights')
         records = []
         for path in sorted((root / 'weights').rglob('*')):
             if not path.is_file() or '.cache' in path.parts or path.name.startswith('.'):
