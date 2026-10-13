@@ -16,7 +16,7 @@ __pycache__/
 
 # Never commit: secrets, licensed models, large artifacts
 .env
-MANO_RIGHT.pkl
+MANO_*.pkl
 third_party/
 *.pt
 *.pth

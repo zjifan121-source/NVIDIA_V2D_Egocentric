@@ -11,5 +11,5 @@ Path A's new code lives here.
 List every NVIDIA code file Path A changed:
 
 ```bash
-git diff --stat baseline-0.2.0 origin/main:baseline -- . ':!docs'
+git diff --stat d9264a4 origin/main -- baseline/
 ```

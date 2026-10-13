@@ -112,9 +112,9 @@ workflow:
 
 default-values:
   workflow_name: webapp
-  image: image-registry-not-configured-see-readme.invalid/v2p_video_agent:latest
+  image: nvcr.io/nvidian/v2p_video_agent:latest
   hf_token: ""
   nim_api_key: ""
-  default_db_dir: ""
-  default_videos_dir: ""
+  default_db_dir: /mnt/amlfs-02/shared/liuw/v2p/database
+  default_videos_dir: /mnt/amlfs-02/shared/liuw/v2p/hot3d/videos/
   webapp_port: "7860"

@@ -5,7 +5,7 @@ Official material only, copied unmodified. No team work lives here.
 ```
 assets/
 ├── docs/
-│   ├── nvidia/                 NVIDIA's docs/ from video_to_data release/0.2.0
+│   ├── nvidia/                 NVIDIA's docs/ from video_to_data main @ 8c778f9
 │   └── challenge/              official challenge website (rules, FAQ PDF, submission kit zip)
 └── data/
     ├── v2d_submission_kit/     official evaluator: scorers, policy evaluator, packer, uploader
@@ -19,7 +19,7 @@ Model weights and run outputs are **not** here. The baseline expects them under
 
 | Folder | Source | Version |
 |---|---|---|
-| `docs/nvidia/` | `docs/` of [nvidia-isaac/video_to_data](https://github.com/nvidia-isaac/video_to_data) | `release/0.2.0` (`43a3f5b`) |
+| `docs/nvidia/` | `docs/` of [nvidia-isaac/video_to_data](https://github.com/nvidia-isaac/video_to_data) | `main` @ `8c778f9` (v0.4.0 + 6 commits), same as `baseline/` |
 | `docs/challenge/` | `docs/v2d_challenge/` of NVIDIA's repo, published at https://nvidia-isaac.github.io/video_to_data/v2d_challenge/ | NVIDIA `main` @ `193382a` (2026-10-08) |
 | `data/v2d_submission_kit/` | `v2d_submission_kit.zip` from the challenge website, unzipped | updated by NVIDIA 2026-10-06 (`7806e31`) |
 | `data/track_3/` | [`nvidia/video_to_data_challenge`](https://huggingface.co/datasets/nvidia/video_to_data_challenge/tree/main/track_3) | downloaded by each person |
@@ -49,7 +49,7 @@ Resulting layout:
 ```
 assets/data/track_3/
 ├── README.md, v2d-challenge-track3.md     dataset card (read once)
-├── public/                                20 episodes, scorable locally
+├── public/                                20 episodes with ground truth (the kit has no local Track 3 scorer)
 │   ├── data/chunk-000/episode_XXXXXX.parquet
 │   ├── videos/chunk-000/observation.images.ego_cam_{a,b,c}/episode_XXXXXX.mp4
 │   ├── mesh/<object>/<object>.glb         10 objects (see note below)
