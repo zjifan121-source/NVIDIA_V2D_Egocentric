@@ -7,3 +7,9 @@
 
 # Local direnv overrides (only meaningful at repo root)
 .envrc.local
+
+# Real training checkpoints for data generation (large, external)
+Datagen_Checkpoints/
+
+# Local reconstruction-to-GR00T runs and active-run pointer
+.e2e/

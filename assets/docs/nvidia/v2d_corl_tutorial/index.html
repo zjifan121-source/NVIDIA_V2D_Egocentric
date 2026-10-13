@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="_ds/kaizen-ui-foundations-5919e993-0c25-47fe-9d3b-b24c0049b4d8/fonts/fonts.css">
+<link rel="stylesheet" href="_ds/kaizen-ui-foundations-5919e993-0c25-47fe-9d3b-b24c0049b4d8/_ds_bundle.css">
+<link rel="stylesheet" href="_ds/kaizen-ui-foundations-5919e993-0c25-47fe-9d3b-b24c0049b4d8/styles.css">
+<script src="_ds/kaizen-ui-foundations-5919e993-0c25-47fe-9d3b-b24c0049b4d8/_ds_bundle.js"></script>
+<title>From Human Videos to Dexterous Robot Capability — CoRL 2026 Tutorial</title>
+<style>
+  html, body { margin: 0; background: #faf9f5; }
+  a { color: var(--text-color-primary); text-decoration: none; }
+  a:hover { color: var(--color-brand, #76b900); }
+  html { scroll-behavior: smooth; }
+  img { max-width: 100%; }
+  @media (max-width: 860px) {
+    header, section { padding-left: 20px !important; padding-right: 20px !important; }
+    header { position: static !important; }
+    header nav a:not([target="_blank"]) { display: none !important; }
+    section[id] { scroll-margin-top: 12px !important; }
+    section { padding-top: 64px !important; padding-bottom: 64px !important; }
+    section:first-of-type { padding-top: 56px !important; min-height: 0 !important; }
+    header { padding-top: 12px !important; padding-bottom: 12px !important; }
+    header nav { gap: 8px 16px !important; font-size: 13px !important; width: 100%; }
+    h1 { font-size: 34px !important; letter-spacing: -0.02em !important; }
+    h2 { position: static !important; font-size: 21px !important; }
+    [style*="font-size: 22px"] { font-size: 18px !important; }
+    [style*="font-size: 19px"] { font-size: 16px !important; }
+    [style*="font-size: 18px"] { font-size: 16px !important; }
+    [style*="font-size: 17px"] { font-size: 15px !important; }
+    [style*="font-size: 16px"] { font-size: 15px !important; }
+    [style*="font-size: 15px"] { font-size: 14px !important; }
+    [style*="grid-template-columns: 180px"] { grid-template-columns: minmax(0px, 1fr) !important; gap: 20px !important; }
+    [style*="grid-template-columns: 220px"] { grid-template-columns: minmax(0px, 1fr) !important; gap: 4px !important; }
+    [style*="minmax(300px, 1fr)"] { grid-template-columns: minmax(0px, 1fr) !important; }
+    [style*="minmax(240px, 1fr)"] { grid-template-columns: minmax(0px, 1fr) !important; }
+    [style*="minmax(150px, 1fr)"] { grid-template-columns: repeat(2, minmax(0px, 1fr)) !important; }
+    section p, section div { text-wrap: pretty; }
+  }
+</style>
+</helmet>
+<div class="nv-light" style="font-family: var(--font-sans); color: var(--text-color-primary); background: #faf9f5; min-height: 100vh; text-wrap: pretty;">
+
+  <header style="position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; gap: 16px 32px; flex-wrap: wrap; padding: 14px 48px; background: #faf9f5; border-bottom: 1px solid var(--border-color-base);">
+    <div style="display: flex; align-items: center; gap: 20px; min-width: 0;">
+      <x-import component-from-global-scope="KuiFoundationsReact.HorizontalLogo" hint-size="110px,24px" style="width: 120px; height: 22px; display: block;"></x-import>
+      <span style="width: 1px; height: 20px; background: var(--border-color-base);"></span>
+      <span style="font-size: 15px; font-weight: 600; letter-spacing: -0.01em;">V2D Tutorial</span>
+    </div>
+    <nav style="display: flex; align-items: center; flex-wrap: wrap; gap: 10px 22px; font-size: 14px; color: var(--text-color-secondary); min-width: 0;">
+      <a href="#overview">Overview</a>
+      <a href="#objectives">Objectives</a>
+      <a href="#format">Format</a>
+      <a href="#schedule">Schedule</a>
+      <a href="#instructors">Instructors</a>
+      <a href="#materials">Materials</a>
+      <a href="#organizers">Organizers</a>
+      <a href="#contact">Contact</a>
+      <a href="https://nvidia-isaac.github.io/video_to_data/v2d_challenge/" target="_blank" rel="noopener" style="display: inline-flex;">
+        <x-import component-from-global-scope="KuiFoundationsReact.Button" kind="primary" color="brand" size="medium" hint-size="auto,36px">V2D Challenge ↗</x-import>
+      </a>
+    </nav>
+  </header>
+
+  <section style="position: relative; overflow: hidden; padding: 112px 48px 88px; min-height: calc(100vh - 66px); display: flex; flex-direction: column; justify-content: center;">
+    <div style="position: absolute; inset: 0; background: url(&quot;assets/hero-background.jpg&quot;) center / cover no-repeat; -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 55%, rgba(0,0,0,0)); mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 55%, rgba(0,0,0,0)); pointer-events: none;"></div>
+    <div style="position: relative; max-width: 1180px; margin: 0 auto;">
+    <div style="position: relative; display: flex; align-items: center; gap: 12px; margin-bottom: 36px;">
+      <span style="font-family: var(--font-mono); font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand, #76b900); font-weight: 700">CoRL 2026 Tutorial</span>
+      <span style="width: 24px; height: 1px; background: var(--border-color-base);"></span>
+      <span style="font-family: var(--font-mono); font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-color-secondary)">Half-day &middot; Hands-on</span>
+    </div>
+    <h1 style="position: relative; font-size: 72px; line-height: 0.98; letter-spacing: -0.035em; font-weight: 500; margin: 0 0 28px">From Human Videos to Dexterous Robot Capability</h1>
+    <p style="position: relative; font-size: 30px; line-height: 1.25; letter-spacing: -0.015em; font-weight: 400; color: var(--text-color-primary); margin: 0 0 44px;">A Hands-on Tutorial</p>
+    <p style="position: relative; font-size: 19px; line-height: 1.6; color: var(--text-color-primary); max-width: 62ch; margin: 0 0 48px;">A half-day, hands-on CoRL 2026 tutorial on converting unconstrained human-object videos into validated robot-training data — through queryable video, reconstruction, robotic grounding, and dexterous policy learning in Isaac Lab.</p>
+    <div style="position: relative; display: flex; align-items: center; flex-wrap: wrap; gap: 20px;">
+      <a href="https://github.com/nvidia-isaac/video_to_data/tree/main" target="_blank" rel="noopener" style="display: inline-flex;">
+        <x-import component-from-global-scope="KuiFoundationsReact.Button" kind="primary" color="brand" size="large" hint-size="auto,44px">Tutorial Repository ↗</x-import>
+      </a>
+      <a href="https://nvidia-isaac.github.io/video_to_data/v2d_challenge/" target="_blank" rel="noopener" style="font-size: 16px; font-weight: 500; color: var(--text-color-primary); border-bottom: 1px solid var(--text-color-primary); padding-bottom: 2px;">V2D Challenge ↗</a>
+      <a href="#objectives" style="font-size: 16px; font-weight: 500; color: var(--text-color-primary); border-bottom: 1px solid var(--text-color-primary); padding-bottom: 2px;">Objectives</a>
+      <a href="#format" style="font-size: 16px; font-weight: 500; color: var(--text-color-primary); border-bottom: 1px solid var(--text-color-primary); padding-bottom: 2px;">Format</a>
+      <a href="#schedule" style="font-size: 16px; font-weight: 500; color: var(--text-color-primary); border-bottom: 1px solid var(--text-color-primary); padding-bottom: 2px;">Schedule</a>
+    </div>
+    </div>
+  </section>
+
+  <section id="overview" style="padding: 104px 48px; border-top: 1px solid var(--border-color-base);">
+    <div style="max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 48px;">
+      <div>
+        <h2 style="font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 300; margin: 0; position: sticky; top: 100px;">Overview</h2>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 28px; max-width: 92ch;">
+        <p style="font-size: 22px; line-height: 1.5; margin: 0; max-width: 60ch;">Robot learning needs more scalable ways to turn real-world experience into usable training data. Video is an abundant record of human-object interaction — but it is unstructured and hard to connect to simulation or policy learning.</p>
+        <p style="font-size: 17px; line-height: 1.7; margin: 0; color: var(--text-color-secondary);">This tutorial motivates <strong style="color: var(--text-color-primary); font-weight: 600;">Video to Data</strong> as a practical bridge from raw demonstrations to actionable robot-learning assets, showing how modern vision-language models, reconstruction tools, and robotic grounding convert everyday video into structured data for learning generalizable robot skills. We teach the pipeline as a sequence of validation gates: queryable video segments, plausible reconstructions, simulation-ready task assets, retargeted motions, and policy-training artifacts.</p>
+        <div style="border-left: 2px solid var(--color-brand, #76b900); padding: 4px 0 4px 24px;">
+          <p style="font-size: 24px; line-height: 1.35; letter-spacing: -0.01em; font-weight: 500; margin: 0;">How can raw human video become robot-usable data?</p>
+        </div>
+        <p style="font-size: 17px; line-height: 1.7; margin: 0; color: var(--text-color-secondary);">Participants leave with runnable scripts or notebooks, precomputed artifacts, and an adaptation checklist for deciding whether their own video data is ready for robot learning.</p>
+        <div style="background: #f0eee6; border: 1px solid var(--border-color-base); padding: 24px 28px;">
+          <div style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand, #76b900); margin-bottom: 10px;">Companion Challenge</div>
+          <p style="font-size: 18px; line-height: 1.6; margin: 0;">We are hosting the Video to Data Challenge! Registrations are now open. Find out more at
+            <a href="https://nvidia-isaac.github.io/video_to_data/v2d_challenge/" target="_blank" rel="noopener" style="border-bottom: 1px solid var(--border-color-base); padding-bottom: 2px;" style-hover="border-bottom-color: var(--color-brand, #76b900);">this link ↗</a>.</p>
+        </div>
+        <div style="margin-top: 8px;">
+          <div style="width: 100%; border: 1px solid var(--border-color-base); overflow: hidden; background: #ffffff;">
+            <img src="../figures/v2d_overview.png" alt="Video to Data pipeline overview" style="width: 100%; display: block;">
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--text-color-secondary); margin-top: 10px;">Tutorial repository:
+            <a href="https://github.com/nvidia-isaac/video_to_data/tree/main" target="_blank" rel="noopener" style="border-bottom: 1px solid var(--border-color-base);">github.com/nvidia-isaac/video_to_data ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="objectives" style="background: #f0eee6; padding: 104px 48px; border-top: 1px solid var(--border-color-base);">
+    <div style="max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 48px;">
+      <div>
+        <h2 style="font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 300; margin: 0; position: sticky; top: 100px;">Learning Objectives</h2>
+      </div>
+      <div>
+        <p style="font-size: 22px; line-height: 1.5; margin: 0 0 32px; max-width: 60ch;">By the end of the tutorial, participants will be able to:</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 40px;">
+          <div style="display: flex; gap: 16px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+            <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-color-secondary); padding-top: 4px;">01</div>
+            <div style="font-size: 17px; line-height: 1.6;"><strong style="font-weight: 600;">Make video queryable</strong> — segment long videos, build entity graphs, store frame embeddings, and retrieve task-relevant clips with natural-language queries.</div>
+          </div>
+          <div style="display: flex; gap: 16px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+            <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-color-secondary); padding-top: 4px;">02</div>
+            <div style="font-size: 17px; line-height: 1.6;"><strong style="font-weight: 600;">Inspect reconstructions</strong> — evaluate depth, object masks, meshes, hand/body reconstructions, 6D object poses, and temporal alignment for geometric plausibility.</div>
+          </div>
+          <div style="display: flex; gap: 16px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+            <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-color-secondary); padding-top: 4px;">03</div>
+            <div style="font-size: 17px; line-height: 1.6;"><strong style="font-weight: 600;">Convert to robot-facing data</strong> — map reconstructed interactions into motion files, object assets, URDF/USD paths, support surfaces, contact fields, and quality checks.</div>
+          </div>
+          <div style="display: flex; gap: 16px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+            <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-color-secondary); padding-top: 4px;">04</div>
+            <div style="font-size: 17px; line-height: 1.6;"><strong style="font-weight: 600;">Connect to dexterous policy learning</strong> — run or inspect a small <a href="https://developer.nvidia.com/isaac/lab" target="_blank" rel="noopener" style="border-bottom: 1px solid var(--border-color-base);">Isaac Lab</a> training/evaluation example and see how tracking, contact rewards, and rollouts use demonstration-derived data.</div>
+          </div>
+          <div style="display: flex; gap: 16px; padding: 22px 0; border-top: 1px solid var(--border-color-base); border-bottom: 1px solid var(--border-color-base);">
+            <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-color-secondary); padding-top: 4px;">05</div>
+            <div style="font-size: 17px; line-height: 1.6;"><strong style="font-weight: 600;">Diagnose failure modes</strong> — identify poor video quality, mask errors, mesh-scale mistakes, drifting poses, invalid retargeting, infeasible support geometry, and weak contact grounding.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="format" style="padding: 104px 48px; border-top: 1px solid var(--border-color-base);">
+    <div style="max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 48px;">
+      <div>
+        <h2 style="font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 300; margin: 0; position: sticky; top: 100px;">Hands-on Format</h2>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 28px; max-width: 92ch;">
+        <p style="font-size: 22px; line-height: 1.5; margin: 0; max-width: 60ch;">A guided coding session: short conceptual introductions followed by runnable exercises.</p>
+        <p style="font-size: 17px; line-height: 1.7; margin: 0; color: var(--text-color-secondary);">Because full reconstruction and policy training can require GPUs, every exercise has three paths: laptop-only inspection, optional live GPU execution, and precomputed artifacts — so every attendee can complete the objectives.</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
+          <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 28px;">
+            <div style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand, #76b900); margin-bottom: 14px;">Code-first pacing</div>
+            <p style="font-size: 16px; line-height: 1.6; margin: 0; color: var(--text-color-secondary);">Each module begins with a brief explanation, then moves quickly to an exercise.</p>
+          </div>
+          <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 28px;">
+            <div style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand, #76b900); margin-bottom: 14px;">Paired debugging</div>
+            <p style="font-size: 16px; line-height: 1.6; margin: 0; color: var(--text-color-secondary);">Participants compare retrieved clips, overlays, pose tracks, motion-schema fields, and simulation rollouts.</p>
+          </div>
+          <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 28px;">
+            <div style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand, #76b900); margin-bottom: 14px;">Validity decisions</div>
+            <p style="font-size: 16px; line-height: 1.6; margin: 0; color: var(--text-color-secondary);">Groups classify outputs as ready, questionable, or unsuitable for robot learning.</p>
+          </div>
+          <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 28px;">
+            <div style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand, #76b900); margin-bottom: 14px;">Live demos</div>
+            <p style="font-size: 16px; line-height: 1.6; margin: 0; color: var(--text-color-secondary);">Instructors run selected reconstruction overlays and a short Isaac Lab dexterity run.</p>
+          </div>
+          <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 28px;">
+            <div style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-brand, #76b900); margin-bottom: 14px;">Exercise checkpoints</div>
+            <p style="font-size: 16px; line-height: 1.6; margin: 0; color: var(--text-color-secondary);">Each exercise produces a visible artifact: a JSONL clip list, retrieved clip, mesh/pose overlay, retargeted motion file, scene viewer, or policy rollout.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="schedule" style="background: #f0eee6; padding: 104px 48px; border-top: 1px solid var(--border-color-base);">
+    <div style="max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 48px;">
+      <div>
+        <h2 style="font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 300; margin: 0; position: sticky; top: 100px;">Tentative Schedule</h2>
+      </div>
+      <div style="display: flex; flex-direction: column;">
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+          <div style="font-family: var(--font-mono); font-size: 14px; color: var(--text-color-secondary);">2:00 PM – 2:05 PM</div>
+          <div style="font-size: 18px;">Setup and pipeline map</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+          <div style="font-family: var(--font-mono); font-size: 14px; color: var(--color-brand, #76b900);">2:05 PM – 2:20 PM</div>
+          <div style="font-size: 18px;">Exercise 1: make a video queryable</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+          <div style="font-family: var(--font-mono); font-size: 14px; color: var(--color-brand, #76b900);">2:20 PM – 2:35 PM</div>
+          <div style="font-size: 18px;">Exercise 2: reconstruct a human demonstration</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+          <div style="font-family: var(--font-mono); font-size: 14px; color: var(--color-brand, #76b900);">2:35 PM – 2:50 PM</div>
+          <div style="font-size: 18px;">Exercise 3: convert reconstruction results to robot tasks</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+          <div style="font-family: var(--font-mono); font-size: 14px; color: var(--color-brand, #76b900);">2:50 PM – 3:05 PM</div>
+          <div style="font-size: 18px;">Exercise 4: train or evaluate a dexterity task in Isaac Lab</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+          <div style="font-family: var(--font-mono); font-size: 14px; color: var(--color-brand, #76b900);">3:05 PM – 3:20 PM</div>
+          <div style="font-size: 18px;">Exercise 5: leverage an AI agent</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+          <div style="font-family: var(--font-mono); font-size: 14px; color: var(--text-color-secondary);">3:20 PM – 3:25 PM</div>
+          <div style="font-size: 18px;">Guided extension: failure diagnosis and bring-your-own-data</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+          <div style="font-family: var(--font-mono); font-size: 14px; color: var(--text-color-secondary);">3:25 PM – 3:30 PM</div>
+          <div style="font-size: 18px;">Wrap-up and feedback</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+          <div style="font-family: var(--font-mono); font-size: 14px; color: var(--text-color-secondary);">3:30 PM – 4:00 PM</div>
+          <div style="font-size: 18px;">Poster session and coffee break</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding: 22px 0; border-top: 1px solid var(--border-color-base);">
+          <div style="font-family: var(--font-mono); font-size: 14px; color: var(--color-brand, #76b900);">4:00 PM – 5:00 PM</div>
+          <div style="font-size: 18px;">Panel discussion: future of learning from human videos</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 220px 1fr; gap: 32px; padding: 22px 0; border-top: 1px solid var(--border-color-base); border-bottom: 1px solid var(--border-color-base);">
+          <div style="font-family: var(--font-mono); font-size: 14px; color: var(--color-brand, #76b900);">5:00 PM – 6:00 PM</div>
+          <div style="font-size: 18px;">Video to Data Challenge: winner announcement and top-team presentations</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="instructors" style="padding: 104px 48px; border-top: 1px solid var(--border-color-base);">
+    <div style="max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 48px;">
+      <div>
+        <h2 style="font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 300; margin: 0; position: sticky; top: 100px;">Instructors</h2>
+      </div>
+      <div>
+        <p style="font-size: 19px; line-height: 1.6; margin: 0 0 36px; max-width: 70ch;">Each instructor owns a distinct pipeline stage and supports the hands-on exercises, artifact clinics, and debugging sessions.</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+          <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 24px; display: grid; grid-template-columns: 88px 1fr; gap: 20px; align-items: start; min-width: 0;">
+            <div style="width: 88px; height: 88px; overflow: hidden; border: 1px solid var(--border-color-base);"><img src="assets/images/organizers/yan_chang.jpg" alt="Yan Chang" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+            <div style="min-width: 0;">
+              <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;"><a href="https://www.linkedin.com/in/yanchang1" target="_blank" rel="noopener">Yan Chang</a></div>
+              <div style="font-size: 13px; color: var(--text-color-secondary); margin: 2px 0 10px;">NVIDIA</div>
+              <div style="font-size: 14px; line-height: 1.55; color: var(--text-color-secondary);">Tutorial coordination and robot-learning validation.</div>
+            </div>
+          </div>
+          <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 24px; display: grid; grid-template-columns: 88px 1fr; gap: 20px; align-items: start; min-width: 0;">
+            <div style="width: 88px; height: 88px; overflow: hidden; border: 1px solid var(--border-color-base);"><img src="assets/images/organizers/xinghao_zhu.png" alt="Xinghao Zhu" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+            <div style="min-width: 0;">
+              <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;"><a href="https://rolandzhu.github.io/" target="_blank" rel="noopener">Xinghao Zhu</a></div>
+              <div style="font-size: 13px; color: var(--text-color-secondary); margin: 2px 0 10px;">NVIDIA</div>
+              <div style="font-size: 14px; line-height: 1.55; color: var(--text-color-secondary);">Holistic pipeline and simulation-ready robot task conversion.</div>
+            </div>
+          </div>
+          <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 24px; display: grid; grid-template-columns: 88px 1fr; gap: 20px; align-items: start; min-width: 0;">
+            <div style="width: 88px; height: 88px; overflow: hidden; border: 1px solid var(--border-color-base);"><img src="assets/images/instructors/mrinal_verghese.png" alt="Mrinal Verghese" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+            <div style="min-width: 0;">
+              <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Mrinal Verghese</div>
+              <div style="font-size: 13px; color: var(--text-color-secondary); margin: 2px 0 10px;">NVIDIA</div>
+              <div style="font-size: 14px; line-height: 1.55; color: var(--text-color-secondary);">Video ingestion, entity graphs, embeddings, and natural-language retrieval.</div>
+            </div>
+          </div>
+          <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 24px; display: grid; grid-template-columns: 88px 1fr; gap: 20px; align-items: start; min-width: 0;">
+            <div style="width: 88px; height: 88px; overflow: hidden; border: 1px solid var(--border-color-base);"><img src="assets/images/organizers/bowen_wen.jpg" alt="Bowen Wen" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+            <div style="min-width: 0;">
+              <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;"><a href="https://wenbowen123.github.io/" target="_blank" rel="noopener">Bowen Wen</a></div>
+              <div style="font-size: 13px; color: var(--text-color-secondary); margin: 2px 0 10px;">NVIDIA</div>
+              <div style="font-size: 14px; line-height: 1.55; color: var(--text-color-secondary);">Reconstruction: depth, masks, meshes, and 6D pose tracking.</div>
+            </div>
+          </div>
+          <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 24px; display: grid; grid-template-columns: 88px 1fr; gap: 20px; align-items: start; min-width: 0;">
+            <div style="width: 88px; height: 88px; overflow: hidden; border: 1px solid var(--border-color-base);"><img src="assets/images/organizers/zixi_liu.jpg" alt="Zeo Liu" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+            <div style="min-width: 0;">
+              <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;"><a href="https://www.linkedin.com/in/zixi-liu-169b2591" target="_blank" rel="noopener">Zeo Liu</a></div>
+              <div style="font-size: 13px; color: var(--text-color-secondary); margin: 2px 0 10px;">NVIDIA</div>
+              <div style="font-size: 14px; line-height: 1.55; color: var(--text-color-secondary);">Dexterous policy training and agentic workflow.</div>
+            </div>
+          </div>
+          <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 24px; display: grid; grid-template-columns: 88px 1fr; gap: 20px; align-items: start; min-width: 0;">
+            <div style="width: 88px; height: 88px; overflow: hidden; border: 1px solid var(--border-color-base);"><img src="assets/images/instructors/shalin_jain.png" alt="Shalin Jain" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+            <div style="min-width: 0;">
+              <div style="font-size: 17px; font-weight: 600; letter-spacing: -0.01em;">Shalin Jain</div>
+              <div style="font-size: 13px; color: var(--text-color-secondary); margin: 2px 0 10px;">NVIDIA</div>
+              <div style="font-size: 14px; line-height: 1.55; color: var(--text-color-secondary);">Whole-body dexterous manipulation, retargeting, contact rewards, and rollouts.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="materials" style="background: #f0eee6; padding: 104px 48px; border-top: 1px solid var(--border-color-base);">
+    <div style="max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 48px;">
+      <div>
+        <h2 style="font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 300; margin: 0; position: sticky; top: 100px;">Participant Materials</h2>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 28px; max-width: 92ch;">
+        <p style="font-size: 22px; line-height: 1.5; margin: 0; max-width: 60ch;">Materials will be public and useful even for participants who do not use NVIDIA infrastructure after the event.</p>
+        <div>
+          <div style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-color-secondary); padding-bottom: 14px; border-bottom: 1px solid var(--border-color-base);">The post-tutorial artifact will include</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 40px;">
+            <div style="font-size: 17px; line-height: 1.6; padding: 18px 0; border-bottom: 1px solid var(--border-color-base);">Setup instructions and a lightweight laptop inspection path.</div>
+            <div style="font-size: 17px; line-height: 1.6; padding: 18px 0; border-bottom: 1px solid var(--border-color-base);">Runnable scripts or notebooks for each exercise.</div>
+            <div style="font-size: 17px; line-height: 1.6; padding: 18px 0; border-bottom: 1px solid var(--border-color-base);">Sample videos, precomputed outputs, and annotated result folders.</div>
+            <div style="font-size: 17px; line-height: 1.6; padding: 18px 0; border-bottom: 1px solid var(--border-color-base);">Isaac Lab configs, troubleshooting notes, and example policy rollouts.</div>
+            <div style="font-size: 17px; line-height: 1.6; padding: 18px 0; border-bottom: 1px solid var(--border-color-base);">A video-to-robot-data validation checklist for adapting the workflow to new data.</div>
+          </div>
+        </div>
+        <p style="font-size: 17px; line-height: 1.7; margin: 0; color: var(--text-color-secondary);">We encourage participants to bring their own data questions and use the final guided extension to decide whether their videos are ready, need preprocessing, or need additional sensing or annotation.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="organizers" style="padding: 104px 48px; border-top: 1px solid var(--border-color-base);">
+    <div style="max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 48px;">
+      <div>
+        <h2 style="font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 300; margin: 0; position: sticky; top: 100px;">Organizers</h2>
+      </div>
+      <div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px;">
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/organizers/xinghao_zhu.png" alt="Xinghao Zhu" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Xinghao Zhu</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">NVIDIA</div>
+          <a href="https://rolandzhu.github.io/" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">Website ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/organizers/yan_chang.jpg" alt="Yan Chang" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Yan Chang</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">NVIDIA</div>
+          <a href="https://www.linkedin.com/in/yanchang1" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">LinkedIn ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/organizers/zixi_liu.jpg" alt="Zixi (Zeo) Liu" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Zixi (Zeo) Liu</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">NVIDIA</div>
+          <a href="https://www.linkedin.com/in/zixi-liu-169b2591" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">LinkedIn ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/organizers/bowen_wen.jpg" alt="Bowen Wen" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Bowen Wen</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">NVIDIA</div>
+          <a href="https://wenbowen123.github.io/" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">Website ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/instructors/mrinal_verghese.png" alt="Mrinal Verghese" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Mrinal Verghese</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">NVIDIA</div>
+          <a href="https://mrinal.verghese.org/" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">Website ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/instructors/shalin_jain.png" alt="Shalin Jain" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Shalin Jain</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">NVIDIA</div>
+          <a href="https://shalin-jain.github.io/" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">Website ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/nv/org-7.png" alt="John Welsh" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">John Welsh</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">NVIDIA</div>
+          <a href="https://www.linkedin.com/in/john-welsh-213126183/" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">LinkedIn ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/nv/org-8.png" alt="Daniel Zou" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Daniel Zou</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">NVIDIA</div>
+          <a href="https://www.linkedin.com/in/dlzou/" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">LinkedIn ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/organizers/abrar_anwar.png" alt="Abrar Anwar" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Abrar Anwar</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">NVIDIA</div>
+          <a href="https://abraranwar.github.io" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">Website ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/nv/org-10.png" alt="Naema Bhatti" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Naema Bhatti</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">NVIDIA</div>
+          <a href="https://www.linkedin.com/in/naemabhatti" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">LinkedIn ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/nv/org-11.png" alt="Michael Lin" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Michael Lin</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">NVIDIA</div>
+          <a href="https://www.michaelalin.com/" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">Website ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/organizers/kuan_fang.jpg" alt="Kuan Fang" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Kuan Fang</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">Cornell University</div>
+          <a href="https://kuanfang.github.io/" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">Website ↗</a>
+        </div>
+        <div style="background: #ffffff; border: 1px solid var(--border-color-base); padding: 16px; min-width: 0;">
+          <div style="width: 100%; aspect-ratio: 1 / 1; margin-bottom: 14px; overflow: hidden;"><img src="assets/images/organizers/joydeep_biswas.jpg" alt="Joydeep Biswas" style="width: 100%; height: 100%; object-fit: cover; display: block;"></div>
+          <div style="font-size: 15px; font-weight: 500; margin-bottom: 3px; letter-spacing: -0.01em;">Joydeep Biswas</div>
+          <div style="font-size: 12px; color: var(--text-color-secondary); margin-bottom: 8px;">UT Austin</div>
+          <a href="https://www.joydeepb.com/" target="_blank" rel="noopener" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary);">Website ↗</a>
+        </div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" style="padding: 104px 48px; background: #f0eee6; border-top: 1px solid var(--border-color-base);">
+    <div style="max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 48px;">
+      <div>
+        <h2 style="font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 300; margin: 0; position: sticky; top: 100px;">Contact</h2>
+      </div>
+      <div>
+        <p style="font-size: 19px; line-height: 1.65; margin: 0 0 28px;">For questions about the tutorial, please contact the organizing team.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px 40px;">
+          <a href="mailto:v2d_challenge@nvidia.com" style="font-family: var(--font-mono); font-size: 19px; color: var(--text-color-primary); text-decoration: none; border-bottom: 1px solid var(--border-color-base); padding-bottom: 4px" style-hover="border-bottom-color: var(--color-brand, #76b900);">v2d_challenge@nvidia.com</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer style="padding: 44px 48px; border-top: 1px solid var(--border-color-base); display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <x-import component-from-global-scope="KuiFoundationsReact.HorizontalLogo" hint-size="100px,22px" style="width: 110px; height: 20px; display: block;"></x-import>
+    </div>
+    <div style="font-size: 13px; color: var(--text-color-secondary);">
+      <a href="https://nvidia-isaac.github.io/video_to_data/v2d_challenge/" target="_blank" rel="noopener">V2D Challenge ↗</a>
+      &nbsp;&middot;&nbsp;
+      <a href="https://github.com/nvidia-isaac/video_to_data" target="_blank" rel="noopener">nvidia-isaac/video_to_data ↗</a>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+class Component extends DCLogic {
+  componentDidMount() {
+    const ids = ["overview","objectives","format","schedule","instructors","materials","organizers","contact"];
+    const links = ids.map(id => document.querySelector('nav a[href="#' + id + '"]')).filter(Boolean);
+    links.forEach(a => {
+      a.style.display = "inline-flex";
+      a.style.alignItems = "center";
+      a.style.paddingTop = "6px";
+      a.style.paddingBottom = "4px";
+      a.style.borderTop = "2px solid transparent";
+      a.style.borderBottom = "2px solid transparent";
+      a.style.transition = "border-color 150ms, color 150ms";
+    });
+    const mark = id => links.forEach(a => {
+      const on = a.getAttribute("href") === "#" + id;
+      a.style.borderBottomColor = on ? "var(--color-brand, #76b900)" : "transparent";
+      a.style.color = on ? "var(--text-color-primary)" : "";
+    });
+    const sections = ids.map(id => document.getElementById(id)).filter(Boolean);
+    this._onScroll = () => {
+      let cur = null;
+      for (const s of sections) if (s.getBoundingClientRect().top <= 140) cur = s.id;
+      const atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 4;
+      if (atBottom && sections.length) cur = sections[sections.length - 1].id;
+      mark(cur);
+    };
+    window.addEventListener("scroll", this._onScroll, { passive: true });
+    this._onScroll();
+  }
+  componentWillUnmount() {
+    if (this._onScroll) window.removeEventListener("scroll", this._onScroll);
+  }
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
