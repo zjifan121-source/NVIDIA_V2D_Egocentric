@@ -23,6 +23,10 @@ convention as arctic), and the object assets live under
 ``synthbox/object_assets/`` rather than the rigid ``meshes/`` + ``urdfs/`` tree.
 
 Requires Isaac Lab (``ISAACLAB_PATH``), GPU, and ``pxr``.
+
+Isaac Sim 5.1 does not support the R595 driver branch. On CI runners using
+R595, stages 1.5--4 still run and the camera-dependent video stage is reported
+as skipped. Other driver branches continue to gate video recording.
 """
 
 import os
@@ -44,6 +48,7 @@ class TestRetargetPipelineE2E(unittest.TestCase):
     assets_dir: Path
     isaaclab_path: str
     isaaclab_script: str
+    nvidia_driver_version: str | None = None
     # Lib dir to prepend to LD_LIBRARY_PATH so pinocchio imports; None when the
     # Isaac Lab python already imports pinocchio cleanly (see
     # ``_ensure_pinocchio_ld_path``).
@@ -76,8 +81,37 @@ class TestRetargetPipelineE2E(unittest.TestCase):
             raise unittest.SkipTest("CUDA not available — retarget E2E requires GPU")
 
         print(f"GPU available: {torch.cuda.get_device_name(0)}")
+        cls.nvidia_driver_version = cls._get_nvidia_driver_version()
+        print(f"NVIDIA driver: {cls.nvidia_driver_version or 'unknown'}")
 
         cls._ensure_pinocchio_ld_path()
+
+    @staticmethod
+    def _get_nvidia_driver_version() -> str | None:
+        """Return the first GPU's host driver version, if available."""
+        result = subprocess.run(
+            [
+                "nvidia-smi",
+                "--query-gpu=driver_version",
+                "--format=csv,noheader",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            return None
+        versions = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+        return versions[0] if versions else None
+
+    @classmethod
+    def _has_unsupported_camera_driver(cls) -> bool:
+        """Return whether CI uses the unsupported Isaac Sim 5.1 R595 driver."""
+        if os.environ.get("CI", "").lower() != "true":
+            return False
+        if not cls.nvidia_driver_version:
+            return False
+        return cls.nvidia_driver_version.split(".", maxsplit=1)[0] == "595"
 
     @classmethod
     def _ensure_pinocchio_ld_path(cls) -> None:
@@ -225,9 +259,17 @@ class TestRetargetPipelineE2E(unittest.TestCase):
                 f"stderr tail:\n{_tail(e.stderr)}"
             )
         if result.returncode != 0:
+            stderr = result.stderr or ""
+            if len(stderr) > 12000:
+                stderr = (
+                    f"{stderr[:6000]}\n"
+                    "... stderr truncated ...\n"
+                    f"{stderr[-6000:]}"
+                )
             self.fail(
                 f"[{stage}] exit code {result.returncode}\n"
-                f"stderr tail:\n{result.stderr[-2000:] if result.stderr else ''}"
+                f"stdout tail:\n{result.stdout[-4000:] if result.stdout else ''}\n"
+                f"stderr:\n{stderr}"
             )
         return result
 
@@ -377,8 +419,14 @@ class TestRetargetPipelineE2E(unittest.TestCase):
         sequence_id: str,
         processed_dir: Path,
         html_dir: Path,
+        mp4_dir: Path,
     ) -> None:
-        """Stage 4: viser recording + pyrender MP4; assert both artifacts land."""
+        """Stage 4: viser recording + pyrender MP4; assert both artifacts land.
+
+        ``--save_mp4`` writes a flat ``<seq>.mp4`` to its own directory,
+        independent of the viser ``--html_dir`` tree; pin it to the scratch
+        workspace so the run stays hermetic (its default is the repo's ``out/``).
+        """
         self._run(
             [
                 str(self.scripts_dir / "retarget/vis_retargeted.py"),
@@ -388,6 +436,8 @@ class TestRetargetPipelineE2E(unittest.TestCase):
                 "--save_mp4",
                 "--html_dir",
                 str(html_dir),
+                "--mp4_dir",
+                str(mp4_dir),
                 "--sequence_id",
                 sequence_id,
             ],
@@ -400,8 +450,8 @@ class TestRetargetPipelineE2E(unittest.TestCase):
             f"No .viser for {sequence_id} in {recordings}",
         )
         self.assertTrue(
-            (recordings / f"{sequence_id}.mp4").exists(),
-            f"No .mp4 for {sequence_id} in {recordings}",
+            (mp4_dir / f"{sequence_id}.mp4").exists(),
+            f"No .mp4 for {sequence_id} in {mp4_dir}",
         )
 
     def _stage_video(
@@ -417,6 +467,13 @@ class TestRetargetPipelineE2E(unittest.TestCase):
         is the smallest value that ticks past the trajectory end when
         terminations are disabled again.
         """
+        if self._has_unsupported_camera_driver():
+            self.skipTest(
+                "stage 5 video requires a driver supported by Isaac Sim 5.1; "
+                f"CI uses R595 ({self.nvidia_driver_version}); see "
+                "https://github.com/isaac-sim/IsaacSim/issues/646"
+            )
+
         seq_dirs = list(processed_dir.rglob(f"sequence_id={sequence_id}/robot_name=*"))
         self.assertTrue(
             seq_dirs, f"Could not locate processed SEQ_DIR under {processed_dir}"
@@ -485,12 +542,13 @@ class TestRetargetPipelineE2E(unittest.TestCase):
 
             processed_dir = workdir / f"{dataset}_processed"
             html_dir = workdir / f"{dataset}_html"
+            mp4_dir = workdir / f"{dataset}_mp4"
             video_dir = workdir / f"{dataset}_video"
 
             self._stage_urdfs(dataset)
             self._stage_process(dataset, sequence_id, loaded_dir, processed_dir)
             self._stage_reconstruct(dataset, sequence_id, loaded_dir)
-            self._stage_visualize(sequence_id, processed_dir, html_dir)
+            self._stage_visualize(sequence_id, processed_dir, html_dir, mp4_dir)
             self._stage_video(sequence_id, processed_dir, video_dir)
 
     def test_synthbox_pipeline(self) -> None:

@@ -14,7 +14,8 @@ Save schema (from the SOMA exporter ``save_soma_npz``):
     identity_model_type "mhr" | "soma" | ...
     identity_coeffs   (T, K_id)   identity (shape) coeffs; constant in time
     scale_params      (T, K_sc)   identity scale params; constant in time
-    joint_orient      (J + 1, 3, 3) rest-pose joint orientation matrices
+    joint_orient      (J + 1, 3, 3) optional legacy rest-pose orientations;
+                                      the active SOMA model is authoritative
     unit              "meters"
     keep_root         bool        when False, ``poses[:, 0]`` is the root
     rotation_repr     "rotvec"
@@ -26,6 +27,7 @@ the SOMA exporter so ``soma_to_g1.py`` can consume it directly.
 
 from __future__ import annotations
 
+import zipfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -93,6 +95,28 @@ _SOMA_REQUIRED_BY_IDENTITY: dict[str, tuple[str, ...]] = {
     ),
 }
 
+# Rig arrays that ``SOMALayer(enable_procedural_transforms=False)`` reads straight
+# out of ``SOMA_neutral.npz``. Mirrors ``soma.io.SOMA_NEUTRAL_RIG_KEYS`` (py-soma-x
+# 0.2.x); duplicated here so the manifest check stays importable without the heavy
+# optional dependency. ``nvidia/SOMA-X`` asset commits from v0.2.2 onward publish a
+# *slim* npz under the same filename with these keys removed (the rig moved into
+# ``SOMA_template_rig.usda`` + ``SOMA_procedural_transforms.json``, which
+# ``SOMA.__init__`` deliberately does not consume). A slim npz passes a presence
+# check but cannot drive retargeting, so ``_missing_assets`` inspects content.
+_SOMA_NEUTRAL_RIG_KEYS: tuple[str, ...] = (
+    "joint_names",
+    "joint_parent_ids",
+    "bind_pose_world",
+    "bind_pose_local",
+    "t_pose_world",
+    "t_pose_local",
+    "bind_shape",
+    "skinning_weights_data",
+    "skinning_weights_indices",
+    "skinning_weights_indptr",
+    "skinning_weights_shape",
+)
+
 
 _LFS_POINTER_PREFIX = b"version https://git-lfs.github.com/spec/v1"
 
@@ -113,108 +137,108 @@ def _is_lfs_pointer(path: Path) -> bool:
         return False
 
 
+def _unusable_soma_neutral(path: Path) -> str | None:
+    """Return why ``SOMA_neutral.npz`` at ``path`` cannot back ``read_soma``, else ``None``.
+
+    Only the archive directory is read (no array data), so this is cheap even
+    for the ~27 MB production file and safe to run on every ``SOMA()`` construction.
+    """
+    try:
+        with np.load(path, allow_pickle=False) as archive:
+            present = set(archive.files)
+    except (OSError, ValueError, EOFError, zipfile.BadZipFile) as exc:
+        return f"unreadable npz: {exc}"
+    missing = [key for key in _SOMA_NEUTRAL_RIG_KEYS if key not in present]
+    if missing:
+        return "slim SOMA-X asset without embedded rig keys: " + ", ".join(missing)
+    return None
+
+
 def _missing_assets(root: Path, identity_model_type: str) -> list[str]:
-    """Return the expected SOMA asset files missing or unusable under ``root``."""
+    """Return the expected SOMA asset files missing or unusable under ``root``.
+
+    Entries are manifest relpaths. A file that exists but cannot be consumed
+    (Git-LFS stub, slim or corrupt ``SOMA_neutral.npz``) is reported too, with
+    the reason appended in parentheses for the npz, so both the setup script
+    and the runtime hint stay actionable instead of passing an asset set that
+    fails one step later inside ``SOMALayer``.
+    """
     needed = list(_SOMA_REQUIRED_ASSETS) + list(
         _SOMA_REQUIRED_BY_IDENTITY.get(identity_model_type.lower(), ())
     )
-    return [
-        name
-        for name in needed
-        if not (root / name).is_file() or _is_lfs_pointer(root / name)
-    ]
+    missing: list[str] = []
+    for name in needed:
+        path = root / name
+        if not path.is_file() or _is_lfs_pointer(path):
+            missing.append(name)
+            continue
+        if name == "SOMA_neutral.npz":
+            reason = _unusable_soma_neutral(path)
+            if reason is not None:
+                missing.append(f"{name} ({reason})")
+    return missing
 
 
-_SETUP_HINT_PRINTED: set[tuple[str, str]] = set()
-
-
-def _emit_setup_hint(
+def _missing_assets_error(
     target_root: Path,
     identity_model_type: str,
     missing: list[str],
-) -> None:
-    """Print a one-shot 'how to populate the SOMA cache' warning.
+) -> FileNotFoundError:
+    """Build an actionable error for a missing pinned SOMA asset bundle.
 
-    Centralized so every code path that detects a missing asset (the
-    explicit-data_root branch, the repo-local default branch, and any
-    future ``SOMA``-style wrapper for a different robot) prints the
-    *same* actionable instruction. Deduplicated per
-    ``(target_root, identity_model_type)`` per process so scripts that
-    construct ``SOMA`` repeatedly (e.g. tests, batch loops) do not spam
-    the log. Update here only when the bootstrap contract (script name,
-    default cache location) changes.
+    ``SOMALayer(data_root=None)`` downloads the latest upstream assets. That
+    mutable snapshot can change the rest skeleton and therefore the robot IK
+    result without any repository change. Require the repository's pinned
+    setup path instead so retargeting remains reproducible.
     """
-    key = (str(target_root), identity_model_type)
-    if key in _SETUP_HINT_PRINTED:
-        return
-    _SETUP_HINT_PRINTED.add(key)
     identity_flag = (
         f" --identity-model-type {identity_model_type}"
         if identity_model_type != "mhr"
         else ""
     )
-    print(
-        f"[read_soma] WARNING: SOMA body-model cache at {target_root} is "
+    return FileNotFoundError(
+        f"SOMA body-model cache at {target_root} is "
         f"missing assets for identity_model_type={identity_model_type!r}: "
         f"{missing}.\n"
         f"  -> Run `python scripts/setup_soma_assets.py{identity_flag}` to "
-        "download them (~822 MB from HuggingFace).\n"
-        "  Falling back to SOMA-X's built-in HuggingFace cache for this "
-        "run; subsequent runs will keep re-downloading until the cache "
-        "above is populated."
+        "download the repository-pinned bundle (~822 MB from HuggingFace). "
+        "The mutable SOMA-X default snapshot is intentionally not used "
+        "because it can change retargeting results."
     )
 
 
 def _resolve_data_root(
     data_root: str | Path | None,
     identity_model_type: str,
-) -> Path | None:
+) -> Path:
     """Resolve the SOMA assets root for ``SOMALayer``.
 
-    Strategy (match the MANO pattern of repo-local assets, but
-    never force-create an empty directory that blocks SOMA's built-in
-    HuggingFace download):
+    Match the MANO pattern of repo-local assets and require a complete bundle:
 
     * If ``data_root`` is an explicit path and contains the full bundle
       (``SOMA_neutral.npz``, ``correctives_model.pt``, plus the
       identity-model files for ``identity_model_type``), use it.
     * If ``BODY_MODELS_DIR / "soma"`` is fully populated, use it (drop-in
       local cache alongside MANO).
-    * Otherwise return ``None`` so ``SOMALayer`` auto-downloads to the
-      HuggingFace cache; this keeps the first-run bootstrap working in a
-      fresh Docker image without any manual asset staging. We additionally
-      print a one-shot setup-script reminder so users do not silently pay
-      the HuggingFace download cost on every run.
-
-    Never create an empty ``BODY_MODELS_DIR / "soma"`` directory: SOMA-X
-    treats an existing-but-incomplete directory as "assets are supposed to
-    be here" and refuses to fall back to HuggingFace, which surfaces as a
-    cryptic ``FileNotFoundError`` for ``SOMA_neutral.npz``.
+    * Otherwise fail with the pinned setup command. Never delegate to
+      ``SOMALayer(data_root=None)`` because that follows a mutable upstream
+      snapshot and can silently change the retargeted motion.
     """
     if data_root is not None:
         path = Path(data_root).expanduser()
         missing = _missing_assets(path, identity_model_type)
         if not missing:
             return path
-        _emit_setup_hint(path, identity_model_type, missing)
-        return None
+        raise _missing_assets_error(path, identity_model_type, missing)
 
     repo_local = BODY_MODELS_DIR / "soma"
     if repo_local.is_dir():
         missing = _missing_assets(repo_local, identity_model_type)
         if not missing:
             return repo_local
-        _emit_setup_hint(repo_local, identity_model_type, missing)
     else:
-        # Fresh checkout: directory does not exist yet. Same actionable
-        # guidance, treating the canonical default path as "missing
-        # everything" so the user sees one consistent message.
-        _emit_setup_hint(
-            repo_local,
-            identity_model_type,
-            _missing_assets(repo_local, identity_model_type),
-        )
-    return None
+        missing = _missing_assets(repo_local, identity_model_type)
+    raise _missing_assets_error(repo_local, identity_model_type, missing)
 
 
 def _matrix_to_wxyz(matrix: np.ndarray) -> np.ndarray:
@@ -272,9 +296,10 @@ class SOMA:
         self.data_root = _resolve_data_root(data_root, identity_model_type)
         # py-soma-x >= 0.2 defaults ``enable_procedural_transforms=True``, which
         # hard-requires ``SOMA_template_rig.usda`` + ``SOMA_procedural_transforms.json``.
-        # The public ``nvidia/SOMA-X`` HuggingFace bundle that ``_resolve_data_root``
-        # and ``scripts/setup_soma_assets.py`` populate ships neither, so leaving it
-        # enabled makes every asset path raise FileNotFoundError. Procedural mode also
+        # The pinned ``nvidia/SOMA-X`` asset revision that ``scripts/setup_soma_assets.py``
+        # stages ships neither (its ``SOMA_neutral.npz`` embeds the rig instead; see
+        # ``_SOMA_NEUTRAL_RIG_KEYS``), so leaving it enabled raises FileNotFoundError
+        # on every asset path. Procedural mode also
         # replaces ``rig_data["joint_names"]`` with the internal twist rig, breaking
         # the 77-joint indexing that ``soma_params.npz`` exports use. The twist joints
         # only refine mesh skinning; ``joints``/``joints_wxyz`` are unchanged.
@@ -588,7 +613,6 @@ class SOMA:
             "identity_model_type",
             "identity_coeffs",
             "scale_params",
-            "joint_orient",
             "unit",
             "keep_root",
         }
@@ -599,6 +623,10 @@ class SOMA:
             )
 
         params = {k: archive[k] for k in archive.files}
+        if "joint_orient" not in params:
+            params["joint_orient"] = (
+                self.layer.t_pose_world[..., :3, :3].detach().cpu().numpy()
+            )
         params["unit"] = (
             str(params["unit"].item())
             if params["unit"].dtype.kind == "U"
