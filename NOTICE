@@ -1,6 +1,8 @@
 NVIDIA_V2D_Egocentric
 This project builds on NVIDIA's video_to_data
-(https://github.com/nvidia-isaac/video_to_data), release/0.2.0 (commit 43a3f5b).
+(https://github.com/nvidia-isaac/video_to_data), main branch at commit 8c778f9 (v0.4.0 + 6 commits),
+the FlashCHORD revision pinned by the challenge submission kit.
+It was first imported at release/0.2.0 (commit 43a3f5b).
 NVIDIA source code: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES, Apache-2.0.
 NVIDIA documentation and skills: CC-BY-4.0.
 

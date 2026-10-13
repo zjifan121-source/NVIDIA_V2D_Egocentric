@@ -2,7 +2,7 @@
 
 Private team repository for the **NVIDIA Isaac Video-to-Data (V2D) Challenge, Track 3: Egocentric Video → Policy**.
 
-It is built on NVIDIA's [`video_to_data`](https://github.com/nvidia-isaac/video_to_data) at `release/0.2.0`. The team works on two independent approaches, side by side in one repo:
+It is built on NVIDIA's [`video_to_data`](https://github.com/nvidia-isaac/video_to_data) at `main` @ `8c778f9` (v0.4.0 + 6 commits), the revision the submission kit pins for its policy evaluator. The team works on two independent approaches, side by side in one repo:
 
 - **Path A: build on the baseline.** New code goes in `path_a/`; fixes to NVIDIA's files are made in place under `baseline/`, each marked with a modification header.
 - **Path B: a completely new approach.** Lives in `path_b/` and shares only the inputs, docs and evaluation from `assets/`.
@@ -33,9 +33,9 @@ Both paths are scored with the same official evaluator, so their results are dir
 
 | | |
 |---|---|
-| Baseline | `nvidia-isaac/video_to_data` `release/0.2.0` |
-| Baseline tag in this repo | `baseline-0.2.0` (NVIDIA's exact commit, unmodified) |
-| Newer NVIDIA releases | v0.3.0 (end-to-end GR00T workflow), v0.4.0 (FlashCHORD). Brought in only when needed ([§3](#3-branches-and-workflow)). |
+| Baseline | `nvidia-isaac/video_to_data` `main` @ `8c778f9` (v0.4.0 + 6 commits) |
+| Why this revision | The submission kit runs its policy evaluator with FlashCHORD at exactly this commit (`baseline/robotic_grounding/flash_chord/`). `release/0.2.0` had no FlashCHORD. |
+| Unmodified import in this repo | Commit `d9264a4`: `baseline/` is NVIDIA's `8c778f9` file for file. The tag `baseline-0.2.0` is NVIDIA's 0.2.0 commit, the previous baseline. |
 | Remotes | `origin` = this repo, `upstream` = NVIDIA |
 | Dataset | [`nvidia/video_to_data_challenge`](https://huggingface.co/datasets/nvidia/video_to_data_challenge) → `track_3/` (CC-BY-4.0, ~1.5 GB) |
 | Validated GPUs | RTX A6000 (SM 86), L40S (SM 89) |
@@ -53,7 +53,7 @@ Legend: **[N]** NVIDIA / official challenge material · **[A]** Path A · **[B]*
 NVIDIA_V2D_Egocentric/
 ├── README.md  NOTICE  LICENSE  .gitignore   repo files (LICENSE is a copy of NVIDIA's)
 │
-├── baseline/                       [N] NVIDIA video_to_data release/0.2.0, minus docs/ (moved to assets/), plus marked Path A edits
+├── baseline/                       [N] NVIDIA video_to_data main @ 8c778f9, minus docs/ (moved to assets/), plus marked Path A edits
 │   ├── README.md  LICENSE  SECURITY.md  .gitignore  .gitattributes
 │   ├── .github/ .claude/ .codex/   NVIDIA's CI and agent skills (CI does not run from here)
 │   ├── reconstruction/             video → depth, masks, mesh, 6-DoF object pose, MANO hands
@@ -68,14 +68,15 @@ NVIDIA_V2D_Egocentric/
 │   │   │   ├── v2d_sam3d/ v2d_foundation_pose/ v2d_hamer/ v2d_gsplat_refinement/ v2d_geocalib/ ...
 │   │   │   └── v2d_t3_<name>/      [A] new Path A Docker modules (prefix t3_ = ours)
 │   │   └── data/                   [L] runtime cache (paths are relative to baseline/reconstruction/)
-│   │       ├── weights/            model weights, incl. hand/models/MANO_RIGHT.pkl
+│   │       ├── weights/            model weights, incl. hand/models/MANO_{RIGHT,LEFT}.pkl
 │   │       └── outputs/<branch>/<episode>/   one folder per run
 │   ├── robotic_grounding/          retargeting + Isaac Lab PPO (not covered by this README yet)
+│   │   └── flash_chord/            FlashCHORD policy training + the evaluator the submission kit runs
 │   └── video_ingestion_agent/      not used for Track 3
 │
 ├── assets/                         [N] everything about the challenge (see assets/README.md)
 │   ├── docs/
-│   │   ├── nvidia/                 NVIDIA's docs/ from release/0.2.0
+│   │   ├── nvidia/                 NVIDIA's docs/ from the same revision as baseline/
 │   │   └── challenge/              official challenge website snapshot: rules, FAQ, submission kit zip
 │   └── data/
 │       ├── v2d_submission_kit/     official evaluator: scorers, policy evaluator, packer, uploader
@@ -88,8 +89,8 @@ NVIDIA_V2D_Egocentric/
 Rules that keep this layout working:
 
 - **`assets/` holds only official challenge material**, copied unmodified.
-- **`baseline/` is NVIDIA's `release/0.2.0` plus Path A's marked edits.** Every edited NVIDIA file carries a modification header. To list every NVIDIA file the team has changed:
-  `git diff --stat baseline-0.2.0 origin/main:baseline -- . ':!docs'`
+- **`baseline/` is NVIDIA's `8c778f9` plus Path A's marked edits.** Every edited NVIDIA file carries a modification header. To list every NVIDIA file the team has changed:
+  `git diff --stat d9264a4 origin/main -- baseline/`
 - **Path A** puts new code in `path_a/` and edits `baseline/` in place.
 - **Path B** lives entirely in `path_b/`. It uses only `assets/` (inputs, docs, evaluation) and never touches `baseline/`.
 
@@ -154,16 +155,17 @@ git push
 
 ```bash
 git fetch upstream --tags
-git switch -c sync-upstream edfd630    # last commit with unmodified NVIDIA 0.2.0; update this after each sync
+export GIT_LFS_SKIP_SMUDGE=1          # fetch LFS files afterwards, with `git lfs pull`
+git switch -c sync-upstream d9264a4    # last commit with unmodified NVIDIA code (8c778f9); update this after each sync
 git rm -r -q baseline assets/docs/nvidia
-git read-tree --prefix=baseline/ -u upstream/<release-branch>
+git read-tree --prefix=baseline/ -u <upstream commit or branch>
 git mv baseline/docs assets/docs/nvidia
 git commit -m "NVIDIA <release> into baseline/"
 git push -u origin sync-upstream
 gh pr create --base main_buffer --head sync-upstream
 ```
 
-The PR merge keeps the team's edits and adds NVIDIA's changes; conflicts appear only in files both sides changed. Re-run the smoke test (§5.4) before releasing to `main`, and replace `edfd630` above with the `sync-upstream` commit.
+The PR merge keeps the team's edits and adds NVIDIA's changes; conflicts appear only in files both sides changed. Re-run the smoke test (§5.4) before releasing to `main`, and replace `d9264a4` above with the `sync-upstream` commit. If NVIDIA adds LFS rules under `docs/`, copy them into `assets/.gitattributes` with the `docs/nvidia/` prefix, or those files stay as pointers.
 
 When NVIDIA updates the challenge site or submission kit, refresh `assets/docs/challenge/` and `assets/data/v2d_submission_kit/` (see `assets/README.md`).
 
@@ -174,29 +176,30 @@ When NVIDIA updates the challenge site or submission kit, refresh `assets/docs/c
 ### 4.1 Repository access
 
 1. Accept the GitHub collaborator invitation (check your email).
-2. Install the GitHub CLI and Git LFS. On macOS: `brew install gh git-lfs`. On Linux, use your package manager.
+2. Install the GitHub CLI and Git LFS **before cloning**. On macOS: `brew install gh git-lfs`. On Linux, use your package manager. Check with `git lfs version`.
+   On CMU Babel, `git-lfs` is installed on compute nodes but not on the login nodes, so clone from a compute node (`srun ... --pty bash`).
 3. Authenticate. GitHub no longer accepts passwords for git, so use:
    ```bash
    gh auth login        # GitHub.com → HTTPS → Yes → Login with a web browser
    ```
 4. Clone and wire up NVIDIA as `upstream`:
    ```bash
+   git lfs install                # once per machine
    git clone https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric.git
    cd NVIDIA_V2D_Egocentric
-   git remote add upstream https://github.com/nvidia-isaac/video_to_data.git
-   git lfs install
-   git lfs pull upstream          # LFS files (sample video, assets) come from NVIDIA's public repo
+   git remote add upstream https://github.com/nvidia-isaac/video_to_data.git   # used for baseline syncs (§3)
    ```
-   Check with `ls -lh baseline/reconstruction/assets/airplane.mp4`. It should be several MB, not a ~130-byte pointer file.
+   The clone downloads ~1.6 GB of Git LFS files (meshes, sample videos, robot assets). They come from **NVIDIA's** public LFS store, not this repo's: the committed `.lfsconfig` points there, so no extra step is needed.
+   Check with `git status` (should be clean) and `ls -lh baseline/reconstruction/assets/airplane.mp4` (25 MB, not a ~130-byte pointer file). If either is off, see [§10](#10-troubleshooting).
 
 ### 4.2 Personal accounts and licenses (each person, once)
 
 | What | Why | How |
 |---|---|---|
 | Hugging Face account + token | SAM3D weights are gated; dataset download | Create a token at huggingface.co → Settings → Access Tokens. Request access on the SAM 3D model page. Then `hf auth login` or `export HF_TOKEN=...` |
-| MANO license | Hand model used by every hand step; it cannot be redistributed | Register at https://mano.is.tue.mpg.de/ and download `MANO_RIGHT.pkl` yourself |
+| MANO license | Hand model used by every hand step; it cannot be redistributed | Register at https://mano.is.tue.mpg.de/ and download `MANO_RIGHT.pkl` and `MANO_LEFT.pkl` yourself (reconstruction uses the right model; retargeting both hands needs both) |
 
-Never share `MANO_RIGHT.pkl` or tokens through this repo or chat.
+Never share the MANO `.pkl` files or tokens through this repo or chat.
 
 ### 4.3 Where code runs
 
@@ -230,8 +233,10 @@ cd baseline/reconstruction
 ./scripts/install_ego_reconstruction_packages.sh      # host-side Python wrappers (no ML deps)
 ./scripts/build_ego_reconstruction_packages.sh        # builds the per-module Docker images (slow)
 export HF_TOKEN=<your token>                          # or: hf auth login
-./scripts/download_ego_reconstruction_weights.sh --mode hamer_prompt
+./scripts/download_ego_reconstruction_weights.sh --mode hamer_prompt --accept-nvidia-model-eula
 ```
+
+`--accept-nvidia-model-eula` accepts the NVIDIA Open Model License for the FoundationPose weights; read it first (`baseline/reconstruction/README.md`, section `v2d_foundation_pose`). Without the flag, the script stops with a `RuntimeError` at the FoundationPose step.
 
 Weight modes:
 
@@ -247,7 +252,8 @@ Weight modes:
 ```
 baseline/reconstruction/data/weights/hand/
 ├── models/
-│   └── MANO_RIGHT.pkl        ← your own download
+│   ├── MANO_RIGHT.pkl        ← your own download
+│   └── MANO_LEFT.pkl         ← your own download (needed for retargeting, not reconstruction)
 └── BMC/
     └── *.npy                 ← only needed for the DynHaMR mode
 ```
@@ -445,7 +451,7 @@ Known weak points of the baseline (good first targets):
 ### Before opening a PR
 
 - [ ] Ran on at least the agreed validation episodes, from a clean output folder
-- [ ] Scored with the official evaluator (`assets/data/v2d_submission_kit/`) and noted the numbers alongside the baseline numbers
+- [ ] Scored on the public episodes and noted the numbers alongside the baseline numbers. For Track 3 the kit has no local scorer (ground truth for the evaluation episodes is hidden), so score on `public/` with our own scorer (not built yet) and use the kit only for packing and submitting.
 - [ ] No data, weights, outputs or tokens in the diff (`git status`, `git diff --stat`)
 - [ ] Modification notices added to edited NVIDIA files
 
@@ -456,10 +462,10 @@ Known weak points of the baseline (good first targets):
 | Never commit | Instead |
 |---|---|
 | `baseline/reconstruction/data/` (weights, outputs), `assets/data/` (dataset) | Each person downloads; outputs stay local or on shared storage |
-| `MANO_RIGHT.pkl` | Each person registers and downloads |
+| `MANO_RIGHT.pkl`, `MANO_LEFT.pkl` | Each person registers and downloads |
 | `HF_TOKEN`, any `.env`, credentials | Environment variables |
 | Model checkpoints (`*.pt`, `*.pth`, `*.ckpt`), `*.npz` | Shared storage (e.g. PSC Ocean) |
-| Large videos / meshes | Git LFS only if essential, after team agreement |
+| Large videos / meshes | Git LFS only if essential, after team agreement. LFS downloads come from NVIDIA's store (`.lfsconfig`), so a new team LFS file also needs that setup changed, or clones will fail. |
 
 These patterns are already in `.gitignore`. Check before committing with `git status`. If something sensitive was committed, tell the team immediately: deleting it in a new commit does not remove it from history.
 
@@ -481,7 +487,9 @@ These patterns are already in `.gitignore`. Check before committing with `git st
 | Problem | Fix |
 |---|---|
 | `Password authentication is not supported` on clone or push | Use `gh auth login` (§4.1), not your GitHub password |
-| `airplane.mp4` is ~130 bytes / video won't open | It's an LFS pointer: `git lfs install && git lfs pull upstream` |
+| `airplane.mp4` is ~130 bytes / video won't open | It's an LFS pointer: git-lfs was missing when you cloned. Install it, then `git lfs install && git lfs pull` |
+| After cloning, `git status` shows thousands of staged deletions (`D`) plus untracked folders | The clone's checkout failed while downloading LFS files (clones made before `.lfsconfig` existed hit this). Nothing is lost. Run `git reset`, then `git pull`, then `git lfs pull`. |
+| `git: 'lfs' is not a git command` | git-lfs isn't installed on this machine. On Babel, use a compute node instead of a login node. |
 | `docker: permission denied` | Add yourself to the `docker` group, then log out and back in |
 | `could not select device driver "nvidia"` | NVIDIA Container Toolkit not installed or configured |
 | Launcher refuses to start on the GPU | Blackwell `sm_120` is unsupported. Use an A6000 / L40S. |
@@ -497,7 +505,7 @@ These patterns are already in `.gitignore`. Check before committing with `git st
 
 ## 11. Links
 
-- NVIDIA repo: https://github.com/nvidia-isaac/video_to_data (baseline: `release/0.2.0`; NVIDIA's README: `baseline/README.md`)
+- NVIDIA repo: https://github.com/nvidia-isaac/video_to_data (baseline: `main` @ `8c778f9`; NVIDIA's README: `baseline/README.md`)
 - NVIDIA docs: https://nvidia-isaac.github.io/video_to_data/
 - Ego pipeline guide: `baseline/reconstruction/docs/ego_e2e_setup.md`
 - Robotic grounding guide: `baseline/robotic_grounding/docs/SETUP.md`
