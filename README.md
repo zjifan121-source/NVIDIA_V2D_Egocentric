@@ -413,6 +413,44 @@ uv run --project tools python tools/track3/score_local.py --results <dir> --mesh
 
 **Packing and submitting** use the kit unchanged, but run it with this environment (`uv run --project tools python tools/pack_submission.py ...` from the kit folder): the kit's `requirements.txt` omits `pillow`, without which packing textured meshes crashes, and `scipy`. Checked offline with placeholder trajectories for all 20 evaluation episodes: `pack_submission.py` and `preflight.py --skip-kaggle` pass, and both output files match the kit's samples row for row. `v2d_submit.py --dry-run` needs a Kaggle API token even for a dry run (`kaggle auth login`, or `~/.kaggle/access_token`).
 
+### 5.12 Stages 2–3: load and retarget
+
+**Load** turns a reconstruction bundle (`result_slam_gravity_aligned/`: `result.npz` + `mesh.obj`) into NVIDIA's human-motion Parquet: the MANO hand model gives finger joints, and hands and object go into one world frame. **Retarget** makes the Sharpa robot hands copy the human hands (inverse kinematics) and builds the simulator scene: an object URDF and the table under it (support surface). The output is what FlashCHORD trains on. Both run natively in one Python environment (no Docker, no Isaac). The GPU is optional, except for the QA video, which renders with EGL.
+
+`tools/track3/run_load_retarget.py` runs the whole chain for one bundle, following NVIDIA's own recipe (`baseline/.claude/skills/onboard_ego_clip/`) with Track 3 settings: clip fps 20.254, table height 1.0 m, and the bundle's gravity alignment kept.
+
+| Step | Checks (all in `report.json`) |
+|---|---|
+| check bundle | NaNs, per-track validity, MANO hand scale ≈ 1 (the metric ruler), gravity flag, object still at the start, rest footprint (a thin strip means the object sits on an edge), mesh size vs the public scan |
+| load → retarget → URDF → support → QA video | each step skipped if its output exists (`--force` redoes all) |
+| check output | frame count and fps, robot fingertip error (bar ≈ 2.2 cm mean, < 6 cm max), links inside the object (bar: none deeper than 2 cm), support disk under the object, frame-0 seating |
+
+**Environment (once).** Python 3.11, from the repo root:
+```bash
+VENV=<path>; P=$VENV/bin/python
+uv venv --python 3.11 $VENV
+uv pip install --python $P torch==2.7.1 --index-url https://download.pytorch.org/whl/cu128
+uv pip install --python $P -r tools/track3/load_retarget_requirements.txt
+uv pip install --python $P pip setuptools wheel      # chumpy's setup.py imports pip
+uv pip install --python $P --no-build-isolation "chumpy @ git+https://github.com/mattloper/chumpy@580566eafc9ac68b2614b64d6f7aaa84eebb70da"
+uv pip install --python $P --no-deps "manotorch @ git+https://github.com/lixiny/manotorch@a2a70c591f91551078b7bb2af9b5d9f275b626e0"
+uv pip install --python $P --no-deps -e baseline/robotic_grounding/source/robotic_grounding \
+    -e baseline/reconstruction/modules/v2d_common -e baseline/reconstruction/modules/v2d_task_library_loader/lib
+```
+It needs the MANO files from §5.3. Babel users: a built copy lives at `/data/user_data/edmondwa/v2d/venvs/retarget`.
+
+**Run.** Bundles are shared through a private Hugging Face dataset (`tools/track3/bundles.py`: `upload`, `download`, `list`; set `V2D_BUNDLE_REPO`). Upload only the final outputs (~5 MB per object), not the per-frame intermediates.
+```bash
+uv run --project tools python tools/track3/bundles.py upload --episode 41 --object white_pot --src <reconstruction output dir>
+uv run --project tools python tools/track3/bundles.py download --episode 41
+$P tools/track3/run_load_retarget.py --episode 41 --object white_pot [--device cpu] [--skip-video]
+```
+Output: `baseline/reconstruction/data/outputs/load_retarget/episode_XXXXXX/<object>/`, holding `report.json`, `qa/<seq>.mp4` and `assets/human_motion_data/ego_recon/{processed,reconstructed_stage}/`. Pass `processed/sequence_id=<seq>/robot_name=sharpa_wave` to FlashCHORD as `task.parquet`. For public episodes, `score_input/` holds the reconstruction's own object trajectory for `score_local.py`: a score before any training, and the ceiling for the policy.
+
+**Verified (2026-10-14).** `tools/track3/make_sample_bundle.py` rebuilds a bundle from NVIDIA's committed `tissue_box_simple` example. Running the chain on it reproduces NVIDIA's published retarget to < 0.01 mm (hands, object, robot wrists) and < 0.001 rad (finger joints). Fingertip error 2.3 cm mean / 5.4 cm max; no link deeper than 1 cm; one support disk with the object seated on it. FlashCHORD loads the output and finds the URDF, mesh and support surface. With `control_fps` equal to the clip fps and `motion_speed 1.0`, it keeps the 390 source frames, as the frame-numbering fix in §6 requires. The same holds at 20.254 fps. The Parquet stores fps as float32 (`20.254119873046875`); pass exactly that as `sim.fps` and FlashCHORD skips resampling altogether. `20.25411910142744` gives the same frame count.
+
+**Not yet handled:** two-object episodes (16 of 20 evaluation episodes). The loader takes one object per bundle; merging an episode's two runs into one scene is next.
+
 ---
 
 ## 6. Track 3 data essentials
@@ -434,7 +472,7 @@ Read `assets/data/track_3/README.md` once. The parts that bite:
 | `wooden_spoon` has **no public scan**, but appears in 10 of 20 evaluation episodes | Its mesh must be reconstructed, and it cannot be checked against a scan locally |
 | Ground truth is visible on every frame of every public episode | No gaps to handle when scoring locally |
 | FlashCHORD training speed (measured on Babel, RTX A6000): ~21,600 environment steps/s | The full Sharpa recipe (250M steps) is ~3.2 h per episode policy; 20 evaluation episodes ≈ 64 GPU-hours. Its test suite passes on GPU (651 passed, 55 skipped). |
-| **Evaluator frame numbering (confirmed on a real rollout, 2026-10-13: NVIDIA's 390-frame, 30 fps tissue-box sample came out as 518 rows numbered 0–517 over 25.9 s):** FlashCHORD's evaluator labels rows `reference_frame = step + start_frame`, where a step is a control step (`sim.fps`, 20 Hz) of the *resampled* reference. The kit's packer treats that number as the 20.25 fps video frame. With the Sharpa recipe (`motion_speed: 0.5`) a 313-frame clip becomes 616 steps and the packer would silently submit the first half of the motion; at speed 1.0 and 20 Hz it is 309 steps and the packer refuses it. | Train (and therefore evaluate) with `sim.fps=20.25411910142744 task.motion_speed=1.0`, and make the reference's `fps` the video's 20.254 fps: then step *k* is video frame *k* exactly (checked numerically for all 40 clips). **Also:** the ego loader (`v2d_task_library_loader/lib/ego_recon_loader.py`) hardcodes `EGO_FPS = 30.0`; for Track 3 it must be 20.254, or every motion is time-compressed ~1.48×. |
+| **Evaluator frame numbering (confirmed on a real rollout, 2026-10-13: NVIDIA's 390-frame, 30 fps tissue-box sample came out as 518 rows numbered 0–517 over 25.9 s):** FlashCHORD's evaluator labels rows `reference_frame = step + start_frame`, where a step is a control step (`sim.fps`, 20 Hz) of the *resampled* reference. The kit's packer treats that number as the 20.25 fps video frame. With the Sharpa recipe (`motion_speed: 0.5`) a 313-frame clip becomes 616 steps and the packer would silently submit the first half of the motion; at speed 1.0 and 20 Hz it is 309 steps and the packer refuses it. | Train (and therefore evaluate) with `sim.fps=20.25411910142744 task.motion_speed=1.0`, and make the reference's `fps` the video's 20.254 fps: then step *k* is video frame *k* exactly (checked numerically for all 40 clips). **Also:** the ego loader (`v2d_task_library_loader/lib/ego_recon_loader.py`) hardcoded `EGO_FPS = 30.0`, which would time-compress every Track 3 motion ~1.48×. It now reads `V2D_EGO_FPS`, and `run_load_retarget.py` sets it to 20.254 (§5.12). |
 | Real factory calibration in `meta/camera_calibration.json` (14-coeff distortion) | Better than the baseline's learned AnyCalib/MoGe estimates |
 | Stereo pair, 75 mm baseline | Possible metric-depth source; the baseline ignores it |
 | License: CC-BY-4.0 | Free to use with attribution. Still never commit it (size). |
