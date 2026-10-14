@@ -90,8 +90,10 @@ def check_bundle(bundle: Path, object_name: str | None) -> dict:
         "mesh_extents_cm": [round(e * 100, 1) for e in oriented_extents(vertices)],
         "rest_footprint_cm": [round(e * 100, 1) for e in footprint(world0)],
     }
-    scan = SCANS / (object_name or "") / f"{object_name}_visual.glb"
-    if object_name and scan.is_file():
+    # Same preference as the kit's v2dlb.vertices.mesh_path_for.
+    scan = next((p for p in (SCANS / f"{object_name}/{object_name}_visual.glb", SCANS / f"{object_name}/{object_name}.glb")
+                 if p.is_file()), None) if object_name else None
+    if scan is not None:
         scan_mesh = trimesh.load(scan, force="mesh", process=False)
         scan_extents = oriented_extents(np.asarray(scan_mesh.vertices))
         report["scan_extents_cm"] = [round(e * 100, 1) for e in scan_extents]
