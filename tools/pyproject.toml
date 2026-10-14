@@ -14,6 +14,7 @@ dependencies = [
     "pillow",  # missing from the kit: trimesh needs it to load textured meshes (.glb/.obj with textures)
     "kaggle>=2.0",
     "kagglesdk",
+    "huggingface-hub>=0.30",
 ]
 
 [tool.uv]
