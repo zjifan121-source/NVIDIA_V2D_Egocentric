@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+# Modified for V2D Track 3 by Edmond Wang, 2026-10: clip frame rate overridable via V2D_EGO_FPS.
 
 """Load an ego hand-object reconstruction (``result.npz``) into ManoSharpaData.
 
@@ -44,6 +45,7 @@ Runs stage 1 of the two-stage pipeline:
 
 import argparse
 import logging
+import os
 import shutil
 import warnings
 from dataclasses import dataclass
@@ -83,7 +85,8 @@ EGO_URDF_DIR = EGO_DATASET_DIR / "processed"
 # The loaded Parquet is a regenerable intermediate, so it is written outside the
 # committed asset tree (see DatasetConfig.loaded_in_intermediate).
 LOADED_SAVE_DIR = get_dataset_config("ego_recon").loaded_data_dir
-EGO_FPS = 30.0
+# Track 3 clips are 20.25411910142744 fps (dataset meta/info.json), not 30; set V2D_EGO_FPS.
+EGO_FPS = float(os.environ.get("V2D_EGO_FPS", "30.0"))
 
 # result/ bundle layout relative to a clip directory.
 _RESULT_SUBPATH = Path("outputs") / "result"
@@ -463,7 +466,7 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
         return {"flat_hand_mean": True, "center_idx": None}
 
     def get_fps(self) -> float:
-        """Ego clip frame rate (source video is 30 fps)."""
+        """Ego clip frame rate (30 fps unless V2D_EGO_FPS is set)."""
         return EGO_FPS
 
     @staticmethod
