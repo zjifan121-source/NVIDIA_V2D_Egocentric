@@ -665,8 +665,9 @@ def main() -> int:
                         help="divide every length by the mesh-to-public-scan size ratio (object comes out real size)")
     parser.add_argument("--still-object", action="store_true",
                         help="safety net: object at rest and hands at their first pose for the whole clip")
-    parser.add_argument("--level", action="store_true",
-                        help="rotate the scene so each object starts resting on a face (else it tips over in sim)")
+    parser.add_argument("--no-level", action="store_true",
+                        help="keep each object's start tilt (default: rotate so it starts resting on a face; "
+                             "unlevelled objects tip over in the first frames of simulation)")
     parser.add_argument("--merge", action="store_true",
                         help="multi-object episode: merge every object's bundle from the hub into one scene")
     args = parser.parse_args()
@@ -712,12 +713,12 @@ def main() -> int:
     for w in report["bundle_check"]["warnings"]:
         print(f"  ! {w}")
     if not (args.no_rest_hold and args.no_hand_clean and args.no_object_clean) or args.rescale_by_hands \
-            or args.rescale_by_scan or args.still_object or args.level:
+            or args.rescale_by_scan or args.still_object or not args.no_level:
         bundle, report["cleaning"] = cleaned_bundle(
             bundle, out / "bundle_cleaned", args.fps, rest_hold=not args.no_rest_hold,
             hand_clean=not args.no_hand_clean, object_clean=not args.no_object_clean,
             rescale_by_hands=args.rescale_by_hands, rescale_by_scan=label if args.rescale_by_scan else None,
-            still=args.still_object, level=args.level)
+            still=args.still_object, level=not args.no_level)
         print(f"== cleaned bundle: {report['cleaning']}", flush=True)
 
     print("== load (MANO FK -> ManoSharpaData)", flush=True)

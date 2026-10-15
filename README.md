@@ -456,6 +456,7 @@ Output: `baseline/reconstruction/data/outputs/load_retarget/episode_XXXXXX/<obje
 | Hand cleaning: refill frames where a wrist is beyond arm's reach of the camera or moves faster than 2 m/s | The loader ignores `hand_*_is_valid`; ep41's left wrist jumps at up to 200 m/s, and FlashCHORD ends an episode once the robot wrist is 15 cm off its reference |
 | Object cleaning: interpolate frames faster than 1.5 m/s or 10 rad/s | Track breaks (ep41: 7 m/s at frames 232–261) |
 | Rest hold: object held still until a wrist is within 10 cm | Real objects start at rest; reconstructions jitter, and the support surface then finds no table. Reconstruction-only AUC 0.216 → 0.240 on 14 public objects |
+| Level (`--no-level` turns it off): rotate so each object starts resting on a face. A tilt ≤ 20° rotates the whole scene (gravity error, hands keep their grip); a larger one rotates only the object | Our objects start 5–27° off any face they can rest on and tip over in the first 5 simulated frames. Levelling cut evaluator object error on ep38 from 44 to 9 cm and on ep33 from 32 to 12 cm, and raised ep41's local AUC from 0.133 to 0.243. The score of the reconstruction itself is unchanged, since Kaggle registers trajectories. |
 
 Opt-in flags:
 
@@ -463,7 +464,6 @@ Opt-in flags:
 |---|---|
 | `--rescale-by-scan` | Divide every length by the mesh-to-public-scan size ratio. Reconstruction-only AUC 0.240 → 0.291 (ep41 0.287 → 0.430). No scan exists for `wooden_spoon`. |
 | `--rescale-by-hands` | Same with the fitted MANO hand scale as the ruler (worse: 0.229) |
-| `--level` | Rotate the scene so each object starts resting on one of its faces. Without it, our objects sit 5–27° off any stable face and tip over in the first 5 simulated frames. A global rotation leaves the score unchanged, since Kaggle registers trajectories. |
 | `--still-object` | Safety net: object at rest and hands at their first pose for the whole clip. A still trajectory scores ep41 AUC 0.356 (0.447 averaged over the public episodes). |
 | `--merge` (with `--episode` only) | Two-object episodes: merges each object's bundle from the hub into one scene (`object_names`, `object_<i>_*`, `mesh_<i>.obj`; the loader reads this layout). Each object's run has its own SLAM world, and the worlds disagree (ep33's camera paths are 7 m and 30 m), while camera-frame hands and depth agree within ~2 cm. So the steadier run's world is kept, and the other object is placed by its camera-frame pose. |
 
