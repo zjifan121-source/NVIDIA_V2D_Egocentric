@@ -7,13 +7,16 @@ Mirrors NVIDIA's retarget stages (baseline/tools/e2e/stages.py) and their onboar
   -> support surface -> QA video -> check output -> report.json
 
 Track 3 settings: clip fps 20.254 (V2D_EGO_FPS), table height 1.0 m (--ground_z_offset), and
---no_ground_align because bundles are gravity-aligned upstream. One bundle = one object; the
-two-object merge comes later. Steps whose outputs exist are skipped (use --force to redo).
+--no_ground_align because bundles are gravity-aligned upstream. Before load, the bundle is cleaned
+(cleaned_bundle: hand and object jumps, rest hold; optional rescale or still scene). --merge puts
+every object of a multi-object episode into one scene (merged_bundle). Steps whose outputs exist
+are skipped (use --force to redo).
 
 Run with the load+retarget environment (README "Stages 2-3"), from anywhere:
     $RETARGET_VENV/bin/python tools/track3/run_load_retarget.py --episode 41 --object white_pot
     $RETARGET_VENV/bin/python tools/track3/run_load_retarget.py --bundle <dir with result.npz> \
         --sequence-id tissue_box_test --out <dir>
+    $RETARGET_VENV/bin/python tools/track3/run_load_retarget.py --episode 33 --merge --rescale-by-scan
 """
 from __future__ import annotations
 
@@ -142,11 +145,71 @@ def check_bundle(bundle: Path, object_name: str | None) -> dict:
     return report
 
 
+# ---------------------------------------------------------------- objects in a bundle
+def object_slots(data: dict) -> list[tuple[str, str, str]]:
+    """(pose key, scale key, mesh file) per object. A merged bundle (merged_bundle) lists its
+    objects in object_names and stores object i >= 1 as object_<i>_*, mesh_<i>.obj; the loader
+    reads the same layout (ego_recon_loader.py)."""
+    n = len(data["object_names"]) if "object_names" in data else 1
+    return [("object_to_world_transform", "object_scale", "mesh.obj")] + [
+        (f"object_{i}_to_world_transform", f"object_{i}_scale", f"mesh_{i}.obj") for i in range(1, n)]
+
+
+def object_vertices(bundle: Path, data: dict, scale_key: str, mesh_file: str) -> np.ndarray:
+    mesh = trimesh.load(bundle / mesh_file, force="mesh", process=False)
+    return np.asarray(mesh.vertices) * float(data.get(scale_key, 1.0))
+
+
+def merged_bundle(episode: int, dest: Path) -> tuple[Path, dict]:
+    """One bundle holding every object of a multi-object episode, in the scorer's object order.
+
+    Each object is a separate reconstruction run with its own SLAM world; on ep33 the two runs'
+    camera paths differ 4x in length, so worlds cannot be matched through the cameras. Hands and
+    depth do agree in camera coordinates across runs (wrists within ~2 cm, depth ratio 1.000), so
+    the run with the shortest (steadiest) camera path supplies the world, camera and hands, and
+    every other object enters through its camera-frame pose: world_A(t) = camera_A(t) @ obj_cam(t).
+    """
+    episode_info = {e["episode"]: e for e in json.loads(MANIFEST.read_text())["episodes"]}[episode]
+    names = [o["name"] for o in episode_info["objects"]]
+    runs = {name: bundle_dir_for(episode, name) for name in names}
+    datas = {name: dict(np.load(runs[name] / "result.npz")) for name in names}
+    path_len = {name: float(np.linalg.norm(np.diff(d["camera_to_world_transform"][:, :3, 3], axis=0), axis=1).sum())
+                for name, d in datas.items()}
+    world = min(path_len, key=path_len.get)
+    data = dict(datas[world])
+    c2w = data["camera_to_world_transform"].astype(np.float64)
+    dest.mkdir(parents=True, exist_ok=True)
+    for i, (name, (pose_key, scale_key, mesh_file)) in enumerate(zip(names, object_slots({"object_names": names}))):
+        src = datas[name]
+        T = (src["object_to_world_transform"].astype(np.float64) if name == world
+             else c2w @ src["object_to_camera_transform"].astype(np.float64))
+        data[pose_key] = T.astype(np.float32)
+        data[scale_key] = np.asarray(float(src.get("object_scale", 1.0)), dtype=np.float32)
+        if i == 0:
+            data["object_to_camera_transform"] = (np.linalg.inv(c2w) @ T).astype(np.float32)
+            data["object_is_valid"] = src["object_is_valid"]
+        # each object's material and texture get their own names in the shared directory
+        stem = Path(mesh_file).stem
+        mtl = (runs[name] / "material.mtl").read_text()
+        for line in mtl.splitlines():
+            if line.startswith("map_"):
+                tex = line.split()[-1]
+                shutil.copy(runs[name] / tex, dest / f"{stem}_{tex}")
+                mtl = mtl.replace(tex, f"{stem}_{tex}")
+        (dest / f"{stem}.mtl").write_text(mtl)
+        (dest / mesh_file).write_text((runs[name] / "mesh.obj").read_text().replace("mtllib material.mtl", f"mtllib {stem}.mtl"))
+    data["object_names"] = np.array(names)
+    np.savez(dest / "result.npz", **data)
+    shutil.copy(runs[world] / "manifest.json", dest / "manifest.json")
+    return dest, {"objects": names, "world_from": world, "camera_path_m": {k: round(v, 2) for k, v in path_len.items()}}
+
+
 # ---------------------------------------------------------------- rest hold
-def reach_frame(data: dict, vertices: np.ndarray, cm: float = 10.0) -> int | None:
+def reach_frame(data: dict, vertices: np.ndarray, cm: float = 10.0,
+                pose_key: str = "object_to_world_transform") -> int | None:
     """First frame a valid wrist is within `cm` of the object surface (object frame), or None."""
     from scipy.spatial import cKDTree
-    T = data["object_to_world_transform"].astype(float)
+    T = data[pose_key].astype(float)
     tree = cKDTree(vertices)
     near = np.zeros(len(T), dtype=bool)
     for side in ("left", "right"):
@@ -273,7 +336,8 @@ def scan_size_ratio(bundle_mesh_vertices: np.ndarray, object_name: str) -> float
 def rescale_world(data: dict, factor: float) -> None:
     """Multiply every length in the bundle by `factor` (about the world origin): camera, hand and
     object translations and the object mesh scale. Rotations and finger poses are unchanged."""
-    for key in ("camera_to_world_transform", "object_to_world_transform", "object_to_camera_transform",
+    slots = object_slots(data)
+    for key in ("camera_to_world_transform", "object_to_camera_transform", *[k for k, _, _ in slots],
                 "hand_left_wrist_to_world_transform", "hand_right_wrist_to_world_transform",
                 "hand_left_wrist_to_camera_transform", "hand_right_wrist_to_camera_transform"):
         data[key] = data[key].copy()
@@ -281,7 +345,8 @@ def rescale_world(data: dict, factor: float) -> None:
     for side in ("left", "right"):
         data[f"hand_{side}_wrist_trans_in_camera"] = data[f"hand_{side}_wrist_trans_in_camera"] * factor
         data[f"hand_{side}_scale"] = data[f"hand_{side}_scale"] * factor
-    data["object_scale"] = np.asarray(float(data.get("object_scale", 1.0)) * factor, dtype=np.float32)
+    for _, scale_key, _ in slots:
+        data[scale_key] = np.asarray(float(data.get(scale_key, 1.0)) * factor, dtype=np.float32)
 
 
 def still_scene(data: dict) -> None:
@@ -293,7 +358,7 @@ def still_scene(data: dict) -> None:
     can drift a few cm as the head turns; it stays far from the object either way."""
     from scipy.spatial.transform import Rotation
     n = len(data["object_to_world_transform"])
-    for key in ("object_to_world_transform", "object_to_camera_transform"):
+    for key in ("object_to_camera_transform", *[k for k, _, _ in object_slots(data)]):
         data[key] = np.repeat(data[key][:1], n, axis=0)
     c2w = data["camera_to_world_transform"].astype(np.float64)
     rel = np.einsum("nji,jk->nik", c2w[:, :3, :3], c2w[0, :3, :3])  # R_c2w(t)^T R_c2w(0)
@@ -341,11 +406,16 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
     """
     data = dict(np.load(bundle / "result.npz"))
     info: dict = {}
+    slots = object_slots(data)
+    names = [str(n) for n in data["object_names"]] if "object_names" in data else [rescale_by_scan]
     if rescale_by_scan:
-        mesh = trimesh.load(bundle / "mesh.obj", force="mesh", process=False)
-        ratio = scan_size_ratio(np.asarray(mesh.vertices) * float(data.get("object_scale", 1.0)), rescale_by_scan)
-        if ratio is None:
-            raise SystemExit(f"no public scan for {rescale_by_scan}: cannot --rescale-by-scan")
+        ratios = [scan_size_ratio(object_vertices(bundle, data, sk, mf), name)
+                  for name, (_, sk, mf) in zip(names, slots)]
+        ratios = [r for r in ratios if r is not None]
+        if not ratios:
+            raise SystemExit(f"no public scan for {names}: cannot --rescale-by-scan")
+        ratio = float(np.exp(np.mean(np.log(ratios))))  # one scene, one scale: geometric mean over objects
+        info["scan_ratios"] = [round(r, 3) for r in ratios]
         rescale_world(data, 1.0 / ratio)
         info["rescaled_by"] = round(1.0 / ratio, 4)
     elif rescale_by_hands:
@@ -362,24 +432,23 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
             bad = bad_hand_frames(w2w[:, :3, 3], cam_dist, data[f"hand_{side}_is_valid"], fps, max_reach)
             info[f"hand_{side}_refilled_frames"] = int(bad.sum())
             fill_hand(data, side, bad)
-    if object_clean:
-        T = data["object_to_world_transform"].astype(np.float64)
-        bad = bad_object_frames(T, fps)
-        info["object_refilled_frames"] = int(bad.sum())
-        if bad.any():
-            T = fill_object(T, bad)
-            data["object_to_world_transform"] = T.astype(data["object_to_world_transform"].dtype)
-            cam_inv = np.linalg.inv(data["camera_to_world_transform"].astype(np.float64))
-            data["object_to_camera_transform"] = (cam_inv @ T).astype(data["object_to_camera_transform"].dtype)
-    if rest_hold:
-        mesh = trimesh.load(bundle / "mesh.obj", force="mesh", process=False)
-        frame = reach_frame(data, np.asarray(mesh.vertices) * float(data.get("object_scale", 1.0)), reach_cm)
-        info["rest_hold_until_frame"] = frame
-        if frame:
-            T = hold_until(data["object_to_world_transform"].astype(np.float64), frame)
-            data["object_to_world_transform"] = T.astype(data["object_to_world_transform"].dtype)
-            cam_inv = np.linalg.inv(data["camera_to_world_transform"].astype(np.float64))
-            data["object_to_camera_transform"] = (cam_inv @ T).astype(data["object_to_camera_transform"].dtype)
+    for i, (pose_key, scale_key, mesh_file) in enumerate(slots):
+        tag = "" if len(slots) == 1 else f"_{names[i]}"
+        T = data[pose_key].astype(np.float64)
+        if object_clean:
+            bad = bad_object_frames(T, fps)
+            info[f"object_refilled_frames{tag}"] = int(bad.sum())
+            if bad.any():
+                T = fill_object(T, bad)
+        if rest_hold:
+            frame = reach_frame(data, object_vertices(bundle, data, scale_key, mesh_file), reach_cm, pose_key)
+            info[f"rest_hold_until_frame{tag}"] = frame
+            if frame:
+                T = hold_until(T, frame)
+        data[pose_key] = T.astype(data[pose_key].dtype)
+    cam_inv = np.linalg.inv(data["camera_to_world_transform"].astype(np.float64))
+    data["object_to_camera_transform"] = (cam_inv @ data["object_to_world_transform"].astype(np.float64)).astype(
+        data["object_to_camera_transform"].dtype)
     if still:
         still_scene(data)
         info["still"] = True
@@ -436,23 +505,29 @@ def quat_wxyz_to_matrix(q: np.ndarray) -> np.ndarray:
     return Rotation.from_quat(np.concatenate([q[..., 1:], q[..., :1]], axis=-1)).as_matrix()
 
 
-def check_output(processed: Path, mesh_path: Path, usda: Path, frames: int, fps: float) -> dict:
+def check_output(processed: Path, mesh_paths: list[Path], usda: Path, frames: int, fps: float) -> dict:
+    """Checks on the retargeted partition; penetration and seating over every object body."""
     d = read_partition(processed)
     errors = {side: np.asarray(d[f"robot_{side}_frame_task_errors"], dtype=float) for side in ("right", "left")}
-    position = np.asarray(d["object_body_position"], dtype=float)[:, 0]
-    rotation = quat_wxyz_to_matrix(np.asarray(d["object_body_wxyz"], dtype=float)[:, 0])
-    mesh = trimesh.load(mesh_path, force="mesh", process=False)
-    # Robot link frames in the object's frame; depth > 0 means inside the mesh.
     links = np.concatenate([np.asarray(d[f"robot_{side}_frames"], dtype=float)[:, 2:, :3]
                             for side in ("right", "left")], axis=1)  # skip universe/root_joint
-    local = np.einsum("tji,tkj->tki", rotation, links - position[:, None, :])
-    points = local.reshape(-1, 3)
-    depth = np.concatenate([trimesh.proximity.signed_distance(mesh, points[i:i + 2000])  # batched: memory
-                            for i in range(0, len(points), 2000)]).reshape(local.shape[:2]).max(axis=1)
-    world0 = np.asarray(mesh.vertices) @ rotation[0].T + position[0]
     disks = support_tops(usda) if usda.is_file() else []
-    centre = world0[:, :2].mean(axis=0)
-    under = [hi[2] for lo, hi in disks if np.all(lo[:2] <= centre) and np.all(centre <= hi[:2])]
+    depths, seating = [], []
+    for b, mesh_path in enumerate(mesh_paths):
+        position = np.asarray(d["object_body_position"], dtype=float)[:, b]
+        rotation = quat_wxyz_to_matrix(np.asarray(d["object_body_wxyz"], dtype=float)[:, b])
+        mesh = trimesh.load(mesh_path, force="mesh", process=False)
+        # Robot link frames in the object's frame; depth > 0 means inside the mesh.
+        local = np.einsum("tji,tkj->tki", rotation, links - position[:, None, :])
+        points = local.reshape(-1, 3)
+        depths.append(np.concatenate([trimesh.proximity.signed_distance(mesh, points[i:i + 2000])  # batched: memory
+                                      for i in range(0, len(points), 2000)]).reshape(local.shape[:2]).max(axis=1))
+        world0 = np.asarray(mesh.vertices) @ rotation[0].T + position[0]
+        centre = world0[:, :2].mean(axis=0)
+        under = [hi[2] for lo, hi in disks if np.all(lo[:2] <= centre) and np.all(centre <= hi[:2])]
+        seating.append(round((float(world0[:, 2].min()) - max(under)) * 100, 2) if under else None)
+    depth = np.max(depths, axis=0)
+    position = np.asarray(d["object_body_position"], dtype=float)[:, 0]
     report = {
         "frames": len(position),
         "fps": float(d["fps"]),
@@ -462,7 +537,7 @@ def check_output(processed: Path, mesh_path: Path, usda: Path, frames: int, fps:
                                "over_1cm": round(float(np.mean(depth > 0.01)), 3),
                                "over_2cm": round(float(np.mean(depth > 0.02)), 3)},
         "support_disks": len(disks),
-        "frame0_seating_cm": round((float(world0[:, 2].min()) - max(under)) * 100, 2) if under else None,
+        "frame0_seating_cm": seating[0] if len(seating) == 1 else seating,
     }
     problems = []
     if report["frames"] != frames:
@@ -476,26 +551,32 @@ def check_output(processed: Path, mesh_path: Path, usda: Path, frames: int, fps:
         problems.append(f"{report['penetration_frames']['over_2cm']:.1%} of frames have a link >2 cm inside the object")
     if not disks:
         problems.append("no support disk kept (loaded at floor level?)")
-    elif report["frame0_seating_cm"] is None:
-        problems.append("no support disk under the object at frame 0")
-    elif abs(report["frame0_seating_cm"]) > 2:
-        problems.append(f"object bottom is {report['frame0_seating_cm']} cm from the support top at frame 0")
+    for b, seat in enumerate(seating):
+        what = "the object" if len(seating) == 1 else f"object {b}"
+        if seat is None:
+            problems.append(f"no support disk under {what} at frame 0")
+        elif abs(seat) > 2:
+            problems.append(f"{what} bottom is {seat} cm from the support top at frame 0")
     report["warnings"] = problems
     return report
 
 
-def write_score_input(bundle: Path, out: Path, episode: int, obj: str) -> None:
-    """Bundle object trajectory in tools/track3/score_local.py's format (reconstruction-only score)."""
+def write_score_input(bundle: Path, out: Path, episode: int, obj: str | None) -> None:
+    """Bundle object trajectories in tools/track3/score_local.py's format (reconstruction-only
+    score): poses (frames, objects, 7) in the bundle's object order, one mesh per object name."""
     from scipy.spatial.transform import Rotation
-    data = np.load(bundle / "result.npz")
-    T = data["object_to_world_transform"].astype(float)
-    pose = np.concatenate([T[:, :3, 3], Rotation.from_matrix(T[:, :3, :3]).as_quat()], axis=-1)[:, None, :]
+    data = dict(np.load(bundle / "result.npz"))
+    names = [str(n) for n in data["object_names"]] if "object_names" in data else [obj]
     (out / "score_input/results").mkdir(parents=True, exist_ok=True)
     (out / f"score_input/meshes/episode_{episode:06d}").mkdir(parents=True, exist_ok=True)
-    np.save(out / f"score_input/results/episode_{episode:06d}.npy", pose)
-    mesh = trimesh.load(bundle / "mesh.obj", force="mesh", process=False)
-    mesh.apply_scale(float(data["object_scale"]) if "object_scale" in data else 1.0)
-    mesh.export(out / f"score_input/meshes/episode_{episode:06d}/{obj}.obj")
+    poses = []
+    for name, (pose_key, scale_key, mesh_file) in zip(names, object_slots(data)):
+        T = data[pose_key].astype(float)
+        poses.append(np.concatenate([T[:, :3, 3], Rotation.from_matrix(T[:, :3, :3]).as_quat()], axis=-1))
+        mesh = trimesh.load(bundle / mesh_file, force="mesh", process=False)
+        mesh.apply_scale(float(data.get(scale_key, 1.0)))
+        mesh.export(out / f"score_input/meshes/episode_{episode:06d}/{name}.obj")
+    np.save(out / f"score_input/results/episode_{episode:06d}.npy", np.stack(poses, axis=1))
 
 
 # ---------------------------------------------------------------- main
@@ -523,20 +604,29 @@ def main() -> int:
                         help="divide every length by the mesh-to-public-scan size ratio (object comes out real size)")
     parser.add_argument("--still-object", action="store_true",
                         help="safety net: object at rest and hands at their first pose for the whole clip")
+    parser.add_argument("--merge", action="store_true",
+                        help="multi-object episode: merge every object's bundle from the hub into one scene")
     args = parser.parse_args()
 
-    if args.bundle is None:
+    if args.merge:
+        if args.episode is None or args.object or args.bundle:
+            parser.error("--merge takes --episode only (all of the episode's objects are merged)")
+    elif args.bundle is None:
         if args.episode is None or not args.object:
-            parser.error("give --episode and --object, or --bundle")
+            parser.error("give --episode and --object, or --bundle, or --episode with --merge")
         args.bundle = bundle_dir_for(args.episode, args.object)
-    seq = args.sequence_id or (f"ep{args.episode}_{args.object}" if args.episode is not None else None)
+    label = "merged" if args.merge else args.object
+    seq = args.sequence_id or (f"ep{args.episode}_{label}" if args.episode is not None else None)
     if not seq:
         parser.error("--sequence-id is required with --bundle and no --episode")
-    out = (args.out or OUTPUTS / "load_retarget" / f"episode_{args.episode:06d}" / args.object).resolve()
-    bundle = args.bundle.resolve()
+    out = (args.out or OUTPUTS / "load_retarget" / f"episode_{args.episode:06d}" / label).resolve()
     if args.force and out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True, exist_ok=True)
+    merge_info = None
+    if args.merge:
+        args.bundle, merge_info = merged_bundle(args.episode, out / "bundle_merged")
+    bundle = args.bundle.resolve()
     log = out / "pipeline.log"
 
     # Paths contain /assets/human_motion_data/ so FlashCHORD can re-root them if the tree moves.
@@ -550,9 +640,12 @@ def main() -> int:
     report = {"sequence_id": seq, "episode": args.episode, "object": args.object, "bundle": str(bundle),
               "fps": args.fps, "ground_z_offset": args.ground_z_offset,
               "started_utc": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+    if merge_info:
+        report["merge"] = merge_info
+        print(f"== merged bundle: {merge_info}", flush=True)
 
     print(f"== check bundle {bundle}", flush=True)
-    report["bundle_check"] = check_bundle(bundle, args.object)
+    report["bundle_check"] = check_bundle(bundle, merge_info["objects"][0] if merge_info else args.object)
     for w in report["bundle_check"]["warnings"]:
         print(f"  ! {w}")
     if not (args.no_rest_hold and args.no_hand_clean and args.no_object_clean) or args.rescale_by_hands \
@@ -560,7 +653,7 @@ def main() -> int:
         bundle, report["cleaning"] = cleaned_bundle(
             bundle, out / "bundle_cleaned", args.fps, rest_hold=not args.no_rest_hold,
             hand_clean=not args.no_hand_clean, object_clean=not args.no_object_clean,
-            rescale_by_hands=args.rescale_by_hands, rescale_by_scan=args.object if args.rescale_by_scan else None,
+            rescale_by_hands=args.rescale_by_hands, rescale_by_scan=label if args.rescale_by_scan else None,
             still=args.still_object)
         print(f"== cleaned bundle: {report['cleaning']}", flush=True)
 
@@ -577,8 +670,10 @@ def main() -> int:
         run([py, "scripts/retarget/ego_recon_to_sharpa.py", "--input_dir", loaded, "--output_dir", processed,
              "--sequence_id", seq, "--device", args.device, "--save"], RG, env, log)
 
+    # Loader body names: the sequence id for one object, <seq>_<object> per object when merged.
+    bodies = [f"{seq}_{name}" for name in merge_info["objects"]] if merge_info else [seq]
     print("== object URDF", flush=True)
-    if not (processed / f"{seq}_rigid.urdf").is_file():
+    if not all((processed / f"{body}_rigid.urdf").is_file() for body in bodies):
         run([py, "scripts/generate_rigid_urdfs.py", "--dataset", "ego_recon"], RG, env, log)
 
     print("== support surface", flush=True)
@@ -593,11 +688,11 @@ def main() -> int:
              "--sequence_id", seq, "--support_usd", usda, "--save_mp4", "--mp4_dir", out / "qa"], RG, env, log)
 
     print("== check output", flush=True)
-    report["output_check"] = check_output(partition(processed, seq), processed / f"{seq}.obj", usda,
-                                          report["bundle_check"]["frames"], args.fps)
+    report["output_check"] = check_output(partition(processed, seq), [processed / f"{body}.obj" for body in bodies],
+                                          usda, report["bundle_check"]["frames"], args.fps)
     for w in report["output_check"]["warnings"]:
         print(f"  ! {w}")
-    if args.episode is not None and args.object:
+    if args.episode is not None:
         write_score_input(bundle, out, args.episode, args.object)
     report.update(processed=str(partition(processed, seq)), support_usd=str(usda),
                   video=str(video) if video.is_file() else None,
