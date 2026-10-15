@@ -253,8 +253,70 @@ def fill_object(T: np.ndarray, bad: np.ndarray) -> np.ndarray:
     return np.where(bad[:, None, None], out, T)
 
 
+def hand_scale(data: dict) -> float | None:
+    """Mean over both hands of the median fitted MANO scale on valid frames (1.0 = true size)."""
+    scales = [float(np.median(data[f"hand_{side}_scale"][data[f"hand_{side}_is_valid"].astype(bool)]))
+              for side in ("left", "right") if data[f"hand_{side}_is_valid"].any()]
+    return float(np.mean(scales)) if scales else None
+
+
+def scan_size_ratio(bundle_mesh_vertices: np.ndarray, object_name: str) -> float | None:
+    """Reconstructed mesh size / public scan size (mean of sorted oriented extents), or None."""
+    scan = next((p for p in (SCANS / f"{object_name}/{object_name}_visual.glb", SCANS / f"{object_name}/{object_name}.glb")
+                 if p.is_file()), None)
+    if scan is None:
+        return None
+    scan_v = np.asarray(trimesh.load(scan, force="mesh", process=False).vertices)
+    return float(np.mean(np.array(oriented_extents(bundle_mesh_vertices)) / np.array(oriented_extents(scan_v))))
+
+
+def rescale_world(data: dict, factor: float) -> None:
+    """Multiply every length in the bundle by `factor` (about the world origin): camera, hand and
+    object translations and the object mesh scale. Rotations and finger poses are unchanged."""
+    for key in ("camera_to_world_transform", "object_to_world_transform", "object_to_camera_transform",
+                "hand_left_wrist_to_world_transform", "hand_right_wrist_to_world_transform",
+                "hand_left_wrist_to_camera_transform", "hand_right_wrist_to_camera_transform"):
+        data[key] = data[key].copy()
+        data[key][..., :3, 3] *= factor
+    for side in ("left", "right"):
+        data[f"hand_{side}_wrist_trans_in_camera"] = data[f"hand_{side}_wrist_trans_in_camera"] * factor
+        data[f"hand_{side}_scale"] = data[f"hand_{side}_scale"] * factor
+    data["object_scale"] = np.asarray(float(data.get("object_scale", 1.0)) * factor, dtype=np.float32)
+
+
+def still_scene(data: dict) -> None:
+    """Safety-net scene: the object rests at its frame-0 pose and both hands stay where they were at
+    frame 0 (raised over the table at the start of every recording) for the whole clip.
+
+    Hands are held in world by counter-rotating their camera-frame parameters (what the loader
+    reads) with the camera motion. Translations ignore the MANO rest-wrist offset, so a held hand
+    can drift a few cm as the head turns; it stays far from the object either way."""
+    from scipy.spatial.transform import Rotation
+    n = len(data["object_to_world_transform"])
+    for key in ("object_to_world_transform", "object_to_camera_transform"):
+        data[key] = np.repeat(data[key][:1], n, axis=0)
+    c2w = data["camera_to_world_transform"].astype(np.float64)
+    rel = np.einsum("nji,jk->nik", c2w[:, :3, :3], c2w[0, :3, :3])  # R_c2w(t)^T R_c2w(0)
+    mirror = np.diag([1.0, -1.0, -1.0])  # HaMeR stores left hands in right-hand parameter space
+    for side in ("left", "right"):
+        a = np.einsum("ij,njk,kl->nil", mirror, rel, mirror) if side == "left" else rel
+        r0 = Rotation.from_rotvec(data[f"hand_{side}_wrist_orient_in_camera"][0].astype(np.float64)).as_matrix()
+        data[f"hand_{side}_wrist_orient_in_camera"] = Rotation.from_matrix(a @ r0).as_rotvec().astype(np.float32)
+        p0 = c2w[0, :3, :3] @ data[f"hand_{side}_wrist_trans_in_camera"][0] + c2w[0, :3, 3]
+        cam_t = np.einsum("nji,nj->ni", c2w[:, :3, :3], p0 - c2w[:, :3, 3])
+        data[f"hand_{side}_wrist_trans_in_camera"] = cam_t.astype(np.float32)
+        data[f"hand_{side}_finger_pose"] = np.repeat(data[f"hand_{side}_finger_pose"][:1], n, axis=0)
+        w2c = np.tile(np.eye(4), (n, 1, 1))
+        w2c[:, :3, :3] = Rotation.from_rotvec(data[f"hand_{side}_wrist_orient_in_camera"].astype(np.float64)).as_matrix()
+        w2c[:, :3, 3] = cam_t
+        data[f"hand_{side}_wrist_to_camera_transform"] = w2c.astype(np.float32)
+        data[f"hand_{side}_wrist_to_world_transform"] = (c2w @ w2c).astype(np.float32)
+        data[f"hand_{side}_is_valid"] = np.ones(n, dtype=bool)
+
+
 def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True, hand_clean: bool = True,
-                   object_clean: bool = True, reach_cm: float = 10.0) -> tuple[Path, dict]:
+                   object_clean: bool = True, rescale_by_hands: bool = False, rescale_by_scan: str | None = None,
+                   still: bool = False, reach_cm: float = 10.0) -> tuple[Path, dict]:
     """Copy of the bundle with the repairs reconstructions need before load:
 
     hand_clean: the loader ignores hand_*_is_valid, and hand tracks often fly off (a wrist 2 m
@@ -268,9 +330,29 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
       them. The object is held still until a wrist comes within `reach_cm`. On the 14 public
       reconstructions this never cuts into real motion (the reach comes 10-20 frames before the
       true object moves) and raises reconstruction-only AUC 0.216 -> 0.240.
+    rescale_by_hands: the loader rebuilds hands at true MANO size and ignores hand_*_scale, so a
+      scene reconstructed 1.4x too large gets true-size hands around a 1.4x object. Dividing all
+      lengths by the hand scale makes the hands and the object agree (and shrinks the path).
+    rescale_by_scan: object name; divide all lengths by the reconstructed-mesh / public-scan size
+      ratio, so the object comes out its real size. On 14 public reconstructions this raises
+      reconstruction-only AUC 0.240 -> 0.291 (ep41 0.287 -> 0.430); the hand scale as ruler
+      does worse (0.229). No public scan exists for wooden_spoon.
+    still: safety-net scene (still_scene), applied last.
     """
     data = dict(np.load(bundle / "result.npz"))
     info: dict = {}
+    if rescale_by_scan:
+        mesh = trimesh.load(bundle / "mesh.obj", force="mesh", process=False)
+        ratio = scan_size_ratio(np.asarray(mesh.vertices) * float(data.get("object_scale", 1.0)), rescale_by_scan)
+        if ratio is None:
+            raise SystemExit(f"no public scan for {rescale_by_scan}: cannot --rescale-by-scan")
+        rescale_world(data, 1.0 / ratio)
+        info["rescaled_by"] = round(1.0 / ratio, 4)
+    elif rescale_by_hands:
+        scale = hand_scale(data)
+        if scale:
+            rescale_world(data, 1.0 / scale)
+            info["rescaled_by"] = round(1.0 / scale, 4)
     if hand_clean:
         scale = np.nanmedian([np.median(data[f"hand_{s}_scale"]) for s in ("left", "right")])
         max_reach = 1.0 * max(1.0, float(scale))  # head camera to wrist; scenes come out too large
@@ -298,10 +380,13 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
             data["object_to_world_transform"] = T.astype(data["object_to_world_transform"].dtype)
             cam_inv = np.linalg.inv(data["camera_to_world_transform"].astype(np.float64))
             data["object_to_camera_transform"] = (cam_inv @ T).astype(data["object_to_camera_transform"].dtype)
+    if still:
+        still_scene(data)
+        info["still"] = True
     dest.mkdir(parents=True, exist_ok=True)
     for f in bundle.iterdir():
         if f.name != "result.npz" and not (dest / f.name).exists():
-            (dest / f.name).symlink_to(f)
+            (dest / f.name).symlink_to(f.resolve())
     np.savez(dest / "result.npz", **data)
     return dest, info
 
@@ -430,6 +515,14 @@ def main() -> int:
                         help="keep the object track as reconstructed (default: hold it still until a hand reaches it)")
     parser.add_argument("--no-hand-clean", action="store_true",
                         help="keep hand tracks as reconstructed (default: refill frames that fly off or jump)")
+    parser.add_argument("--no-object-clean", action="store_true",
+                        help="keep object jumps (default: interpolate frames faster than any real object)")
+    parser.add_argument("--rescale-by-hands", action="store_true",
+                        help="divide every length by the fitted hand scale so hands come out true size")
+    parser.add_argument("--rescale-by-scan", action="store_true",
+                        help="divide every length by the mesh-to-public-scan size ratio (object comes out real size)")
+    parser.add_argument("--still-object", action="store_true",
+                        help="safety net: object at rest and hands at their first pose for the whole clip")
     args = parser.parse_args()
 
     if args.bundle is None:
@@ -462,9 +555,13 @@ def main() -> int:
     report["bundle_check"] = check_bundle(bundle, args.object)
     for w in report["bundle_check"]["warnings"]:
         print(f"  ! {w}")
-    if not (args.no_rest_hold and args.no_hand_clean):
-        bundle, report["cleaning"] = cleaned_bundle(bundle, out / "bundle_cleaned", args.fps,
-                                                    rest_hold=not args.no_rest_hold, hand_clean=not args.no_hand_clean)
+    if not (args.no_rest_hold and args.no_hand_clean and args.no_object_clean) or args.rescale_by_hands \
+            or args.rescale_by_scan or args.still_object:
+        bundle, report["cleaning"] = cleaned_bundle(
+            bundle, out / "bundle_cleaned", args.fps, rest_hold=not args.no_rest_hold,
+            hand_clean=not args.no_hand_clean, object_clean=not args.no_object_clean,
+            rescale_by_hands=args.rescale_by_hands, rescale_by_scan=args.object if args.rescale_by_scan else None,
+            still=args.still_object)
         print(f"== cleaned bundle: {report['cleaning']}", flush=True)
 
     print("== load (MANO FK -> ManoSharpaData)", flush=True)
