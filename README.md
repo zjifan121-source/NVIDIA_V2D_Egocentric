@@ -411,6 +411,9 @@ uv run --project tools python tools/track3/score_local.py --results <dir> --mesh
 
   So: the world frame doesn't matter (aligned on the first frame), **metric scale does**, and MP-SR (3 cm / 30°) is the strictest metric.
 
+- **Dry run from our own bundles:** `tools/track3/dryrun_public.py --work <dir>` builds each public episode as stage 2 would (merged and cleaned, without simulation) and scores the still scene and the reconstruction played back, each plain and scan-rescaled. Kaggle aligns a scene by the anchor object's frame-0 pose only, so a two-object episode pays for any error in where we put the second object. With our placement, a still object scores 0.309 on average (2026-10-15), against 0.447 above.
+- **Identity check:** `tools/track3/check_identity.py --out <dir> [--episodes ...]` projects every bundle's mesh onto frame 0 of its video. Run it on each new bundle: the prompt `mini sweeper` tracked the dust pan or the dish rack on ep18, ep19 and ep30, and every numeric check still passed.
+
 **Packing and submitting** use the kit unchanged, but run it with this environment (`uv run --project tools python tools/pack_submission.py ...` from the kit folder): the kit's `requirements.txt` omits `pillow`, without which packing textured meshes crashes, and `scipy`. Checked offline with placeholder trajectories for all 20 evaluation episodes: `pack_submission.py` and `preflight.py --skip-kaggle` pass, and both output files match the kit's samples row for row. `v2d_submit.py --dry-run` needs a Kaggle API token even for a dry run (`kaggle auth login`, or `~/.kaggle/access_token`).
 
 ### 5.12 Stages 2–3: load and retarget
