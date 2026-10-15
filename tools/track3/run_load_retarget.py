@@ -66,6 +66,24 @@ def footprint(world_vertices: np.ndarray, band: float = 0.005) -> list[float]:
     return sorted((float(np.ptp(centred @ vectors[:, i])) for i in range(2)), reverse=True)
 
 
+def first_still_run(T: np.ndarray, min_frames: int = 5) -> int | None:
+    """Start of the first run of >= min_frames frames moving < 1 mm and < 0.01 rad per frame.
+
+    Same test as NVIDIA's support detector (support_recon._frames_where_object_still): with no
+    such run near frame 0, no table is built under the object and it falls at reset.
+    """
+    from scipy.spatial.transform import Rotation
+    step = np.linalg.norm(np.diff(T[:, :3, 3], axis=0), axis=1)
+    turn = (Rotation.from_matrix(T[1:, :3, :3]) * Rotation.from_matrix(T[:-1, :3, :3]).inv()).magnitude()
+    still = (step < 0.001) & (turn < 0.01)  # still[i]: frame i -> i+1
+    run = 0
+    for i, s in enumerate(still):
+        run = run + 1 if s else 0
+        if run == min_frames:
+            return i - min_frames + 1
+    return None
+
+
 def check_bundle(bundle: Path, object_name: str | None) -> dict:
     data = dict(np.load(bundle / "result.npz"))
     frames = data["camera_to_world_transform"].shape[0]
@@ -79,6 +97,7 @@ def check_bundle(bundle: Path, object_name: str | None) -> dict:
     obj_T = data["object_to_world_transform"]
     world0 = vertices @ obj_T[0, :3, :3].T + obj_T[0, :3, 3]
     drift = np.linalg.norm(obj_T[: min(30, frames), :3, 3] - obj_T[0, :3, 3], axis=1)
+    step_cm = np.linalg.norm(np.diff(obj_T[:, :3, 3], axis=0), axis=1) * 100
     report = {
         "frames": int(frames),
         "nan_arrays": nan_keys,
@@ -86,6 +105,8 @@ def check_bundle(bundle: Path, object_name: str | None) -> dict:
         "hand_scale_mean": hand_scale,
         "gravity_alignment_applied": bool(data.get("gravity_alignment_applied", False)),
         "object_drift_first_30_frames_cm": round(float(drift.max()) * 100, 2),
+        "object_step_median_cm": round(float(np.median(step_cm)), 2),
+        "first_still_frame": first_still_run(obj_T),
         "mesh_vertices": int(len(vertices)),
         "mesh_extents_cm": [round(e * 100, 1) for e in oriented_extents(vertices)],
         "rest_footprint_cm": [round(e * 100, 1) for e in footprint(world0)],
@@ -109,6 +130,9 @@ def check_bundle(bundle: Path, object_name: str | None) -> dict:
         problems.append("bundle is not gravity-aligned; --no_ground_align keeps its tilt")
     if report["object_drift_first_30_frames_cm"] > 3:
         problems.append("object moves in the first 30 frames (rest contract expects mm-cm)")
+    if report["first_still_frame"] is None or report["first_still_frame"] > 30:
+        problems.append("object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 "
+                        "frames: no table is built under it, so it falls in simulation")
     long, short = report["rest_footprint_cm"]
     if long > 3 and short < 0.25 * long:
         problems.append(f"rest footprint {long}x{short} cm is a strip: object may sit on an edge (level it)")
