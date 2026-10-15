@@ -200,16 +200,47 @@ def score(episodes: list[dict], poses: dict[int, np.ndarray], meshes: dict[tuple
         return {display: future.result() for display, future in futures.items()}
 
 
+def evaluator_poses(path: Path, episode: dict) -> np.ndarray:
+    """Evaluator output (one row per step, object and world) -> (frames, objects, 7), xyzw.
+
+    Uses world 0 and the achieved (simulated) object poses. Objects go by object_id, which must
+    follow episodes.json order. Rows are keyed by reference_frame, which equals the video frame
+    only with the Track 3 frame-rate settings (README §6); any other numbering is rejected.
+    """
+    table = pd.read_parquet(path)
+    table = table[table["environment_id"] == 0]
+    frames, objects = episode["num_frames"], len(episode["objects"])
+    ids = sorted(table["object_id"].unique())
+    if len(ids) != objects:
+        raise ValueError(f"{path.name}: {len(ids)} objects in the rollout, episode has {objects}")
+    columns = [f"achieved_position_{a}" for a in "xyz"] + [f"achieved_quaternion_{a}" for a in "xyzw"]
+    poses = np.full((frames, objects, 7), np.nan)
+    for slot, object_id in enumerate(ids):
+        rows = table[table["object_id"] == object_id].drop_duplicates("reference_frame", keep="last")
+        index = rows["reference_frame"].to_numpy()
+        if index.min() < 0 or index.max() >= frames:
+            raise ValueError(f"{path.name}: reference_frame runs {index.min()}..{index.max()}, "
+                             f"video has {frames} frames (check sim.fps / task.motion_speed)")
+        poses[index, slot] = rows[columns].to_numpy(dtype=np.float64)
+    missing = np.isnan(poses[..., 0]).any(axis=1)
+    if missing.any():
+        raise ValueError(f"{path.name}: no rollout pose for {int(missing.sum())} of {frames} frames "
+                         f"(first {int(np.argmax(missing))})")
+    return poses
+
+
 def load_predictions(results: Path, episodes: list[dict]) -> dict[int, np.ndarray]:
-    """Read per-episode predictions: episode_XXXXXX.npy of shape (frames, objects, 7), xyzw."""
+    """Per-episode predictions from evaluator output (episode_XXXXXX.parquet) or episode_XXXXXX.npy
+    of shape (frames, objects, 7), xyzw."""
     poses = {}
     for e in episodes:
-        npy = results / f"episode_{e['episode']:06d}.npy"
-        if npy.is_file():
-            poses[e["episode"]] = np.load(npy)
+        stem = results / f"episode_{e['episode']:06d}"
+        if stem.with_suffix(".parquet").is_file():
+            poses[e["episode"]] = evaluator_poses(stem.with_suffix(".parquet"), e)
+        elif stem.with_suffix(".npy").is_file():
+            poses[e["episode"]] = np.load(stem.with_suffix(".npy"))
         else:
-            raise FileNotFoundError(f"no predictions for episode {e['episode']} in {results} "
-                                    "(evaluator .parquet conversion: TODO once a real rollout exists)")
+            raise FileNotFoundError(f"no predictions for episode {e['episode']} in {results}")
     return poses
 
 
