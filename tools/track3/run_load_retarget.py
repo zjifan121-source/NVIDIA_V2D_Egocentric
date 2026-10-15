@@ -437,9 +437,96 @@ def level_scene(data: dict, bundle: Path, world_tilt: float = 20.0, max_tilt: fl
     return info
 
 
+def mano_rest_wrist(side: str, betas: np.ndarray) -> np.ndarray:
+    """MANO joint 0 at zero pose and translation (the loader's _j0_template): the loader puts the
+    wrist at R_c2w (wrist_trans_in_camera + J0) + t_c2w, not at the stored wrist transforms."""
+    import torch
+    from v2d.task_library_loader.lib.read_mano import MANO
+    mano = MANO(mano_assets_root=str(MANO_DIR), gender="neutral", device=torch.device("cpu"),
+                flat_hand_mean=True, center_idx=None)
+    zero = torch.zeros(1, 3)
+    out = mano.forward(side=side, betas=torch.from_numpy(betas.astype(np.float32)).reshape(1, 10),
+                       global_orient=zero, transl=zero, finger_pose=torch.zeros(1, 45))
+    return out["joints"][0, 0].cpu().numpy().astype(np.float64)
+
+
+def lifted_segments(z: np.ndarray, lift: float) -> list[tuple[int, int]]:
+    """[start, end) runs of frames where the object is more than `lift` above its frame-0 height."""
+    up = np.concatenate([[False], z > z[0] + lift, [False]])
+    edges = np.flatnonzero(np.diff(up.astype(int)))
+    return list(zip(edges[::2], edges[1::2]))
+
+
+def attach_hands(data: dict, bundle: Path, lift: float = 0.02, reach: float = 0.12, blend: int = 5) -> dict:
+    """Make the reference hands hold what they carry.
+
+    Hands and object are fitted separately, so while an object is lifted the reference hands are
+    often centimetres off it: on 16-100% of lifted frames no robot link is within 1 cm of the
+    object (NVIDIA's tissue sample: 0%). Without the training-time helper force, which the
+    evaluator turns off, the policy cannot carry an object its reference does not hold.
+    The object tracks score better than the hand tracks (locking the object to the hand instead
+    lowers reconstruction-only AUC 0.291 -> 0.265), so the hands are moved, not the object: in
+    each lifted run, every hand whose wrist comes within `reach` of the surface rides rigidly
+    with the object at its offset from the closest frame, easing in and out over `blend` frames.
+    Hands are rewritten through the camera-frame MANO parameters the loader reads."""
+    from scipy.spatial.transform import Rotation
+    c2w = data["camera_to_world_transform"].astype(np.float64)
+    Rc, tc = c2w[:, :3, :3], c2w[:, :3, 3]
+    mirror = np.diag([1.0, -1.0, -1.0])  # HaMeR stores left hands in right-hand parameter space
+    hands = {}
+    for side in ("left", "right"):
+        j0 = mano_rest_wrist(side, data[f"hand_{side}_betas"].reshape(10))
+        R = Rotation.from_rotvec(data[f"hand_{side}_wrist_orient_in_camera"].astype(np.float64)).as_matrix()
+        if side == "left":
+            R = mirror @ R @ mirror
+        H = np.tile(np.eye(4), (len(c2w), 1, 1))  # true wrist pose in world, as the loader builds it
+        H[:, :3, :3] = Rc @ R
+        H[:, :3, 3] = np.einsum("nij,nj->ni", Rc, data[f"hand_{side}_wrist_trans_in_camera"] + j0) + tc
+        hands[side] = (H, j0)
+    info, moved = {}, {side: np.zeros(len(c2w), bool) for side in hands}
+    for i, (pose_key, scale_key, mesh_file) in enumerate(object_slots(data)):
+        T = data[pose_key].astype(np.float64)
+        v = object_vertices(bundle, data, scale_key, mesh_file)
+        v = v[:: max(1, len(v) // 500)]
+        surface = np.einsum("tij,vj->tvi", T[:, :3, :3], v) + T[:, None, :3, 3]
+        for a, b in lifted_segments(T[:, 2, 3], lift):
+            for side, (H, _) in hands.items():
+                dist = np.linalg.norm(surface[a:b] - H[a:b, None, :3, 3], axis=-1).min(axis=1)
+                if dist.min() > reach:
+                    continue
+                k = a + int(np.argmin(dist))
+                grip = np.linalg.inv(T[k]) @ H[k]
+                for t in range(a, b):
+                    w = min(1.0, (t - a + 1) / (blend + 1), (b - t) / (blend + 1))
+                    target = T[t] @ grip
+                    q = Rotation.from_matrix([H[t, :3, :3], target[:3, :3]])
+                    H[t, :3, :3] = (q[0] * Rotation.from_rotvec(w * (q[0].inv() * q[1]).as_rotvec())).as_matrix()
+                    H[t, :3, 3] = (1 - w) * H[t, :3, 3] + w * target[:3, 3]
+                moved[side][a:b] = True
+                info.setdefault(f"attached_{i}", []).append([side, int(a), int(b), round(float(dist.min()) * 100, 1)])
+    for side, (H, j0) in hands.items():
+        if not moved[side].any():
+            continue
+        R = np.einsum("nji,njk->nik", Rc, H[:, :3, :3])
+        if side == "left":
+            R = mirror @ R @ mirror
+        cam_t = np.einsum("nji,nj->ni", Rc, H[:, :3, 3] - tc) - j0
+        m = moved[side]
+        data[f"hand_{side}_wrist_orient_in_camera"][m] = Rotation.from_matrix(R[m]).as_rotvec()
+        data[f"hand_{side}_wrist_trans_in_camera"][m] = cam_t[m]
+        w2c = data[f"hand_{side}_wrist_to_camera_transform"].astype(np.float64)
+        w2c[m, :3, :3] = Rotation.from_rotvec(data[f"hand_{side}_wrist_orient_in_camera"][m].astype(np.float64)).as_matrix()
+        w2c[m, :3, 3] = data[f"hand_{side}_wrist_trans_in_camera"][m]
+        data[f"hand_{side}_wrist_to_camera_transform"] = w2c.astype(np.float32)
+        data[f"hand_{side}_wrist_to_world_transform"] = (c2w @ w2c).astype(np.float32)
+        info[f"hand_{side}_attached_frames"] = int(m.sum())
+    return info
+
+
 def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True, hand_clean: bool = True,
                    object_clean: bool = True, rescale_by_hands: bool = False, rescale_by_scan: str | None = None,
-                   still: bool = False, level: bool = False, reach_cm: float = 10.0) -> tuple[Path, dict]:
+                   still: bool = False, level: bool = False, attach: bool = False,
+                   reach_cm: float = 10.0) -> tuple[Path, dict]:
     """Copy of the bundle with the repairs reconstructions need before load:
 
     hand_clean: the loader ignores hand_*_is_valid, and hand tracks often fly off (a wrist 2 m
@@ -461,6 +548,7 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
       reconstruction-only AUC 0.240 -> 0.291 (ep41 0.287 -> 0.430); the hand scale as ruler
       does worse (0.229). No public scan exists for wooden_spoon.
     level: start every object resting on a face (level_scene), after the object repairs.
+    attach: reference hands hold what they carry (attach_hands), after levelling.
     still: safety-net scene (still_scene), applied last.
     """
     data = dict(np.load(bundle / "result.npz"))
@@ -507,6 +595,8 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
         data[pose_key] = T.astype(data[pose_key].dtype)
     if level:
         info.update(level_scene(data, bundle))
+    if attach:
+        info.update(attach_hands(data, bundle))
     cam_inv = np.linalg.inv(data["camera_to_world_transform"].astype(np.float64))
     data["object_to_camera_transform"] = (cam_inv @ data["object_to_world_transform"].astype(np.float64)).astype(
         data["object_to_camera_transform"].dtype)
@@ -668,6 +758,8 @@ def main() -> int:
     parser.add_argument("--no-level", action="store_true",
                         help="keep each object's start tilt (default: rotate so it starts resting on a face; "
                              "unlevelled objects tip over in the first frames of simulation)")
+    parser.add_argument("--attach-hands", action="store_true",
+                        help="while an object is lifted, move the hands near it to ride rigidly with it")
     parser.add_argument("--merge", action="store_true",
                         help="multi-object episode: merge every object's bundle from the hub into one scene")
     args = parser.parse_args()
@@ -713,12 +805,12 @@ def main() -> int:
     for w in report["bundle_check"]["warnings"]:
         print(f"  ! {w}")
     if not (args.no_rest_hold and args.no_hand_clean and args.no_object_clean) or args.rescale_by_hands \
-            or args.rescale_by_scan or args.still_object or not args.no_level:
+            or args.rescale_by_scan or args.still_object or not args.no_level or args.attach_hands:
         bundle, report["cleaning"] = cleaned_bundle(
             bundle, out / "bundle_cleaned", args.fps, rest_hold=not args.no_rest_hold,
             hand_clean=not args.no_hand_clean, object_clean=not args.no_object_clean,
             rescale_by_hands=args.rescale_by_hands, rescale_by_scan=label if args.rescale_by_scan else None,
-            still=args.still_object, level=not args.no_level)
+            still=args.still_object, level=not args.no_level, attach=args.attach_hands)
         print(f"== cleaned bundle: {report['cleaning']}", flush=True)
 
     print("== load (MANO FK -> ManoSharpaData)", flush=True)
