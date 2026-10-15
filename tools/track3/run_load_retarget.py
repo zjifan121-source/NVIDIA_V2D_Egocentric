@@ -142,6 +142,170 @@ def check_bundle(bundle: Path, object_name: str | None) -> dict:
     return report
 
 
+# ---------------------------------------------------------------- rest hold
+def reach_frame(data: dict, vertices: np.ndarray, cm: float = 10.0) -> int | None:
+    """First frame a valid wrist is within `cm` of the object surface (object frame), or None."""
+    from scipy.spatial import cKDTree
+    T = data["object_to_world_transform"].astype(float)
+    tree = cKDTree(vertices)
+    near = np.zeros(len(T), dtype=bool)
+    for side in ("left", "right"):
+        wrist = data[f"hand_{side}_wrist_to_world_transform"][:, :3, 3].astype(float)
+        local = np.einsum("tji,tj->ti", T[:, :3, :3], wrist - T[:, :3, 3])
+        near |= (tree.query(local)[0] < cm / 100) & data[f"hand_{side}_is_valid"].astype(bool)
+    hits = np.nonzero(near)[0]
+    return int(hits[0]) if len(hits) else None
+
+
+def hold_until(T: np.ndarray, frame: int, blend: int = 5) -> np.ndarray:
+    """Object at rest before `frame` (median position, mean rotation), easing into the track after it."""
+    from scipy.spatial.transform import Rotation
+    out = T.copy()
+    rest_pos = np.median(T[:frame, :3, 3], axis=0)
+    rest_rot = Rotation.from_matrix(T[:frame, :3, :3]).mean()
+    out[:frame, :3, 3] = rest_pos
+    out[:frame, :3, :3] = rest_rot.as_matrix()
+    for j, f in enumerate(range(frame, min(frame + blend, len(T)))):
+        w = (j + 1) / (blend + 1)
+        delta = (rest_rot.inv() * Rotation.from_matrix(T[f, :3, :3])).as_rotvec()
+        out[f, :3, 3] = (1 - w) * rest_pos + w * T[f, :3, 3]
+        out[f, :3, :3] = (rest_rot * Rotation.from_rotvec(w * delta)).as_matrix()
+    return out
+
+
+def bad_hand_frames(wrist_world: np.ndarray, cam_dist: np.ndarray, valid: np.ndarray, fps: float,
+                    max_reach: float, max_speed: float = 2.0) -> np.ndarray:
+    """Frames where a hand track is unusable: flagged invalid, farther than an arm's reach from
+    the head camera, or moving faster than `max_speed` m/s since the last good frame."""
+    bad = ~valid.astype(bool) | (cam_dist > max_reach)
+    last = None
+    for i in range(len(bad)):
+        if bad[i]:
+            continue
+        if last is not None and np.linalg.norm(wrist_world[i] - wrist_world[last]) * fps / (i - last) > max_speed:
+            bad[i] = True
+        else:
+            last = i
+    return bad
+
+
+def fill_hand(data: dict, side: str, bad: np.ndarray) -> None:
+    """Replace bad frames of one hand: interpolate the world wrist pose and finger pose between
+    good frames (hold the nearest good frame at the ends), then write it back in camera frame,
+    the frame the loader reads (wrist_orient/trans_in_camera, finger_pose)."""
+    from scipy.spatial.transform import Rotation, Slerp
+    good = np.nonzero(~bad)[0]
+    if len(good) == 0 or not bad.any():
+        return
+    c2w = data["camera_to_world_transform"].astype(np.float64)
+    Rc, tc = c2w[:, :3, :3], c2w[:, :3, 3]
+    orient = data[f"hand_{side}_wrist_orient_in_camera"].astype(np.float64)
+    trans = data[f"hand_{side}_wrist_trans_in_camera"].astype(np.float64)
+    fingers = data[f"hand_{side}_finger_pose"].astype(np.float64).reshape(len(bad), -1)
+    rot_w = Rotation.from_matrix(Rc @ Rotation.from_rotvec(orient).as_matrix())
+    pos_w = np.einsum("nij,nj->ni", Rc, trans) + tc
+    frames = np.clip(np.arange(len(bad)), good[0], good[-1])  # hold at the ends
+    if len(good) > 1:
+        new_rot = Slerp(good, rot_w[good])(frames)
+    else:
+        new_rot = Rotation.from_quat(np.repeat(rot_w[good].as_quat(), len(bad), axis=0))
+    new_pos = np.stack([np.interp(frames, good, pos_w[good, k]) for k in range(3)], axis=1)
+    new_fingers = np.stack([np.interp(frames, good, fingers[good, k]) for k in range(fingers.shape[1])], axis=1)
+    cam_rot = Rotation.from_matrix(np.einsum("nji,njk->nik", Rc, new_rot.as_matrix()))  # Rc^T @ R_w
+    cam_pos = np.einsum("nji,nj->ni", Rc, new_pos - tc)
+    for key, value in ((f"hand_{side}_wrist_orient_in_camera", cam_rot.as_rotvec()),
+                       (f"hand_{side}_wrist_trans_in_camera", cam_pos),
+                       (f"hand_{side}_finger_pose", new_fingers)):
+        data[key] = np.where(bad.reshape(-1, *[1] * (data[key].ndim - 1)),
+                             value.reshape(data[key].shape), data[key]).astype(data[key].dtype)
+    w2c = np.tile(np.eye(4), (len(bad), 1, 1))
+    w2c[:, :3, :3] = Rotation.from_rotvec(data[f"hand_{side}_wrist_orient_in_camera"].astype(np.float64)).as_matrix()
+    w2c[:, :3, 3] = data[f"hand_{side}_wrist_trans_in_camera"]
+    data[f"hand_{side}_wrist_to_camera_transform"] = w2c.astype(np.float32)
+    data[f"hand_{side}_wrist_to_world_transform"] = (c2w @ w2c).astype(np.float32)
+
+
+def bad_object_frames(T: np.ndarray, fps: float, max_speed: float = 1.5, max_turn: float = 10.0) -> np.ndarray:
+    """Frames where the object track jumps: faster than `max_speed` m/s or `max_turn` rad/s since the
+    last good frame. Public ground truth never exceeds 1.31 m/s and 8.6 rad/s."""
+    from scipy.spatial.transform import Rotation
+    rot = Rotation.from_matrix(T[:, :3, :3])
+    bad = np.zeros(len(T), dtype=bool)
+    last = 0
+    for i in range(1, len(T)):
+        dt = (i - last) / fps
+        if (np.linalg.norm(T[i, :3, 3] - T[last, :3, 3]) / dt > max_speed
+                or (rot[i] * rot[last].inv()).magnitude() / dt > max_turn):
+            bad[i] = True
+        else:
+            last = i
+    return bad
+
+
+def fill_object(T: np.ndarray, bad: np.ndarray) -> np.ndarray:
+    """Interpolate bad object frames between good ones (hold the last good pose at the end)."""
+    from scipy.spatial.transform import Rotation, Slerp
+    good = np.nonzero(~bad)[0]
+    frames = np.clip(np.arange(len(T)), good[0], good[-1])
+    out = T.copy()
+    out[:, :3, 3] = np.stack([np.interp(frames, good, T[good, :3, 3][:, k]) for k in range(3)], axis=1)
+    out[:, :3, :3] = Slerp(good, Rotation.from_matrix(T[good, :3, :3]))(frames).as_matrix()
+    return np.where(bad[:, None, None], out, T)
+
+
+def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True, hand_clean: bool = True,
+                   object_clean: bool = True, reach_cm: float = 10.0) -> tuple[Path, dict]:
+    """Copy of the bundle with the repairs reconstructions need before load:
+
+    hand_clean: the loader ignores hand_*_is_valid, and hand tracks often fly off (a wrist 2 m
+      from the head camera, or jumping at up to 200 m/s on ep41). A reference wrist that jumps
+      ends every training episode (FlashCHORD terminates at 15 cm wrist error), so bad frames
+      are refilled from the good ones (bad_hand_frames, fill_hand).
+    object_clean: the same for object frames that jump faster than any real object moves
+      (ep41's track breaks at frames 232-261 at up to 7 m/s; termination is at 10 cm).
+    rest_hold: every public ground-truth object is at rest until touched, while reconstructions
+      jitter ~0.6 cm per frame from frame 0, so NVIDIA's support detector builds no table under
+      them. The object is held still until a wrist comes within `reach_cm`. On the 14 public
+      reconstructions this never cuts into real motion (the reach comes 10-20 frames before the
+      true object moves) and raises reconstruction-only AUC 0.216 -> 0.240.
+    """
+    data = dict(np.load(bundle / "result.npz"))
+    info: dict = {}
+    if hand_clean:
+        scale = np.nanmedian([np.median(data[f"hand_{s}_scale"]) for s in ("left", "right")])
+        max_reach = 1.0 * max(1.0, float(scale))  # head camera to wrist; scenes come out too large
+        for side in ("left", "right"):
+            w2w = data[f"hand_{side}_wrist_to_world_transform"].astype(np.float64)
+            cam_dist = np.linalg.norm(data[f"hand_{side}_wrist_to_camera_transform"][:, :3, 3], axis=1)
+            bad = bad_hand_frames(w2w[:, :3, 3], cam_dist, data[f"hand_{side}_is_valid"], fps, max_reach)
+            info[f"hand_{side}_refilled_frames"] = int(bad.sum())
+            fill_hand(data, side, bad)
+    if object_clean:
+        T = data["object_to_world_transform"].astype(np.float64)
+        bad = bad_object_frames(T, fps)
+        info["object_refilled_frames"] = int(bad.sum())
+        if bad.any():
+            T = fill_object(T, bad)
+            data["object_to_world_transform"] = T.astype(data["object_to_world_transform"].dtype)
+            cam_inv = np.linalg.inv(data["camera_to_world_transform"].astype(np.float64))
+            data["object_to_camera_transform"] = (cam_inv @ T).astype(data["object_to_camera_transform"].dtype)
+    if rest_hold:
+        mesh = trimesh.load(bundle / "mesh.obj", force="mesh", process=False)
+        frame = reach_frame(data, np.asarray(mesh.vertices) * float(data.get("object_scale", 1.0)), reach_cm)
+        info["rest_hold_until_frame"] = frame
+        if frame:
+            T = hold_until(data["object_to_world_transform"].astype(np.float64), frame)
+            data["object_to_world_transform"] = T.astype(data["object_to_world_transform"].dtype)
+            cam_inv = np.linalg.inv(data["camera_to_world_transform"].astype(np.float64))
+            data["object_to_camera_transform"] = (cam_inv @ T).astype(data["object_to_camera_transform"].dtype)
+    dest.mkdir(parents=True, exist_ok=True)
+    for f in bundle.iterdir():
+        if f.name != "result.npz" and not (dest / f.name).exists():
+            (dest / f.name).symlink_to(f)
+    np.savez(dest / "result.npz", **data)
+    return dest, info
+
+
 # ---------------------------------------------------------------- stage commands
 def run(cmd: list[str], cwd: Path, env: dict, log: Path) -> None:
     print("  $ " + " ".join(str(c) for c in cmd), flush=True)
@@ -262,6 +426,10 @@ def main() -> int:
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--skip-video", action="store_true")
     parser.add_argument("--force", action="store_true", help="redo every step")
+    parser.add_argument("--no-rest-hold", action="store_true",
+                        help="keep the object track as reconstructed (default: hold it still until a hand reaches it)")
+    parser.add_argument("--no-hand-clean", action="store_true",
+                        help="keep hand tracks as reconstructed (default: refill frames that fly off or jump)")
     args = parser.parse_args()
 
     if args.bundle is None:
@@ -294,6 +462,10 @@ def main() -> int:
     report["bundle_check"] = check_bundle(bundle, args.object)
     for w in report["bundle_check"]["warnings"]:
         print(f"  ! {w}")
+    if not (args.no_rest_hold and args.no_hand_clean):
+        bundle, report["cleaning"] = cleaned_bundle(bundle, out / "bundle_cleaned", args.fps,
+                                                    rest_hold=not args.no_rest_hold, hand_clean=not args.no_hand_clean)
+        print(f"== cleaned bundle: {report['cleaning']}", flush=True)
 
     print("== load (MANO FK -> ManoSharpaData)", flush=True)
     if not has_parquet(partition(loaded, seq)):
