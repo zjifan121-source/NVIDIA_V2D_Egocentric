@@ -379,9 +379,67 @@ def still_scene(data: dict) -> None:
         data[f"hand_{side}_is_valid"] = np.ones(n, dtype=bool)
 
 
+def stable_tilt(vertices: np.ndarray, R0: np.ndarray) -> np.ndarray | None:
+    """World rotation (3x3) that tips an object with orientation R0 onto the nearest face it can
+    rest on (trimesh stable poses of the convex hull), or None if it already rests (< 1 deg)."""
+    import trimesh
+    from scipy.spatial.transform import Rotation
+    stable, _ = trimesh.poses.compute_stable_poses(trimesh.Trimesh(vertices).convex_hull, n_samples=1)
+    down = np.array([0.0, 0.0, -1.0])
+    rest_downs = [R0 @ (S[:3, :3].T @ down) for S in stable]  # each resting face's down, in world
+    target = max(rest_downs, key=lambda d: d @ down)
+    axis = np.cross(target, down)
+    angle = np.arctan2(np.linalg.norm(axis), target @ down)
+    if angle < np.radians(1.0):
+        return None
+    return Rotation.from_rotvec(axis / np.linalg.norm(axis) * angle).as_matrix()
+
+
+def level_scene(data: dict, bundle: Path, world_tilt: float = 20.0, max_tilt: float = 30.0) -> dict:
+    """Make every object start resting on one of its faces.
+
+    Gravity alignment leaves objects tilted 5-27 deg off any face they could rest on (ep35-38, 41),
+    so in simulation the object tips over in the first 5 frames and sits 8-24 deg off its
+    reference for the rest of the clip (NVIDIA's tissue sample: < 1 deg). The first object is
+    levelled by one rotation of the whole world about its frame-0 position, as NVIDIA's
+    level_result_bundle.py does, so hands keep their grip; the scorer registers trajectories, so a
+    global rotation costs nothing. Further objects, and a first object tilted more than
+    `world_tilt`, get the tilt as a fixed rotation in their own frame about the mesh centre: a
+    large tilt is an object-pose error, and rotating the world by it moves the table (ep36's
+    27 deg left the spoon 10 cm above its support). Tilts above `max_tilt` mean another face and
+    are left alone."""
+    from scipy.spatial.transform import Rotation
+    info = {}
+    for i, (pose_key, scale_key, mesh_file) in enumerate(object_slots(data)):
+        v = object_vertices(bundle, data, scale_key, mesh_file)
+        T0 = data[pose_key][0].astype(np.float64)
+        R = stable_tilt(v, T0[:3, :3])
+        tilt = 0.0 if R is None else float(np.degrees(Rotation.from_matrix(R).magnitude()))
+        info[f"tilt_deg_{i}"] = round(tilt, 1)
+        if R is None or tilt > max_tilt:
+            continue
+        if i == 0 and tilt <= world_tilt:
+            A = np.eye(4)
+            A[:3, :3] = R
+            A[:3, 3] = T0[:3, 3] - R @ T0[:3, 3]
+            keys = ("camera_to_world_transform", "hand_left_wrist_to_world_transform",
+                    "hand_right_wrist_to_world_transform", *[k for k, _, _ in object_slots(data)])
+            for key in keys:
+                data[key] = (A @ data[key].astype(np.float64)).astype(data[key].dtype)
+        else:
+            local = T0[:3, :3].T @ R @ T0[:3, :3]
+            c = v.mean(axis=0)
+            B = np.eye(4)
+            B[:3, :3] = local
+            B[:3, 3] = c - local @ c
+            data[pose_key] = (data[pose_key].astype(np.float64) @ B).astype(data[pose_key].dtype)
+        info[f"levelled_{i}"] = "world" if i == 0 and tilt <= world_tilt else "object"
+    return info
+
+
 def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True, hand_clean: bool = True,
                    object_clean: bool = True, rescale_by_hands: bool = False, rescale_by_scan: str | None = None,
-                   still: bool = False, reach_cm: float = 10.0) -> tuple[Path, dict]:
+                   still: bool = False, level: bool = False, reach_cm: float = 10.0) -> tuple[Path, dict]:
     """Copy of the bundle with the repairs reconstructions need before load:
 
     hand_clean: the loader ignores hand_*_is_valid, and hand tracks often fly off (a wrist 2 m
@@ -402,6 +460,7 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
       ratio, so the object comes out its real size. On 14 public reconstructions this raises
       reconstruction-only AUC 0.240 -> 0.291 (ep41 0.287 -> 0.430); the hand scale as ruler
       does worse (0.229). No public scan exists for wooden_spoon.
+    level: start every object resting on a face (level_scene), after the object repairs.
     still: safety-net scene (still_scene), applied last.
     """
     data = dict(np.load(bundle / "result.npz"))
@@ -446,6 +505,8 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
             if frame:
                 T = hold_until(T, frame)
         data[pose_key] = T.astype(data[pose_key].dtype)
+    if level:
+        info.update(level_scene(data, bundle))
     cam_inv = np.linalg.inv(data["camera_to_world_transform"].astype(np.float64))
     data["object_to_camera_transform"] = (cam_inv @ data["object_to_world_transform"].astype(np.float64)).astype(
         data["object_to_camera_transform"].dtype)
@@ -604,6 +665,8 @@ def main() -> int:
                         help="divide every length by the mesh-to-public-scan size ratio (object comes out real size)")
     parser.add_argument("--still-object", action="store_true",
                         help="safety net: object at rest and hands at their first pose for the whole clip")
+    parser.add_argument("--level", action="store_true",
+                        help="rotate the scene so each object starts resting on a face (else it tips over in sim)")
     parser.add_argument("--merge", action="store_true",
                         help="multi-object episode: merge every object's bundle from the hub into one scene")
     args = parser.parse_args()
@@ -649,12 +712,12 @@ def main() -> int:
     for w in report["bundle_check"]["warnings"]:
         print(f"  ! {w}")
     if not (args.no_rest_hold and args.no_hand_clean and args.no_object_clean) or args.rescale_by_hands \
-            or args.rescale_by_scan or args.still_object:
+            or args.rescale_by_scan or args.still_object or args.level:
         bundle, report["cleaning"] = cleaned_bundle(
             bundle, out / "bundle_cleaned", args.fps, rest_hold=not args.no_rest_hold,
             hand_clean=not args.no_hand_clean, object_clean=not args.no_object_clean,
             rescale_by_hands=args.rescale_by_hands, rescale_by_scan=label if args.rescale_by_scan else None,
-            still=args.still_object)
+            still=args.still_object, level=args.level)
         print(f"== cleaned bundle: {report['cleaning']}", flush=True)
 
     print("== load (MANO FK -> ManoSharpaData)", flush=True)

@@ -449,7 +449,25 @@ Output: `baseline/reconstruction/data/outputs/load_retarget/episode_XXXXXX/<obje
 
 **Verified (2026-10-14).** `tools/track3/make_sample_bundle.py` rebuilds a bundle from NVIDIA's committed `tissue_box_simple` example. Running the chain on it reproduces NVIDIA's published retarget to < 0.01 mm (hands, object, robot wrists) and < 0.001 rad (finger joints). Fingertip error 2.3 cm mean / 5.4 cm max; no link deeper than 1 cm; one support disk with the object seated on it. FlashCHORD loads the output and finds the URDF, mesh and support surface. With `control_fps` equal to the clip fps and `motion_speed 1.0`, it keeps the 390 source frames, as the frame-numbering fix in §6 requires. The same holds at 20.254 fps. The Parquet stores fps as float32 (`20.254119873046875`); pass exactly that as `sim.fps` and FlashCHORD skips resampling altogether. `20.25411910142744` gives the same frame count.
 
-**Not yet handled:** two-object episodes (16 of 20 evaluation episodes). The loader takes one object per bundle; merging an episode's two runs into one scene is next.
+**Repairs before load** (`bundle_cleaned/`, recorded under `cleaning` in `report.json`). On by default:
+
+| Repair | Why |
+|---|---|
+| Hand cleaning: refill frames where a wrist is beyond arm's reach of the camera or moves faster than 2 m/s | The loader ignores `hand_*_is_valid`; ep41's left wrist jumps at up to 200 m/s, and FlashCHORD ends an episode once the robot wrist is 15 cm off its reference |
+| Object cleaning: interpolate frames faster than 1.5 m/s or 10 rad/s | Track breaks (ep41: 7 m/s at frames 232–261) |
+| Rest hold: object held still until a wrist is within 10 cm | Real objects start at rest; reconstructions jitter, and the support surface then finds no table. Reconstruction-only AUC 0.216 → 0.240 on 14 public objects |
+
+Opt-in flags:
+
+| Flag | What it does |
+|---|---|
+| `--rescale-by-scan` | Divide every length by the mesh-to-public-scan size ratio. Reconstruction-only AUC 0.240 → 0.291 (ep41 0.287 → 0.430). No scan exists for `wooden_spoon`. |
+| `--rescale-by-hands` | Same with the fitted MANO hand scale as the ruler (worse: 0.229) |
+| `--level` | Rotate the scene so each object starts resting on one of its faces. Without it, our objects sit 5–27° off any stable face and tip over in the first 5 simulated frames. A global rotation leaves the score unchanged, since Kaggle registers trajectories. |
+| `--still-object` | Safety net: object at rest and hands at their first pose for the whole clip. A still trajectory scores ep41 AUC 0.356 (0.447 averaged over the public episodes). |
+| `--merge` (with `--episode` only) | Two-object episodes: merges each object's bundle from the hub into one scene (`object_names`, `object_<i>_*`, `mesh_<i>.obj`; the loader reads this layout). Each object's run has its own SLAM world, and the worlds disagree (ep33's camera paths are 7 m and 30 m), while camera-frame hands and depth agree within ~2 cm. So the steadier run's world is kept, and the other object is placed by its camera-frame pose. |
+
+**Training on the output (FlashCHORD, Babel).** Settings: `task.motion_speed=1.0 sim.fps=20.254119873046875 sim.njmax=1024 sim.nconmax=512 termination.wrist_position.threshold=0.3`. `njmax` 512 drops contacts on our meshes, and 1024 needs ~46 GB at startup, so use GPUs with ≥ 80 GB (L40S runs out of memory). The 30 cm wrist threshold tolerates the fast hand withdrawals in our tracks. NVIDIA's tissue-box sample trains to 0.6 cm object error (evaluator AUC 0.98) with these settings.
 
 ---
 
