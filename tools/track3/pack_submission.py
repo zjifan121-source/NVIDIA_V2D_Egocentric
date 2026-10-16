@@ -25,6 +25,30 @@ from pathlib import Path
 KIT = Path(__file__).resolve().parents[2] / "assets/data/v2d_submission_kit"
 
 
+def relabel(src: Path, dst: Path, names: list[str]) -> list[str]:
+    """Copy an evaluator trajectory with object_body_name set to the roster's object names.
+
+    FlashCHORD names each body after our scene (ep8_merged_still_beige_cup, ep35_wooden_spoon_still),
+    while the packer wants the roster's names. Each body must already sit in the roster's slot and
+    contain its object's name; only that column changes, the rest of the table and its metadata
+    (provenance hashes included) are copied as they are."""
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    table = pq.read_table(src)
+    ids = table.column("object_id").to_pylist()
+    bodies = table.column("object_body_name").to_pylist()
+    if sorted(set(ids)) != list(range(len(names))):
+        return [f"{src.name}: object ids {sorted(set(ids))} for roster {names}"]
+    wrong = {b for i, b in zip(ids, bodies) if not (b.endswith("_" + names[i]) or ("_" + names[i] + "_") in b)}
+    if wrong:
+        return [f"{src.name}: bodies {sorted(wrong)} do not match roster {names} by slot"]
+    column = table.schema.get_field_index("object_body_name")
+    field = table.schema.field(column)
+    table = table.set_column(column, field, pa.array([names[i] for i in ids]).cast(field.type))
+    pq.write_table(table, dst)
+    return []
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--plan", required=True, type=Path)
@@ -48,10 +72,12 @@ def main() -> None:
         run, scene = Path(plan[ep]["run"]), Path(plan[ep]["scene"])
         for suffix in (".parquet", ".json"):
             src = run / "results" / (stem + suffix)
-            if src.is_file():
-                (results / src.name).symlink_to(src.resolve())
-            else:
+            if not src.is_file():
                 problems.append(f"episode {ep}: no {src}")
+            elif suffix == ".parquet":
+                problems += relabel(src, results / src.name, roster[ep])
+            else:
+                (results / src.name).symlink_to(src.resolve())
         src_dir = scene / "score_input/meshes" / stem
         dst_dir = meshes / stem
         dst_dir.mkdir()
