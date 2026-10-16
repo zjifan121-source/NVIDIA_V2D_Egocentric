@@ -1,0 +1,82 @@
+{
+ "1": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_seat60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/merged_still_seat"
+ },
+ "3": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_seat60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/merged_still_seat"
+ },
+ "5": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_still60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000005/merged_still"
+ },
+ "6": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep6_seat60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000006/merged_still_seat"
+ },
+ "8": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep8_still60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000008/merged_still"
+ },
+ "10": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep10_still60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000010/merged_still"
+ },
+ "14": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_seat60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/merged_still_seat"
+ },
+ "15": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep15_seat60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000015/merged_still_seat"
+ },
+ "16": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_seat60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/merged_still_seat"
+ },
+ "19": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_still60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000019/merged_still"
+ },
+ "20": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_seat60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000020/merged_still_seat"
+ },
+ "25": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_still60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/merged_still"
+ },
+ "28": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep28_still60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000028/merged_still"
+ },
+ "30": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_seat60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000030/merged_still_seat"
+ },
+ "32": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep32_still60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000032/merged_still"
+ },
+ "33": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_still60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000033/merged_still2"
+ },
+ "38": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep38_still60M",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000038/mini_dust_pan_still2"
+ },
+ "35": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_still",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/wooden_spoon_still"
+ },
+ "36": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep36_still",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000036/wooden_spoon_still"
+ },
+ "37": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep37_still",
+  "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000037/wooden_spoon_still"
+ }
+}
