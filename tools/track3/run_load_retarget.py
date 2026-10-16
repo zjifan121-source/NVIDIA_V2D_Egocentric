@@ -379,6 +379,46 @@ def still_scene(data: dict) -> None:
         data[f"hand_{side}_is_valid"] = np.ones(n, dtype=bool)
 
 
+def seat_scene(data: dict, bundle: Path, band: float = 0.005) -> dict:
+    """Still scenes: lower every object that floats above the table onto it at frame 0.
+
+    Reconstructed objects of one scene come out at different heights (ep6's pot 3.2 cm above the
+    spoon that marks the table). support_recon then merges their overlapping disks into one at a
+    single height, and the higher object drops and tips in the first frames (ep6 pot: 4.4 cm, 21 deg,
+    local AUC 1.0 -> 0.57). The table is the lowest object's base; an object whose base rests on
+    another object (at least half of its lowest 5 mm inside that object's footprint, ep1's lid) is
+    left where it is. Poses must be constant (after still_scene)."""
+    from scipy.spatial import ConvexHull, Delaunay
+    slots = object_slots(data)
+    if len(slots) < 2:
+        return {}
+    world = []
+    for pose_key, scale_key, mesh_file in slots:
+        v = object_vertices(bundle, data, scale_key, mesh_file)
+        T0 = data[pose_key][0].astype(np.float64)
+        world.append(v @ T0[:3, :3].T + T0[:3, 3])
+    bottoms = [float(w[:, 2].min()) for w in world]
+    table = min(bottoms)
+    info = {}
+    for i, (pose_key, _, _) in enumerate(slots):
+        base = world[i][world[i][:, 2] < bottoms[i] + band][:, :2]
+        on = [j for j, w in enumerate(world) if j != i and bottoms[i] > bottoms[j] + band and w[:, 2].max() >= bottoms[i]
+              and (Delaunay(w[ConvexHull(w[:, :2]).vertices, :2]).find_simplex(base) >= 0).mean() >= 0.5]
+        gap = bottoms[i] - table
+        if on:
+            info[f"seat_{i}"] = f"rests on object {on[0]}"
+        elif gap > band:
+            T = data[pose_key].astype(np.float64)
+            T[:, 2, 3] -= gap
+            data[pose_key] = T.astype(data[pose_key].dtype)
+            info[f"seat_{i}"] = f"lowered {gap * 100:.1f} cm"
+    cam_inv = np.linalg.inv(data["camera_to_world_transform"][:1].astype(np.float64))
+    data["object_to_camera_transform"] = np.repeat(
+        (cam_inv @ data["object_to_world_transform"][:1].astype(np.float64)).astype(data["object_to_camera_transform"].dtype),
+        len(data["object_to_world_transform"]), axis=0)
+    return info
+
+
 def stable_tilt(vertices: np.ndarray, R0: np.ndarray) -> np.ndarray | None:
     """World rotation (3x3) that tips an object with orientation R0 onto the nearest face it can
     rest on (trimesh stable poses of the convex hull), or None if it already rests (< 1 deg)."""
@@ -525,7 +565,7 @@ def attach_hands(data: dict, bundle: Path, lift: float = 0.02, reach: float = 0.
 
 def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True, hand_clean: bool = True,
                    object_clean: bool = True, rescale_by_hands: bool = False, rescale_by_scan: str | None = None,
-                   still: bool = False, level: bool = False, attach: bool = False,
+                   still: bool = False, level: bool = False, attach: bool = False, seat: bool = False,
                    reach_cm: float = 10.0) -> tuple[Path, dict]:
     """Copy of the bundle with the repairs reconstructions need before load:
 
@@ -550,6 +590,7 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
     level: start every object resting on a face (level_scene), after the object repairs.
     attach: reference hands hold what they carry (attach_hands), after levelling.
     still: safety-net scene (still_scene), applied last.
+    seat: with still, lower floating objects onto the table (seat_scene).
     """
     data = dict(np.load(bundle / "result.npz"))
     info: dict = {}
@@ -603,6 +644,8 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
     if still:
         still_scene(data)
         info["still"] = True
+        if seat:
+            info.update(seat_scene(data, bundle))
     dest.mkdir(parents=True, exist_ok=True)
     for f in bundle.iterdir():
         if f.name != "result.npz" and not (dest / f.name).exists():
@@ -760,6 +803,9 @@ def main() -> int:
                              "unlevelled objects tip over in the first frames of simulation)")
     parser.add_argument("--attach-hands", action="store_true",
                         help="while an object is lifted, move the hands near it to ride rigidly with it")
+    parser.add_argument("--seat", action="store_true",
+                        help="with --still-object: lower floating objects onto the table, and build supports with "
+                             "support_stacked.py (an object's table is dropped only when it rests on another object)")
     parser.add_argument("--merge", action="store_true",
                         help="multi-object episode: merge every object's bundle from the hub into one scene")
     args = parser.parse_args()
@@ -810,7 +856,7 @@ def main() -> int:
             bundle, out / "bundle_cleaned", args.fps, rest_hold=not args.no_rest_hold,
             hand_clean=not args.no_hand_clean, object_clean=not args.no_object_clean,
             rescale_by_hands=args.rescale_by_hands, rescale_by_scan=label if args.rescale_by_scan else None,
-            still=args.still_object, level=not args.no_level, attach=args.attach_hands)
+            still=args.still_object, level=not args.no_level, attach=args.attach_hands, seat=args.seat)
         print(f"== cleaned bundle: {report['cleaning']}", flush=True)
 
     print("== load (MANO FK -> ManoSharpaData)", flush=True)
@@ -834,7 +880,8 @@ def main() -> int:
 
     print("== support surface", flush=True)
     if not usda.is_file():
-        run([py, "scripts/reconstruct_support_surfaces.py", "--dataset", "ego_recon", "--input_dir", processed,
+        support = str(Path(__file__).with_name("support_stacked.py")) if args.seat else "scripts/reconstruct_support_surfaces.py"
+        run([py, support, "--dataset", "ego_recon", "--input_dir", processed,
              "--sequence_id", seq, "--robot_name", ROBOT, "--output", usda], RG, env, log)
 
     video = out / "qa" / f"{seq}.mp4"
