@@ -379,39 +379,54 @@ def still_scene(data: dict) -> None:
         data[f"hand_{side}_is_valid"] = np.ones(n, dtype=bool)
 
 
-def seat_scene(data: dict, bundle: Path, band: float = 0.005) -> dict:
-    """Still scenes: lower every object that floats above the table onto it at frame 0.
+# The only stack in the Track 3 data: the lid sits on its pot (public ground truth: lid bottom 8.7 cm
+# above the pot bottom on ep0 and ep2). Every other pair rests on one table plane (within 0.3 cm on
+# the 11 other public two-object episodes, ep26 2 cm), including a sweeper inside the dish rack.
+STACKED = {"white_pot_lid"}
 
-    Reconstructed objects of one scene come out at different heights (ep6's pot 3.2 cm above the
-    spoon that marks the table). support_recon then merges their overlapping disks into one at a
-    single height, and the higher object drops and tips in the first frames (ep6 pot: 4.4 cm, 21 deg,
-    local AUC 1.0 -> 0.57). The table is the lowest object's base; an object whose base rests on
-    another object (at least half of its lowest 5 mm inside that object's footprint, ep1's lid) is
-    left where it is. Poses must be constant (after still_scene)."""
-    from scipy.spatial import ConvexHull, Delaunay
+
+def seat_scene(data: dict, bundle: Path, gap_scale: float = 1.0, min_shift: float = 0.005) -> dict:
+    """Still scenes: bring the objects of a merged scene closer together and put every object on the
+    table, at frame 0.
+
+    Each object of a merged scene comes from its own reconstruction. The scorer aligns a scene by
+    one object's frame-0 pose only, so the other object's placement error is never corrected.
+
+    gap_scale scales every object's horizontal offset from object 0. Whenever both objects of a
+    public episode are the right object (7 pairs), ours come out 1.03-1.45x too far apart (radial
+    error +1.7 to +10.7 cm). Public dry run, 20 episodes: AUC 0.315 -> 0.338 at 0.8 (0.7: 0.328).
+
+    Heights disagree too: on the scored episodes a spoon sits 4-14 cm under the table (ep5, ep32,
+    ep33) and ep28's pot floats 45 cm above it. The table is object 0's base (stage 2 levels the
+    world on object 0). Snapping by mesh bottoms barely moves the public score, because our meshes
+    are oversized (gap 0.8 alone 0.338, plus every height 0.340, plus only shifts > 5 cm 0.342), but
+    an object left floating falls in simulation (ep6's pot: 4.4 cm, 21 deg), so every shift above
+    `min_shift` is applied. STACKED objects stay where they were reconstructed: the pot run tracks
+    the lid, so a lid placed on our "pot" lands 10 cm too high. Poses must be constant (after still_scene)."""
     slots = object_slots(data)
     if len(slots) < 2:
         return {}
-    world = []
+    names = [str(n) for n in data["object_names"]]
+    info = {"gap_scale": gap_scale}
+    anchor = data[slots[0][0]][0, :2, 3].astype(np.float64)
+    for pose_key, _, _ in slots[1:]:
+        T = data[pose_key].astype(np.float64)
+        T[:, :2, 3] = anchor + gap_scale * (T[:, :2, 3] - anchor)
+        data[pose_key] = T.astype(data[pose_key].dtype)
+    bottoms = []
     for pose_key, scale_key, mesh_file in slots:
         v = object_vertices(bundle, data, scale_key, mesh_file)
         T0 = data[pose_key][0].astype(np.float64)
-        world.append(v @ T0[:3, :3].T + T0[:3, 3])
-    bottoms = [float(w[:, 2].min()) for w in world]
-    table = min(bottoms)
-    info = {}
-    for i, (pose_key, _, _) in enumerate(slots):
-        base = world[i][world[i][:, 2] < bottoms[i] + band][:, :2]
-        on = [j for j, w in enumerate(world) if j != i and bottoms[i] > bottoms[j] + band and w[:, 2].max() >= bottoms[i]
-              and (Delaunay(w[ConvexHull(w[:, :2]).vertices, :2]).find_simplex(base) >= 0).mean() >= 0.5]
-        gap = bottoms[i] - table
-        if on:
-            info[f"seat_{i}"] = f"rests on object {on[0]}"
-        elif gap > band:
-            T = data[pose_key].astype(np.float64)
-            T[:, 2, 3] -= gap
-            data[pose_key] = T.astype(data[pose_key].dtype)
-            info[f"seat_{i}"] = f"lowered {gap * 100:.1f} cm"
+        bottoms.append(float((v @ T0[:3, :3].T + T0[:3, 3])[:, 2].min()))
+    for i, (pose_key, _, _) in enumerate(slots[1:], start=1):
+        shift = bottoms[0] - bottoms[i]
+        if names[i] in STACKED or abs(shift) <= min_shift:
+            info[f"seat_{i}"] = f"kept ({shift * 100:+.1f} cm from the table)"
+            continue
+        T = data[pose_key].astype(np.float64)
+        T[:, 2, 3] += shift
+        data[pose_key] = T.astype(data[pose_key].dtype)
+        info[f"seat_{i}"] = f"{shift * 100:+.1f} cm onto the table"
     cam_inv = np.linalg.inv(data["camera_to_world_transform"][:1].astype(np.float64))
     data["object_to_camera_transform"] = np.repeat(
         (cam_inv @ data["object_to_world_transform"][:1].astype(np.float64)).astype(data["object_to_camera_transform"].dtype),
@@ -566,7 +581,7 @@ def attach_hands(data: dict, bundle: Path, lift: float = 0.02, reach: float = 0.
 def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True, hand_clean: bool = True,
                    object_clean: bool = True, rescale_by_hands: bool = False, rescale_by_scan: str | None = None,
                    still: bool = False, level: bool = False, attach: bool = False, seat: bool = False,
-                   reach_cm: float = 10.0) -> tuple[Path, dict]:
+                   gap_scale: float = 1.0, reach_cm: float = 10.0) -> tuple[Path, dict]:
     """Copy of the bundle with the repairs reconstructions need before load:
 
     hand_clean: the loader ignores hand_*_is_valid, and hand tracks often fly off (a wrist 2 m
@@ -590,7 +605,8 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
     level: start every object resting on a face (level_scene), after the object repairs.
     attach: reference hands hold what they carry (attach_hands), after levelling.
     still: safety-net scene (still_scene), applied last.
-    seat: with still, lower floating objects onto the table (seat_scene).
+    seat: with still, scale the objects' horizontal offsets from object 0 by gap_scale and put
+      every object on the table (seat_scene).
     """
     data = dict(np.load(bundle / "result.npz"))
     info: dict = {}
@@ -645,7 +661,7 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
         still_scene(data)
         info["still"] = True
         if seat:
-            info.update(seat_scene(data, bundle))
+            info.update(seat_scene(data, bundle, gap_scale=gap_scale))
     dest.mkdir(parents=True, exist_ok=True)
     for f in bundle.iterdir():
         if f.name != "result.npz" and not (dest / f.name).exists():
@@ -804,8 +820,11 @@ def main() -> int:
     parser.add_argument("--attach-hands", action="store_true",
                         help="while an object is lifted, move the hands near it to ride rigidly with it")
     parser.add_argument("--seat", action="store_true",
-                        help="with --still-object: lower floating objects onto the table, and build supports with "
-                             "support_stacked.py (an object's table is dropped only when it rests on another object)")
+                        help="with --still-object: put every object on the table (the lid stays on the pot), and build "
+                             "supports with support_stacked.py (an object's table is dropped only when it rests on another)")
+    parser.add_argument("--gap-scale", type=float, default=1.0,
+                        help="with --seat: scale each object's horizontal offset from object 0 (ours come out "
+                             "1.03-1.45x too far apart; 0.8 is best on the public episodes)")
     parser.add_argument("--merge", action="store_true",
                         help="multi-object episode: merge every object's bundle from the hub into one scene")
     args = parser.parse_args()
@@ -856,7 +875,8 @@ def main() -> int:
             bundle, out / "bundle_cleaned", args.fps, rest_hold=not args.no_rest_hold,
             hand_clean=not args.no_hand_clean, object_clean=not args.no_object_clean,
             rescale_by_hands=args.rescale_by_hands, rescale_by_scan=label if args.rescale_by_scan else None,
-            still=args.still_object, level=not args.no_level, attach=args.attach_hands, seat=args.seat)
+            still=args.still_object, level=not args.no_level, attach=args.attach_hands, seat=args.seat,
+            gap_scale=args.gap_scale)
         print(f"== cleaned bundle: {report['cleaning']}", flush=True)
 
     print("== load (MANO FK -> ManoSharpaData)", flush=True)
