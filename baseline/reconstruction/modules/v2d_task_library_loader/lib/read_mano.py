@@ -2,12 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 """MANO model wrapper: forward kinematics + optional viser visualization.
 
-Ported from robotic_grounding's ``retarget/read_mano.py``. The only change vs.
-the original is that the MANO asset root is passed in (``mano_assets_root``)
-rather than read from a hardcoded ``BODY_MODELS_DIR`` — the caller supplies a
-directory holding the (separately-licensed) MANO ``.pkl`` models, matching the
-``v2d_hand_alignment`` / ``v2d_wilor`` convention. The MANO ``.pkl`` files are
-never vendored.
+Ported from robotic_grounding's ``retarget/read_mano.py``, with an explicit
+``mano_assets_root`` and optional reconstruction hand scale. The caller supplies
+a directory holding the separately licensed MANO ``.pkl`` models, matching the
+``v2d_hand_alignment`` / ``v2d_wilor`` convention. Model files are never vendored.
 
 ``manotorch`` (GPL-3.0) is imported here and stays contained in this module's
 Docker image; it is never installed into the ``robotic_grounding`` image.
@@ -97,6 +95,32 @@ class MANO:
             self.device
         )  # (1552, 3)
 
+    def bundle_centroid(
+        self,
+        global_orient: torch.Tensor,
+        finger_pose: torch.Tensor,
+        betas: torch.Tensor,
+        side: str,
+    ) -> torch.Tensor:
+        """WiLoR bundle convention: right MANO, then mirror X for the left hand.
+
+        Returns the pre-translation, pre-scale centroid used by reconstruction.
+        This is not the native-left model's slightly different centroid.
+        """
+        if side not in {"right", "left"}:
+            raise ValueError(f"Unknown MANO side: {side}")
+        pose = torch.cat((global_orient, finger_pose.reshape(-1, 45)), dim=-1)
+        betas = betas.to(self.device)
+        if betas.ndim == 1:
+            betas = betas.unsqueeze(0).expand(len(pose), -1)
+        output = self.right_mano_layer(
+            pose_coeffs=pose.to(self.device), betas=betas
+        )
+        center = output.verts.mean(dim=1)
+        if side == "left":
+            center = center * center.new_tensor([-1.0, 1.0, 1.0])
+        return center
+
     def forward(
         self,
         side: str,
@@ -104,6 +128,8 @@ class MANO:
         global_orient: torch.Tensor,
         transl: torch.Tensor,
         finger_pose: torch.Tensor,
+        scale: torch.Tensor | None = None,
+        scale_center: torch.Tensor | None = None,
     ) -> Dict[str, torch.Tensor]:
         """
         Forward pass of the MANO model.
@@ -114,6 +140,9 @@ class MANO:
             global_orient: torch.Tensor, (B, 3)
             transl: torch.Tensor, (B, 3)
             finger_pose: torch.Tensor, (B, 45) or (B, 15, 3)
+            scale: optional positive per-frame metric scale, shape (B,).
+            scale_center: optional pre-translation centroid, shape (B, 3).
+                If omitted, use the mesh centroid. Rotation is not scaled.
         """
         # 1. Check input shapes
         assert betas.ndim in {1, 2}, "Betas must be of shape (B, 10) or (10)"
@@ -151,8 +180,23 @@ class MANO:
         )
 
         # 4. Apply translation
-        joints = mano_results.joints + transl
-        vertices = mano_results.verts + transl
+        joints = mano_results.joints
+        vertices = mano_results.verts
+        if scale is not None:
+            s = scale.to(self.device).reshape(B, 1, 1)
+            if not torch.isfinite(s).all() or not (s > 0).all():
+                raise ValueError("MANO scale must be finite and positive")
+            center = (
+                vertices.mean(dim=1, keepdim=True)
+                if scale_center is None
+                else scale_center.to(self.device).reshape(B, 1, 3)
+            )
+            if not torch.isfinite(center).all():
+                raise ValueError("MANO scale center must be finite")
+            joints = (joints - center) * s + center
+            vertices = (vertices - center) * s + center
+        joints = joints + transl
+        vertices = vertices + transl
         T_g_p = mano_results.transforms_abs
         T_g_p[:, :, :3, 3] += transl
 
