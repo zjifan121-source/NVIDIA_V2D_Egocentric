@@ -7,13 +7,16 @@ Mirrors NVIDIA's retarget stages (baseline/tools/e2e/stages.py) and their onboar
   -> support surface -> QA video -> check output -> report.json
 
 Track 3 settings: clip fps 20.254 (V2D_EGO_FPS), table height 1.0 m (--ground_z_offset), and
---no_ground_align because bundles are gravity-aligned upstream. One bundle = one object; the
-two-object merge comes later. Steps whose outputs exist are skipped (use --force to redo).
+--no_ground_align because bundles are gravity-aligned upstream. Before load, the bundle is cleaned
+(cleaned_bundle: hand and object jumps, rest hold; optional rescale or still scene). --merge puts
+every object of a multi-object episode into one scene (merged_bundle). Steps whose outputs exist
+are skipped (use --force to redo).
 
 Run with the load+retarget environment (README "Stages 2-3"), from anywhere:
     $RETARGET_VENV/bin/python tools/track3/run_load_retarget.py --episode 41 --object white_pot
     $RETARGET_VENV/bin/python tools/track3/run_load_retarget.py --bundle <dir with result.npz> \
         --sequence-id tissue_box_test --out <dir>
+    $RETARGET_VENV/bin/python tools/track3/run_load_retarget.py --episode 33 --merge --rescale-by-scan
 """
 from __future__ import annotations
 
@@ -66,6 +69,24 @@ def footprint(world_vertices: np.ndarray, band: float = 0.005) -> list[float]:
     return sorted((float(np.ptp(centred @ vectors[:, i])) for i in range(2)), reverse=True)
 
 
+def first_still_run(T: np.ndarray, min_frames: int = 5) -> int | None:
+    """Start of the first run of >= min_frames frames moving < 1 mm and < 0.01 rad per frame.
+
+    Same test as NVIDIA's support detector (support_recon._frames_where_object_still): with no
+    such run near frame 0, no table is built under the object and it falls at reset.
+    """
+    from scipy.spatial.transform import Rotation
+    step = np.linalg.norm(np.diff(T[:, :3, 3], axis=0), axis=1)
+    turn = (Rotation.from_matrix(T[1:, :3, :3]) * Rotation.from_matrix(T[:-1, :3, :3]).inv()).magnitude()
+    still = (step < 0.001) & (turn < 0.01)  # still[i]: frame i -> i+1
+    run = 0
+    for i, s in enumerate(still):
+        run = run + 1 if s else 0
+        if run == min_frames:
+            return i - min_frames + 1
+    return None
+
+
 def check_bundle(bundle: Path, object_name: str | None) -> dict:
     data = dict(np.load(bundle / "result.npz"))
     frames = data["camera_to_world_transform"].shape[0]
@@ -79,6 +100,7 @@ def check_bundle(bundle: Path, object_name: str | None) -> dict:
     obj_T = data["object_to_world_transform"]
     world0 = vertices @ obj_T[0, :3, :3].T + obj_T[0, :3, 3]
     drift = np.linalg.norm(obj_T[: min(30, frames), :3, 3] - obj_T[0, :3, 3], axis=1)
+    step_cm = np.linalg.norm(np.diff(obj_T[:, :3, 3], axis=0), axis=1) * 100
     report = {
         "frames": int(frames),
         "nan_arrays": nan_keys,
@@ -86,6 +108,8 @@ def check_bundle(bundle: Path, object_name: str | None) -> dict:
         "hand_scale_mean": hand_scale,
         "gravity_alignment_applied": bool(data.get("gravity_alignment_applied", False)),
         "object_drift_first_30_frames_cm": round(float(drift.max()) * 100, 2),
+        "object_step_median_cm": round(float(np.median(step_cm)), 2),
+        "first_still_frame": first_still_run(obj_T),
         "mesh_vertices": int(len(vertices)),
         "mesh_extents_cm": [round(e * 100, 1) for e in oriented_extents(vertices)],
         "rest_footprint_cm": [round(e * 100, 1) for e in footprint(world0)],
@@ -109,6 +133,9 @@ def check_bundle(bundle: Path, object_name: str | None) -> dict:
         problems.append("bundle is not gravity-aligned; --no_ground_align keeps its tilt")
     if report["object_drift_first_30_frames_cm"] > 3:
         problems.append("object moves in the first 30 frames (rest contract expects mm-cm)")
+    if report["first_still_frame"] is None or report["first_still_frame"] > 30:
+        problems.append("object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 "
+                        "frames: no table is built under it, so it falls in simulation")
     long, short = report["rest_footprint_cm"]
     if long > 3 and short < 0.25 * long:
         problems.append(f"rest footprint {long}x{short} cm is a strip: object may sit on an edge (level it)")
@@ -116,6 +143,515 @@ def check_bundle(bundle: Path, object_name: str | None) -> dict:
         problems.append(f"mesh is {report['mesh_to_scan_size_ratio']}x the scanned object's size")
     report["warnings"] = problems
     return report
+
+
+# ---------------------------------------------------------------- objects in a bundle
+def object_slots(data: dict) -> list[tuple[str, str, str]]:
+    """(pose key, scale key, mesh file) per object. A merged bundle (merged_bundle) lists its
+    objects in object_names and stores object i >= 1 as object_<i>_*, mesh_<i>.obj; the loader
+    reads the same layout (ego_recon_loader.py)."""
+    n = len(data["object_names"]) if "object_names" in data else 1
+    return [("object_to_world_transform", "object_scale", "mesh.obj")] + [
+        (f"object_{i}_to_world_transform", f"object_{i}_scale", f"mesh_{i}.obj") for i in range(1, n)]
+
+
+def object_vertices(bundle: Path, data: dict, scale_key: str, mesh_file: str) -> np.ndarray:
+    mesh = trimesh.load(bundle / mesh_file, force="mesh", process=False)
+    return np.asarray(mesh.vertices) * float(data.get(scale_key, 1.0))
+
+
+def merged_bundle(episode: int, dest: Path) -> tuple[Path, dict]:
+    """One bundle holding every object of a multi-object episode, in the scorer's object order.
+
+    Each object is a separate reconstruction run with its own SLAM world; on ep33 the two runs'
+    camera paths differ 4x in length, so worlds cannot be matched through the cameras. Hands and
+    depth do agree in camera coordinates across runs (wrists within ~2 cm, depth ratio 1.000), so
+    the run with the shortest (steadiest) camera path supplies the world, camera and hands, and
+    every other object enters through its camera-frame pose: world_A(t) = camera_A(t) @ obj_cam(t).
+    """
+    episode_info = {e["episode"]: e for e in json.loads(MANIFEST.read_text())["episodes"]}[episode]
+    names = [o["name"] for o in episode_info["objects"]]
+    runs = {name: bundle_dir_for(episode, name) for name in names}
+    datas = {name: dict(np.load(runs[name] / "result.npz")) for name in names}
+    path_len = {name: float(np.linalg.norm(np.diff(d["camera_to_world_transform"][:, :3, 3], axis=0), axis=1).sum())
+                for name, d in datas.items()}
+    world = min(path_len, key=path_len.get)
+    data = dict(datas[world])
+    c2w = data["camera_to_world_transform"].astype(np.float64)
+    dest.mkdir(parents=True, exist_ok=True)
+    for i, (name, (pose_key, scale_key, mesh_file)) in enumerate(zip(names, object_slots({"object_names": names}))):
+        src = datas[name]
+        T = (src["object_to_world_transform"].astype(np.float64) if name == world
+             else c2w @ src["object_to_camera_transform"].astype(np.float64))
+        data[pose_key] = T.astype(np.float32)
+        data[scale_key] = np.asarray(float(src.get("object_scale", 1.0)), dtype=np.float32)
+        if i == 0:
+            data["object_to_camera_transform"] = (np.linalg.inv(c2w) @ T).astype(np.float32)
+            data["object_is_valid"] = src["object_is_valid"]
+        # each object's material and texture get their own names in the shared directory
+        stem = Path(mesh_file).stem
+        mtl = (runs[name] / "material.mtl").read_text()
+        for line in mtl.splitlines():
+            if line.startswith("map_"):
+                tex = line.split()[-1]
+                shutil.copy(runs[name] / tex, dest / f"{stem}_{tex}")
+                mtl = mtl.replace(tex, f"{stem}_{tex}")
+        (dest / f"{stem}.mtl").write_text(mtl)
+        (dest / mesh_file).write_text((runs[name] / "mesh.obj").read_text().replace("mtllib material.mtl", f"mtllib {stem}.mtl"))
+    data["object_names"] = np.array(names)
+    np.savez(dest / "result.npz", **data)
+    shutil.copy(runs[world] / "manifest.json", dest / "manifest.json")
+    return dest, {"objects": names, "world_from": world, "camera_path_m": {k: round(v, 2) for k, v in path_len.items()}}
+
+
+# ---------------------------------------------------------------- rest hold
+def reach_frame(data: dict, vertices: np.ndarray, cm: float = 10.0,
+                pose_key: str = "object_to_world_transform") -> int | None:
+    """First frame a valid wrist is within `cm` of the object surface (object frame), or None."""
+    from scipy.spatial import cKDTree
+    T = data[pose_key].astype(float)
+    tree = cKDTree(vertices)
+    near = np.zeros(len(T), dtype=bool)
+    for side in ("left", "right"):
+        wrist = data[f"hand_{side}_wrist_to_world_transform"][:, :3, 3].astype(float)
+        local = np.einsum("tji,tj->ti", T[:, :3, :3], wrist - T[:, :3, 3])
+        near |= (tree.query(local)[0] < cm / 100) & data[f"hand_{side}_is_valid"].astype(bool)
+    hits = np.nonzero(near)[0]
+    return int(hits[0]) if len(hits) else None
+
+
+def hold_until(T: np.ndarray, frame: int, blend: int = 5) -> np.ndarray:
+    """Object at rest before `frame` (median position, mean rotation), easing into the track after it."""
+    from scipy.spatial.transform import Rotation
+    out = T.copy()
+    rest_pos = np.median(T[:frame, :3, 3], axis=0)
+    rest_rot = Rotation.from_matrix(T[:frame, :3, :3]).mean()
+    out[:frame, :3, 3] = rest_pos
+    out[:frame, :3, :3] = rest_rot.as_matrix()
+    for j, f in enumerate(range(frame, min(frame + blend, len(T)))):
+        w = (j + 1) / (blend + 1)
+        delta = (rest_rot.inv() * Rotation.from_matrix(T[f, :3, :3])).as_rotvec()
+        out[f, :3, 3] = (1 - w) * rest_pos + w * T[f, :3, 3]
+        out[f, :3, :3] = (rest_rot * Rotation.from_rotvec(w * delta)).as_matrix()
+    return out
+
+
+def bad_hand_frames(wrist_world: np.ndarray, cam_dist: np.ndarray, valid: np.ndarray, fps: float,
+                    max_reach: float, max_speed: float = 2.0) -> np.ndarray:
+    """Frames where a hand track is unusable: flagged invalid, farther than an arm's reach from
+    the head camera, or moving faster than `max_speed` m/s since the last good frame."""
+    bad = ~valid.astype(bool) | (cam_dist > max_reach)
+    last = None
+    for i in range(len(bad)):
+        if bad[i]:
+            continue
+        if last is not None and np.linalg.norm(wrist_world[i] - wrist_world[last]) * fps / (i - last) > max_speed:
+            bad[i] = True
+        else:
+            last = i
+    return bad
+
+
+def fill_hand(data: dict, side: str, bad: np.ndarray) -> None:
+    """Replace bad frames of one hand: interpolate the world wrist pose and finger pose between
+    good frames (hold the nearest good frame at the ends), then write it back in camera frame,
+    the frame the loader reads (wrist_orient/trans_in_camera, finger_pose)."""
+    from scipy.spatial.transform import Rotation, Slerp
+    good = np.nonzero(~bad)[0]
+    if len(good) == 0 or not bad.any():
+        return
+    c2w = data["camera_to_world_transform"].astype(np.float64)
+    Rc, tc = c2w[:, :3, :3], c2w[:, :3, 3]
+    orient = data[f"hand_{side}_wrist_orient_in_camera"].astype(np.float64)
+    trans = data[f"hand_{side}_wrist_trans_in_camera"].astype(np.float64)
+    fingers = data[f"hand_{side}_finger_pose"].astype(np.float64).reshape(len(bad), -1)
+    rot_w = Rotation.from_matrix(Rc @ Rotation.from_rotvec(orient).as_matrix())
+    pos_w = np.einsum("nij,nj->ni", Rc, trans) + tc
+    frames = np.clip(np.arange(len(bad)), good[0], good[-1])  # hold at the ends
+    if len(good) > 1:
+        new_rot = Slerp(good, rot_w[good])(frames)
+    else:
+        new_rot = Rotation.from_quat(np.repeat(rot_w[good].as_quat(), len(bad), axis=0))
+    new_pos = np.stack([np.interp(frames, good, pos_w[good, k]) for k in range(3)], axis=1)
+    new_fingers = np.stack([np.interp(frames, good, fingers[good, k]) for k in range(fingers.shape[1])], axis=1)
+    cam_rot = Rotation.from_matrix(np.einsum("nji,njk->nik", Rc, new_rot.as_matrix()))  # Rc^T @ R_w
+    cam_pos = np.einsum("nji,nj->ni", Rc, new_pos - tc)
+    for key, value in ((f"hand_{side}_wrist_orient_in_camera", cam_rot.as_rotvec()),
+                       (f"hand_{side}_wrist_trans_in_camera", cam_pos),
+                       (f"hand_{side}_finger_pose", new_fingers)):
+        data[key] = np.where(bad.reshape(-1, *[1] * (data[key].ndim - 1)),
+                             value.reshape(data[key].shape), data[key]).astype(data[key].dtype)
+    w2c = np.tile(np.eye(4), (len(bad), 1, 1))
+    w2c[:, :3, :3] = Rotation.from_rotvec(data[f"hand_{side}_wrist_orient_in_camera"].astype(np.float64)).as_matrix()
+    w2c[:, :3, 3] = data[f"hand_{side}_wrist_trans_in_camera"]
+    data[f"hand_{side}_wrist_to_camera_transform"] = w2c.astype(np.float32)
+    data[f"hand_{side}_wrist_to_world_transform"] = (c2w @ w2c).astype(np.float32)
+
+
+def bad_object_frames(T: np.ndarray, fps: float, max_speed: float = 1.5, max_turn: float = 10.0) -> np.ndarray:
+    """Frames where the object track jumps: faster than `max_speed` m/s or `max_turn` rad/s since the
+    last good frame. Public ground truth never exceeds 1.31 m/s and 8.6 rad/s."""
+    from scipy.spatial.transform import Rotation
+    rot = Rotation.from_matrix(T[:, :3, :3])
+    bad = np.zeros(len(T), dtype=bool)
+    last = 0
+    for i in range(1, len(T)):
+        dt = (i - last) / fps
+        if (np.linalg.norm(T[i, :3, 3] - T[last, :3, 3]) / dt > max_speed
+                or (rot[i] * rot[last].inv()).magnitude() / dt > max_turn):
+            bad[i] = True
+        else:
+            last = i
+    return bad
+
+
+def fill_object(T: np.ndarray, bad: np.ndarray) -> np.ndarray:
+    """Interpolate bad object frames between good ones (hold the last good pose at the end)."""
+    from scipy.spatial.transform import Rotation, Slerp
+    good = np.nonzero(~bad)[0]
+    frames = np.clip(np.arange(len(T)), good[0], good[-1])
+    out = T.copy()
+    out[:, :3, 3] = np.stack([np.interp(frames, good, T[good, :3, 3][:, k]) for k in range(3)], axis=1)
+    out[:, :3, :3] = Slerp(good, Rotation.from_matrix(T[good, :3, :3]))(frames).as_matrix()
+    return np.where(bad[:, None, None], out, T)
+
+
+def hand_scale(data: dict) -> float | None:
+    """Mean over both hands of the median fitted MANO scale on valid frames (1.0 = true size)."""
+    scales = [float(np.median(data[f"hand_{side}_scale"][data[f"hand_{side}_is_valid"].astype(bool)]))
+              for side in ("left", "right") if data[f"hand_{side}_is_valid"].any()]
+    return float(np.mean(scales)) if scales else None
+
+
+def scan_size_ratio(bundle_mesh_vertices: np.ndarray, object_name: str) -> float | None:
+    """Reconstructed mesh size / public scan size (mean of sorted oriented extents), or None."""
+    scan = next((p for p in (SCANS / f"{object_name}/{object_name}_visual.glb", SCANS / f"{object_name}/{object_name}.glb")
+                 if p.is_file()), None)
+    if scan is None:
+        return None
+    scan_v = np.asarray(trimesh.load(scan, force="mesh", process=False).vertices)
+    return float(np.mean(np.array(oriented_extents(bundle_mesh_vertices)) / np.array(oriented_extents(scan_v))))
+
+
+def rescale_world(data: dict, factor: float) -> None:
+    """Multiply every length in the bundle by `factor` (about the world origin): camera, hand and
+    object translations and the object mesh scale. Rotations and finger poses are unchanged."""
+    slots = object_slots(data)
+    for key in ("camera_to_world_transform", "object_to_camera_transform", *[k for k, _, _ in slots],
+                "hand_left_wrist_to_world_transform", "hand_right_wrist_to_world_transform",
+                "hand_left_wrist_to_camera_transform", "hand_right_wrist_to_camera_transform"):
+        data[key] = data[key].copy()
+        data[key][..., :3, 3] *= factor
+    for side in ("left", "right"):
+        data[f"hand_{side}_wrist_trans_in_camera"] = data[f"hand_{side}_wrist_trans_in_camera"] * factor
+        data[f"hand_{side}_scale"] = data[f"hand_{side}_scale"] * factor
+    for _, scale_key, _ in slots:
+        data[scale_key] = np.asarray(float(data.get(scale_key, 1.0)) * factor, dtype=np.float32)
+
+
+def still_scene(data: dict) -> None:
+    """Safety-net scene: the object rests at its frame-0 pose and both hands stay where they were at
+    frame 0 (raised over the table at the start of every recording) for the whole clip.
+
+    Hands are held in world by counter-rotating their camera-frame parameters (what the loader
+    reads) with the camera motion. Translations ignore the MANO rest-wrist offset, so a held hand
+    can drift a few cm as the head turns; it stays far from the object either way."""
+    from scipy.spatial.transform import Rotation
+    n = len(data["object_to_world_transform"])
+    for key in ("object_to_camera_transform", *[k for k, _, _ in object_slots(data)]):
+        data[key] = np.repeat(data[key][:1], n, axis=0)
+    c2w = data["camera_to_world_transform"].astype(np.float64)
+    rel = np.einsum("nji,jk->nik", c2w[:, :3, :3], c2w[0, :3, :3])  # R_c2w(t)^T R_c2w(0)
+    mirror = np.diag([1.0, -1.0, -1.0])  # HaMeR stores left hands in right-hand parameter space
+    for side in ("left", "right"):
+        a = np.einsum("ij,njk,kl->nil", mirror, rel, mirror) if side == "left" else rel
+        r0 = Rotation.from_rotvec(data[f"hand_{side}_wrist_orient_in_camera"][0].astype(np.float64)).as_matrix()
+        data[f"hand_{side}_wrist_orient_in_camera"] = Rotation.from_matrix(a @ r0).as_rotvec().astype(np.float32)
+        p0 = c2w[0, :3, :3] @ data[f"hand_{side}_wrist_trans_in_camera"][0] + c2w[0, :3, 3]
+        cam_t = np.einsum("nji,nj->ni", c2w[:, :3, :3], p0 - c2w[:, :3, 3])
+        data[f"hand_{side}_wrist_trans_in_camera"] = cam_t.astype(np.float32)
+        data[f"hand_{side}_finger_pose"] = np.repeat(data[f"hand_{side}_finger_pose"][:1], n, axis=0)
+        w2c = np.tile(np.eye(4), (n, 1, 1))
+        w2c[:, :3, :3] = Rotation.from_rotvec(data[f"hand_{side}_wrist_orient_in_camera"].astype(np.float64)).as_matrix()
+        w2c[:, :3, 3] = cam_t
+        data[f"hand_{side}_wrist_to_camera_transform"] = w2c.astype(np.float32)
+        data[f"hand_{side}_wrist_to_world_transform"] = (c2w @ w2c).astype(np.float32)
+        data[f"hand_{side}_is_valid"] = np.ones(n, dtype=bool)
+
+
+def seat_scene(data: dict, bundle: Path, band: float = 0.005) -> dict:
+    """Still scenes: lower every object that floats above the table onto it at frame 0.
+
+    Reconstructed objects of one scene come out at different heights (ep6's pot 3.2 cm above the
+    spoon that marks the table). support_recon then merges their overlapping disks into one at a
+    single height, and the higher object drops and tips in the first frames (ep6 pot: 4.4 cm, 21 deg,
+    local AUC 1.0 -> 0.57). The table is the lowest object's base; an object whose base rests on
+    another object (at least half of its lowest 5 mm inside that object's footprint, ep1's lid) is
+    left where it is. Poses must be constant (after still_scene)."""
+    from scipy.spatial import ConvexHull, Delaunay
+    slots = object_slots(data)
+    if len(slots) < 2:
+        return {}
+    world = []
+    for pose_key, scale_key, mesh_file in slots:
+        v = object_vertices(bundle, data, scale_key, mesh_file)
+        T0 = data[pose_key][0].astype(np.float64)
+        world.append(v @ T0[:3, :3].T + T0[:3, 3])
+    bottoms = [float(w[:, 2].min()) for w in world]
+    table = min(bottoms)
+    info = {}
+    for i, (pose_key, _, _) in enumerate(slots):
+        base = world[i][world[i][:, 2] < bottoms[i] + band][:, :2]
+        on = [j for j, w in enumerate(world) if j != i and bottoms[i] > bottoms[j] + band and w[:, 2].max() >= bottoms[i]
+              and (Delaunay(w[ConvexHull(w[:, :2]).vertices, :2]).find_simplex(base) >= 0).mean() >= 0.5]
+        gap = bottoms[i] - table
+        if on:
+            info[f"seat_{i}"] = f"rests on object {on[0]}"
+        elif gap > band:
+            T = data[pose_key].astype(np.float64)
+            T[:, 2, 3] -= gap
+            data[pose_key] = T.astype(data[pose_key].dtype)
+            info[f"seat_{i}"] = f"lowered {gap * 100:.1f} cm"
+    cam_inv = np.linalg.inv(data["camera_to_world_transform"][:1].astype(np.float64))
+    data["object_to_camera_transform"] = np.repeat(
+        (cam_inv @ data["object_to_world_transform"][:1].astype(np.float64)).astype(data["object_to_camera_transform"].dtype),
+        len(data["object_to_world_transform"]), axis=0)
+    return info
+
+
+def stable_tilt(vertices: np.ndarray, R0: np.ndarray) -> np.ndarray | None:
+    """World rotation (3x3) that tips an object with orientation R0 onto the nearest face it can
+    rest on (trimesh stable poses of the convex hull), or None if it already rests (< 1 deg)."""
+    import trimesh
+    from scipy.spatial.transform import Rotation
+    stable, _ = trimesh.poses.compute_stable_poses(trimesh.Trimesh(vertices).convex_hull, n_samples=1)
+    down = np.array([0.0, 0.0, -1.0])
+    rest_downs = [R0 @ (S[:3, :3].T @ down) for S in stable]  # each resting face's down, in world
+    target = max(rest_downs, key=lambda d: d @ down)
+    axis = np.cross(target, down)
+    angle = np.arctan2(np.linalg.norm(axis), target @ down)
+    if angle < np.radians(1.0):
+        return None
+    return Rotation.from_rotvec(axis / np.linalg.norm(axis) * angle).as_matrix()
+
+
+def level_scene(data: dict, bundle: Path, world_tilt: float = 20.0, max_tilt: float = 30.0) -> dict:
+    """Make every object start resting on one of its faces.
+
+    Gravity alignment leaves objects tilted 5-27 deg off any face they could rest on (ep35-38, 41),
+    so in simulation the object tips over in the first 5 frames and sits 8-24 deg off its
+    reference for the rest of the clip (NVIDIA's tissue sample: < 1 deg). The first object is
+    levelled by one rotation of the whole world about its frame-0 position, as NVIDIA's
+    level_result_bundle.py does, so hands keep their grip; the scorer registers trajectories, so a
+    global rotation costs nothing. Further objects, and a first object tilted more than
+    `world_tilt`, get the tilt as a fixed rotation in their own frame about the mesh centre: a
+    large tilt is an object-pose error, and rotating the world by it moves the table (ep36's
+    27 deg left the spoon 10 cm above its support). Tilts above `max_tilt` mean another face and
+    are left alone."""
+    from scipy.spatial.transform import Rotation
+    info = {}
+    for i, (pose_key, scale_key, mesh_file) in enumerate(object_slots(data)):
+        v = object_vertices(bundle, data, scale_key, mesh_file)
+        T0 = data[pose_key][0].astype(np.float64)
+        R = stable_tilt(v, T0[:3, :3])
+        tilt = 0.0 if R is None else float(np.degrees(Rotation.from_matrix(R).magnitude()))
+        info[f"tilt_deg_{i}"] = round(tilt, 1)
+        if R is None or tilt > max_tilt:
+            continue
+        if i == 0 and tilt <= world_tilt:
+            A = np.eye(4)
+            A[:3, :3] = R
+            A[:3, 3] = T0[:3, 3] - R @ T0[:3, 3]
+            keys = ("camera_to_world_transform", "hand_left_wrist_to_world_transform",
+                    "hand_right_wrist_to_world_transform", *[k for k, _, _ in object_slots(data)])
+            for key in keys:
+                data[key] = (A @ data[key].astype(np.float64)).astype(data[key].dtype)
+        else:
+            local = T0[:3, :3].T @ R @ T0[:3, :3]
+            c = v.mean(axis=0)
+            B = np.eye(4)
+            B[:3, :3] = local
+            B[:3, 3] = c - local @ c
+            data[pose_key] = (data[pose_key].astype(np.float64) @ B).astype(data[pose_key].dtype)
+        info[f"levelled_{i}"] = "world" if i == 0 and tilt <= world_tilt else "object"
+    return info
+
+
+def mano_rest_wrist(side: str, betas: np.ndarray) -> np.ndarray:
+    """MANO joint 0 at zero pose and translation (the loader's _j0_template): the loader puts the
+    wrist at R_c2w (wrist_trans_in_camera + J0) + t_c2w, not at the stored wrist transforms."""
+    import torch
+    from v2d.task_library_loader.lib.read_mano import MANO
+    mano = MANO(mano_assets_root=str(MANO_DIR), gender="neutral", device=torch.device("cpu"),
+                flat_hand_mean=True, center_idx=None)
+    zero = torch.zeros(1, 3)
+    out = mano.forward(side=side, betas=torch.from_numpy(betas.astype(np.float32)).reshape(1, 10),
+                       global_orient=zero, transl=zero, finger_pose=torch.zeros(1, 45))
+    return out["joints"][0, 0].cpu().numpy().astype(np.float64)
+
+
+def lifted_segments(z: np.ndarray, lift: float) -> list[tuple[int, int]]:
+    """[start, end) runs of frames where the object is more than `lift` above its frame-0 height."""
+    up = np.concatenate([[False], z > z[0] + lift, [False]])
+    edges = np.flatnonzero(np.diff(up.astype(int)))
+    return list(zip(edges[::2], edges[1::2]))
+
+
+def attach_hands(data: dict, bundle: Path, lift: float = 0.02, reach: float = 0.12, blend: int = 5) -> dict:
+    """Make the reference hands hold what they carry.
+
+    Hands and object are fitted separately, so while an object is lifted the reference hands are
+    often centimetres off it: on 16-100% of lifted frames no robot link is within 1 cm of the
+    object (NVIDIA's tissue sample: 0%). Without the training-time helper force, which the
+    evaluator turns off, the policy cannot carry an object its reference does not hold.
+    The object tracks score better than the hand tracks (locking the object to the hand instead
+    lowers reconstruction-only AUC 0.291 -> 0.265), so the hands are moved, not the object: in
+    each lifted run, every hand whose wrist comes within `reach` of the surface rides rigidly
+    with the object at its offset from the closest frame, easing in and out over `blend` frames.
+    Hands are rewritten through the camera-frame MANO parameters the loader reads."""
+    from scipy.spatial.transform import Rotation
+    c2w = data["camera_to_world_transform"].astype(np.float64)
+    Rc, tc = c2w[:, :3, :3], c2w[:, :3, 3]
+    mirror = np.diag([1.0, -1.0, -1.0])  # HaMeR stores left hands in right-hand parameter space
+    hands = {}
+    for side in ("left", "right"):
+        j0 = mano_rest_wrist(side, data[f"hand_{side}_betas"].reshape(10))
+        R = Rotation.from_rotvec(data[f"hand_{side}_wrist_orient_in_camera"].astype(np.float64)).as_matrix()
+        if side == "left":
+            R = mirror @ R @ mirror
+        H = np.tile(np.eye(4), (len(c2w), 1, 1))  # true wrist pose in world, as the loader builds it
+        H[:, :3, :3] = Rc @ R
+        H[:, :3, 3] = np.einsum("nij,nj->ni", Rc, data[f"hand_{side}_wrist_trans_in_camera"] + j0) + tc
+        hands[side] = (H, j0)
+    info, moved = {}, {side: np.zeros(len(c2w), bool) for side in hands}
+    for i, (pose_key, scale_key, mesh_file) in enumerate(object_slots(data)):
+        T = data[pose_key].astype(np.float64)
+        v = object_vertices(bundle, data, scale_key, mesh_file)
+        v = v[:: max(1, len(v) // 500)]
+        surface = np.einsum("tij,vj->tvi", T[:, :3, :3], v) + T[:, None, :3, 3]
+        for a, b in lifted_segments(T[:, 2, 3], lift):
+            for side, (H, _) in hands.items():
+                dist = np.linalg.norm(surface[a:b] - H[a:b, None, :3, 3], axis=-1).min(axis=1)
+                if dist.min() > reach:
+                    continue
+                k = a + int(np.argmin(dist))
+                grip = np.linalg.inv(T[k]) @ H[k]
+                for t in range(a, b):
+                    w = min(1.0, (t - a + 1) / (blend + 1), (b - t) / (blend + 1))
+                    target = T[t] @ grip
+                    q = Rotation.from_matrix([H[t, :3, :3], target[:3, :3]])
+                    H[t, :3, :3] = (q[0] * Rotation.from_rotvec(w * (q[0].inv() * q[1]).as_rotvec())).as_matrix()
+                    H[t, :3, 3] = (1 - w) * H[t, :3, 3] + w * target[:3, 3]
+                moved[side][a:b] = True
+                info.setdefault(f"attached_{i}", []).append([side, int(a), int(b), round(float(dist.min()) * 100, 1)])
+    for side, (H, j0) in hands.items():
+        if not moved[side].any():
+            continue
+        R = np.einsum("nji,njk->nik", Rc, H[:, :3, :3])
+        if side == "left":
+            R = mirror @ R @ mirror
+        cam_t = np.einsum("nji,nj->ni", Rc, H[:, :3, 3] - tc) - j0
+        m = moved[side]
+        data[f"hand_{side}_wrist_orient_in_camera"][m] = Rotation.from_matrix(R[m]).as_rotvec()
+        data[f"hand_{side}_wrist_trans_in_camera"][m] = cam_t[m]
+        w2c = data[f"hand_{side}_wrist_to_camera_transform"].astype(np.float64)
+        w2c[m, :3, :3] = Rotation.from_rotvec(data[f"hand_{side}_wrist_orient_in_camera"][m].astype(np.float64)).as_matrix()
+        w2c[m, :3, 3] = data[f"hand_{side}_wrist_trans_in_camera"][m]
+        data[f"hand_{side}_wrist_to_camera_transform"] = w2c.astype(np.float32)
+        data[f"hand_{side}_wrist_to_world_transform"] = (c2w @ w2c).astype(np.float32)
+        info[f"hand_{side}_attached_frames"] = int(m.sum())
+    return info
+
+
+def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True, hand_clean: bool = True,
+                   object_clean: bool = True, rescale_by_hands: bool = False, rescale_by_scan: str | None = None,
+                   still: bool = False, level: bool = False, attach: bool = False, seat: bool = False,
+                   reach_cm: float = 10.0) -> tuple[Path, dict]:
+    """Copy of the bundle with the repairs reconstructions need before load:
+
+    hand_clean: the loader ignores hand_*_is_valid, and hand tracks often fly off (a wrist 2 m
+      from the head camera, or jumping at up to 200 m/s on ep41). A reference wrist that jumps
+      ends every training episode (FlashCHORD terminates at 15 cm wrist error), so bad frames
+      are refilled from the good ones (bad_hand_frames, fill_hand).
+    object_clean: the same for object frames that jump faster than any real object moves
+      (ep41's track breaks at frames 232-261 at up to 7 m/s; termination is at 10 cm).
+    rest_hold: every public ground-truth object is at rest until touched, while reconstructions
+      jitter ~0.6 cm per frame from frame 0, so NVIDIA's support detector builds no table under
+      them. The object is held still until a wrist comes within `reach_cm`. On the 14 public
+      reconstructions this never cuts into real motion (the reach comes 10-20 frames before the
+      true object moves) and raises reconstruction-only AUC 0.216 -> 0.240.
+    rescale_by_hands: the loader rebuilds hands at true MANO size and ignores hand_*_scale, so a
+      scene reconstructed 1.4x too large gets true-size hands around a 1.4x object. Dividing all
+      lengths by the hand scale makes the hands and the object agree (and shrinks the path).
+    rescale_by_scan: object name; divide all lengths by the reconstructed-mesh / public-scan size
+      ratio, so the object comes out its real size. On 14 public reconstructions this raises
+      reconstruction-only AUC 0.240 -> 0.291 (ep41 0.287 -> 0.430); the hand scale as ruler
+      does worse (0.229). No public scan exists for wooden_spoon.
+    level: start every object resting on a face (level_scene), after the object repairs.
+    attach: reference hands hold what they carry (attach_hands), after levelling.
+    still: safety-net scene (still_scene), applied last.
+    seat: with still, lower floating objects onto the table (seat_scene).
+    """
+    data = dict(np.load(bundle / "result.npz"))
+    info: dict = {}
+    slots = object_slots(data)
+    names = [str(n) for n in data["object_names"]] if "object_names" in data else [rescale_by_scan]
+    if rescale_by_scan:
+        ratios = [scan_size_ratio(object_vertices(bundle, data, sk, mf), name)
+                  for name, (_, sk, mf) in zip(names, slots)]
+        ratios = [r for r in ratios if r is not None]
+        if not ratios:
+            raise SystemExit(f"no public scan for {names}: cannot --rescale-by-scan")
+        ratio = float(np.exp(np.mean(np.log(ratios))))  # one scene, one scale: geometric mean over objects
+        info["scan_ratios"] = [round(r, 3) for r in ratios]
+        rescale_world(data, 1.0 / ratio)
+        info["rescaled_by"] = round(1.0 / ratio, 4)
+    elif rescale_by_hands:
+        scale = hand_scale(data)
+        if scale:
+            rescale_world(data, 1.0 / scale)
+            info["rescaled_by"] = round(1.0 / scale, 4)
+    if hand_clean:
+        scale = np.nanmedian([np.median(data[f"hand_{s}_scale"]) for s in ("left", "right")])
+        max_reach = 1.0 * max(1.0, float(scale))  # head camera to wrist; scenes come out too large
+        for side in ("left", "right"):
+            w2w = data[f"hand_{side}_wrist_to_world_transform"].astype(np.float64)
+            cam_dist = np.linalg.norm(data[f"hand_{side}_wrist_to_camera_transform"][:, :3, 3], axis=1)
+            bad = bad_hand_frames(w2w[:, :3, 3], cam_dist, data[f"hand_{side}_is_valid"], fps, max_reach)
+            info[f"hand_{side}_refilled_frames"] = int(bad.sum())
+            fill_hand(data, side, bad)
+    for i, (pose_key, scale_key, mesh_file) in enumerate(slots):
+        tag = "" if len(slots) == 1 else f"_{names[i]}"
+        T = data[pose_key].astype(np.float64)
+        if object_clean:
+            bad = bad_object_frames(T, fps)
+            info[f"object_refilled_frames{tag}"] = int(bad.sum())
+            if bad.any():
+                T = fill_object(T, bad)
+        if rest_hold:
+            frame = reach_frame(data, object_vertices(bundle, data, scale_key, mesh_file), reach_cm, pose_key)
+            info[f"rest_hold_until_frame{tag}"] = frame
+            if frame:
+                T = hold_until(T, frame)
+        data[pose_key] = T.astype(data[pose_key].dtype)
+    if level:
+        info.update(level_scene(data, bundle))
+    if attach:
+        info.update(attach_hands(data, bundle))
+    cam_inv = np.linalg.inv(data["camera_to_world_transform"].astype(np.float64))
+    data["object_to_camera_transform"] = (cam_inv @ data["object_to_world_transform"].astype(np.float64)).astype(
+        data["object_to_camera_transform"].dtype)
+    if still:
+        still_scene(data)
+        info["still"] = True
+        if seat:
+            info.update(seat_scene(data, bundle))
+    dest.mkdir(parents=True, exist_ok=True)
+    for f in bundle.iterdir():
+        if f.name != "result.npz" and not (dest / f.name).exists():
+            (dest / f.name).symlink_to(f.resolve())
+    np.savez(dest / "result.npz", **data)
+    return dest, info
 
 
 # ---------------------------------------------------------------- stage commands
@@ -163,23 +699,29 @@ def quat_wxyz_to_matrix(q: np.ndarray) -> np.ndarray:
     return Rotation.from_quat(np.concatenate([q[..., 1:], q[..., :1]], axis=-1)).as_matrix()
 
 
-def check_output(processed: Path, mesh_path: Path, usda: Path, frames: int, fps: float) -> dict:
+def check_output(processed: Path, mesh_paths: list[Path], usda: Path, frames: int, fps: float) -> dict:
+    """Checks on the retargeted partition; penetration and seating over every object body."""
     d = read_partition(processed)
     errors = {side: np.asarray(d[f"robot_{side}_frame_task_errors"], dtype=float) for side in ("right", "left")}
-    position = np.asarray(d["object_body_position"], dtype=float)[:, 0]
-    rotation = quat_wxyz_to_matrix(np.asarray(d["object_body_wxyz"], dtype=float)[:, 0])
-    mesh = trimesh.load(mesh_path, force="mesh", process=False)
-    # Robot link frames in the object's frame; depth > 0 means inside the mesh.
     links = np.concatenate([np.asarray(d[f"robot_{side}_frames"], dtype=float)[:, 2:, :3]
                             for side in ("right", "left")], axis=1)  # skip universe/root_joint
-    local = np.einsum("tji,tkj->tki", rotation, links - position[:, None, :])
-    points = local.reshape(-1, 3)
-    depth = np.concatenate([trimesh.proximity.signed_distance(mesh, points[i:i + 2000])  # batched: memory
-                            for i in range(0, len(points), 2000)]).reshape(local.shape[:2]).max(axis=1)
-    world0 = np.asarray(mesh.vertices) @ rotation[0].T + position[0]
     disks = support_tops(usda) if usda.is_file() else []
-    centre = world0[:, :2].mean(axis=0)
-    under = [hi[2] for lo, hi in disks if np.all(lo[:2] <= centre) and np.all(centre <= hi[:2])]
+    depths, seating = [], []
+    for b, mesh_path in enumerate(mesh_paths):
+        position = np.asarray(d["object_body_position"], dtype=float)[:, b]
+        rotation = quat_wxyz_to_matrix(np.asarray(d["object_body_wxyz"], dtype=float)[:, b])
+        mesh = trimesh.load(mesh_path, force="mesh", process=False)
+        # Robot link frames in the object's frame; depth > 0 means inside the mesh.
+        local = np.einsum("tji,tkj->tki", rotation, links - position[:, None, :])
+        points = local.reshape(-1, 3)
+        depths.append(np.concatenate([trimesh.proximity.signed_distance(mesh, points[i:i + 2000])  # batched: memory
+                                      for i in range(0, len(points), 2000)]).reshape(local.shape[:2]).max(axis=1))
+        world0 = np.asarray(mesh.vertices) @ rotation[0].T + position[0]
+        centre = world0[:, :2].mean(axis=0)
+        under = [hi[2] for lo, hi in disks if np.all(lo[:2] <= centre) and np.all(centre <= hi[:2])]
+        seating.append(round((float(world0[:, 2].min()) - max(under)) * 100, 2) if under else None)
+    depth = np.max(depths, axis=0)
+    position = np.asarray(d["object_body_position"], dtype=float)[:, 0]
     report = {
         "frames": len(position),
         "fps": float(d["fps"]),
@@ -189,7 +731,7 @@ def check_output(processed: Path, mesh_path: Path, usda: Path, frames: int, fps:
                                "over_1cm": round(float(np.mean(depth > 0.01)), 3),
                                "over_2cm": round(float(np.mean(depth > 0.02)), 3)},
         "support_disks": len(disks),
-        "frame0_seating_cm": round((float(world0[:, 2].min()) - max(under)) * 100, 2) if under else None,
+        "frame0_seating_cm": seating[0] if len(seating) == 1 else seating,
     }
     problems = []
     if report["frames"] != frames:
@@ -203,26 +745,32 @@ def check_output(processed: Path, mesh_path: Path, usda: Path, frames: int, fps:
         problems.append(f"{report['penetration_frames']['over_2cm']:.1%} of frames have a link >2 cm inside the object")
     if not disks:
         problems.append("no support disk kept (loaded at floor level?)")
-    elif report["frame0_seating_cm"] is None:
-        problems.append("no support disk under the object at frame 0")
-    elif abs(report["frame0_seating_cm"]) > 2:
-        problems.append(f"object bottom is {report['frame0_seating_cm']} cm from the support top at frame 0")
+    for b, seat in enumerate(seating):
+        what = "the object" if len(seating) == 1 else f"object {b}"
+        if seat is None:
+            problems.append(f"no support disk under {what} at frame 0")
+        elif abs(seat) > 2:
+            problems.append(f"{what} bottom is {seat} cm from the support top at frame 0")
     report["warnings"] = problems
     return report
 
 
-def write_score_input(bundle: Path, out: Path, episode: int, obj: str) -> None:
-    """Bundle object trajectory in tools/track3/score_local.py's format (reconstruction-only score)."""
+def write_score_input(bundle: Path, out: Path, episode: int, obj: str | None) -> None:
+    """Bundle object trajectories in tools/track3/score_local.py's format (reconstruction-only
+    score): poses (frames, objects, 7) in the bundle's object order, one mesh per object name."""
     from scipy.spatial.transform import Rotation
-    data = np.load(bundle / "result.npz")
-    T = data["object_to_world_transform"].astype(float)
-    pose = np.concatenate([T[:, :3, 3], Rotation.from_matrix(T[:, :3, :3]).as_quat()], axis=-1)[:, None, :]
+    data = dict(np.load(bundle / "result.npz"))
+    names = [str(n) for n in data["object_names"]] if "object_names" in data else [obj]
     (out / "score_input/results").mkdir(parents=True, exist_ok=True)
     (out / f"score_input/meshes/episode_{episode:06d}").mkdir(parents=True, exist_ok=True)
-    np.save(out / f"score_input/results/episode_{episode:06d}.npy", pose)
-    mesh = trimesh.load(bundle / "mesh.obj", force="mesh", process=False)
-    mesh.apply_scale(float(data["object_scale"]) if "object_scale" in data else 1.0)
-    mesh.export(out / f"score_input/meshes/episode_{episode:06d}/{obj}.obj")
+    poses = []
+    for name, (pose_key, scale_key, mesh_file) in zip(names, object_slots(data)):
+        T = data[pose_key].astype(float)
+        poses.append(np.concatenate([T[:, :3, 3], Rotation.from_matrix(T[:, :3, :3]).as_quat()], axis=-1))
+        mesh = trimesh.load(bundle / mesh_file, force="mesh", process=False)
+        mesh.apply_scale(float(data.get(scale_key, 1.0)))
+        mesh.export(out / f"score_input/meshes/episode_{episode:06d}/{name}.obj")
+    np.save(out / f"score_input/results/episode_{episode:06d}.npy", np.stack(poses, axis=1))
 
 
 # ---------------------------------------------------------------- main
@@ -238,20 +786,49 @@ def main() -> int:
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--skip-video", action="store_true")
     parser.add_argument("--force", action="store_true", help="redo every step")
+    parser.add_argument("--no-rest-hold", action="store_true",
+                        help="keep the object track as reconstructed (default: hold it still until a hand reaches it)")
+    parser.add_argument("--no-hand-clean", action="store_true",
+                        help="keep hand tracks as reconstructed (default: refill frames that fly off or jump)")
+    parser.add_argument("--no-object-clean", action="store_true",
+                        help="keep object jumps (default: interpolate frames faster than any real object)")
+    parser.add_argument("--rescale-by-hands", action="store_true",
+                        help="divide every length by the fitted hand scale so hands come out true size")
+    parser.add_argument("--rescale-by-scan", action="store_true",
+                        help="divide every length by the mesh-to-public-scan size ratio (object comes out real size)")
+    parser.add_argument("--still-object", action="store_true",
+                        help="safety net: object at rest and hands at their first pose for the whole clip")
+    parser.add_argument("--no-level", action="store_true",
+                        help="keep each object's start tilt (default: rotate so it starts resting on a face; "
+                             "unlevelled objects tip over in the first frames of simulation)")
+    parser.add_argument("--attach-hands", action="store_true",
+                        help="while an object is lifted, move the hands near it to ride rigidly with it")
+    parser.add_argument("--seat", action="store_true",
+                        help="with --still-object: lower floating objects onto the table, and build supports with "
+                             "support_stacked.py (an object's table is dropped only when it rests on another object)")
+    parser.add_argument("--merge", action="store_true",
+                        help="multi-object episode: merge every object's bundle from the hub into one scene")
     args = parser.parse_args()
 
-    if args.bundle is None:
+    if args.merge:
+        if args.episode is None or args.object or args.bundle:
+            parser.error("--merge takes --episode only (all of the episode's objects are merged)")
+    elif args.bundle is None:
         if args.episode is None or not args.object:
-            parser.error("give --episode and --object, or --bundle")
+            parser.error("give --episode and --object, or --bundle, or --episode with --merge")
         args.bundle = bundle_dir_for(args.episode, args.object)
-    seq = args.sequence_id or (f"ep{args.episode}_{args.object}" if args.episode is not None else None)
+    label = "merged" if args.merge else args.object
+    seq = args.sequence_id or (f"ep{args.episode}_{label}" if args.episode is not None else None)
     if not seq:
         parser.error("--sequence-id is required with --bundle and no --episode")
-    out = (args.out or OUTPUTS / "load_retarget" / f"episode_{args.episode:06d}" / args.object).resolve()
-    bundle = args.bundle.resolve()
+    out = (args.out or OUTPUTS / "load_retarget" / f"episode_{args.episode:06d}" / label).resolve()
     if args.force and out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True, exist_ok=True)
+    merge_info = None
+    if args.merge:
+        args.bundle, merge_info = merged_bundle(args.episode, out / "bundle_merged")
+    bundle = args.bundle.resolve()
     log = out / "pipeline.log"
 
     # Paths contain /assets/human_motion_data/ so FlashCHORD can re-root them if the tree moves.
@@ -265,11 +842,22 @@ def main() -> int:
     report = {"sequence_id": seq, "episode": args.episode, "object": args.object, "bundle": str(bundle),
               "fps": args.fps, "ground_z_offset": args.ground_z_offset,
               "started_utc": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+    if merge_info:
+        report["merge"] = merge_info
+        print(f"== merged bundle: {merge_info}", flush=True)
 
     print(f"== check bundle {bundle}", flush=True)
-    report["bundle_check"] = check_bundle(bundle, args.object)
+    report["bundle_check"] = check_bundle(bundle, merge_info["objects"][0] if merge_info else args.object)
     for w in report["bundle_check"]["warnings"]:
         print(f"  ! {w}")
+    if not (args.no_rest_hold and args.no_hand_clean and args.no_object_clean) or args.rescale_by_hands \
+            or args.rescale_by_scan or args.still_object or not args.no_level or args.attach_hands:
+        bundle, report["cleaning"] = cleaned_bundle(
+            bundle, out / "bundle_cleaned", args.fps, rest_hold=not args.no_rest_hold,
+            hand_clean=not args.no_hand_clean, object_clean=not args.no_object_clean,
+            rescale_by_hands=args.rescale_by_hands, rescale_by_scan=label if args.rescale_by_scan else None,
+            still=args.still_object, level=not args.no_level, attach=args.attach_hands, seat=args.seat)
+        print(f"== cleaned bundle: {report['cleaning']}", flush=True)
 
     print("== load (MANO FK -> ManoSharpaData)", flush=True)
     if not has_parquet(partition(loaded, seq)):
@@ -284,13 +872,16 @@ def main() -> int:
         run([py, "scripts/retarget/ego_recon_to_sharpa.py", "--input_dir", loaded, "--output_dir", processed,
              "--sequence_id", seq, "--device", args.device, "--save"], RG, env, log)
 
+    # Loader body names: the sequence id for one object, <seq>_<object> per object when merged.
+    bodies = [f"{seq}_{name}" for name in merge_info["objects"]] if merge_info else [seq]
     print("== object URDF", flush=True)
-    if not (processed / f"{seq}_rigid.urdf").is_file():
+    if not all((processed / f"{body}_rigid.urdf").is_file() for body in bodies):
         run([py, "scripts/generate_rigid_urdfs.py", "--dataset", "ego_recon"], RG, env, log)
 
     print("== support surface", flush=True)
     if not usda.is_file():
-        run([py, "scripts/reconstruct_support_surfaces.py", "--dataset", "ego_recon", "--input_dir", processed,
+        support = str(Path(__file__).with_name("support_stacked.py")) if args.seat else "scripts/reconstruct_support_surfaces.py"
+        run([py, support, "--dataset", "ego_recon", "--input_dir", processed,
              "--sequence_id", seq, "--robot_name", ROBOT, "--output", usda], RG, env, log)
 
     video = out / "qa" / f"{seq}.mp4"
@@ -300,11 +891,11 @@ def main() -> int:
              "--sequence_id", seq, "--support_usd", usda, "--save_mp4", "--mp4_dir", out / "qa"], RG, env, log)
 
     print("== check output", flush=True)
-    report["output_check"] = check_output(partition(processed, seq), processed / f"{seq}.obj", usda,
-                                          report["bundle_check"]["frames"], args.fps)
+    report["output_check"] = check_output(partition(processed, seq), [processed / f"{body}.obj" for body in bodies],
+                                          usda, report["bundle_check"]["frames"], args.fps)
     for w in report["output_check"]["warnings"]:
         print(f"  ! {w}")
-    if args.episode is not None and args.object:
+    if args.episode is not None:
         write_score_input(bundle, out, args.episode, args.object)
     report.update(processed=str(partition(processed, seq)), support_usd=str(usda),
                   video=str(video) if video.is_file() else None,

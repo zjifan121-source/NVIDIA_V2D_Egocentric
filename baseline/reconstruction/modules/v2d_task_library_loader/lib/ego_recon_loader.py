@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
-# Modified for V2D Track 3 by Edmond Wang, 2026-10: clip frame rate overridable via V2D_EGO_FPS.
+# Modified for V2D Track 3 by Edmond Wang, 2026-10: clip frame rate overridable via V2D_EGO_FPS;
+# several rigid objects per bundle (object_names, object_<i>_to_world_transform, object_<i>_scale,
+# mesh_<i>.obj for i >= 1). Single-object bundles load exactly as before.
 
 """Load an ego hand-object reconstruction (``result.npz``) into ManoSharpaData.
 
@@ -106,6 +108,12 @@ class EgoReconSequenceSource:
     npz_path: Path
     mesh_path: Path
     object_scale: float
+    # Further objects of a multi-object bundle: (pose key in result.npz, mesh path, scale).
+    extra_objects: tuple[tuple[str, Path, float], ...] = ()
+
+    def objects(self) -> list[tuple[str, Path, float]]:
+        """(pose key, mesh path, scale) for every object, primary first."""
+        return [("object_to_world_transform", self.mesh_path, self.object_scale), *self.extra_objects]
 
 
 class EgoReconDatasetLoader(DatasetLoaderBase):
@@ -261,23 +269,32 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
             npz_path = result_dir / _RESULT_NPZ
             mesh_path = result_dir / _RESULT_MESH
             object_scale = 1.0
+            names: list[str] = []
+            extra: list[tuple[str, Path, float]] = []
             try:
                 with np.load(npz_path) as npz:
                     object_scale = float(npz["object_scale"])
+                    if "object_names" in npz.files:
+                        names = [str(n) for n in npz["object_names"]]
+                        extra = [(f"object_{i}_to_world_transform", result_dir / f"mesh_{i}.obj",
+                                  float(npz[f"object_{i}_scale"])) for i in range(1, len(names))]
             except (KeyError, ValueError, OSError):
                 pass
+            body_names = ([make_usd_safe(f"{object_name}_{n}") for n in names]
+                          if len(names) > 1 else [safe_object])
             sequence_id = sequence_name if sequence_name else clip_dir.name
             out.append(
                 SequenceInfo(
                     sequence_id=sequence_id,
                     raw_motion_file=str(npz_path),
                     object_name=object_name,
-                    object_body_names=[safe_object],
+                    object_body_names=body_names,
                     source=EgoReconSequenceSource(
                         result_dir=result_dir,
                         npz_path=npz_path,
                         mesh_path=mesh_path,
                         object_scale=object_scale,
+                        extra_objects=tuple(extra),
                     ),
                 )
             )
@@ -425,18 +442,20 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
         )
 
     def load_object_data(self, sequence_info: SequenceInfo) -> dict[str, Any]:
-        """Single rigid object pose from object_to_world_transform."""
+        """Rigid object poses: object_to_world_transform (+ object_<i>_to_world_transform)."""
         src: EgoReconSequenceSource = sequence_info.source
-        with np.load(src.npz_path) as npz:
-            poses = npz["object_to_world_transform"].astype(np.float64)  # (N,4,4)
         # Same ground-alignment as the hands (world' = R_align @ world + t_align).
         R_align, t_align = self._scene_align(sequence_info)
-        aligned = poses.copy()
-        aligned[:, :3, :3] = np.einsum("ij,njk->nik", R_align, poses[:, :3, :3])
-        aligned[:, :3, 3] = (R_align @ poses[:, :3, 3].T).T + t_align
-        root_pos, root_aa = poses_to_root_position_and_axis_angle(aligned)
-        body_name = sequence_info.object_body_names[0]
-        return {body_name: (aligned, root_pos, root_aa, None)}
+        out: dict[str, Any] = {}
+        with np.load(src.npz_path) as npz:
+            for body_name, (key, _mesh, _scale) in zip(sequence_info.object_body_names, src.objects()):
+                poses = npz[key].astype(np.float64)  # (N,4,4)
+                aligned = poses.copy()
+                aligned[:, :3, :3] = np.einsum("ij,njk->nik", R_align, poses[:, :3, :3])
+                aligned[:, :3, 3] = (R_align @ poses[:, :3, 3].T).T + t_align
+                root_pos, root_aa = poses_to_root_position_and_axis_angle(aligned)
+                out[body_name] = (aligned, root_pos, root_aa, None)
+        return out
 
     def load_object_meshes(
         self,
@@ -450,11 +469,15 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
         dict[str, torch.Tensor],
         bool,
     ]:
-        """Load the textured object mesh from the result bundle (metric)."""
+        """Load the textured object mesh(es) from the result bundle (metric)."""
         src: EgoReconSequenceSource = sequence_info.source
-        body_name = sequence_info.object_body_names[0]
-        mesh_paths = {body_name: str(src.mesh_path)}
-        return load_meshes_to_device(mesh_paths, device, vertex_scale=src.object_scale)
+        merged: list[Any] = [{}, {}, {}, {}, {}, True]
+        for body_name, (_key, mesh_path, scale) in zip(sequence_info.object_body_names, src.objects()):
+            part = load_meshes_to_device({body_name: str(mesh_path)}, device, vertex_scale=scale)
+            for i in range(5):
+                merged[i].update(part[i])
+            merged[5] = merged[5] and part[5]
+        return tuple(merged)
 
     def get_mano_kwargs(self) -> dict[str, Any]:
         """Ego/WiLoR hand params use use_pca=False, center_idx=None, flat_hand_mean=True.
@@ -480,7 +503,7 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
         return len(mesh.vertices), tuple(extents.tolist())
 
     def _write_object_asset(
-        self, src: EgoReconSequenceSource, target: Path, scale: float
+        self, src_obj: Path, target: Path, scale: float
     ) -> None:
         """Copy the clip's OBJ (+ material) to *target*, scaled.
 
@@ -489,7 +512,7 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
         """
         target.parent.mkdir(parents=True, exist_ok=True)
         stem = target.stem
-        src_obj = Path(src.mesh_path)
+        src_obj = Path(src_obj)
         mtl_name: str | None = None
         obj_out: list[str] = []
         for line in src_obj.read_text().splitlines():
@@ -519,7 +542,7 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
                 mtl_out.append(line)
         (target.parent / f"{stem}.mtl").write_text("\n".join(mtl_out) + "\n")
 
-    def _ensure_object_asset(self, sequence_info: SequenceInfo) -> Path:
+    def _ensure_object_asset(self, sequence_info: SequenceInfo, index: int = 0) -> Path:
         """Install this clip's mesh as the object asset, guarding against name reuse.
 
         Installs the reconstructed mesh (B1) and rejects an ``object_name`` already
@@ -534,9 +557,10 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
         distinct reconstructions silently mis-aligns the object -- use per-clip names.
         """
         src: EgoReconSequenceSource = sequence_info.source
-        target = Path(self._args.mesh_dir) / f"{sequence_info.object_body_names[0]}.obj"
-        scale = float(src.object_scale)
-        clip_sig = self._mesh_signature(src.mesh_path, scale)
+        _key, mesh_path, scale = src.objects()[index]
+        target = Path(self._args.mesh_dir) / f"{sequence_info.object_body_names[index]}.obj"
+        scale = float(scale)
+        clip_sig = self._mesh_signature(mesh_path, scale)
         if target.exists():
             tgt_sig = self._mesh_signature(target, 1.0)
             if tgt_sig[0] != clip_sig[0] or not np.allclose(
@@ -545,14 +569,14 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
                 raise ValueError(
                     f"Object mesh asset already exists but DIFFERS from this clip:\n"
                     f"  asset: {target} (verts={tgt_sig[0]}, extents={tgt_sig[1]})\n"
-                    f"  clip : {src.mesh_path} (verts={clip_sig[0]}, extents={clip_sig[1]})\n"
+                    f"  clip : {mesh_path} (verts={clip_sig[0]}, extents={clip_sig[1]})\n"
                     f"Reusing --object_name {sequence_info.object_name!r} across "
                     f"different reconstructions mis-aligns the object (alignment uses "
                     f"the clip mesh; sim renders this asset). Use a distinct "
                     f"--object_name (one per reconstruction)."
                 )
             return target  # already installed and consistent
-        self._write_object_asset(src, target, scale)
+        self._write_object_asset(mesh_path, target, scale)
         print(f"[ego_recon] installed object mesh asset -> {target}")
         return target
 
@@ -564,15 +588,16 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
         reconstruction already occupies the name (B2). Run
         scripts/generate_rigid_urdfs.py --dataset ego_recon afterward for the URDF.
         """
-        return [str(self._ensure_object_asset(sequence_info))]
+        return [str(self._ensure_object_asset(sequence_info, i))
+                for i in range(len(sequence_info.object_body_names))]
 
     def get_object_urdf_paths(self, sequence_info: SequenceInfo) -> list[str]:
         """Rigid URDF path baked into the Parquet, under --object_model_root.
 
         URDFs are generated by scripts/generate_rigid_urdfs.py --dataset ego_recon.
         """
-        body_name = sequence_info.object_body_names[0]
-        return [str(Path(self._args.object_model_root) / f"{body_name}_rigid.urdf")]
+        return [str(Path(self._args.object_model_root) / f"{body_name}_rigid.urdf")
+                for body_name in sequence_info.object_body_names]
 
 
 # ---------------------------------------------------------------------------
