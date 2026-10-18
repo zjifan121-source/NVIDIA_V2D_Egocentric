@@ -98,6 +98,7 @@ Run from reconstruction/.
 
 import argparse
 import glob
+import hashlib
 import json
 import math
 import os
@@ -310,6 +311,100 @@ def _json_tree_invalid_or_nonfinite(*paths: str | None) -> bool:
                 print(f"  Invalidating cached JSON output: {json_path}")
                 return True
     return False
+
+
+def _frame_paths(directory: str, extensions: tuple[str, ...]) -> dict[int, str]:
+    """Numeric frame files only, matching refine_simple's frame intersection."""
+    paths = {}
+    for extension in extensions:
+        for path in sorted(glob.glob(os.path.join(directory, "*" + extension))):
+            stem = os.path.splitext(os.path.basename(path))[0]
+            if stem.isdigit():
+                paths[int(stem)] = path
+    return paths
+
+
+def _simple_refinement_completion(
+    frames_dir: str,
+    object_input_dir: str,
+    object_output_dir: str,
+    hand_dirs: list[tuple[str | None, str | None]],
+    camera_output_dir: str | None,
+    scale_path: str | None,
+) -> dict | None:
+    """Validate complete outputs without using an optional video as a marker.
+
+    Object/camera frames are the RGB/object-input intersection; each hand may
+    have fewer frames. This checks write completeness, not reconstruction quality
+    or whether a changed numerical configuration can reuse the cache.
+    """
+    object_inputs = _frame_paths(object_input_dir, (".json",))
+    expected = set(_frame_paths(frames_dir, (".png", ".jpg"))) & set(object_inputs)
+    if not expected:
+        return None
+    tracks = [(object_output_dir, expected, "transform")]
+    if camera_output_dir is not None:
+        tracks.append((camera_output_dir, expected, "transform"))
+    for source, target in hand_dirs:
+        if source is None:
+            continue
+        hand_frames = set(_frame_paths(source, (".json",))) & expected
+        if target is None or not hand_frames:
+            return None
+        tracks.append((target, hand_frames, "hand"))
+    hashes = {}
+    for directory, expected_frames, kind in tracks:
+        files = _frame_paths(directory, (".json",))
+        if set(files) != expected_frames:
+            return None
+        for path in files.values():
+            try:
+                with open(path, "rb") as f:
+                    content = f.read()
+                record = json.loads(content)
+                if _contains_nonfinite_json_value(record):
+                    return None
+                if kind == "transform":
+                    values = [record[k] for k in ("rotation", "translation", "scale")]
+                    if [np.asarray(v).size for v in values] != [4, 3, 3]:
+                        return None
+                else:
+                    values = [record["mano"][k] for k in ("global_orient", "hand_pose", "betas")]
+                    values.append(record["camera"]["cam_t"])
+                    if [np.asarray(v).size for v in values] != [3, 45, 10, 3]:
+                        return None
+                if not all(np.isfinite(np.asarray(v, dtype=float)).all() for v in values):
+                    return None
+                hashes[os.path.abspath(path)] = hashlib.sha256(content).hexdigest()
+            except (OSError, ValueError, TypeError, KeyError):
+                return None
+    if scale_path is not None:
+        try:
+            with open(scale_path, "rb") as f:
+                content = f.read()
+            scale = float(json.loads(content)["scale"])
+            if not math.isfinite(scale) or scale <= 0:
+                return None
+            hashes[os.path.abspath(scale_path)] = hashlib.sha256(content).hexdigest()
+        except (OSError, ValueError, TypeError, KeyError):
+            return None
+    return {"schema_version": 1, "object_frames": sorted(expected), "sha256": hashes}
+
+
+def _write_simple_refinement_completion(path: str, completion: dict, origin: str) -> None:
+    """Atomically publish a CPU-verified receipt after every output is complete."""
+    directory = os.path.dirname(os.path.abspath(path))
+    os.makedirs(directory, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(prefix=".refinement-complete-", suffix=".json", dir=directory)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump({**completion, "origin": origin}, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
 
 
 def _reconcile_hand_tracks_from_handedness(
@@ -665,7 +760,10 @@ def run_ego_wilor(
     refinement_second_pass_epochs: int | None = None,
     refinement_second_pass_batch_size: int | None = None,
     dev: bool = False,
+    skip_diagnostic_renders: bool = False,
 ) -> None:
+    if skip_diagnostic_renders and run_refinement:
+        raise ValueError("--skip_diagnostic_renders is not supported with legacy --run_refinement; use --run_refinement_simple instead.")
     video_path = os.path.abspath(video_path)
     output_dir = os.path.abspath(output_dir)
     if object_mesh_path is not None:
@@ -1053,10 +1151,10 @@ def run_ego_wilor(
     with open(hand_tracks) as f:
         track_meta = json.load(f)["tracks"]
 
-    if not _step("Render prompts overlay", os.path.exists(prompts_overlay)):
+    if not skip_diagnostic_renders and not _step("Render prompts overlay", os.path.exists(prompts_overlay)):
         _render_prompts_overlay(ref_rgb, track_meta, detections, prompts_overlay)
 
-    if not _step("Render masks overlay video", os.path.exists(masks_overlay)):
+    if not skip_diagnostic_renders and not _step("Render masks overlay video", os.path.exists(masks_overlay)):
         _render_masks_overlay(
             frames_dir=frames_dir,
             masks_dir=masks_dir,
@@ -1243,7 +1341,7 @@ def run_ego_wilor(
 
         # Verification overlay over the refined masks (hand tracks only —
         # object stays in masks/, gets rendered by the existing overlay).
-        if not _step("Render refined masks overlay",
+        if not skip_diagnostic_renders and not _step("Render refined masks overlay",
                      os.path.exists(masks_refined_overlay)):
             _render_masks_overlay(
                 frames_dir = frames_dir,
@@ -1258,7 +1356,7 @@ def run_ego_wilor(
 
     if hand_pose_source == "wilor":
         # 10. Render virtual-cam verification overlay (raw, real detections only)
-        if not _step("Render wilor mesh overlay (raw)", os.path.exists(wilor_overlay)):
+        if not skip_diagnostic_renders and not _step("Render wilor mesh overlay (raw)", os.path.exists(wilor_overlay)):
             run_wilor_render(
                 frames_dir       = frames_dir,
                 wilor_dir        = wilor_tracks_dir,
@@ -1287,7 +1385,7 @@ def run_ego_wilor(
             )
 
         # 12. Render aligned overlay (real frames only) ---------------------
-        if not _step("Render aligned wilor overlay (real only)",
+        if not skip_diagnostic_renders and not _step("Render aligned wilor overlay (real only)",
                      os.path.exists(wilor_aligned_overlay)):
             run_render_hands_aligned_video(
                 frames_dir         = frames_dir,
@@ -1328,7 +1426,7 @@ def run_ego_wilor(
         )
 
         # 14. Render filled aligned overlay (real + interpolated) ----------
-        if not _step("Render filled aligned wilor overlay",
+        if not skip_diagnostic_renders and not _step("Render filled aligned wilor overlay",
                      os.path.exists(wilor_aligned_filled_overlay)):
             run_render_hands_aligned_video(
                 frames_dir         = frames_dir,
@@ -1360,7 +1458,7 @@ def run_ego_wilor(
             )
 
         # 14b. HaMeR virtual-cam overlay.
-        if not _step("Render HaMeR mesh overlay", os.path.exists(hamer_overlay)):
+        if not skip_diagnostic_renders and not _step("Render HaMeR mesh overlay", os.path.exists(hamer_overlay)):
             run_hamer_render(
                 frames_dir       = frames_dir,
                 hamer_dir        = hamer_dir,
@@ -1384,7 +1482,7 @@ def run_ego_wilor(
             )
 
         # 14d. HaMeR aligned overlay.
-        if not _step("Render aligned HaMeR overlay",
+        if not skip_diagnostic_renders and not _step("Render aligned HaMeR overlay",
                      os.path.exists(hamer_aligned_overlay)):
             run_render_hands_aligned_video(
                 frames_dir         = frames_dir,
@@ -1418,7 +1516,7 @@ def run_ego_wilor(
         )
 
         # 14i. Filled HaMeR aligned overlay.
-        if not _step("Render filled aligned HaMeR overlay",
+        if not skip_diagnostic_renders and not _step("Render filled aligned HaMeR overlay",
                      os.path.exists(hamer_aligned_filled_overlay)):
             run_render_hands_aligned_video(
                 frames_dir         = frames_dir,
@@ -1482,7 +1580,7 @@ def run_ego_wilor(
             for stale_path in hawor_dependent_outputs:
                 _remove_generated_path(stale_path)
 
-        if not _step("Render HaWoR mesh overlay", os.path.exists(hawor_overlay)):
+        if not skip_diagnostic_renders and not _step("Render HaWoR mesh overlay", os.path.exists(hawor_overlay)):
             run_hamer_render(
                 frames_dir       = frames_dir,
                 hamer_dir        = hawor_dir,
@@ -1504,7 +1602,7 @@ def run_ego_wilor(
                 dev               = dev,
             )
 
-        if not _step("Render aligned HaWoR overlay", os.path.exists(hawor_aligned_overlay)):
+        if not skip_diagnostic_renders and not _step("Render aligned HaWoR overlay", os.path.exists(hawor_aligned_overlay)):
             run_render_hands_aligned_video(
                 frames_dir         = frames_dir,
                 aligned_dir        = hawor_aligned_dir,
@@ -1534,7 +1632,7 @@ def run_ego_wilor(
             f"{hawor_aligned_filled_dir}/handedness.json",
         )
 
-        if not _step("Render filled aligned HaWoR overlay",
+        if not skip_diagnostic_renders and not _step("Render filled aligned HaWoR overlay",
                      os.path.exists(hawor_aligned_filled_overlay)):
             run_render_hands_aligned_video(
                 frames_dir         = frames_dir,
@@ -1814,7 +1912,7 @@ def run_ego_wilor(
             with open(refined_object_scale_json) as f:
                 learned_object_scale = float(json.load(f).get("scale", 1.0))
             print(f"  Loaded learned object scale: {learned_object_scale:.4f}")
-        if not _step(f"Render refined {refine_source} overlay",
+        if not skip_diagnostic_renders and not _step(f"Render refined {refine_source} overlay",
                      os.path.exists(refined_hand_overlay)):
             run_render_hands_aligned_video(
                 frames_dir         = frames_dir,
@@ -1899,8 +1997,26 @@ def run_ego_wilor(
             )
             and not _json_tree_invalid_or_nonfinite(*simple_refinement_json_roots)
         )
+        completion_path = os.path.join(output_dir, "refined_simple_complete.json")
+        completion_args = dict(
+            frames_dir=frames_dir,
+            object_input_dir=poses_dir,
+            object_output_dir=refined_simple_poses_dir,
+            hand_dirs=[(left_pose_in, left_pose_out), (right_pose_in, right_pose_out)],
+            camera_output_dir=(None if simple_refinement_mask_background else refined_simple_camera_dir),
+            scale_path=(None if using_provided_object_mesh else refined_object_scale_json),
+        )
+        if skip_diagnostic_renders:
+            completion = _simple_refinement_completion(**completion_args)
+            simple_refinement_done = completion is not None
+            if completion is not None:
+                # Existing complete outputs need no GPU rerun just to add a receipt.
+                _write_simple_refinement_completion(completion_path, completion, "validated_existing_outputs")
         if not _step("Simple 2DGS refinement", simple_refinement_done):
+            if skip_diagnostic_renders and os.path.exists(completion_path):
+                os.unlink(completion_path)
             run_refine_simple(
+                skip_overlay                = skip_diagnostic_renders,
                 frames_dir                  = frames_dir,
                 depth_dir                   = depth_dir,
                 intrinsics_path             = intrinsics_stable,
@@ -1958,7 +2074,7 @@ def run_ego_wilor(
                 init_opacity_hand           = init_opacity_hand_eff,
                 init_opacity_bg             = init_opacity_bg_eff,
                 init_gaussian_scale_factor  = init_gaussian_scale_factor,
-                render_every                = simple_refinement_render_every,
+                render_every                = 0 if skip_diagnostic_renders else simple_refinement_render_every,
                 progress_dir                = refined_simple_progress_dir,
                 debug_frame_idx             = (
                     simple_refinement_debug_frame
@@ -1973,6 +2089,11 @@ def run_ego_wilor(
                 valid_mask_erode_iters      = valid_mask_erode_iters,
                 dev                         = dev,
             )
+            if skip_diagnostic_renders:
+                completion = _simple_refinement_completion(**completion_args)
+                if completion is None:
+                    raise RuntimeError("Simple refinement exited but output frame coverage/schema is incomplete; inspect existing outputs before continuing.")
+                _write_simple_refinement_completion(completion_path, completion, "successful_run")
 
         # Render the refined simple-stage MANO/object poses through the same
         # 2x2 aligned overlay used by hamer_aligned_filled_overlay.mp4. The
@@ -1982,7 +2103,7 @@ def run_ego_wilor(
         if (not using_provided_object_mesh) and os.path.exists(refined_object_scale_json):
             learned_simple_object_scale = _load_scale_json(refined_object_scale_json, 1.0)
             print(f"  Loaded simple-refined object scale: {learned_simple_object_scale:.4f}")
-        if not _step(f"Render refined-simple {refine_source} overlay",
+        if not skip_diagnostic_renders and not _step(f"Render refined-simple {refine_source} overlay",
                      os.path.exists(refined_simple_hand_overlay)):
             if not _has_files(refined_simple_poses_dir):
                 raise FileNotFoundError(
@@ -2135,32 +2256,43 @@ def run_ego_wilor(
     if refine_masks_with_silhouette:
         print(f"  wilor_filled    : {wilor_filled_dir}/  (real + interpolated)")
         print(f"  masks_refined   : {masks_refined_dir}/  (hand tracks only)")
-        print(f"  masks_refined_overlay : {masks_refined_overlay}")
-    print(f"  prompts_overlay : {prompts_overlay}")
-    print(f"  masks_overlay   : {masks_overlay}")
+        if not skip_diagnostic_renders:
+            print(f"  masks_refined_overlay : {masks_refined_overlay}")
+    if not skip_diagnostic_renders:
+        print(f"  prompts_overlay : {prompts_overlay}")
+        print(f"  masks_overlay   : {masks_overlay}")
     if hand_pose_source == "wilor":
         print(f"  wilor (raw tracks)           : {wilor_tracks_dir}/")
-        print(f"  wilor_overlay                : {wilor_overlay}")
+        if not skip_diagnostic_renders:
+            print(f"  wilor_overlay                : {wilor_overlay}")
         print(f"  wilor_aligned                : {wilor_aligned_dir}/  (real only)")
         print(f"  wilor_aligned/hand_scale.json: per-track multiplicative correction")
-        print(f"  wilor_aligned_overlay        : {wilor_aligned_overlay}")
+        if not skip_diagnostic_renders:
+            print(f"  wilor_aligned_overlay        : {wilor_aligned_overlay}")
         print(f"  wilor_aligned_filled         : {wilor_aligned_filled_dir}/  (real + interpolated)")
-        print(f"  wilor_aligned_filled_overlay : {wilor_aligned_filled_overlay}")
+        if not skip_diagnostic_renders:
+            print(f"  wilor_aligned_filled_overlay : {wilor_aligned_filled_overlay}")
     if use_hawor_primary:
         print(f"  hawor (canonical tracks)     : {hawor_dir}/")
         print(f"  hawor_native                 : {hawor_native_dir}/")
-        print(f"  hawor_overlay                : {hawor_overlay}")
+        if not skip_diagnostic_renders:
+            print(f"  hawor_overlay                : {hawor_overlay}")
         print(f"  hawor_aligned                : {hawor_aligned_dir}/")
-        print(f"  hawor_aligned_overlay        : {hawor_aligned_overlay}")
+        if not skip_diagnostic_renders:
+            print(f"  hawor_aligned_overlay        : {hawor_aligned_overlay}")
         print(f"  hawor_aligned_filled         : {hawor_aligned_filled_dir}/")
-        print(f"  hawor_aligned_filled_overlay : {hawor_aligned_filled_overlay}")
+        if not skip_diagnostic_renders:
+            print(f"  hawor_aligned_filled_overlay : {hawor_aligned_filled_overlay}")
     if run_hamer_outputs:
         print(f"  hamer (per-track HaMeR)      : {hamer_dir}/")
-        print(f"  hamer_overlay                : {hamer_overlay}")
+        if not skip_diagnostic_renders:
+            print(f"  hamer_overlay                : {hamer_overlay}")
         print(f"  hamer_aligned                : {hamer_aligned_dir}/")
-        print(f"  hamer_aligned_overlay        : {hamer_aligned_overlay}")
+        if not skip_diagnostic_renders:
+            print(f"  hamer_aligned_overlay        : {hamer_aligned_overlay}")
         print(f"  hamer_aligned_filled         : {hamer_aligned_filled_dir}/")
-        print(f"  hamer_aligned_filled_overlay : {hamer_aligned_filled_overlay}")
+        if not skip_diagnostic_renders:
+            print(f"  hamer_aligned_filled_overlay : {hamer_aligned_filled_overlay}")
     if object_mesh_for_pipeline is not None:
         print(f"  object_mesh                  : {object_mesh_for_pipeline}")
         print(f"  result_bundle                : {result_dir}/")
@@ -2178,9 +2310,10 @@ def run_ego_wilor(
         print(f"  poses_refined_simple         : {refined_simple_poses_dir}/")
         print(f"  {refine_source}_refined_simple         : {refined_simple_hand_dir}/")
         print(f"  camera_refined_simple        : {refined_simple_camera_dir}/")
-        print(f"  refined_simple_overlay       : {refined_simple_overlay}")
-        print(f"  {refine_source}_refined_simple_overlay : {refined_simple_hand_overlay}")
-        if simple_refinement_render_every > 0:
+        if not skip_diagnostic_renders:
+            print(f"  refined_simple_overlay       : {refined_simple_overlay}")
+            print(f"  {refine_source}_refined_simple_overlay : {refined_simple_hand_overlay}")
+        if not skip_diagnostic_renders and simple_refinement_render_every > 0:
             print(f"  refined_simple_progress      : {refined_simple_progress_dir}/")
             print(f"  refined_simple_progress_mp4  : {refined_simple_progress_video}")
     print(f"{'='*60}\n")
@@ -2505,11 +2638,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--refinement_second_pass_batch_size", type=int, default=None,
                    help="Batch size for pass 2. Defaults to 4x pass-1.")
     p.add_argument("--dev", action="store_true")
+    p.add_argument("--skip_diagnostic_renders", action="store_true",
+                   help="Skip diagnostic overlays/progress only; incompatible with legacy --run_refinement. Existing images require matching code via --dev.")
     return p.parse_args()
 
 
 def run_from_args(args: argparse.Namespace) -> None:
     run_ego_wilor(
+        skip_diagnostic_renders = args.skip_diagnostic_renders,
         video_path              = args.video_path,
         output_dir              = args.output_dir,
         sam2_weights            = args.sam2_weights,

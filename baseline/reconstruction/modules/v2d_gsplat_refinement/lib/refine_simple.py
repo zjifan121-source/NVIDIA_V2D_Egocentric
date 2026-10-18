@@ -1215,6 +1215,7 @@ def refine_simple(
     fps: float = 30.0,
     seed: int = 0,
     device: str = "cuda",
+    skip_overlay: bool = False,
 ) -> None:
     if (left_hand_pose_dir or right_hand_pose_dir) and mano_assets_root is None:
         raise ValueError("mano_assets_root is required when refining hand tracks")
@@ -1226,6 +1227,8 @@ def refine_simple(
         raise ValueError("depth_dir is required unless --mask-background is set")
     if float(w_relative_depth) > 0.0 and depth_dir is None:
         raise ValueError("depth_dir is required when --w_relative_depth is nonzero")
+    if skip_overlay:
+        render_every = 0
     lr_schedule = str(lr_schedule).lower()
     if lr_schedule not in {"constant", "cosine"}:
         raise ValueError("lr_schedule must be 'constant' or 'cosine'")
@@ -1763,21 +1766,22 @@ def refine_simple(
         _save_camera_poses(bg_pose_field, frame_indices, refined_camera_poses_dir)
         print(f"Wrote refined camera/background poses -> {refined_camera_poses_dir}")
 
-    _write_overlay_video(
-        output_path=overlay_path,
-        cache=cache,
-        K=K,
-        width=width,
-        height=height,
-        device=device_t,
-        obj_gaussians=obj_gaussians,
-        obj_pose_field=obj_pose_field,
-        hand_slots=hand_slots,
-        bg_gaussians=bg_gaussians,
-        bg_pose_field=bg_pose_field,
-        fps=fps,
-    )
-    print(f"Wrote overlay -> {overlay_path}")
+    if not skip_overlay:
+        _write_overlay_video(
+            output_path=overlay_path,
+            cache=cache,
+            K=K,
+            width=width,
+            height=height,
+            device=device_t,
+            obj_gaussians=obj_gaussians,
+            obj_pose_field=obj_pose_field,
+            hand_slots=hand_slots,
+            bg_gaussians=bg_gaussians,
+            bg_pose_field=bg_pose_field,
+            fps=fps,
+        )
+        print(f"Wrote overlay -> {overlay_path}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -1874,6 +1878,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--init_opacity_bg", type=float, default=0.9)
     p.add_argument("--init_gaussian_scale_factor", type=float, default=1.0,
                    help="Multiplier for all initial Gaussian scales/radii.")
+    p.add_argument("--skip_overlay", action="store_true", help="Skip diagnostic renders only.")
     p.add_argument("--render_every", type=int, default=25,
                    help="Write a target/render/error progress panel every N optimizer steps. 0 disables.")
     p.add_argument("--progress_dir", default=None,

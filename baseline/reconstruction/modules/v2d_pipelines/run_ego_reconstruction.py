@@ -592,6 +592,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--run_gravity_alignment", action="store_true")
     p.add_argument("--run_gsplat_refinement", action="store_true")
     p.add_argument("--export_threejs_result", action="store_true")
+    p.add_argument("--skip_diagnostic_renders", action="store_true",
+                   help="Skip diagnostic images/videos for hamer/hawor; preserve reconstruction and optimization renders. Requires matching container code (for existing images, use --dev).")
     p.add_argument(
         "--depth_source", choices=("moge", "vipe"), default=None, help=argparse.SUPPRESS
     )
@@ -689,6 +691,8 @@ def _validate_args(args: argparse.Namespace) -> None:
 
     if args.hand_tracking == "dynhamr":
         unsupported = []
+        if args.skip_diagnostic_renders:
+            unsupported.append("--skip_diagnostic_renders")
         if args.object_mesh is not None:
             unsupported.append("--object_mesh")
         if args.run_gsplat_refinement:
@@ -731,6 +735,7 @@ def _run_dynhamr(args: argparse.Namespace) -> Path:
 def _run_hamer(args: argparse.Namespace) -> Path:
     run_ego_wilor = _import_run_ego_wilor()
     run_ego_wilor(
+        skip_diagnostic_renders=args.skip_diagnostic_renders,
         video_path=args.video,
         output_dir=args.output_dir,
         sam2_weights=args.sam2_weights,

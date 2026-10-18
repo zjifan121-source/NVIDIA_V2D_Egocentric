@@ -77,6 +77,7 @@ def run_refine_simple(
     fps: float = 30.0,
     seed: int = 0,
     dev: bool = False,
+    skip_overlay: bool = False,
 ) -> None:
     if not mask_background and depth_dir is None:
         raise ValueError("depth_dir is required unless --mask-background is set")
@@ -171,7 +172,8 @@ def run_refine_simple(
         "init_opacity_hand":     init_opacity_hand,
         "init_opacity_bg":       init_opacity_bg,
         "init_gaussian_scale_factor": init_gaussian_scale_factor,
-        "render_every":          render_every,
+        "render_every":          0 if skip_overlay else render_every,
+        "skip_overlay":          skip_overlay,
         "debug_frame_idx":       debug_frame_idx,
         "fps":                   fps,
         "seed":                  seed,
@@ -284,6 +286,7 @@ if __name__ == "__main__":
     p.add_argument("--init_opacity_bg", type=float, default=0.9)
     p.add_argument("--init_gaussian_scale_factor", type=float, default=1.0,
                    help="Multiplier for all initial Gaussian scales/radii.")
+    p.add_argument("--skip_overlay", action="store_true", help="Skip diagnostic renders only.")
     p.add_argument("--render_every", type=int, default=25)
     p.add_argument("--progress_dir", default=None)
     p.add_argument("--debug_frame_idx", type=int, default=None)
