@@ -32,6 +32,12 @@ BASE_FIELDS: list[FieldSpec] = [
 # Body model fields
 #############################################################
 MANO_FIELDS: list[FieldSpec] = [
+    # Optional per-frame metric scale and pre-translation MANO-frame centroid.
+    # Persist them so parameter-based FK can reproduce the stored metric joints.
+    ("mano_right_scale", pa.list_(pa.float32()), list[float], True),
+    ("mano_left_scale", pa.list_(pa.float32()), list[float], True),
+    ("mano_right_scale_center", pa.list_(pa.list_(pa.float32(), 3)), list[list[float]], True),
+    ("mano_left_scale_center", pa.list_(pa.list_(pa.float32(), 3)), list[list[float]], True),
     ("mano_flat_hand_mean", pa.bool_(), bool, False),
     ("mano_center_idx", pa.int32(), int, False),
     ("mano_to_robot_scale", pa.float32(), float, False),
@@ -491,6 +497,25 @@ def create_data_logger_class(
                 partitioning="hive",
                 exclude_invalid_files=True,
             )
+            # Arrow infers a dataset schema from the first fragment. An older
+            # sequence may lack columns written by newer producers; extend the
+            # read schema before scanning so those values are not lost. Include
+            # only columns actually present on disk, preserving the path-based
+            # recovery of partition keys below.
+            missing_fields = [
+                f for f in cls._schema if f.name not in source.schema.names
+            ]
+            if missing_fields:
+                stored_names = {
+                    name
+                    for fragment in source.get_fragments()
+                    for name in fragment.physical_schema.names
+                }
+                extra_fields = [f for f in missing_fields if f.name in stored_names]
+                if extra_fields:
+                    source = source.replace_schema(
+                        pa.schema([*source.schema, *extra_fields])
+                    )
             dataset = source.to_table(
                 filter=(
                     pq.filters_to_expression(parquet_filters)

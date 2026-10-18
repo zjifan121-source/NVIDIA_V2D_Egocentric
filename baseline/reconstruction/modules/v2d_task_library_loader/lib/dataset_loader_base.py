@@ -666,6 +666,8 @@ class DatasetLoaderBase(ABC):
                     finger_pose=raw_data[f"{side}_finger_pose"],
                     transl=raw_data[f"{side}_trans"],
                     betas=raw_data[f"{side}_betas"],
+                    scale=raw_data.get(f"{side}_scale"),
+                    scale_center=raw_data.get(f"{side}_scale_center"),
                 )
 
             frame_start, frame_end = self.get_frame_range(H)
@@ -850,6 +852,14 @@ class DatasetLoaderBase(ABC):
 
                 if args.save:
                     logger_data.log_timestep(
+                        mano_right_scale=(raw_data["right_scale"][frame_id].item()
+                                          if "right_scale" in raw_data else 1.0),
+                        mano_left_scale=(raw_data["left_scale"][frame_id].item()
+                                         if "left_scale" in raw_data else 1.0),
+                        mano_right_scale_center=(raw_data["right_scale_center"][frame_id].cpu().tolist()
+                                                 if "right_scale_center" in raw_data else None),
+                        mano_left_scale_center=(raw_data["left_scale_center"][frame_id].cpu().tolist()
+                                                if "left_scale_center" in raw_data else None),
                         mano_right_trans=raw_data["right_trans"][frame_id]
                         .cpu()
                         .tolist(),
