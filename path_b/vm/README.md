@@ -15,7 +15,8 @@ deleted one does not). Code lives in git, results on Hugging Face, and `setup.sh
    `<run>` is a folder of `path_b/data/outputs/`. Results (stage reports, loss reports, scales,
    bundles, stages 2–3 outputs, waterfall, pages) are small; `--frames` adds the per-frame
    rectified images and depth as one `frames.tar` per episode (~0.9 GB each), which saves rerunning
-   P0–P2 (~6 GPU-minutes per episode). They go to `path_b/runs/<run>/` in
+   P0–P2 (~6 GPU-minutes per episode). Restoring all 20 public episodes with frames (17.6 GB) took
+   30 min on the L40S instance (2026-10-19, run `4c2eac31`), and `run.py` then kept every stage. They go to `path_b/runs/<run>/` in
    `rose-tea-cafe/v2d-t3-recon`; `tools/track3/bundles.py` reads only its top-level `episode_*`.
 
 ## On a new instance (Ubuntu with NVIDIA driver, Docker and the NVIDIA Container Toolkit)
