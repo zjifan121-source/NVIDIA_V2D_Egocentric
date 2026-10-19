@@ -149,6 +149,7 @@ def motion(root: Path, number: int, names: list[str], raw: Path) -> dict:
         objects.append({
             "name": name, "series": {k: np.round(100 * v, 2).tolist() for k, v in series.items()},
             "gt_peak_cm": round(100 * float(peak), 1),
+            "peak_cm": {k: round(100 * float(v.max()), 1) for k, v in series.items()},
             "peak_ratio": {k: round(float(v.max() / peak), 3) for k, v in series.items() if k != "gt" and peak > 0},
         })
     moving = [o for o in objects if o["gt_peak_cm"] >= 10 and "stage2" in o["peak_ratio"]]
@@ -185,14 +186,29 @@ def verdicts(page: dict) -> dict:
         closer = "stereo" if abs(factor - f["motion"]) < abs(f["scan oracle"] - f["motion"]) else "scan"
     flagged = [m for ms in page["measurements"].values() for m in ms if m["status"] in ("WARN", "FAIL")]
     fails = sum(m["status"] == "FAIL" for m in flagged)
+    # P3 takes the nearest horizontal plane below the object's surface point; a larger plane a few
+    # cm below that one is usually the table, and the chosen one an object's base or the hands.
+    legend = page["stereo"]["legend"]
+    chosen = next((p for p in legend if p["chosen"]), None)
+    larger = [p for p in legend if chosen and not p["chosen"] and p["share"] > chosen["share"]
+              and 0 < p["distance_m"] - chosen["distance_m"] <= 0.10]
+    if larger:
+        b = max(larger, key=lambda p: p["share"])
+        stereo = ("warn", "support plane suspect",
+                  f"At frame 0 the plane used for scale ({chosen['distance_m']:.3f} m from the camera, "
+                  f"{chosen['share']:.0%} of points) lies {100 * (b['distance_m'] - chosen['distance_m']):.1f} cm "
+                  f"above a larger plane ({b['distance_m']:.3f} m, {b['share']:.0%}): most likely an object's base "
+                  "or the hands rather than the table. P3 takes the nearest plane below the object's surface point.")
+    else:
+        stereo = ("neutral", f"{len(legend)} planes",
+                  "The support plane is the horizontal plane just below the object, not the largest plane "
+                  "(often the floor). Circles: where each object's ray samples stereo depth.")
     return {
         "waterfall": ("good" if gain > 0.005 else "bad" if gain < -0.005 else "neutral",
                       f"stereo scale {gain:+.3f} AUC",
                       f"Path B's stereo scale moves AUC from {s['stage2']['AUC']:.3f} to {s['stage2_stereo']['AUC']:.3f}; "
                       f"the scan-oracle scale reaches {s['stage2_scan']['AUC']:.3f}."),
-        "stereo": ("neutral", f"{len(page['stereo']['legend'])} planes",
-                   "The support plane is the horizontal plane just below the object, not the largest plane "
-                   "(often the floor). Circles: where each object's ray samples stereo depth."),
+        "stereo": stereo,
         "rulers": ("bad" if any(p3[n]["status"] == "FAIL" for n in ruler_flags) else "warn" if ruler_flags else "good",
                    "unstable" if ruler_flags else "stable",
                    ("Flagged: " + "; ".join(ruler_flags) + ". The factor is the median, so it survives some "
