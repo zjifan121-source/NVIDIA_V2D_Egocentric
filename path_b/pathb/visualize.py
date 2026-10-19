@@ -171,6 +171,19 @@ def camera(root: Path) -> dict:
             "reading": cal["reading"]}
 
 
+def motion_verdict(factor: float, motion: float | None, oracle: float | None, closer: str | None) -> tuple:
+    if not motion:
+        return ("neutral", "too little motion", "No object moves 10 cm or more, so motion cannot check the scale here.")
+    off = factor / motion - 1
+    text = (f"Real motion asks for a factor of {motion:.3f} (objects moving 10 cm or more); stereo gives {factor:.3f} "
+            f"({off:+.0%})" + (f", the scan oracle {oracle:.3f}." if oracle else ".") +
+            " Peak distance is a rough referee: a tracking jump (a flip, a lost frame) inflates it, so check the curves.")
+    if abs(off) <= 0.10:
+        return ("good", "stereo matches motion", text)
+    return ("warn", {"stereo": "stereo closer than scan", "scan": "scan closer to motion"}.get(closer, "stereo off motion"),
+            text)
+
+
 def verdicts(page: dict) -> dict:
     """Section verdicts and one-line takeaways, from the numbers."""
     s = page["waterfall"]["scores"]
@@ -218,11 +231,7 @@ def verdicts(page: dict) -> dict:
                  (f"After the stereo rescale {', '.join(off_meshes)} no longer match{'es' if len(off_meshes) == 1 else ''} "
                   "the scan: the bundle's mesh size and its world scale disagree, so one factor cannot fix both.")
                  if off_meshes else "After the stereo rescale every mesh is within 0.8-1.25x of its scan."),
-        "motion": ("good" if closer == "stereo" else "warn" if closer else "neutral",
-                   {"stereo": "stereo matches motion", "scan": "scan matches motion", None: "too little motion"}[closer],
-                   (f"Real motion asks for a factor of {f['motion']:.3f} (objects moving 10 cm or more); stereo gives "
-                    f"{factor:.3f}, the scan oracle {f['scan oracle']:.3f}.") if f.get("motion") and f.get("scan oracle") else
-                   "No object moves 10 cm or more, so motion cannot check the scale here."),
+        "motion": motion_verdict(factor, f.get("motion"), f.get("scan oracle"), closer),
         "camera": ("good", f"offset {page['camera']['chosen_offset']:+d} corrected",
                    f"Stereo frame = ego_cam_a frame {page['camera']['chosen_offset']:+d}. Rows were off by "
                    f"{page['camera']['rows_before']:.2f} px with the factory calibration, "
