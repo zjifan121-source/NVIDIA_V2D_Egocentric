@@ -2,6 +2,8 @@
 
 The calibration's reading (calib.READINGS) is chosen on this episode: the one whose rectified
 pairs put matched features on the same row with positive disparity. All readings are reported.
+The row offset left over (a smooth drift of the factory calibration, ~2 px on ep41) is then fitted
+on the same matches and removed from the right image (calib.refine_rows).
 Writes rect_left/, rect_right/ (PNG, the stereo module's input), cam_a/ (undistorted JPEG) and
 calib.json.
 """
@@ -45,8 +47,10 @@ def run(ctx) -> StageResult:
         checks[reading] = C.epipolar_check(rect, list(zip(raw[rect.left], raw[rect.right])))
     # A wrong left/right flips the disparity sign; a wrong intrinsics reading shifts rows.
     best = min(checks, key=lambda r: (checks[r]["positive_disparity_fraction"] < 0.8, checks[r]["median_dy_px"]))
-    rect = C.rectification(calibration, best)
     rotate = C.READINGS[best][0]
+    # The remaining row offset is a smooth drift of the factory calibration: fit it and remove it.
+    rect = C.refine_rows(C.rectification(calibration, best), checks[best]["row_fit"])
+    refined = C.epipolar_check(rect, list(zip(raw[rect.left], raw[rect.right])))
 
     d = ctx.dir("p1_calibrate")
     for sub in ("rect_left", "rect_right", "cam_a"):
@@ -65,18 +69,23 @@ def run(ctx) -> StageResult:
         count_a += 1
 
     write_json(d / "calib.json", {
-        "reading": best, "rectification": rect.summary(),
+        "reading": best, "rectification": rect.summary(), "row_correction": checks[best]["row_fit"],
         "cam_a": {"K": und.K.tolist(), "size": list(und.size), "intrinsics_turned_upright": rotate},
-        "readings_checked": checks, "check_frames": sorted(picks),
+        "readings_checked": checks, "after_row_correction": refined, "check_frames": sorted(picks),
     })
     chosen = checks[best]
     runner_up = min((c["median_dy_px"] for r, c in checks.items() if r != best), default=float("inf"))
+    a, b, c = chosen["row_fit"]
+    w, h = rect.size
     metrics = [
-        Metric("rectified row offset of matched features (median)", chosen["median_dy_px"], "px", ok=(0, 1.0),
-               warn=(0, 2.0), note=f"reading '{best}'; next best {runner_up:.2f} px"),
-        Metric("matches with positive disparity", chosen["positive_disparity_fraction"], "", ok=(0.95, 1),
+        Metric("row offset with the factory rectification (median |dy|)", chosen["median_dy_px"], "px",
+               ok=(0, 1.0), warn=(0, 3.0), note=f"reading '{best}'; next best {runner_up:.2f} px; "
+               f"fit {a:+.2f} px, {b * w / 2:+.2f} px at the sides, {c * h / 2:+.2f} px at top/bottom"),
+        Metric("row offset after the correction (median |dy|)", refined["median_dy_px"], "px", ok=(0, 0.5),
+               warn=(0, 1.0), note="stereo matching assumes matches share a row"),
+        Metric("matches with positive disparity", refined["positive_disparity_fraction"], "", ok=(0.95, 1),
                warn=(0.85, 1), note="a wrong left/right gives ~0"),
-        Metric("features matched", chosen["matches"], "", ok=(300, float("inf")), warn=(50, float("inf"))),
+        Metric("features matched", refined["matches"], "", ok=(300, float("inf")), warn=(50, float("inf"))),
         Metric("rectified baseline", rect.baseline, "m", ok=(0.074, 0.076), note="calibration: 0.075"),
         Metric("rectified focal length", float(rect.K[0, 0]), "px"),
         Metric("rectified pairs written minus manifest", count - n, "frames", ok=(0, 0)),

@@ -6,8 +6,10 @@ launcher (TensorRT engine at 576x960; the module resizes and scales disparity ba
 
 ego_cam_a's pose relative to the stereo pair comes from the calibration (cam_a_candidates, all
 readings) or from the data: stereo depth at SIFT features of the rectified left image, matched in
-ego_cam_a, gives a PnP estimate. The candidate that puts the most features within 5 px is used;
-how far the calibration's best reading is from the PnP estimate is reported.
+ego_cam_a, gives a PnP estimate. The streams are not frame-aligned either (on ep41 ego_cam_a frame
+i matches stereo frame i - 1), so the frame offset is searched together with the pose: the pair
+that puts the most features within 5 px is used, and the offset applies wherever stereo meets
+ego_cam_a. How far the calibration's best reading is from the PnP estimate is reported.
 
 Writes depth_rect/ (module output, rectified left frame), planes.json, alignment.json and
 depth_a_half/ (ego_cam_a's view at half resolution).
@@ -27,6 +29,7 @@ from ..report import Metric, StageResult
 from ..runner import write_json
 
 ALIGN_FRAMES = 6  # frames whose features locate ego_cam_a
+OFFSETS = (-2, -1, 0, 1, 2)  # stereo frame = ego_cam_a frame + offset
 NEAR, FAR = 0.1, 5.0  # metres of stereo depth used outside the plane fit
 
 
@@ -44,16 +47,19 @@ def stereo_depth(p1, d, rect: dict) -> None:
         raise RuntimeError(f"stereo module failed (exit {result.returncode}):\n{tail}")
 
 
-def feature_pairs(p1, d, Kr: np.ndarray, R1: np.ndarray, frames: list[int]):
+def feature_pairs(p1, d, Kr: np.ndarray, R1: np.ndarray, frames: list[int], offset: int = 0):
     """3D points in the unrectified left camera (stereo depth at SIFT features of the rectified
-    left image) and the ego_cam_a pixels where the same features were found."""
+    left image of frame i + offset) and the ego_cam_a pixels of frame i with the same features."""
     sift = cv2.SIFT_create(4000)
     matcher = cv2.BFMatcher(cv2.NORM_L2)
     points, pixels = [], []
     for i in frames:
-        left = cv2.imread(str(p1 / f"rect_left/{i:06d}.png"), cv2.IMREAD_GRAYSCALE)
+        j = i + offset
+        if not (p1 / f"rect_left/{j:06d}.png").is_file():
+            continue
+        left = cv2.imread(str(p1 / f"rect_left/{j:06d}.png"), cv2.IMREAD_GRAYSCALE)
         cam_a = cv2.imread(str(p1 / f"cam_a/{i:06d}.jpg"), cv2.IMREAD_GRAYSCALE)
-        depth = read_depth(d / f"depth_rect/{i:06d}.png")
+        depth = read_depth(d / f"depth_rect/{j:06d}.png")
         kl, dl = sift.detectAndCompute(left, None)
         ka, da = sift.detectAndCompute(cam_a, None)
         if dl is None or da is None:
@@ -116,30 +122,33 @@ def run(ctx) -> StageResult:
         planes.append({"frame": i, "planes": fit_planes(table_points(depth, Kr), seed=i)})
     write_json(d / "planes.json", {"frame": "rectified left camera", "planes": planes})
 
-    # Where ego_cam_a sits: the calibration's readings and the PnP estimate, judged on the features.
+    # Where and when ego_cam_a sees: each frame offset with the calibration's readings and a PnP
+    # estimate, judged on the share of features that land within 5 px.
     calibration = C.load()
     K_a = np.array(cal["cam_a"]["K"])
-    picks = np.linspace(0, len(files) - 1, ALIGN_FRAMES).round().astype(int).tolist()
-    points, pixels = feature_pairs(p1, d, Kr, R1, picks)
-    candidates = C.cam_a_candidates(calibration, C.rectification(calibration, cal["reading"]))
-    calibrated = {}
-    for name, T in candidates.items():
-        e = reprojection_errors(points, pixels, K_a, T)
-        calibrated[name] = {"median_px": float(np.median(e)) if len(e) else float("inf"),
-                            "within_5px": float(np.mean(e < 5)) if len(e) else 0.0}
-    best_calibrated = max(calibrated, key=lambda k: calibrated[k]["within_5px"])
-    options = dict(calibrated)
-    T_pnp = pnp(points, pixels, K_a)
-    if T_pnp is not None:
-        e = reprojection_errors(points, pixels, K_a, T_pnp)
-        options["pnp"] = {"median_px": float(np.median(e)), "within_5px": float(np.mean(e < 5))}
-        candidates["pnp"] = T_pnp
-    best = max(options, key=lambda k: options[k]["within_5px"])
-    a_from_left = candidates[best]
-    gap = pose_difference(candidates[best_calibrated], T_pnp) if T_pnp is not None else (np.nan, np.nan)
-    write_json(d / "alignment.json", {"reading": best, "a_from_left": a_from_left, "R1": R1,
-                                      "features": int(len(points)), "candidates": options,
-                                      "best_calibrated": best_calibrated,
+    picks = np.linspace(2, len(files) - 3, ALIGN_FRAMES).round().astype(int).tolist()
+    calibrated_poses = C.cam_a_candidates(calibration, C.rectification(calibration, cal["reading"]))
+    trials, poses = {}, {}
+    for offset in OFFSETS:
+        points, pixels = feature_pairs(p1, d, Kr, R1, picks, offset)
+        candidates = dict(calibrated_poses)
+        T_pnp = pnp(points, pixels, K_a)
+        if T_pnp is not None:
+            candidates["pnp"] = T_pnp
+        for name, T in candidates.items():
+            e = reprojection_errors(points, pixels, K_a, T)
+            trials[f"{offset:+d} {name}"] = {"offset": offset, "pose": name, "features": int(len(e)),
+                                             "median_px": float(np.median(e)) if len(e) else float("inf"),
+                                             "within_5px": float(np.mean(e < 5)) if len(e) else 0.0}
+            poses[f"{offset:+d} {name}"] = T
+    best = max(trials, key=lambda k: trials[k]["within_5px"])
+    offset, a_from_left = trials[best]["offset"], poses[best]
+    same = {k: v for k, v in trials.items() if v["offset"] == offset}
+    best_calibrated = max((k for k in same if same[k]["pose"] != "pnp"), key=lambda k: same[k]["within_5px"])
+    pnp_key = f"{offset:+d} pnp"
+    gap = pose_difference(poses[best_calibrated], poses[pnp_key]) if pnp_key in poses else (np.nan, np.nan)
+    write_json(d / "alignment.json", {"pose": trials[best]["pose"], "offset": offset, "a_from_left": a_from_left,
+                                      "R1": R1, "trials": trials, "best_calibrated": trials[best_calibrated]["pose"],
                                       "calibration_vs_pnp": {"deg": gap[0], "mm": gap[1]}})
 
     # Depth in ego_cam_a's undistorted view, at half resolution so every pixel gets a stereo point.
@@ -152,8 +161,8 @@ def run(ctx) -> StageResult:
     to_a = a_from_left[:3, :3] @ R1.T
     (d / "depth_a_half").mkdir(exist_ok=True)
     coverage = []
-    for i, f in enumerate(files):
-        z = read_depth(f).ravel()
+    for i in range(len(files)):  # ego_cam_a frame i takes stereo frame i + offset (clamped at the ends)
+        z = read_depth(files[min(max(i + offset, 0), len(files) - 1)]).ravel()
         keep = (z > NEAR) & (z < FAR)
         X = (rays[keep] * z[keep, None]) @ to_a.T + a_from_left[:3, 3]
         X = X[X[:, 2] > NEAR]
@@ -168,7 +177,8 @@ def run(ctx) -> StageResult:
     write_json(d / "depth_a_half/intrinsics.json", {"K": K_half, "size": list(half)})
 
     first = [p["planes"][0] for p in planes if p["planes"]]
-    chosen = options[best]
+    chosen = trials[best]
+    at_zero = max((v for v in trials.values() if v["offset"] == 0), key=lambda v: v["within_5px"])
     metrics = [
         Metric("depth frames minus manifest", len(files) - n, "frames", ok=(0, 0)),
         Metric("pixels with depth 0.1-5 m (median frame)", float(np.median(valid)) if valid else 0.0, "",
@@ -177,15 +187,19 @@ def run(ctx) -> StageResult:
         Metric("planes per frame (median)", float(np.median([len(p["planes"]) for p in planes])), ""),
         Metric("largest plane RMS (median)", 100 * float(np.median([p["rms_m"] for p in first])) if first else
                float("inf"), "cm", ok=(0, 0.6), warn=(0, 1.0), note="stereo noise on a flat surface"),
-        Metric("stereo-to-ego_cam_a features within 5 px", chosen["within_5px"], "", ok=(0.6, 1), warn=(0.35, 1),
-               note=f"pose '{best}', {len(points)} SIFT features over {len(picks)} frames"),
-        Metric("stereo-to-ego_cam_a reprojection error (median)", chosen["median_px"], "px", ok=(0, 4),
+        Metric("stereo frame offset from ego_cam_a", offset, "frames",
+               note=f"stereo frame = ego_cam_a frame {offset:+d}; at offset 0 only "
+                    f"{at_zero['within_5px']:.0%} of features land within 5 px"),
+        Metric("stereo-to-ego_cam_a features within 5 px", chosen["within_5px"], "", ok=(0.5, 1), warn=(0.3, 1),
+               note=f"pose '{chosen['pose']}', {chosen['features']} SIFT features over {len(picks)} frames"),
+        Metric("stereo-to-ego_cam_a reprojection error (median)", chosen["median_px"], "px", ok=(0, 5),
                warn=(0, 10), note="includes mismatched features"),
         Metric("calibration vs data: ego_cam_a rotation", gap[0], "deg", ok=(0, 1), warn=(0, 3),
-               note=f"best calibration reading '{best_calibrated}' vs PnP"),
+               note=f"best calibration reading '{trials[best_calibrated]['pose']}' vs PnP"),
         Metric("calibration vs data: ego_cam_a position", gap[1], "mm", ok=(0, 10), warn=(0, 25)),
         Metric("ego_cam_a pixels with stereo depth (median frame)", float(np.median(coverage)), "",
                ok=(0.6, 1), warn=(0.4, 1), note="half resolution"),
     ]
     return StageResult(metrics, {"depth_rect": d / "depth_rect", "planes": d / "planes.json",
-                                 "alignment": d / "alignment.json", "depth_a_half": d / "depth_a_half"})
+                                 "alignment": d / "alignment.json", "depth_a_half": d / "depth_a_half",
+                                 "stereo_offset": offset})

@@ -80,8 +80,10 @@ def measure(data: dict, bundle, frames: list[int], planes: dict, alignment: dict
     slots = L.object_slots(data)
     vertices = [L.object_vertices(bundle, data, scale_key, mesh) for _, scale_key, mesh in slots]
     c2w = data["camera_to_world_transform"].astype(np.float64)
+    offset, last = int(alignment.get("offset", 0)), max(planes) if planes else 0
     rows = []
-    for t in frames:
+    for t in frames:  # bundle frame t = ego_cam_a frame t; depth_a_half already applies the offset
+        stereo_planes = planes.get(min(max(t + offset, 0), last), [])
         up = c2w[t, :3, :3].T @ np.array([0.0, 0.0, 1.0])
         w2c = np.linalg.inv(c2w[t])
         depth = read_depth(depth_dir / f"{t:06d}.png")
@@ -98,11 +100,11 @@ def measure(data: dict, bundle, frames: list[int], planes: dict, alignment: dict
         support, tilt = None, np.nan
         if anchor["point"] is not None:
             options = []
-            for normal, offset in planes_in_cam_a(planes.get(t, []), alignment):
+            for normal, distance in planes_in_cam_a(stereo_planes, alignment):
                 angle = np.degrees(np.arccos(np.clip(normal @ up, -1, 1)))
-                height = normal @ anchor["point"] + offset  # object's surface point above the plane
+                height = normal @ anchor["point"] + distance  # object's surface point above the plane
                 if angle <= MAX_TILT_DEG and -0.03 <= height <= 0.6:
-                    options.append((height, offset, angle))
+                    options.append((height, distance, angle))
             if options:
                 _, support, tilt = min(options)
         rays = [np.linalg.norm(o["point"]) / o["ray_bundle"] for o in objects

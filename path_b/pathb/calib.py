@@ -105,28 +105,47 @@ def rectification(calib: dict, reading: str) -> Rectification:
 
 
 def epipolar_check(rect: Rectification, pairs: list[tuple[np.ndarray, np.ndarray]]) -> dict:
-    """Matched ORB features of rectified pairs: a correct rectification puts each match on the same
-    row (median |dy| under a pixel or two), left feature right of its match (positive disparity)."""
-    orb = cv2.ORB_create(4000)
-    matcher = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-    dy, disparity = [], []
+    """Matched SIFT features (sub-pixel) of rectified pairs: a correct rectification puts each
+    match on the same row, left feature right of its match (positive disparity). Also fits the
+    row offset dy = y_left - y_right = a + b (x - w/2) + c (y - h/2) that refine_rows removes."""
+    sift = cv2.SIFT_create(3000)
+    matcher = cv2.BFMatcher(cv2.NORM_L2)
+    rows = []
     for left, right in pairs:
         a, b = rect.rectify(left, right)
-        ka, da = orb.detectAndCompute(a, None)
-        kb, db = orb.detectAndCompute(b, None)
+        ka, da = sift.detectAndCompute(a, None)
+        kb, db = sift.detectAndCompute(b, None)
         if da is None or db is None:
             continue
-        for m in matcher.match(da, db):
-            # full-resolution keypoints only: coarser pyramid levels round positions to whole pixels
-            if m.distance <= 40 and ka[m.queryIdx].octave == 0 and kb[m.trainIdx].octave == 0:
-                (xa, ya), (xb, yb) = ka[m.queryIdx].pt, kb[m.trainIdx].pt
-                dy.append(abs(ya - yb))
-                disparity.append(xa - xb)
-    dy, disparity = np.array(dy), np.array(disparity)
-    on_row = dy < 2.0
-    return {"reading": rect.reading, "matches": int(len(dy)),
-            "median_dy_px": float(np.median(dy)) if len(dy) else float("inf"),
-            "positive_disparity_fraction": float(np.mean(disparity[on_row] > 0.5)) if on_row.any() else 0.0}
+        for m in matcher.knnMatch(da, db, k=2):
+            if len(m) == 2 and m[0].distance < 0.7 * m[1].distance:
+                (xa, ya), (xb, yb) = ka[m[0].queryIdx].pt, kb[m[0].trainIdx].pt
+                if abs(ya - yb) < 30:
+                    rows.append((xa, ya, ya - yb, xa - xb))
+    if len(rows) < 10:
+        return {"reading": rect.reading, "matches": len(rows), "median_dy_px": float("inf"),
+                "positive_disparity_fraction": 0.0, "row_fit": [0.0, 0.0, 0.0], "fit_residual_px": float("inf")}
+    x, y, dy, disparity = np.array(rows).T
+    w, h = rect.size
+    A = np.column_stack([np.ones_like(x), x - w / 2, y - h / 2])
+    fit = np.linalg.lstsq(A, dy, rcond=None)[0]
+    on_row = np.abs(dy) < 2.0
+    return {"reading": rect.reading, "matches": int(len(dy)), "median_dy_px": float(np.median(np.abs(dy))),
+            "positive_disparity_fraction": float(np.mean(disparity[on_row] > 0.5)) if on_row.any() else 0.0,
+            "row_fit": fit.tolist(), "fit_residual_px": float(np.median(np.abs(dy - A @ fit)))}
+
+
+def refine_rows(rect: Rectification, fit: list[float]) -> Rectification:
+    """Shift the rectified right image's rows by the fitted offset, so matches share a row: the
+    factory rectification drifts by a pixel or two in some recordings. Disparity is untouched."""
+    a, b, c = fit
+    w, h = rect.size
+    xs, ys = np.meshgrid(np.arange(w, dtype=np.float32), np.arange(h, dtype=np.float32))
+    source_rows = ys - (a + b * (xs - w / 2) + c * (ys - h / 2)).astype(np.float32)
+    rx, ry = rect.maps[1]
+    right = (cv2.remap(rx, xs, source_rows, cv2.INTER_LINEAR), cv2.remap(ry, xs, source_rows, cv2.INTER_LINEAR))
+    return Rectification(rect.reading, rect.left, rect.right, rect.R, rect.T, rect.R1, rect.R2, rect.P1, rect.P2,
+                         rect.size, (rect.maps[0], right))
 
 
 @dataclass
