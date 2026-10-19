@@ -66,6 +66,24 @@ def fit_plane(points: np.ndarray, iterations: int = 256, threshold: float = 0.01
             "rms_m": float(np.sqrt(np.mean(residual ** 2))), "points": int(len(points))}
 
 
+def fit_planes(points: np.ndarray, count: int = 3, min_share: float = 0.04, threshold: float = 0.01,
+               seed: int = 0) -> list[dict]:
+    """Up to `count` planes, largest first: each fit removes its inliers before the next. A small
+    table next to a large floor needs this; the largest plane alone is often the floor."""
+    planes, remaining = [], points
+    for k in range(count):
+        plane = fit_plane(remaining, threshold=threshold, seed=seed + k)
+        if plane is None:
+            break
+        inliers = np.abs(remaining @ np.array(plane["normal"]) + plane["d"]) < threshold
+        if inliers.sum() < min_share * len(points):
+            break
+        plane["inlier_fraction"] = float(inliers.sum() / len(points))
+        planes.append(plane)
+        remaining = remaining[~inliers]
+    return planes
+
+
 def plane_in(T: np.ndarray, normal: np.ndarray, d: float) -> tuple[np.ndarray, float]:
     """The plane n.X + d = 0 in another frame, where X_new = T X (4x4 rigid)."""
     n = T[:3, :3] @ np.asarray(normal, float)

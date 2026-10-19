@@ -25,7 +25,9 @@ def probe(path) -> dict:
     cap.release()
     if first is None:
         raise RuntimeError(f"no frames decoded from {path}")
-    mono = bool(np.array_equal(first[..., 0], first[..., 1]) and np.array_equal(first[..., 1], first[..., 2]))
+    # mono streams decode to three near-equal channels (YUV chroma rounding leaves a few levels)
+    spread = np.abs(first.astype(np.int16) - first[..., :1].astype(np.int16)).max(axis=2)
+    mono = bool(np.percentile(spread, 99) <= 4)
     return {"path": str(path), "frames": frames, "fps": fps, "size": [first.shape[1], first.shape[0]], "mono": mono}
 
 

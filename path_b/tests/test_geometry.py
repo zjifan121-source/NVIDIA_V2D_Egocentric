@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from pathb.geometry import fit_plane, plane_in, read_depth, write_depth
-from pathb.stages.p3_scale_bridge import stereo_distances, table_distance
+from pathb.geometry import fit_plane, fit_planes, plane_in, read_depth, write_depth
+from pathb.stages.p3_scale_bridge import planes_in_cam_a, ray_surface, stereo_along, table_distance
 
 
 def test_depth_png_round_trip(tmp_path):
@@ -52,11 +52,29 @@ def test_table_distance_is_the_cameras_height_above_the_objects_bottom():
     assert table_distance(cube, T, up=np.array([0.0, -1.0, 0.0])) == pytest.approx(0.40)
 
 
-def test_stereo_distance_is_measured_from_ego_cam_a():
-    planes = [{"frame": 0, "normal": [0.0, -1.0, 0.0], "d": 0.40, "inlier_fraction": 0.5}]
+def test_plane_distance_is_measured_from_ego_cam_a():
+    planes = [{"normal": [0.0, -1.0, 0.0], "d": 0.40}]
     a_from_left = np.eye(4)
     a_from_left[:3, 3] = [-0.0375, -0.02, 0.0]  # ego_cam_a's centre is 2 cm lower (+y) in the left frame
     alignment = {"R1": np.eye(3).tolist(), "a_from_left": a_from_left.tolist()}
-    distance, normal, _ = stereo_distances(planes, alignment, [0])
-    assert distance[0] == pytest.approx(0.38)
-    np.testing.assert_allclose(normal[0], [0, -1, 0])
+    [(normal, distance)] = planes_in_cam_a(planes, alignment)
+    assert distance == pytest.approx(0.38)
+    np.testing.assert_allclose(normal, [0, -1, 0])
+
+
+def test_fit_planes_finds_a_small_table_beside_a_large_floor():
+    _, floor = plane_samples([0.0, -0.8, -0.6], 1.1, n=6000, outliers=0, seed=1)
+    _, table = plane_samples([0.0, -0.8, -0.6], 0.5, n=900, outliers=0, seed=2)
+    planes = fit_planes(np.vstack([floor, table]))
+    assert [round(p["d"], 2) for p in planes[:2]] == [1.1, 0.5]
+
+
+def test_rays_through_the_object_measure_its_surface_in_both_sources():
+    sphere = np.random.default_rng(0).normal(size=(20000, 3))
+    sphere = 0.1 * sphere / np.linalg.norm(sphere, axis=1, keepdims=True) + [0.0, 0.1, 0.6]
+    direction = np.array([0.0, 0.1, 0.6]) / np.linalg.norm([0.0, 0.1, 0.6])
+    assert ray_surface(sphere, direction) == pytest.approx(np.linalg.norm([0, 0.1, 0.6]) - 0.1, abs=0.003)
+    K = np.array([[500.0, 0, 50], [0, 500, 50], [0, 0, 1]])
+    depth = np.full((100, 200), 0.5)
+    point = stereo_along(depth, K, np.array([0.0, 0.0, 1.0]))
+    np.testing.assert_allclose(point, [0, 0, 0.5])

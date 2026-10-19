@@ -117,7 +117,8 @@ def epipolar_check(rect: Rectification, pairs: list[tuple[np.ndarray, np.ndarray
         if da is None or db is None:
             continue
         for m in matcher.match(da, db):
-            if m.distance <= 40:
+            # full-resolution keypoints only: coarser pyramid levels round positions to whole pixels
+            if m.distance <= 40 and ka[m.queryIdx].octave == 0 and kb[m.trainIdx].octave == 0:
                 (xa, ya), (xb, yb) = ka[m.queryIdx].pt, kb[m.trainIdx].pt
                 dy.append(abs(ya - yb))
                 disparity.append(xa - xb)
