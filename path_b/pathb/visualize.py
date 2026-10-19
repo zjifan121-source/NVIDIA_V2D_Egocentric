@@ -211,11 +211,12 @@ def verdicts(page: dict) -> dict:
                   f"At frame 0 the plane used for scale ({chosen['distance_m']:.3f} m from the camera, "
                   f"{chosen['share']:.0%} of points) lies {100 * (b['distance_m'] - chosen['distance_m']):.1f} cm "
                   f"above a larger plane ({b['distance_m']:.3f} m, {b['share']:.0%}): most likely an object's base "
-                  "or the hands rather than the table. P3 takes the nearest plane below the object's surface point.")
+                  "or the hands rather than the table.")
     else:
         stereo = ("neutral", f"{len(legend)} planes",
-                  "The support plane is the horizontal plane just below the object, not the largest plane "
-                  "(often the floor). Circles: where each object's ray samples stereo depth.")
+                  "The support plane is the largest horizontal plane at most 35 cm below the object: not the largest "
+                  "plane overall (often the floor), nor the nearest (an object's base, flat palms). Circles: where "
+                  "each object's ray samples stereo depth.")
     return {
         "waterfall": ("good" if gain > 0.005 else "bad" if gain < -0.005 else "neutral",
                       f"stereo scale {gain:+.3f} AUC",

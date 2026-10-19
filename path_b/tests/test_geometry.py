@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from pathb.geometry import fit_plane, fit_planes, plane_in, read_depth, write_depth
-from pathb.stages.p3_scale_bridge import planes_in_cam_a, ray_surface, stereo_along, table_distance
+from pathb.stages.p3_scale_bridge import planes_in_cam_a, ray_surface, stereo_along, support_plane, table_distance
 
 
 def test_depth_png_round_trip(tmp_path):
@@ -60,6 +60,16 @@ def test_plane_distance_is_measured_from_ego_cam_a():
     [(normal, distance)] = planes_in_cam_a(planes, alignment)
     assert distance == pytest.approx(0.38)
     np.testing.assert_allclose(normal, [0, -1, 0])
+
+
+def test_support_is_the_largest_plane_under_the_object_not_the_nearest():
+    """ep13 frame 0: floor 1.136 m (43% of points), table 0.531 m (21%), dish rack base 0.505 m (7%)."""
+    up = np.array([0.0, -1.0, 0.0])  # camera y points down
+    point = np.array([0.0, 0.37, 0.6])  # the cup's stereo surface point, 37 cm below the camera
+    floor, table, rack = ((up, d, s) for d, s in ((1.136, 0.43), (0.531, 0.21), (0.505, 0.07)))
+    distance, tilt = support_plane([floor, table, rack], up, point)
+    assert distance == pytest.approx(0.531) and tilt == pytest.approx(0.0)
+    assert support_plane([floor], up, point) is None  # the floor is 77 cm below the cup
 
 
 def test_fit_planes_finds_a_small_table_beside_a_large_floor():

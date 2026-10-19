@@ -4,8 +4,9 @@ Until Path B tracks objects itself (Stage 2), its output is the team's HF bundle
 metric scale. Two rulers, both in the camera frame (the SLAM world's own scale problems stay out),
 both over the rest frames before a hand reaches an object:
   support plane  the camera's height above the surface the object rests on: from stereo (the
-                 horizontal plane just below the object's stereo surface point) and from the
-                 bundle (its lowest mesh point along the bundle's gravity "up");
+                 largest horizontal plane at most 35 cm below the object's stereo surface point,
+                 see support_plane) and from the bundle (its lowest mesh point along the bundle's
+                 gravity "up");
   object ray     the distance from the camera to the object's surface along the ray through the
                  object's centre: from stereo depth in ego_cam_a's view and from the bundle mesh.
 factor = median of the support-plane ratios (stereo / bundle); the object-ray ratio is the
@@ -27,6 +28,7 @@ REST_FRAMES = 30  # recordings open with both hands raised over the table (READM
 REACH_CM = 10.0  # rest ends when a wrist comes this close (stage 2's rest hold uses the same)
 MIN_FRAMES = 5
 MAX_TILT_DEG = 20.0  # a plane tilted further from the bundle's gravity is not a support surface
+SUPPORT_BELOW = 0.35  # the support surface lies at most this far (m) below the object's surface point
 RAY_CONE_DEG = 1.5  # mesh vertices this close to the ray stand for the surface it hits
 WINDOW = 3  # half-size of the depth window sampled around the ray (half-resolution pixels)
 
@@ -51,6 +53,24 @@ def planes_in_cam_a(frame_planes: list[dict], alignment: dict) -> list[tuple[np.
     R1, a_from_left = np.array(alignment["R1"]), np.array(alignment["a_from_left"])
     # the rectified and unrectified left cameras share their origin
     return [plane_in(a_from_left, R1.T @ np.array(p["normal"]), p["d"]) for p in frame_planes]
+
+
+def support_plane(planes: list[tuple[np.ndarray, float, float]], up: np.ndarray,
+                  point: np.ndarray) -> tuple[float, float] | None:
+    """(distance from the camera, tilt from `up` in degrees) of the surface the object stands on,
+    from (normal, distance, share of points) planes: the largest horizontal plane at most
+    SUPPORT_BELOW under the object's surface point. Not the nearest plane below it: a dish rack's
+    base or flat palms often lie between object and table (ep13: 12 of 18 rest frames)."""
+    options = []
+    for normal, distance, share in planes:
+        angle = float(np.degrees(np.arccos(np.clip(normal @ up, -1, 1))))
+        height = normal @ point + distance  # object's surface point above the plane
+        if angle <= MAX_TILT_DEG and -0.03 <= height <= SUPPORT_BELOW:
+            options.append((share, distance, angle))
+    if not options:
+        return None
+    _, distance, angle = max(options)
+    return float(distance), angle
 
 
 def ray_surface(X: np.ndarray, direction: np.ndarray) -> float:
@@ -99,14 +119,11 @@ def measure(data: dict, bundle, frames: list[int], planes: dict, alignment: dict
         anchor = max(objects, key=lambda o: o["table_bundle"])
         support, tilt = None, np.nan
         if anchor["point"] is not None:
-            options = []
-            for normal, distance in planes_in_cam_a(stereo_planes, alignment):
-                angle = np.degrees(np.arccos(np.clip(normal @ up, -1, 1)))
-                height = normal @ anchor["point"] + distance  # object's surface point above the plane
-                if angle <= MAX_TILT_DEG and -0.03 <= height <= 0.6:
-                    options.append((height, distance, angle))
-            if options:
-                _, support, tilt = min(options)
+            in_a = planes_in_cam_a(stereo_planes, alignment)
+            chosen = support_plane([(n, dist, p["inlier_fraction"]) for (n, dist), p in zip(in_a, stereo_planes)],
+                                   up, anchor["point"])
+            if chosen:
+                support, tilt = chosen
         by_object = [np.linalg.norm(o["point"]) / o["ray_bundle"]
                      if o["point"] is not None and np.isfinite(o["ray_bundle"]) else None for o in objects]
         rows.append({"frame": t, "table_bundle": anchor["table_bundle"], "table_stereo": support,
