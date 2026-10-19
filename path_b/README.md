@@ -48,7 +48,9 @@ Needs: the dataset in `assets/data/track_3/`, the team's bundles in
 `baseline/reconstruction/data/outputs/hub/` (`tools/track3/bundles.py download`), the baseline
 host venv `baseline/reconstruction/.venv` with `-e modules/v2d_foundation_stereo/docker`, the
 `v2d_foundation_stereo` image and its engine (`run_download_weights.py`, `run_export_engine.py`),
-and for stages 2–3 the environment of README §5.12 in `RETARGET_VENV`.
+and for stages 2–3 the environment of README §5.12 in `RETARGET_VENV`. `vm/setup.sh` sets all of
+this up on a new instance, and `vm/hf_outputs.py` saves and restores outputs on Hugging Face
+(`vm/README.md`).
 
 ```bash
 uv sync --project path_b
