@@ -5,7 +5,7 @@ Private team repository for the **NVIDIA Isaac Video-to-Data (V2D) Challenge, Tr
 It is built on NVIDIA's [`video_to_data`](https://github.com/nvidia-isaac/video_to_data) at `main` @ `8c778f9` (v0.4.0 + 6 commits), the revision the submission kit pins for its policy evaluator. The team works on two independent approaches, side by side in one repo:
 
 - **Path A: build on the baseline.** New code goes in `path_a/`; fixes to NVIDIA's files are made in place under `baseline/`, each marked with a modification header.
-- **Path B: a completely new approach.** Lives in `path_b/` and shares only the inputs, docs and evaluation from `assets/`.
+- **Path B: a completely new approach.** Lives in `path_b/` and shares the inputs, docs and evaluation from `assets/`; it calls `baseline/` modules only read-only.
 
 Both paths are scored with the same official evaluator, so their results are directly comparable. Everyone works on their own branch and sends changes through `main_buffer` before they reach `main` ([§3](#3-branches-and-workflow)).
 
@@ -94,7 +94,7 @@ Rules that keep this layout working:
 - **`baseline/` is NVIDIA's `8c778f9` plus Path A's marked edits.** Every edited NVIDIA file carries a modification header. To list every NVIDIA file the team has changed:
   `git diff --stat d9264a4 origin/main -- baseline/`
 - **Path A** puts new code in `path_a/` and edits `baseline/` in place.
-- **Path B** lives entirely in `path_b/`. It uses only `assets/` (inputs, docs, evaluation) and never touches `baseline/`.
+- **Path B** lives entirely in `path_b/`. It uses `assets/` (inputs, docs, evaluation) and never edits `baseline/`; it may call `baseline/` modules read-only (§7).
 - **`tools/`** is shared by both paths: anything both need to run, score or submit (e.g. the local scorer) goes here, not in `path_a/` or `path_b/`.
 
 ---
@@ -533,7 +533,7 @@ Known weak points of the baseline (good first targets):
 ### Path B: a completely new approach
 
 - All code lives in `path_b/`, with its own entrypoint, stages and Docker images.
-- It uses only `assets/` (inputs, docs and the official evaluator). It does not use or edit `baseline/`.
+- It uses `assets/` (inputs, docs and the official evaluator). It does not edit `baseline/`, but may call its modules read-only (agreed 2026-10-18; e.g. `v2d_foundation_stereo` through its own launcher).
 
 ### Before opening a PR
 
