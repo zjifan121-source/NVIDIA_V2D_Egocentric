@@ -104,6 +104,12 @@ def stage(run: str, frames: bool) -> tuple[Path, dict]:
                     tar.add(path, arcname=str(path.relative_to(episode)))
             manifest["frames"][episode.name] = {"files": len(frame_files), "bytes": tar_path.stat().st_size,
                                                 "sha256": sha256(tar_path)}
+    # run-level files, e.g. the waterfall summary over all episodes
+    for path in sorted(p for p in src.iterdir() if p.is_file() and not p.is_symlink()):
+        dest.mkdir(parents=True, exist_ok=True)
+        os.link(path, dest / path.name)
+        manifest["results"]["files"] += 1
+        manifest["results"]["bytes"] += path.stat().st_size
     manifest["commits"] = sorted(manifest["commits"])
     (dest / "MANIFEST.json").write_text(json.dumps(manifest, indent=1) + "\n")
     return root, manifest
