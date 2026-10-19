@@ -170,7 +170,7 @@ function diverging(rows, o = {}) {
     const colour = r.color || (v >= 0 ? "var(--s3)" : "var(--crit)");
     g += `<text class="rl" x="${lw - 10}" y="${y + rh / 2}" dominant-baseline="middle" text-anchor="end">${esc(r.label)}</text>` +
       `<rect x="${x}" y="${y + 7}" width="${Math.max(w, 1)}" height="${rh - 14}" rx="3" style="fill:${colour}"/>` +
-      `<text class="val" x="${v >= 0 ? X(v) + 6 : X(v) - 6}" y="${y + rh / 2}" dominant-baseline="middle" text-anchor="${v >= 0 ? "start" : "end"}">${(v >= 0 ? "+" : "") + num(v)}</text>`;
+      `<text class="val" x="${v >= 0 ? X(v) + 6 : X(v) - 6}" y="${y + rh / 2}" dominant-baseline="middle" text-anchor="${v >= 0 ? "start" : "end"}">${esc(r.text ?? (v >= 0 ? "+" : "") + num(v))}</text>`;
   });
   return g + "</svg>";
 }
@@ -228,7 +228,7 @@ function render() {
   const S = P.waterfall.scores, stereo = S.stage2_stereo, base = S.stage2;
   document.title = `Episode ${P.episode} Scale Bridge`;
   let h = `<header><h1>Episode ${P.episode}: where the scale bridge gains and loses points</h1>
-    <div class="meta">${esc(P.objects.join(" + "))} · ${esc(P.split)}${P.task ? " · " + esc(P.task) : ""} · Path B run <code>${esc(P.commit)}</code> (${esc(P.finished)})</div>
+    <div class="meta">${esc(P.objects.join(" + "))} · ${esc(P.split)}${P.task ? " · " + esc(P.task) : ""} · Path B run <code>${esc(P.commit)}</code>, ${esc(String(P.finished).slice(0, 16).replace("T", " "))} UTC</div>
     <div class="kpis">
       <div class="kpi"><div class="v">${num(base.AUC)} → ${num(stereo.AUC)}</div><div class="l">Reconstruction-only AUC, stage 2 → Path B (higher is better)</div></div>
       <div class="kpi"><div class="v">${num(base["MPPE cm"], 2)} → ${num(stereo["MPPE cm"], 2)} cm</div><div class="l">Mean keypoint error (lower is better)</div></div>
@@ -241,8 +241,9 @@ function render() {
   const metrics = ["AUC", "SP-SR", "MP-SR", "MPPE cm", "RPE cm", "CD-O cm"];
   h += `<section><h2>1 · Score waterfall ${verdict("waterfall")}</h2>${takeaway("waterfall")}
     <div class="two"><div><div class="ctitle">AUC at each step</div><div class="chart">${hbar(V.map(v => ({label: P.waterfall.labels[v], value: S[v].AUC, color: colours[v]})), {max: 1})}</div></div>
-    <div><div class="ctitle">Where the AUC points go</div><div class="chart">${diverging(Object.entries(P.waterfall.attribution).map(([k, v]) => ({label: k, value: v, color: k.startsWith("tracking") ? "var(--neutral)" : undefined})))}</div>
-    <p class="note">Gains are green, losses red. The last row is what no scale can fix: tracking, mesh and placement (Stage 2–3 work).</p></div></div>
+    <div><div class="ctitle">Where the AUC points go</div><div class="chart">${diverging(Object.entries(P.waterfall.attribution).map(([k, v]) => k.startsWith("tracking") ?
+      {label: k, value: v, color: "var(--neutral)", text: num(v) + " still missing"} : {label: k, value: v}))}</div>
+    <p class="note">Gains are green, losses red. The grey row is what no scale can fix, the points still missing to a perfect 1.0: tracking, mesh and placement (Stage 2–3 work).</p></div></div>
     <div class="scroll"><table><thead><tr><th>Step</th>${metrics.map(m => `<th class="num">${m}</th>`).join("")}</tr></thead><tbody>
     ${V.map(v => `<tr class="${v === "stage2_stereo" ? "best" : ""}"><td><i class="sw" style="background:${colours[v]}"></i>${esc(P.waterfall.labels[v])}</td>${metrics.map(m => `<td class="num">${num(S[v][m], m.includes("cm") ? 2 : 3)}</td>`).join("")}</tr>`).join("")}
     </tbody></table></div><p class="note">Official metric code against public ground truth, no simulation. AUC, SP-SR, MP-SR: higher is better; MPPE, RPE, CD-O: lower is better.</p></section>`;
@@ -258,7 +259,8 @@ function render() {
     </div>
     <div class="scroll"><table><thead><tr><th>Plane</th><th class="num">Distance from ego_cam_a</th><th class="num">Share of points</th><th>Used</th></tr></thead><tbody>
     ${st.legend.map((p, i) => `<tr><td><i class="sw" style="background:var(--${p.colour})"></i>Plane ${i + 1}</td><td class="num">${num(p.distance_m)} m</td><td class="num">${num(100 * p.share, 0)}%</td><td>${p.chosen ? "<b>support plane</b>" : ""}</td></tr>`).join("")}
-    </tbody></table></div></section>`;
+    </tbody></table></div>
+    <p class="note">Shares count stereo points in the lower 60% of the image; the floor is usually the largest plane and the farthest.</p></section>`;
 
   // 3. Rulers
   const R = P.rulers, names = Object.keys(R.ray_ratio);
@@ -287,11 +289,11 @@ function render() {
       {name: "after scan rescale", color: "var(--s2)", values: m.scan_rescaled || [null, null, null]}]})}</div>
       <p class="note">${m.scan ? `Stereo-rescaled mesh is ${num(m.stereo.reduce((a, v, i) => a + v / m.scan[i], 0) / 3, 2)}× the scan; the bundle mesh was ${num(m.bundle.reduce((a, v, i) => a + v / m.scan[i], 0) / 3, 2)}×.` : "No public scan for this object."}</p></div>`).join("")}</div>
     <div class="ctitle" style="margin-top:12px">Which factor each source asks for (× every length in the bundle)</div>
-    <div class="chart">${dotPlot([
+    <div class="chart" style="max-width:760px">${dotPlot([
       {label: "Stereo, support plane (used)", value: F["support plane"], color: "var(--s1)"},
       {label: "Stereo, object rays", value: F["object ray"], color: "var(--s3)"},
       {label: "Scan oracle (mesh size)", value: F["scan oracle"], color: "var(--s2)"},
-      {label: "Real motion (ground truth)", value: F.motion, color: "var(--text)"}], {reference: F.motion})}</div>
+      {label: "Real motion (ground truth)", value: F.motion, color: "var(--text)"}], {reference: F.motion, w: 740, labelW: 240})}</div>
     <p class="note">The dashed line is the factor that makes the bundle's objects move as far as the real ones (section 5). The scan oracle only says how big the mesh is; when the bundle's mesh and world disagree, it points the wrong way.</p></section>`;
 
   // 5. Motion vs ground truth
@@ -302,9 +304,10 @@ function render() {
     <div class="two">${P.motion.objects.map(o => `<div><div class="ctitle">${esc(o.name)}: distance from its start position (cm)</div><div class="chart">${lineChart({x: frames, xlabel: "frame", ymin: 0,
       series: MV.filter(([k]) => o.series[k]).map(([k, label, c, w]) => ({name: label, values: o.series[k], color: c, width: w, dash: k === "stage2_scan" ? "6 4" : null}))})}</div></div>`).join("")}</div>
     <div class="scroll"><table><thead><tr><th>Object</th><th class="num">Real peak</th>${MV.slice(1).map(([, label]) => `<th class="num">${esc(label)}</th>`).join("")}</tr></thead><tbody>
-    ${P.motion.objects.map(o => `<tr><td>${esc(o.name)}</td><td class="num">${num(o.gt_peak_cm, 1)} cm</td>${MV.slice(1).map(([k]) => `<td class="num">${o.peak_ratio[k] != null ? num(o.peak_ratio[k], 2) + "×" : "–"}</td>`).join("")}</tr>`).join("")}
+    ${P.motion.objects.map(o => `<tr><td>${esc(o.name)}</td><td class="num">${num(o.gt_peak_cm, 1)} cm</td>${MV.slice(1).map(([k]) => `<td class="num">${
+      o.gt_peak_cm < 2 ? (o.peak_cm[k] != null ? num(o.peak_cm[k], 1) + " cm drift" : "–") : (o.peak_ratio[k] != null ? num(o.peak_ratio[k], 2) + "×" : "–")}</td>`).join("")}</tr>`).join("")}
     </tbody></table></div>
-    <p class="note">Peak distance from the start, as a multiple of the real peak (1.00× = right scale). Distances are rotation-free, so no alignment is needed; the bundle tracks its mesh origin and the ground truth the scan origin, so turning objects add a few cm either way. Stage 2 holds objects still until a hand reaches them.</p></section>`;
+    <p class="note">Peak distance from the start, as a multiple of the real peak (1.00× = right scale). An object that really stays put (under 2 cm) shows how far each version wanders instead. Distances are rotation-free, so no alignment is needed; the bundle tracks its mesh origin and the ground truth the scan origin, so turning objects add a few cm either way. Stage 2 holds objects still until a hand reaches them.</p></section>`;
 
   // 6. Camera checks
   const C = P.camera;
@@ -321,7 +324,7 @@ function render() {
   h += `<section><h2>7 · Every measurement ${verdict("table")}</h2>${takeaway("table")}
     <label class="filter"><input type="checkbox" id="only"> Show only WARN and FAIL</label>
     <div class="scroll"><table id="m"><thead><tr><th>Stage</th><th>Measurement</th><th class="num">Value</th><th>Unit</th><th>Bar</th><th>Kind</th><th>Status</th><th>Note</th></tr></thead><tbody>
-    ${rows.map(m => `<tr data-s="${m.status}"><td>${esc(m.stage)}</td><td>${esc(m.name)}</td><td class="num">${typeof m.value === "number" ? num(m.value, Math.abs(m.value) >= 10 ? 1 : 3) : esc(m.value ?? "–")}</td><td>${esc(m.unit)}</td><td class="note">${esc(m.bar)}</td><td>${esc(m.kind)}</td><td><span class="chip c-${m.status}">${m.status}</span></td><td class="note">${esc(m.note)}</td></tr>`).join("")}
+    ${rows.map(m => `<tr data-s="${m.status}"><td>${esc(m.stage)}</td><td>${esc(m.name)}</td><td class="num">${typeof m.value === "number" ? (Number.isInteger(m.value) ? m.value : num(m.value, Math.abs(m.value) >= 10 ? 1 : 3)) : esc(m.value ?? "–")}</td><td>${esc(m.unit)}</td><td class="note">${esc(m.bar)}</td><td>${esc(m.kind)}</td><td><span class="chip c-${m.status}">${m.status}</span></td><td class="note">${esc(m.note)}</td></tr>`).join("")}
     </tbody></table></div></section>`;
 
   h += `<footer>Made by <code>path_b/run.py visualize</code> from Path B run ${esc(P.commit)}${P.gpu ? " on " + esc(P.gpu) : ""}. Ground truth and scans are public data, used for scoring only.</footer>`;
