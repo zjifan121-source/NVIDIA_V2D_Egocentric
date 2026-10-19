@@ -107,10 +107,11 @@ def measure(data: dict, bundle, frames: list[int], planes: dict, alignment: dict
                     options.append((height, distance, angle))
             if options:
                 _, support, tilt = min(options)
-        rays = [np.linalg.norm(o["point"]) / o["ray_bundle"] for o in objects
-                if o["point"] is not None and np.isfinite(o["ray_bundle"])]
+        by_object = [np.linalg.norm(o["point"]) / o["ray_bundle"]
+                     if o["point"] is not None and np.isfinite(o["ray_bundle"]) else None for o in objects]
         rows.append({"frame": t, "table_bundle": anchor["table_bundle"], "table_stereo": support,
-                     "tilt_deg": tilt, "ray_ratios": rays})
+                     "tilt_deg": tilt, "ray_ratios": [r for r in by_object if r is not None],
+                     "ray_by_object": by_object})
     return rows
 
 
