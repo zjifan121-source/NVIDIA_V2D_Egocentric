@@ -11,6 +11,30 @@ Recommend a **VLM-orchestrated, stereo-metric object reconstructor** (hybrid of 
 - **Why not a pure VLA (candidate C):** Track 3 scores a reconstructed object mesh plus object trajectories, a VLA produces neither, and 20 public episodes on 1–2 GPUs is far too little to fine-tune one.
 - **"End-to-end" here means** one entrypoint from video to trajectory + mesh, not one network. No single published model outputs metric multi-object 6-DoF poses and meshes from ego video.
 
+## Progress (2026-10-19)
+
+Stage 1 is done and merged (PR #13): stereo metric scale lifts mean reconstruction-only AUC on the public episodes from 0.314 to 0.420, above the scan-based rescale (0.388).
+
+| Stage | Window | Status |
+| --- | --- | --- |
+| 1. Scorer + metric depth | Oct 13–18 | Done Oct 19: Path B's own pipeline (P0–P4, per-stage loss reports), merged as PR #13 |
+| 2. Multi-object + flips | Oct 19–25 | Plan settled Oct 19; waits for SAM 3 access (HTTP 403 for `JzJz7779`) |
+| 3. Mesh + world frame | Oct 26–Nov 1 | Not started |
+| 4. Freeze | Nov 2–4 | Not started |
+
+| Step (19 public episodes) | AUC | MP-SR | MPPE (cm) |
+| --- | --- | --- | --- |
+| Team bundles, raw | 0.270 | 0.053 | 11.90 |
+| + stage 2 repairs | 0.314 | 0.053 | 11.15 |
+| **+ Path B stereo scale** | **0.420** | **0.158** | **8.97** |
+| + scan-based rescale (comparison) | 0.388 | 0.105 | 10.63 |
+
+- Stereo scale wins on 14 episodes and loses on 2 (ep18, where the bundle tracks the wrong object; ep45 by 0.01). Reconstruction only: no policy is trained on it yet. ep24 errored and is not counted.
+- The plane-rule rerun (largest plane under the object) scores 0.418 with steadier support planes; the remaining noise is the bundle-side ruler, which Stage 2's stereo object positions replace.
+- Camera facts the plan did not know: the stereo streams lead `ego_cam_a` by one frame (two on ep21–22); the factory rectification is \~2 px off in rows (corrected per episode); the calibration's extrinsics match a PnP fit to 0.26° / 5 mm.
+- The scan-based rescale measures mesh size, which disagrees with world scale in the team's bundles, so it is no oracle for the trajectory scale.
+- Code is in `path_b/` (`main_buffer`; visualize pages and instance tools on `zjifan121`); outputs are in the team's HF dataset under `path_b/runs/`; a new GPU instance is rebuilt with `path_b/vm/setup.sh`.
+
 ## Verified on our public bundles (2026-10-18)
 
 The approach stands: every targeted problem shows up in the team's 33 public bundles (HF `rose-tea-cafe/v2d-t3-recon` @ `e2492c6`, built from NVIDIA `8c778f9`, whose reconstruction code is identical to v0.4.0). Measured from the bundles' poses, meshes, intrinsics and run commands; mesh size is compared with the public scans; score impacts are the team's existing results. No scorer was run and no evaluation episode was used.
@@ -166,8 +190,8 @@ The scans are used only for scoring, never as submitted meshes, per the [FAQ](ht
 
 Four stages fit before the Nov 4 freeze, ordered so the biggest expected gain lands first and each stage is shippable alone.
 
-1. **Oct 13–18: scorer + metric depth.** Local Vicon scorer; factory-calibration undistortion; `v2d_foundation_stereo` depth swapped in for MoGe inside the v0.4.0 ego flow. First leaderboard submission.
-2. **Oct 19–25: multi-object + flips.** VLM object list → SAM 3 tracks; per-object FoundationPose with a symmetry group (adapted from `multiview_tracker.py`) and pose-gated re-registration.
+1. **Oct 13–18: scorer + metric depth.** Local Vicon scorer; factory-calibration undistortion; `v2d_foundation_stereo` depth swapped in for MoGe inside the v0.4.0 ego flow. First leaderboard submission. Done Oct 19 as Path B's own pipeline (PR #13), not inside the v0.4.0 flow; see Progress.
+2. **Oct 19–25: multi-object + flips.** VLM object list → SAM 3 tracks; per-object FoundationPose with a symmetry group (adapted from `multiview_tracker.py`) and pose-gated re-registration. Plan settled Oct 19: the VLM only boxes the roster's named objects, SAM 3 masks them, and stereo object positions become P3's ruler; waits for SAM 3 access.
 3. **Oct 26–Nov 1: mesh + world frame.** Mesh from the HOI module's SAM3D mode (seeded candidates from several frames, `--sam3d_use_depth` with stereo); BundleSDF only if an episode shows enough sides. Camera trajectory; table-plane + gravity world.
 4. **Nov 2–4: freeze.** Seed selection; v0.4.0 grounding (retarget to Sharpa Wave → RL expert or FlashCHORD); final submissions (unlimited in the last three days).
 
@@ -175,11 +199,13 @@ Four stages fit before the Nov 4 freeze, ordered so the biggest expected gain la
 
 **Risks:**
 
-- Stereo is mono 1280×800 and offset from `ego_cam_a`; depth must be reprojected into the colour camera using the shipped extrinsics.
+- Stereo is mono 1280×800 and offset from `ego_cam_a`; depth must be reprojected into the colour camera using the shipped extrinsics. Done in P2; the streams are also offset by one frame, found and corrected per episode.
 - The shipped FoundationStereo engine takes 576×960 input, so stereo depth is lower resolution than the colour frames.
-- `ego_cam_a` calibration lists `rotation_deg: 180`; check frame orientation before detection runs.
+- Resolved: the released frames are upright, and the calibration's stated stereo pair (left `ego_cam_c`) with its listed intrinsics fits the frames best (P1 checks all four readings per episode).
 - Hands still come from the baseline's trackers (HaMeR or the new HaWoR); Path B does not improve them, and grounding needs them.
 - The kit publishes the alignment rule, but our local scorer estimates the hidden anchor points and symmetry axes from the scans, so local numbers can differ slightly from the leaderboard's.
+- SAM 3 (`facebook/sam3`) is gated with manual approval; Stage 2's masks wait for it.
+- Stages 2–3 on Path B's bundles run only for single-object episodes until `run_load_retarget.py` can merge Path B's rescaled bundles (16 of 20 evaluation episodes have two objects).
 
 ## Open questions
 
