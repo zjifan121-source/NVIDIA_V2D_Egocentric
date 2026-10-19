@@ -79,7 +79,8 @@ def run(ctx) -> StageResult:
     w, h = rect.size
     metrics = [
         Metric("row offset with the factory rectification (median |dy|)", chosen["median_dy_px"], "px",
-               ok=(0, 1.0), warn=(0, 3.0), note=f"reading '{best}'; next best {runner_up:.2f} px; "
+               ok=(0, 3.0), warn=(0, 6.0), note=f"corrected below; large drift hints at a wrong reading. "
+               f"Reading '{best}'; next best {runner_up:.2f} px; "
                f"fit {a:+.2f} px, {b * w / 2:+.2f} px at the sides, {c * h / 2:+.2f} px at top/bottom"),
         Metric("row offset after the correction (median |dy|)", refined["median_dy_px"], "px", ok=(0, 0.5),
                warn=(0, 1.0), note="stereo matching assumes matches share a row"),
