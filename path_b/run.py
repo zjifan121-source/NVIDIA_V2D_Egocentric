@@ -4,6 +4,7 @@ Run from the repo root (README in path_b/):
     uv run --project path_b python path_b/run.py run --episodes 41
     uv run --project path_b python path_b/run.py run --split public [--stages p0_ingest p1_calibrate] [--force]
     uv run --project path_b python path_b/run.py waterfall --split public
+    uv run --project path_b python path_b/run.py visualize --episodes 13     # after run and waterfall
 Outputs: path_b/data/outputs/<run>/episode_XXXXXX/{<stage>/report.json, run.json, loss_report.md, ...};
 <run> defaults to the commit, so code changes never reuse stale results.
 """
@@ -27,7 +28,7 @@ def episodes(args) -> list[int]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=("run", "waterfall"))
+    parser.add_argument("command", choices=("run", "waterfall", "visualize"))
     which = parser.add_mutually_exclusive_group(required=True)
     which.add_argument("--episodes", type=int, nargs="+")
     which.add_argument("--split", choices=("public", "evaluation", "all"))
@@ -46,6 +47,16 @@ def main() -> int:
             if report["first_failing_stage"]:
                 failed.append(f"{number}: {report['first_failing_stage']}")
         print("first failing stage per episode: " + (", ".join(failed) or "none"))
+        return 0
+
+    if args.command == "visualize":
+        from pathb import visualize
+        for number in episodes(args):
+            root = out / f"episode_{number:06d}"
+            if not (root / "waterfall.json").is_file():
+                print(f"episode {number}: run and waterfall first, skipped", flush=True)
+                continue
+            print(f"page: {visualize.page(root)}", flush=True)
         return 0
 
     from pathb import waterfall
