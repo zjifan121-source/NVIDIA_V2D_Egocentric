@@ -276,7 +276,7 @@ function render() {
         {name: "support plane", values: R.plane_ratio, color: "var(--s1)", dots: true, width: 2},
         ...names.map((n, i) => ({name: `ray through ${n}`, values: R.ray_ratio[n], color: OBJ[i], dots: true, width: 1.5}))],
         hlines: [{y: R.factor, color: "var(--s1)", label: `factor ${num(R.factor)}`}, {y: R.oracle, color: "var(--s2)", label: R.oracle ? `scan ${num(R.oracle)}` : ""}]})}</div></div></div>
-    <p class="note">The factor is the median of the support-plane ratios over these frames. A ratio that jumps means the plane under the object switched (table vs. rim or rack); rays through different objects disagreeing means the bundle's camera-frame scale differs per object.</p></section>`;
+    <p class="note">The factor is the median of the support-plane ratios over these frames. The head barely moves before the reach, so both lines on the left should be flat: a jumping stereo line means the plane under the object switched; a jumping bundle line means the bundle's object pose or mesh moved. Rays through different objects disagreeing means the bundle's camera-frame scale differs per object.</p></section>`;
 
   // 4. Mesh size vs world scale
   const dims = ["longest", "middle", "shortest"], F = P.factors;
