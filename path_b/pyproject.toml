@@ -1,0 +1,29 @@
+[project]
+name = "v2d-t3-path-b"
+version = "0.1.0"
+description = "Path B: Track 3 videos to kit-ready reconstruction bundles, with stereo metric scale and a loss report per stage"
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    # Imported in-process from tools/track3 (run_load_retarget, score_local) and the kit's v2dlb:
+    # the packages of tools/pyproject.toml, minus its Kaggle and Hugging Face clients.
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "pyarrow>=14.0",
+    "scipy>=1.11",
+    "trimesh>=4.0",
+    "fast_simplification>=0.1",
+    "pillow",
+    "networkx",  # trimesh's stable poses, used by stage 2's levelling (cleaned_bundle)
+    # Path B's own: video decoding, undistortion, rectification, feature matching.
+    "opencv-python-headless>=4.10",
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

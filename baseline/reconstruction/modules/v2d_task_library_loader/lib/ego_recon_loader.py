@@ -326,6 +326,20 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
                 npz[f"hand_{side}_finger_pose"].astype(np.float32).reshape(H, 45)
             )
 
+            hand_scale = np.broadcast_to(
+                np.asarray(npz.get(f"hand_{side}_scale", 1.0), dtype=np.float64), (H,)
+            ).copy()
+            if not np.isfinite(hand_scale).all() or not (hand_scale > 0).all():
+                raise ValueError(f"Invalid {side} hand scale")
+            # Preserve reconstruction's centroid convention, including right-MANO
+            # plus mirror-X for LEFT. Native-left conversion below is unchanged.
+            with torch.no_grad():
+                center_cam = self._ensure_mano().bundle_centroid(
+                    torch.from_numpy(orient_cam).float(),
+                    torch.from_numpy(finger_pose).float(),
+                    torch.from_numpy(betas).float().reshape(1, 10).expand(H, 10), side
+                ).cpu().numpy().astype(np.float64)
+
             # WiLoR/HaMeR store LEFT-hand MANO params in RIGHT-hand parameter space
             # (HaMeR flips left->right and only mirrors the OUTPUT mesh). manotorch's
             # native left layer (used by read_mano) expects native-left params, so
@@ -356,6 +370,8 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
                 np.einsum("nij,nj->ni", Rc2w, cam_t + j0) + tc2w - j0
             ).astype(np.float32)
 
+            # In zero-translation world-MANO coordinates: v_w = R(v_c-J0)+J0.
+            center_world = np.einsum("nij,nj->ni", Rc2w, center_cam - j0) + j0
             self._validate_world_repose(
                 side,
                 betas,
@@ -366,6 +382,9 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
                 tc2w,
                 global_orient_world,
                 trans_world,
+                hand_scale,
+                center_cam,
+                center_world,
             )
 
             out[f"{side}_global_orient"] = torch.from_numpy(global_orient_world).to(
@@ -375,6 +394,8 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
             out[f"{side}_trans"] = torch.from_numpy(trans_world).to(device)
             out[f"{side}_betas"] = torch.from_numpy(betas).to(device)
             out[f"{side}_fitting_err"] = torch.zeros(H, device=device)
+            out[f"{side}_scale"] = torch.from_numpy(hand_scale).float().to(device)
+            out[f"{side}_scale_center"] = torch.from_numpy(center_world).float().to(device)
 
         npz.close()
         return out
@@ -390,6 +411,9 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
         tc2w: np.ndarray,
         global_orient_world: np.ndarray,
         trans_world: np.ndarray,
+        hand_scale: np.ndarray,
+        center_cam: np.ndarray,
+        center_world: np.ndarray,
     ) -> None:
         """HARD GATE: FK'd world joints must equal R_c2w @ joints_cam + t_c2w.
 
@@ -408,6 +432,8 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
                 global_orient=torch.from_numpy(orient_cam[idx]).float(),
                 transl=torch.from_numpy(cam_t[idx]).float(),
                 finger_pose=finger_t,
+                scale=torch.from_numpy(hand_scale[idx]).float(),
+                scale_center=torch.from_numpy(center_cam[idx]).float(),
             )["joints"]
             .cpu()
             .numpy()
@@ -424,6 +450,8 @@ class EgoReconDatasetLoader(DatasetLoaderBase):
                 global_orient=torch.from_numpy(global_orient_world[idx]).float(),
                 transl=torch.from_numpy(trans_world[idx]).float(),
                 finger_pose=finger_t,
+                scale=torch.from_numpy(hand_scale[idx]).float(),
+                scale_center=torch.from_numpy(center_world[idx]).float(),
             )["joints"]
             .cpu()
             .numpy()
