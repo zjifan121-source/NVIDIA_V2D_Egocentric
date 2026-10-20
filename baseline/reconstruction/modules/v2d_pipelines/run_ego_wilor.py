@@ -526,6 +526,103 @@ def _pad_bbox(
     }
 
 
+def _bbox_area(b: dict) -> float:
+    return max(0.0, b["x1"] - b["x0"]) * max(0.0, b["y1"] - b["y0"])
+
+
+def _bbox_overlap(a: dict, b: dict) -> float:
+    """Intersection over the smaller box: 1 when one box sits inside the other."""
+    inter = (max(0.0, min(a["x1"], b["x1"]) - max(a["x0"], b["x0"]))
+             * max(0.0, min(a["y1"], b["y1"]) - max(a["y0"], b["y0"])))
+    small = min(_bbox_area(a), _bbox_area(b))
+    return inter / small if small > 0 else 1.0
+
+
+def _bbox_distance(a: dict, b: dict) -> float:
+    return float(np.hypot((a["x0"] + a["x1"] - b["x0"] - b["x1"]) / 2.0,
+                          (a["y0"] + a["y1"] - b["y0"] - b["y1"]) / 2.0))
+
+
+def wilor_detections_late_hand(
+    wilor_raw_dir: str,
+    reference_frame: int,
+    ref_detections: list[dict],
+    image_width: int,
+    window: int = 6,
+    need: int = 4,
+    min_score: float = 0.5,
+    min_side: float = 40.0,
+    separate: float = 0.3,
+    settle: int = 20,
+    edge: float = 4.0,
+) -> dict | None:
+    """Second hand that enters after the reference frame, from the per-frame WiLoR detections.
+
+    SAM2 hand tracks are seeded from the reference frame only, so a hand that enters later is
+    never reconstructed. With exactly one hand in the reference frame, this follows that hand by
+    nearest box centre and finds the first frame where WiLoR sees two separate hands (neither box
+    mostly inside the other) in >= `need` of the next `window` frames. The prompt goes on the frame,
+    within `settle` frames of entry, where the new hand is largest and clear of the left/right image
+    edge. Returns {"frame_index", "entry_frame", "detection"} or None. Handedness is left to the
+    sequence vote (_reconcile_hand_tracks_from_handedness).
+    """
+    if len(ref_detections) != 1:
+        return None
+    frames: dict[int, list[dict]] = {}
+    for name in os.listdir(wilor_raw_dir):
+        if not name.endswith(".json"):
+            continue
+        try:
+            with open(os.path.join(wilor_raw_dir, name)) as f:
+                dets = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            continue
+        frames[int(name[:-5])] = [
+            d for d in dets
+            if d.get("score", 0.0) >= min_score
+            and d["bbox"]["x1"] - d["bbox"]["x0"] >= min_side
+            and d["bbox"]["y1"] - d["bbox"]["y0"] >= min_side
+        ]
+    order = sorted(f for f in frames if f > reference_frame)
+
+    def two_hands(dets: list[dict]) -> bool:
+        return any(_bbox_overlap(a["bbox"], b["bbox"]) < separate
+                   for i, a in enumerate(dets) for b in dets[i + 1:])
+
+    tracked = ref_detections[0]["bbox"]
+    for k, frame in enumerate(order):
+        dets = frames[frame]
+        if two_hands(dets) and sum(two_hands(frames[g]) for g in order[k:k + window]) >= need:
+            new, best, best_key = None, None, None
+            for g in order[k:k + settle]:
+                if not two_hands(frames[g]):
+                    continue
+                old = min(frames[g], key=lambda d: _bbox_distance(d["bbox"], tracked))
+                tracked = old["bbox"]
+                rest = [d for d in frames[g]
+                        if d is not old and _bbox_overlap(d["bbox"], old["bbox"]) < separate]
+                if not rest:
+                    continue
+                if new is None:
+                    cand = max(rest, key=lambda d: _bbox_distance(d["bbox"], tracked))
+                else:
+                    cand = min(rest, key=lambda d: _bbox_distance(d["bbox"], new))
+                new = cand["bbox"]
+                inside = cand["bbox"]["x0"] > edge and cand["bbox"]["x1"] < image_width - edge
+                key = (inside, _bbox_area(cand["bbox"]))
+                if best_key is None or key > best_key:
+                    best, best_key = (g, cand), key
+            if best is None:
+                return None
+            return {"frame_index": best[0], "entry_frame": frame, "detection": best[1]}
+        if dets:  # follow the tracked hand by nearest centre
+            near = min(dets, key=lambda d: _bbox_distance(d["bbox"], tracked))
+            diag = float(np.hypot(tracked["x1"] - tracked["x0"], tracked["y1"] - tracked["y0"]))
+            if _bbox_distance(near["bbox"], tracked) <= max(0.5 * diag, 150.0):
+                tracked = near["bbox"]
+    return None
+
+
 def run_ego_wilor(
     video_path: str,
     output_dir: str,
@@ -535,6 +632,7 @@ def run_ego_wilor(
     sam2_bbox_pad: float = 0.0,
     sam2_square_wilor_bboxes: bool = True,
     sam2_hand_prompt_source: str = "box",
+    late_hand_prompts: bool = False,
     undistort: bool = False,
     anycalib_weights: str = "data/weights/anycalib",
     run_geocalib: bool = False,
@@ -948,7 +1046,22 @@ def run_ego_wilor(
     # prompt and then propagates it through the video.
     rebuilt_sam2_prompts = False
     hand_id_offset = 1 if object_track_id is None else 2
-    if not _sam2_prompt_artifacts_match(
+    # A second hand that enters after the reference frame gets its own prompt on the frame
+    # where WiLoR sees it clearly (--late_hand_prompts); otherwise it is never tracked.
+    late_hand = None
+    if late_hand_prompts:
+        late_hand = wilor_detections_late_hand(
+            wilor_raw_dir, reference_frame, detections, Image.open(ref_rgb).size[0],
+        )
+        if late_hand is not None:
+            print(f"  Late hand: enters frame {late_hand['entry_frame']}, "
+                  f"prompted at frame {late_hand['frame_index']}")
+    late_prompted = False
+    if late_hand is not None and os.path.exists(hand_tracks):
+        with open(hand_tracks) as f:
+            late_prompted = any(t.get("prompt_frame") == late_hand["frame_index"]
+                                for t in json.load(f).get("tracks", []))
+    if (late_hand is not None and not late_prompted) or not _sam2_prompt_artifacts_match(
         sam2_prompts,
         hand_tracks,
         sam2_hand_prompt_source,
@@ -1011,6 +1124,49 @@ def run_ego_wilor(
                 track_record["sam2_prompt_mask_path"] = rel_mask_path
             else:
                 prompt_kwargs["box"] = BoundingBox.from_dict(det["bbox"])
+            prompts.append(Sam2Prompt(**prompt_kwargs))
+            hand_meta.append(track_record)
+
+        if late_hand is not None:
+            oid = len(detections) + hand_id_offset
+            lf = late_hand["frame_index"]
+            det = dict(late_hand["detection"])
+            track_record = {
+                "object_id":    oid,
+                "role":         "hand",
+                "is_right":     bool(det["is_right"]),
+                "score":        float(det["score"]),
+                "prompt_frame": lf,
+            }
+            prompt_kwargs = {"frame_index": lf, "object_id": oid}
+            if sam2_hand_prompt_source == "wilor_mask":
+                late_json = f"{output_dir}/late_hand_wilor.json"
+                with open(late_json, "w") as f:
+                    json.dump([det], f)
+                mask_path = os.path.join(sam2_hand_prompt_masks_dir, str(oid), f"{lf:06d}.png")
+                run_render_wilor_prompt_masks(
+                    wilor_json       = late_json,
+                    image_path       = f"{frames_dir}/{lf:06d}.png",
+                    output_dir       = sam2_hand_prompt_masks_dir,
+                    mano_assets_root = mano_assets_root,
+                    frame_index      = lf,
+                    first_object_id  = oid,
+                    dev              = dev,
+                )
+                if not os.path.exists(mask_path):
+                    raise RuntimeError(f"Missing rendered late-hand prompt mask: {mask_path}")
+                rel_mask_path = os.path.relpath(
+                    mask_path, os.path.dirname(os.path.abspath(sam2_prompts)),
+                )
+                prompt_kwargs["mask_path"] = rel_mask_path
+                track_record["sam2_prompt_mask_path"] = rel_mask_path
+            else:
+                bbox = det["bbox"]
+                if sam2_bbox_pad > 0.0:
+                    ref_w, ref_h = Image.open(ref_rgb).size
+                    bbox = _pad_bbox(bbox, sam2_bbox_pad, ref_w, ref_h,
+                                     square=sam2_square_wilor_bboxes)
+                prompt_kwargs["box"] = BoundingBox.from_dict(bbox)
             prompts.append(Sam2Prompt(**prompt_kwargs))
             hand_meta.append(track_record)
 
@@ -2202,6 +2358,9 @@ def parse_args() -> argparse.Namespace:
                    default=True,
                    help="Do not square WiLoR hand-detection boxes before "
                         "passing them to SAM2. Object boxes are unaffected.")
+    p.add_argument("--late_hand_prompts", action="store_true",
+                   help="Also prompt SAM2 with a second hand that enters after the reference "
+                        "frame (first frame where WiLoR sees two hands persistently).")
     p.add_argument("--sam2_hand_prompt_source", default="box",
                    choices=("box", "wilor_mask"),
                    help="How to seed SAM2 hand tracks on the reference frame: "
@@ -2518,6 +2677,7 @@ def run_from_args(args: argparse.Namespace) -> None:
         sam2_bbox_pad           = args.sam2_bbox_pad,
         sam2_square_wilor_bboxes = args.sam2_square_wilor_bboxes,
         sam2_hand_prompt_source = args.sam2_hand_prompt_source,
+        late_hand_prompts       = args.late_hand_prompts,
         undistort               = args.undistort,
         anycalib_weights        = args.anycalib_weights,
         run_geocalib            = args.run_geocalib,
