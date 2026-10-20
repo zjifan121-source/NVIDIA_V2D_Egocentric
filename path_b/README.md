@@ -5,8 +5,10 @@ how well it did, so a bad score points at the stage that caused it. The design a
 team's Claude doc "Path B: End-to-End VLM Framework for Track 3"
 (https://claude.ai/code/artifact/0873d10c-acc3-455c-936a-12baf370fabf).
 
-**Path B v2** (approved 2026-10-19): physics-grounded video inversion, the S1–S7 pipeline and the plan to
-Nov 1 are in `PATH_B_V2_PHYSICS_INVERSION.md` (exported from its Claude doc, the canonical copy).
+**Path B v2** (approved 2026-10-19): physics-grounded video inversion and its S1–S7 pipeline are in
+`PATH_B_V2_PHYSICS_INVERSION.md` (exported from its Claude doc, the canonical copy). The code here is
+v2's S1–S2 (v1's P0–P4) and grows stage by stage; `cache/` keeps v1's documents (the framework export
+and the Stage 1 overview) for reference.
 
 **Stage 1 (now):** factory calibration and metric stereo depth, used to fix the scale of the team's
 existing reconstruction bundles (the bridge). Later stages replace the bridged parts: object list
