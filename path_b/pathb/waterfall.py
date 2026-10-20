@@ -100,8 +100,8 @@ def summary(out: Path, rows: list[dict]) -> str:
     for r in rows:
         cells = [f"{r['scores'][v]['AUC']:.3f}" if v in r["scores"] else "" for v in VARIANTS]
         lines.append(f"| {r['episode']} | {' + '.join(r['objects'])} | {r['stereo_factor']:.3f} | " + " | ".join(cells) + " |")
-    means = [np.mean([r["scores"][v]["AUC"] for r in rows if v in r["scores"]]) for v in VARIANTS]
-    lines.append("| **mean AUC** | | | " + " | ".join(f"**{m:.3f}**" for m in means) + " |")
+    means = [[r["scores"][v]["AUC"] for r in rows if v in r["scores"]] for v in VARIANTS]
+    lines.append("| **mean AUC** | | | " + " | ".join(f"**{np.mean(m):.3f}**" if m else "" for m in means) + " |")
     text = "\n".join(lines) + "\n"
     write_json(out / "waterfall.json", rows)
     (out / "waterfall.md").write_text("# Path B score waterfall (public episodes)\n\n" + text)
