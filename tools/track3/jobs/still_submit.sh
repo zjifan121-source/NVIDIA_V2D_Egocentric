@@ -28,7 +28,7 @@ for EP in "$@"; do
        --skip-video --sequence-id ep${EP}_$TAG --out "$OUT/$EPD/$TAG")
   # EXTRA holds commas, so it travels in the environment (--export=ALL), not in the --export list.
   TR=$(sbatch --parsable -J t-ep${EP}_${RUN}60M --dependency=afterok:$LR --exclude=babel-v9-20 \
-       --constraint="A6000|VRAM_80GB|VRAM_96GB|VRAM_141GB" --time=01:30:00 \
+       --constraint="A6000|VRAM_80GB|VRAM_96GB|VRAM_141GB" --time=01:00:00 \
        --export=ALL,NAME=ep${EP}_${RUN}60M,EP=$EP,STEPS=$STEPS,PARQUET="$PQ" "$J/train_diag.sbatch")
   echo "ep$EP load_retarget=$LR train=$TR"
 done

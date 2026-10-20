@@ -15,7 +15,7 @@
 # (oom_probe.sbatch, 2026-10-15); njmax 512 peaks at 40 GB but drops contacts on our meshes.
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
-#SBATCH --time=08:00:00
+#SBATCH --time=01:00:00
 #SBATCH -o /data/user_data/%u/v2d/jobs/logs/%x-%j.log
 set -uo pipefail
 : "${NAME:?set NAME}" "${PARQUET:?set PARQUET}"
