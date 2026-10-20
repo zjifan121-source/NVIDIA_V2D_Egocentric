@@ -148,7 +148,7 @@ Step costs come from the team's measurements and SPIDER's paper: FlashCHORD's Sh
 | FlashCHORD at 60M steps tracks worse than at 250M | The selection rule falls back to the still policy per episode; 250M reruns go to the episodes where tracking is close |
 | `wooden_spoon` has no public scan | CD-O for it rests on S3's health checks alone |
 
-**Cut from the Nov 1 plan:** the retraining flywheel (one pass only: train, evaluate, select), S5 mode B (the IK re-solve stays), the SPIDER re-implementation, and the learned egocentric 4D model. All four are the first items after Nov 1.
+**Cut from the Nov 1 plan:** the retraining flywheel (one pass only: train, evaluate, select), the SPIDER re-implementation, and the learned egocentric 4D model. All three are the first items after Nov 1. S5 mode A (the IK re-solve) stays only as the fallback if mode B is not ready on ep41.
 
 **Depends on James:** the Kaggle token and the repo shared with the `Nvidia-V2D-Challenge` org (Oct 20, for the Oct 21 and Oct 23 submissions); SAM 3D Objects access (by Oct 24, for S3); Edmond's packed still submission from Babel; the go/no-go at gate 1 on Oct 25.
 
