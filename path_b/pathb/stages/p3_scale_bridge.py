@@ -22,7 +22,7 @@ import numpy as np
 from ..geometry import plane_in, read_depth
 from ..report import Metric, StageResult
 from ..runner import write_json
-from ..team import retarget_tools
+from ..team import retarget_tools, scorer
 
 REST_FRAMES = 30  # recordings open with both hands raised over the table (README §5.6)
 REACH_CM = 10.0  # rest ends when a wrist comes this close (stage 2's rest hold uses the same)
@@ -142,13 +142,20 @@ def run(ctx) -> StageResult:
 
     bundle = source_bundle(ctx.number, ctx.objects, d)
     data = dict(np.load(bundle / "result.npz"))
+    slots = L.object_slots(data)
     reach = [L.reach_frame(data, L.object_vertices(bundle, data, scale_key, mesh), REACH_CM, pose)
-             for pose, scale_key, mesh in L.object_slots(data)]
-    rest_end = min([REST_FRAMES] + [r for r in reach if r is not None])
+             for pose, scale_key, mesh in slots]
+    first_reach = min([REST_FRAMES] + [r for r in reach if r is not None])
+    # A reach in the first frames means the mesh is wrong (ep24: blobs 7-9x the scan put the resting
+    # hands "on" the object), so the reach test is dropped and the opening frames serve as rest.
+    reach_fallback = first_reach < MIN_FRAMES
+    rest_end = REST_FRAMES if reach_fallback else first_reach
     valid = data["object_is_valid"].astype(bool) & data["camera_is_valid"].astype(bool)
     frames = [t for t in range(min(rest_end, len(valid))) if valid[t]]
     if not frames:
         raise RuntimeError(f"no frame before {rest_end} has a valid camera and object in {bundle}")
+    scan_ratios = {name: L.scan_size_ratio(L.object_vertices(bundle, data, scale_key, mesh), name)
+                   for name, (_, scale_key, mesh) in zip(ctx.objects, slots)} if ctx.public else {}
 
     rows = measure(data, bundle, frames, planes, alignment, p2 / "depth_a_half", K_half)
     supported = [r for r in rows if r["table_stereo"] is not None]
@@ -164,8 +171,19 @@ def run(ctx) -> StageResult:
 
     hand = L.hand_scale(data)
     scale = {"factor": factor, "method": method, "applied": method != "none (unscaled)", "bundle": str(bundle),
-             "rest_end_frame": int(rest_end), "plane_factor": plane_factor, "ray_factor": ray_factor, "frames": rows}
-    metrics = [
+             "rest_end_frame": int(rest_end), "first_reach_frame": int(first_reach), "reach_fallback": reach_fallback,
+             "plane_factor": plane_factor, "ray_factor": ray_factor, "frames": rows}
+    metrics = []
+    if scan_ratios:
+        worst_name = max(scan_ratios, key=lambda k: abs(np.log(scan_ratios[k] or 1.0)))
+        metrics.append(Metric("bundle mesh / scan size (worst object)", scan_ratios[worst_name], "x", kind="gt",
+                              ok=(0.5, 2.0), warn=(0.33, 3.0),
+                              note=f"{worst_name}; far off means a blob or the wrong object, and every "
+                                   "object-based ruler below is suspect"))
+    metrics += [
+        Metric("first frame a wrist reaches an object", int(first_reach), "frame", ok=(MIN_FRAMES, np.inf),
+               warn=(1, np.inf), note="rest window forced to the opening frames (hands raised)" if reach_fallback
+               else f"rest window = frames 0-{rest_end - 1}"),
         Metric("rest frames with a support plane", len(supported), "frames", ok=(10, np.inf),
                warn=(MIN_FRAMES, np.inf), note=f"rest ends at frame {rest_end}"),
         Metric("rest frames with object depth along the ray", sum(bool(r["ray_ratios"]) for r in rows), "frames"),
@@ -186,21 +204,52 @@ def run(ctx) -> StageResult:
                note=f"before: {hand:.2f}; MANO hands are the team's ruler (BUNDLES.md)" if hand else "no valid hand"),
     ]
     if ctx.public:
-        oracle = oracle_factor(L, bundle, data, ctx.objects)
+        gt = gt_trajectory_factor(scorer(), ctx.number, data, slots)
+        scale["gt_trajectory_factor"] = gt
+        if gt:
+            parts = ", ".join(f"{k} {v:.3f}" for k, v in gt["parts"].items())
+            metrics += [
+                Metric("scale factor vs GT trajectory scale", 100 * (factor / gt["factor"] - 1), "%", kind="gt",
+                       ok=(-15, 15), warn=(-30, 30),
+                       note=f"GT factor {gt['factor']:.3f} from {parts}; mesh origins differ from the scan's, "
+                            "so rotating objects add a few percent"),
+            ]
+        else:
+            metrics.append(Metric("scale factor vs GT trajectory scale", None, "%", kind="gt",
+                                  note="no object moves more than 3 cm in the ground truth"))
+        oracle = oracle_factor(scan_ratios)
         scale["oracle_scan_factor"] = oracle
         if oracle:
-            metrics += [
-                Metric("oracle scale from public scans", oracle, "x", kind="gt",
-                       note="1 / mesh-to-scan size ratio (--rescale-by-scan), geometric mean over objects"),
-                Metric("scale error vs oracle", 100 * (factor / oracle - 1), "%", kind="gt", ok=(-10, 10),
-                       warn=(-20, 20)),
-            ]
+            metrics.append(Metric("scale implied by the scans' size", oracle, "x", kind="gt",
+                                  note="1 / mesh-to-scan size ratio: mesh size, not world scale (information only)"))
     write_json(d / "scale.json", scale)
     return StageResult(metrics, {"scale": d / "scale.json", "factor": factor, "method": method, "bundle": bundle})
 
 
-def oracle_factor(L, bundle, data: dict, names: list[str]) -> float | None:
-    ratios = [L.scan_size_ratio(L.object_vertices(bundle, data, scale_key, mesh), name)
-              for name, (_, scale_key, mesh) in zip(names, L.object_slots(data))]
-    ratios = [r for r in ratios if r]
+def oracle_factor(scan_ratios: dict) -> float | None:
+    ratios = [r for r in scan_ratios.values() if r]
     return float(np.exp(-np.mean(np.log(ratios)))) if ratios else None
+
+
+def gt_trajectory_factor(S, episode: int, data: dict, slots) -> dict | None:
+    """The factor that would make the bundle's object motion the size of the ground truth's.
+
+    Per object, the median over frames of |GT displacement from frame 0| / |bundle displacement|
+    where the GT object has moved more than 3 cm; for two objects also the ratio of their frame-0
+    distances. Both are rotation-free, so the bundle's world need not be aligned to the mocap's.
+    """
+    gt = S.ground_truth(episode)  # (frames, objects, 7), per-frame slot order = episodes.json order
+    n = min(len(gt), len(data["camera_to_world_transform"]))
+    parts = {}
+    for i, (pose, _, _) in enumerate(slots[: gt.shape[1]]):
+        g, b = gt[:n, i, :3], data[pose][:n, :3, 3].astype(np.float64)
+        dg, db = np.linalg.norm(g - g[0], axis=1), np.linalg.norm(b - b[0], axis=1)
+        moving = (dg > 0.03) & (db > 1e-3)
+        if moving.sum() >= 10:
+            parts[f"motion of object {i}"] = float(np.median(dg[moving] / db[moving]))
+    if gt.shape[1] >= 2 and len(slots) >= 2:
+        g01 = float(np.linalg.norm(gt[0, 0, :3] - gt[0, 1, :3]))
+        b01 = float(np.linalg.norm(data[slots[0][0]][0, :3, 3] - data[slots[1][0]][0, :3, 3]))
+        if b01 > 1e-3:
+            parts["frame-0 distance between the objects"] = g01 / b01
+    return {"factor": float(np.median(list(parts.values()))), "parts": parts} if parts else None
