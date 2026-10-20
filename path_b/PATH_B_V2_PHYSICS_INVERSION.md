@@ -130,28 +130,6 @@ One L40S, about 288 GPU-hours over 12 days; the jobs below use about 90, with th
 
 Step costs come from the team's measurements: FlashCHORD's Sharpa recipe is 250M steps at \~21,600 environment steps/s on an A6000 (\~3.2 h); Path B's P2 took \~5 min per episode on the L40S.
 
-## Day by day, Oct 20 – Nov 1
-
-One L40S, James and Claude. GPU jobs run overnight in tmux. "James" marks what only he can do.
-
-| Day | Work | Gate / fallback |
-| --- | --- | --- |
-| Oct 20 | New L40S via `setup.sh` + restore. Path B S1–S2 on the 20 evaluation episodes. Two-object path for Path B bundles into stages 2–3 (a hub-style folder the runner's `--merge` reads). James: Kaggle token, share the repo with `Nvidia-V2D-Challenge`, request `facebook/sam-3d-objects` access, ask Edmond for the packed still submission | evaluation bundles rescaled |
-| Oct 21 | Stages 2–3 on all 20 evaluation episodes (still scenes). Night: 20 still policies at 60M. Install SPIDER, run its example, check its Sharpa model. James: upload Edmond's still submission if retrievable (leaderboard point 1) | — |
-| Oct 22 | Evaluate the 20 still policies, pack, preflight. Write the V2D → SPIDER dataset processor; ep41 through decompose, XML, IK | — |
-| Oct 23 | **Submit the fallback** (stereo-rescaled still). S4 on the 7 single-object public episodes; `physics` column in the waterfall. Night: tracking policies at 60M for the 20 evaluation episodes from the stage 2 chain | fallback is on the board |
-| Oct 24 | S4 on the 12 two-object public episodes (support graph, anchor). S2's GT scale check. Evaluate the tracking policies; per-episode selection tracking vs still | — |
-| Oct 25 | **Gate 1:** physics vs stereo on public AUC / MPPE / RPE. If physics wins: S4 on the 20 evaluation episodes and S5 mode A. If not: physics leaves the path and the chain stays stage 2. Pack and submit the selection (point 2) | decision recorded in the context file |
-| Oct 26 | S3: SAM3D multi-view meshes for the objects with bad bundle meshes, drop test, CD-O on public, only if access arrived by Oct 24; otherwise the bundle meshes stay. Night: tracking policies at 60M on the physics references (if gate 1 passed) | mesh swap is independent of the policies |
-| Oct 27 | **Reference freeze.** Evaluate, select per episode. Pick the \~8 episodes where tracking is within reach of still for 250M reruns. Night: first 250M batch | no reference changes after today |
-| Oct 28 | 250M batch continues, day and night. Local public-split dry run of the exact final pipeline, meshes included | — |
-| Oct 29 | 250M batch ends. Final selection; pack; preflight; checksum the submission file. Submit if ready (point 3) | everything after this is replacement only |
-| Oct 30 | **Final submission** (or confirm the Oct 29 one). Record scores; local vs leaderboard calibration | leaderboard numbers |
-| Oct 31 | Resubmission day: only a fix already verified locally (e.g. a mesh swap). Write results into the context file and this doc | — |
-| Nov 1 | Nothing new. Confirm the leaderboard shows the intended submission; archive the instance's outputs to HF | done |
-
-Submissions stay under the 5-per-week limit: at most 2 in the week of Oct 20 and 3 in the week of Oct 27.
-
 ## Risks, cuts, and what depends on James
 
 | Risk | Answer |
