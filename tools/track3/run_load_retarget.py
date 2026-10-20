@@ -44,8 +44,9 @@ ROBOT = "sharpa_wave"
 
 
 def bundle_dir_for(episode: int, obj: str) -> Path:
-    """Bundle location under data/outputs/hub (bundles.py layout); also accepts the raw run dir."""
-    run = OUTPUTS / "hub" / f"episode_{episode:06d}" / obj
+    """Bundle location under data/outputs/$V2D_BUNDLE_NS (default hub, the bundles.py layout); also
+    accepts the raw run dir, e.g. V2D_BUNDLE_NS=fs_sam3d for run_baseline_reconstruction.py --branch fs_sam3d."""
+    run = OUTPUTS / os.environ.get("V2D_BUNDLE_NS", "hub") / f"episode_{episode:06d}" / obj
     for candidate in (run / "result_slam_gravity_aligned", run):
         if (candidate / "result.npz").is_file():
             return candidate
