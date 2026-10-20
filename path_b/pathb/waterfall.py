@@ -25,7 +25,8 @@ from .runner import write_json
 from .stages.p3_scale_bridge import source_bundle
 from .team import retarget_tools, scorer
 
-VARIANTS = ("raw", "stage2", "stage2_stereo", "stage2_scan")
+VARIANTS = ("raw", "stage2", "stage2_stereo", "stage2_scan", "physics")
+PHYSICS_BUNDLE = "s4_physics/bundle"  # S4 writes its physically realized demonstration here (v2 doc, S4)
 
 
 def scene(bundle: Path, names: list[str], frames: int, work: Path, tag: str):
@@ -65,6 +66,9 @@ def episode(root: Path) -> dict:
                                                   level=True)[0]
     except SystemExit:  # no public scan (wooden_spoon)
         pass
+    physics = root / PHYSICS_BUNDLE
+    if (physics / "result.npz").is_file():
+        bundles["physics"] = physics  # already feasible by construction: scored as S4 wrote it, no repairs
     scores = {}
     for tag, bundle in bundles.items():
         poses, meshes = scene(bundle, names, frames, work, tag)
@@ -75,6 +79,8 @@ def episode(root: Path) -> dict:
     if "stage2_scan" in auc:
         attribution["scale still missing (oracle - stereo)"] = auc["stage2_scan"] - auc["stage2_stereo"]
         attribution["tracking, mesh and placement (1 - oracle)"] = 1.0 - auc["stage2_scan"]
+    if "physics" in auc:
+        attribution["Path B physics (S4) over the stereo reference"] = auc["physics"] - auc["stage2_stereo"]
     row = {"episode": number, "objects": names, "stereo_factor": factor, "variants": list(VARIANTS),
            "scores": scores, "auc_attribution": attribution}
     write_json(root / "waterfall.json", row)
