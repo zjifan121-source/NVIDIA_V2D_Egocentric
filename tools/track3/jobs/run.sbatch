@@ -18,6 +18,7 @@
 #SBATCH --time=01:30:00
 #SBATCH -o /data/user_data/%u/v2d/stereo_test/logs/%x-%j.log
 set -uo pipefail
+source /home/$USER/NVIDIA_V2D_Egocentric/tools/track3/jobs/disk_guard.sh  # hold the job when the quota is nearly full
 EP=${1:?episode}; OBJ=${2:?object}; VAR=${3:?calib_sam3d|stereo_sam3d|stereo_scan|fs_sam3d}; PROMPT=${4:-}
 REPO=/home/$USER/NVIDIA_V2D_Egocentric
 SEED=/data/user_data/$USER/v2d/stereo_test/seed/ep$EP

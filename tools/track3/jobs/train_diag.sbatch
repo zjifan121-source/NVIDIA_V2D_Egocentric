@@ -23,6 +23,7 @@
 # Short walltime, one job per run: 4 min before the limit the job stops its step and requeues
 # itself (a plain TIMEOUT would not requeue), then resumes from the newest checkpoint.
 set -uo pipefail
+source /home/$USER/NVIDIA_V2D_Egocentric/tools/track3/jobs/disk_guard.sh  # hold the job when the quota is nearly full
 : "${NAME:?set NAME}" "${PARQUET:?set PARQUET}"
 STEPS=${STEPS:-250003456}
 EXTRA=${EXTRA:-}

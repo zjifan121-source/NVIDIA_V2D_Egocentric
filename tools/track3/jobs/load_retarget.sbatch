@@ -14,6 +14,7 @@
 #SBATCH --time=00:15:00
 #SBATCH -o /data/user_data/%u/v2d/jobs/logs/%x-%j.log
 set -uo pipefail
+source /home/$USER/NVIDIA_V2D_Egocentric/tools/track3/jobs/disk_guard.sh  # hold the job when the quota is nearly full
 REPO=/home/$USER/NVIDIA_V2D_Egocentric
 PY=/data/user_data/$USER/v2d/venvs/retarget/bin/python
 echo "== $(date) $(hostname) restart=${SLURM_RESTART_COUNT:-0}"
