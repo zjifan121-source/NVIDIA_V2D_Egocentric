@@ -12,6 +12,17 @@ Slurm scripts for the Track 3 pipeline on CMU Babel. They assume the repo at
 | `venvs/{retarget,flash_chord}` | uv environments for load/retarget and FlashCHORD |
 | `jobs/logs/` | training and load/retarget logs |
 
+One-time setup for the stereo seed (`seed.sbatch`, `fs.sbatch`, `run.sbatch`), on a compute node:
+
+    uv venv --python 3.11 /data/user_data/$USER/v2d/venvs/stereo
+    uv pip install --python /data/user_data/$USER/v2d/venvs/stereo numpy scipy opencv-python-headless onnxruntime-gpu==1.20.0
+    python baseline/reconstruction/modules/v2d_foundation_stereo/lib/download_weights.py \
+      --output_dir /data/user_data/$USER/v2d/recon_data/weights/foundation_stereo
+
+The calibration and stereo code is `tools/track3/stereo_seed.py`; the late-hand fix is
+`--late-hands` in `tools/track3/run_baseline_reconstruction.py` (`--late_hand_prompts` in
+`run_ego_wilor.py`).
+
 GPU jobs go to `preempt` (requeued on preemption; every script resumes). CPU work goes to `maxlab-cpu`.
 `preempt_qos` allows 100 queued and 24 running jobs per user, so keep one job per run.
 
