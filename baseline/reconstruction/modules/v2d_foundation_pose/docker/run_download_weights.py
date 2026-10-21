@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
-import subprocess
+# Modified for V2D Track 3 by Edmond Wang, 2026-10: route docker run through v2d.docker.runtime (opt-in Apptainer).
 import os
 from v2d.foundation_pose.docker._config import IMAGE_NAME, MODULES_DIR
+from v2d.docker.runtime import run_container_cmd
 
 
 def run_download(
@@ -30,7 +31,7 @@ def run_download(
     ]
     if accept_nvidia_model_eula:
         cmd.append("--accept_nvidia_model_eula")
-    subprocess.run(cmd, check=True)
+    run_container_cmd(cmd, check=True)
 
 
 if __name__ == "__main__":

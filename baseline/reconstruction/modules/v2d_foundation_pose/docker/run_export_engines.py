@@ -1,9 +1,10 @@
+# Modified for V2D Track 3 by Edmond Wang, 2026-10: route docker run through v2d.docker.runtime (opt-in Apptainer).
 """Build cached FoundationPose TensorRT engines on the current GPU."""
 
 import os
-import subprocess
 
 from v2d.foundation_pose.docker._config import IMAGE_NAME, MODULES_DIR
+from v2d.docker.runtime import run_container_cmd
 
 
 def run_export_engines(weights_dir: str, force: bool = False, dev: bool = False) -> None:
@@ -33,7 +34,7 @@ def run_export_engines(weights_dir: str, force: bool = False, dev: bool = False)
         f"print(ensure_engines('/data/weights', force={force!r}))"
     )
     command += [IMAGE_NAME, "python", "-c", expression]
-    subprocess.run(command, check=True)
+    run_container_cmd(command, check=True)
 
 
 if __name__ == "__main__":

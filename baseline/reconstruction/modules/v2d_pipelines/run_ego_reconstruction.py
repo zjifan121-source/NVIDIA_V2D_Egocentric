@@ -616,6 +616,12 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--sam2_hand_prompt_source", choices=("box", "wilor_mask"), default="wilor_mask"
     )
+    p.add_argument(
+        "--late_hand_prompts",
+        action="store_true",
+        help="Also prompt SAM2 with a second hand that enters after the reference frame "
+             "(first frame where WiLoR sees two hands persistently).",
+    )
     p.add_argument("--hamer_bbox_expansion", type=float, default=1.7)
     p.add_argument("--hamer_mask_min_pixels", type=int, default=None)
     p.add_argument(
@@ -744,6 +750,7 @@ def _run_hamer(args: argparse.Namespace) -> Path:
         sam2_bbox_pad=args.sam2_bbox_pad,
         sam2_square_wilor_bboxes=args.sam2_square_wilor_bboxes,
         sam2_hand_prompt_source=args.sam2_hand_prompt_source,
+        late_hand_prompts=args.late_hand_prompts,
         undistort=args.undistort,
         anycalib_weights=args.anycalib_weights,
         run_geocalib=False,

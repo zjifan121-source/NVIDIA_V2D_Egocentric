@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+# Modified for V2D Track 3 by Edmond Wang, 2026-10: free cached GPU memory between scale-search candidates.
 """Stateful FoundationPose tracker.
 
 Lifecycle:
@@ -18,6 +19,7 @@ Scale estimation:
     scale = tracker.estimate_scale_grid_search(rgb, depth, mask, intrinsics)
     # tracker is now in the best-scale state; use it directly for tracking
 """
+import gc
 import logging
 import os
 import sys
@@ -678,6 +680,10 @@ class FoundationPoseTracker:
                 pose = self.register(rgb, depth, mask, intrinsics, iteration=registration_iterations)
                 score = self._score_scale(depth, mask, intrinsics, pose, iou_weight, depth_weight, chamfer_weight)
                 logger.debug(f"  scale={scale:.4f}  score={score:.4f}")
+                # Hand cached blocks back to the driver: nvdiffrast allocates with raw cudaMalloc,
+                # which fails on 48 GB cards once PyTorch's cache holds every candidate's peak.
+                gc.collect()
+                torch.cuda.empty_cache()
                 if score > best_score:
                     best_score = score
                     best_scale = float(scale)

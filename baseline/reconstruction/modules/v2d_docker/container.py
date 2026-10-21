@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+# Modified for V2D Track 3 by Edmond Wang, 2026-10: route docker run through v2d.docker.runtime (opt-in Apptainer).
 import os
-import subprocess
 from pathlib import Path
+from .runtime import run_container_cmd
 
 
 def _base_dir(path: str) -> str:
@@ -100,4 +101,4 @@ def run_in_container(
             else:
                 cmd += [f"--{arg_name}", str(value)]
 
-    subprocess.run(cmd, check=True)
+    run_container_cmd(cmd, check=True)
