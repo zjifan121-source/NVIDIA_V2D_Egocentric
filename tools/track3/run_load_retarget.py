@@ -167,8 +167,10 @@ def merged_bundle(episode: int, dest: Path) -> tuple[Path, dict]:
     Each object is a separate reconstruction run with its own SLAM world; on ep33 the two runs'
     camera paths differ 4x in length, so worlds cannot be matched through the cameras. Hands and
     depth do agree in camera coordinates across runs (wrists within ~2 cm, depth ratio 1.000), so
-    the run with the shortest (steadiest) camera path supplies the world, camera and hands, and
-    every other object enters through its camera-frame pose: world_A(t) = camera_A(t) @ obj_cam(t).
+    the run with the most valid camera and hand frames supplies the world, camera and hands (ties:
+    the shortest, steadiest camera path; a run that lost its object for half the clip has a short
+    path only because it is invalid, as ep11's blue cup), and every other object enters through
+    its camera-frame pose: world_A(t) = camera_A(t) @ obj_cam(t).
     """
     episode_info = {e["episode"]: e for e in json.loads(MANIFEST.read_text())["episodes"]}[episode]
     names = [o["name"] for o in episode_info["objects"]]
@@ -176,7 +178,10 @@ def merged_bundle(episode: int, dest: Path) -> tuple[Path, dict]:
     datas = {name: dict(np.load(runs[name] / "result.npz")) for name in names}
     path_len = {name: float(np.linalg.norm(np.diff(d["camera_to_world_transform"][:, :3, 3], axis=0), axis=1).sum())
                 for name, d in datas.items()}
-    world = min(path_len, key=path_len.get)
+    valid = {name: round(float(np.mean([np.mean(d[k]) for k in ("camera_is_valid", "hand_left_is_valid",
+                                                                 "hand_right_is_valid") if k in d])), 2)
+             for name, d in datas.items()}
+    world = min(path_len, key=lambda name: (-valid[name], path_len[name]))
     data = dict(datas[world])
     c2w = data["camera_to_world_transform"].astype(np.float64)
     dest.mkdir(parents=True, exist_ok=True)
@@ -202,7 +207,8 @@ def merged_bundle(episode: int, dest: Path) -> tuple[Path, dict]:
     data["object_names"] = np.array(names)
     np.savez(dest / "result.npz", **data)
     shutil.copy(runs[world] / "manifest.json", dest / "manifest.json")
-    return dest, {"objects": names, "world_from": world, "camera_path_m": {k: round(v, 2) for k, v in path_len.items()}}
+    return dest, {"objects": names, "world_from": world, "valid_fraction": valid,
+                  "camera_path_m": {k: round(v, 2) for k, v in path_len.items()}}
 
 
 # ---------------------------------------------------------------- rest hold
@@ -221,12 +227,14 @@ def reach_frame(data: dict, vertices: np.ndarray, cm: float = 10.0,
     return int(hits[0]) if len(hits) else None
 
 
-def hold_until(T: np.ndarray, frame: int, blend: int = 5) -> np.ndarray:
-    """Object at rest before `frame` (median position, mean rotation), easing into the track after it."""
+def hold_until(T: np.ndarray, frame: int, blend: int = 5, rest_frames: int | None = None) -> np.ndarray:
+    """Object at rest before `frame` (median position, mean rotation over the first `rest_frames`
+    frames, default all before `frame`), easing into the track after it."""
     from scipy.spatial.transform import Rotation
     out = T.copy()
-    rest_pos = np.median(T[:frame, :3, 3], axis=0)
-    rest_rot = Rotation.from_matrix(T[:frame, :3, :3]).mean()
+    n = min(frame, rest_frames) if rest_frames else frame
+    rest_pos = np.median(T[:n, :3, 3], axis=0)
+    rest_rot = Rotation.from_matrix(T[:n, :3, :3]).mean()
     out[:frame, :3, 3] = rest_pos
     out[:frame, :3, :3] = rest_rot.as_matrix()
     for j, f in enumerate(range(frame, min(frame + blend, len(T)))):
@@ -285,6 +293,38 @@ def fill_hand(data: dict, side: str, bad: np.ndarray) -> None:
     w2c = np.tile(np.eye(4), (len(bad), 1, 1))
     w2c[:, :3, :3] = Rotation.from_rotvec(data[f"hand_{side}_wrist_orient_in_camera"].astype(np.float64)).as_matrix()
     w2c[:, :3, 3] = data[f"hand_{side}_wrist_trans_in_camera"]
+    data[f"hand_{side}_wrist_to_camera_transform"] = w2c.astype(np.float32)
+    data[f"hand_{side}_wrist_to_world_transform"] = (c2w @ w2c).astype(np.float32)
+
+
+def smooth_hand(data: dict, side: str, sigma: float) -> None:
+    """Gaussian-smooth one hand over time in the world (wrist position, wrist rotation via
+    sign-aligned quaternions, finger pose), then write it back in camera frame like fill_hand.
+    Per-frame HaMeR hands jitter ~1 cm a frame once the refinement step no longer smooths them."""
+    from scipy.ndimage import gaussian_filter1d
+    from scipy.spatial.transform import Rotation
+    c2w = data["camera_to_world_transform"].astype(np.float64)
+    Rc, tc = c2w[:, :3, :3], c2w[:, :3, 3]
+    orient = data[f"hand_{side}_wrist_orient_in_camera"].astype(np.float64)
+    trans = data[f"hand_{side}_wrist_trans_in_camera"].astype(np.float64)
+    shape = data[f"hand_{side}_finger_pose"].shape
+    fingers = data[f"hand_{side}_finger_pose"].astype(np.float64).reshape(len(orient), -1)
+    quat = Rotation.from_matrix(Rc @ Rotation.from_rotvec(orient).as_matrix()).as_quat()
+    for i in range(1, len(quat)):  # keep consecutive quaternions in one hemisphere
+        if np.dot(quat[i], quat[i - 1]) < 0:
+            quat[i] = -quat[i]
+    pos_w = np.einsum("nij,nj->ni", Rc, trans) + tc
+    new_rot = Rotation.from_quat(gaussian_filter1d(quat, sigma, axis=0, mode="nearest"))
+    new_pos = gaussian_filter1d(pos_w, sigma, axis=0, mode="nearest")
+    new_fingers = gaussian_filter1d(fingers, sigma, axis=0, mode="nearest")
+    cam_rot = Rotation.from_matrix(np.einsum("nji,njk->nik", Rc, new_rot.as_matrix()))
+    cam_pos = np.einsum("nji,nj->ni", Rc, new_pos - tc)
+    data[f"hand_{side}_wrist_orient_in_camera"] = cam_rot.as_rotvec().astype(data[f"hand_{side}_wrist_orient_in_camera"].dtype)
+    data[f"hand_{side}_wrist_trans_in_camera"] = cam_pos.astype(data[f"hand_{side}_wrist_trans_in_camera"].dtype)
+    data[f"hand_{side}_finger_pose"] = new_fingers.reshape(shape).astype(data[f"hand_{side}_finger_pose"].dtype)
+    w2c = np.tile(np.eye(4), (len(orient), 1, 1))
+    w2c[:, :3, :3] = cam_rot.as_matrix()
+    w2c[:, :3, 3] = cam_pos
     data[f"hand_{side}_wrist_to_camera_transform"] = w2c.astype(np.float32)
     data[f"hand_{side}_wrist_to_world_transform"] = (c2w @ w2c).astype(np.float32)
 
@@ -582,7 +622,7 @@ def attach_hands(data: dict, bundle: Path, lift: float = 0.02, reach: float = 0.
 def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True, hand_clean: bool = True,
                    object_clean: bool = True, rescale_by_hands: bool = False, rescale_by_scan: str | None = None,
                    still: bool = False, level: bool = False, attach: bool = False, seat: bool = False,
-                   gap_scale: float = 1.0, reach_cm: float = 10.0) -> tuple[Path, dict]:
+                   gap_scale: float = 1.0, reach_cm: float = 10.0, hand_smooth: float = 0.0) -> tuple[Path, dict]:
     """Copy of the bundle with the repairs reconstructions need before load:
 
     hand_clean: the loader ignores hand_*_is_valid, and hand tracks often fly off (a wrist 2 m
@@ -637,6 +677,11 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
             bad = bad_hand_frames(w2w[:, :3, 3], cam_dist, data[f"hand_{side}_is_valid"], fps, max_reach)
             info[f"hand_{side}_refilled_frames"] = int(bad.sum())
             fill_hand(data, side, bad)
+    if hand_smooth > 0:
+        for side in ("left", "right"):
+            if data[f"hand_{side}_is_valid"].any():
+                smooth_hand(data, side, hand_smooth)
+        info["hand_smooth_sigma_frames"] = hand_smooth
     for i, (pose_key, scale_key, mesh_file) in enumerate(slots):
         tag = "" if len(slots) == 1 else f"_{names[i]}"
         T = data[pose_key].astype(np.float64)
@@ -647,9 +692,20 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
                 T = fill_object(T, bad)
         if rest_hold:
             frame = reach_frame(data, object_vertices(bundle, data, scale_key, mesh_file), reach_cm, pose_key)
-            info[f"rest_hold_until_frame{tag}"] = frame
+            # No tracked hand ever reaches it. If its own track barely moves (90% of frames within
+            # 5 cm of the start, after a 9-frame median), it is a static object: keep it at rest for
+            # the whole clip, so it gets a support. If it does move, the reach test missed (a bad
+            # mesh, or a hand that was never tracked): keep its motion.
+            untouched = False
+            if frame is None:
+                from scipy.ndimage import median_filter
+                p = median_filter(T[:, :3, 3], size=(9, 1), mode="nearest")
+                untouched = np.percentile(np.linalg.norm(p - p[:10].mean(axis=0), axis=1), 90) < 0.05
+                frame = len(T) if untouched else None
+            info[f"rest_hold_until_frame{tag}"] = ("never reached (static)" if untouched
+                                                   else "never reached (moving: kept)" if frame is None else frame)
             if frame:
-                T = hold_until(T, frame)
+                T = hold_until(T, frame, rest_frames=15 if untouched else None)
         data[pose_key] = T.astype(data[pose_key].dtype)
     if level:
         info.update(level_scene(data, bundle))
@@ -807,6 +863,9 @@ def main() -> int:
                         help="keep the object track as reconstructed (default: hold it still until a hand reaches it)")
     parser.add_argument("--no-hand-clean", action="store_true",
                         help="keep hand tracks as reconstructed (default: refill frames that fly off or jump)")
+    parser.add_argument("--smooth-hands", type=float, default=0.0, metavar="SIGMA",
+                        help="Gaussian-smooth hand tracks over time (sigma in frames; for bundles "
+                             "written without the joint refinement, whose per-frame hands jitter)")
     parser.add_argument("--no-object-clean", action="store_true",
                         help="keep object jumps (default: interpolate frames faster than any real object)")
     parser.add_argument("--rescale-by-hands", action="store_true",
@@ -871,13 +930,14 @@ def main() -> int:
     for w in report["bundle_check"]["warnings"]:
         print(f"  ! {w}")
     if not (args.no_rest_hold and args.no_hand_clean and args.no_object_clean) or args.rescale_by_hands \
-            or args.rescale_by_scan or args.still_object or not args.no_level or args.attach_hands:
+            or args.rescale_by_scan or args.still_object or not args.no_level or args.attach_hands \
+            or args.smooth_hands > 0:
         bundle, report["cleaning"] = cleaned_bundle(
             bundle, out / "bundle_cleaned", args.fps, rest_hold=not args.no_rest_hold,
             hand_clean=not args.no_hand_clean, object_clean=not args.no_object_clean,
             rescale_by_hands=args.rescale_by_hands, rescale_by_scan=label if args.rescale_by_scan else None,
             still=args.still_object, level=not args.no_level, attach=args.attach_hands, seat=args.seat,
-            gap_scale=args.gap_scale)
+            gap_scale=args.gap_scale, hand_smooth=args.smooth_hands)
         print(f"== cleaned bundle: {report['cleaning']}", flush=True)
 
     print("== load (MANO FK -> ManoSharpaData)", flush=True)

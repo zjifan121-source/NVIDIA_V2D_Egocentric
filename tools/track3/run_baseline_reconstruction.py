@@ -67,6 +67,8 @@ def main() -> int:
                         help="track the released scan (public episodes only; development ceiling)")
     parser.add_argument("--reregister-iou", type=float,
                         help="re-detect the object when its rendered mask overlaps SAM2's less than this (pipeline default 0.3)")
+    parser.add_argument("--late-hands", action="store_true",
+                        help="also track a second hand that enters after the reference frame")
     parser.add_argument("--dev", action="store_true", help="mount local module code over the images (as the Hyperstack runs do)")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -105,6 +107,8 @@ def main() -> int:
             cmd += ["--object_mesh", str(scan_obj(obj["name"], out)), "--skip_object_scale_estimation"]
         if args.reregister_iou is not None:
             cmd += ["--reregister_iou_thresh", str(args.reregister_iou)]
+        if args.late_hands:
+            cmd.append("--late_hand_prompts")
         if args.dev:
             cmd.append("--dev")
         print(f"\n== episode {args.episode} / {obj['name']} (prompt {obj['prompt']!r}) -> {out}", flush=True)
