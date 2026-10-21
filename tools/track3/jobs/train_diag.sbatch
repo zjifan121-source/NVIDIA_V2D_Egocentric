@@ -18,6 +18,7 @@
 #SBATCH --mem=64G
 #SBATCH --time=01:00:00
 #SBATCH --signal=B:USR1@240
+#SBATCH --open-mode=append
 #SBATCH -o /data/user_data/%u/v2d/jobs/logs/%x-%j.log
 # Short walltime, one job per run: 4 min before the limit the job stops its step and requeues
 # itself (a plain TIMEOUT would not requeue), then resumes from the newest checkpoint.
@@ -41,15 +42,19 @@ fi
 echo "== $(date) $(hostname) restart=${SLURM_RESTART_COUNT:-0} name=$NAME extra=[$EXTRA]"
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 CHILD=
-requeue_self() {
-  echo "== $(date) time limit near: stopping and requeueing (restart=${SLURM_RESTART_COUNT:-0})"
+requeue_self() {  # time-limit warning (USR1) or a terminate (TERM, e.g. some preemptions)
+  echo "== $(date) signal: stopping and requeueing (restart=${SLURM_RESTART_COUNT:-0})"
   [ -n "$CHILD" ] && kill -TERM "$CHILD" 2>/dev/null && wait "$CHILD" 2>/dev/null
   [ "${SLURM_RESTART_COUNT:-0}" -lt 20 ] && scontrol requeue "$SLURM_JOB_ID"
   exit 0
 }
-trap requeue_self USR1
+trap requeue_self USR1 TERM
+# Keep only the 2 newest resume states (166 MB each, one per save interval; resuming reads the newest).
+# Unpruned, a 250M-step run holds ~8 GB of them; policy_*.safetensors (5 MB, used by eval) are all kept.
+prune_states() { ls -1 "$RUN"/train/state_*.safetensors 2>/dev/null | sort -V | head -n -2 | xargs -r rm -f; }
 
 if [ ! -f "$RUN/train.done" ]; then
+  prune_states
   RESUME=()
   STATE=$(ls -1 "$RUN"/train/state_*.safetensors 2>/dev/null | sort -V | tail -1)
   [ -n "$STATE" ] && RESUME=(training.resume=true "training.checkpoint_path='$STATE'") && echo "== resuming from $STATE"
@@ -58,7 +63,9 @@ if [ ! -f "$RUN/train.done" ]; then
   $PY scripts/train_flash_sac.py experiment=sharpa_flash_sac "task.parquet='$PARQUET'" reset.seed=42 \
     logging.mode=offline logging.upload_checkpoints=false logging.run_name=$NAME \
     training.total_environment_steps=$STEPS output_dir="$RUN/train" $EXTRA "${RESUME[@]}" >> "$RUN/train.log" 2>&1 &
-  CHILD=$!; wait "$CHILD"; rc=$?; CHILD=
+  CHILD=$!
+  ( while kill -0 "$CHILD" 2>/dev/null; do prune_states; sleep 60; done ) &
+  wait "$CHILD"; rc=$?; CHILD=; prune_states
   echo "== train exit=$rc wall_seconds=$SECONDS nefc_overflow_lines=$(grep -c 'nefc overflow' "$RUN/train.log")"
   grep -v 'nefc overflow' "$RUN/train.log" | tail -15
   [ $rc -eq 0 ] && touch "$RUN/train.done" || exit $rc
