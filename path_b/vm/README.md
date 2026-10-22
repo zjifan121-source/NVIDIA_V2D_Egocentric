@@ -9,7 +9,7 @@ rebuilds the rest.
 | When | Command | What it does |
 |---|---|---|
 | Before deleting an instance | `path_b/vm/save_instance.sh` | Checks the instance's code is clean and known to the Mac; copies every output file Hugging Face does not hold (`hf_outputs.py pending`) to `path_b/data/outputs/<run>/` and the logs to `~/V2D/vm_logs/<instance>_<date>/` with a `SAVED.md`; ends with "safe to delete" or what is missing |
-| After deleting it | `path_b/vm/save_instance.sh --remove-deploy-key` | The same check, then deletes the instance's deploy key from GitHub |
+| Right before deleting it | `path_b/vm/save_instance.sh --remove-deploy-key` | The same, then deletes the instance's deploy key from GitHub (it needs the instance reachable, and the key is useless once the instance is gone) |
 | A new instance is up | `path_b/vm/new_instance.sh <ip>` | Points the `l40s` alias at `<ip>`; puts `setup.sh`, the MANO files and `path_b/.env` on it; gives it a Hugging Face token and a read-only deploy key (added with `gh`); runs `setup.sh` in tmux and follows it; pushes this checkout's branch through the bare repo and runs the unit tests. Options: `--restore RUN` (default `4c2eac31`), `--no-restore`, `--no-frames`, `--branch B` |
 
 `new_instance.sh` takes about an hour on a fresh instance, mostly the stereo image and engine and

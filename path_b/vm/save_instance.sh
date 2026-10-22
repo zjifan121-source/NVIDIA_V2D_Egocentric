@@ -10,8 +10,8 @@
 #   are copied to the Mac's path_b/data/outputs/<run>/ (regular files; symlinks are listed in
 #   <run>/SYMLINKS.txt). What is on Hugging Face is restorable with hf_outputs.py download.
 # - logs: /root/v2d/logs/ to ~/V2D/vm_logs/<instance>_<date>/, with SAVED.md (what was saved)
-# - --remove-deploy-key: delete the instance's deploy key from GitHub (it is useless once the
-#   instance is gone)
+# - --remove-deploy-key: delete the instance's deploy key from GitHub; use it on the last run,
+#   right before deleting the instance (it must still be reachable; the key is useless after)
 # Rebuilt by new_instance.sh, so not copied: dataset, team bundles, environments, Docker images,
 # the stereo engine, MANO files and path_b/.env (both come from the Mac).
 set -euo pipefail
@@ -96,7 +96,7 @@ elif [ -n "$REMOVE_KEY" ]; then
   gh repo deploy-key delete "$key_id" -R "$GH_REPO" && echo "   removed $VM_NAME's key ($key_id)"
   printf -- '- deploy key %s (%s) removed from GitHub\n' "$key_id" "$VM_NAME" >> "$SAVED"
 else
-  echo "   $VM_NAME's key ($key_id) is still on GitHub; rerun with --remove-deploy-key once you delete the instance"
+  echo "   $VM_NAME's key ($key_id) is still on GitHub; right before deleting the instance, rerun with --remove-deploy-key"
 fi
 
 step "result"
