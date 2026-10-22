@@ -24,7 +24,8 @@ from . import loss
 from .paths import STEREO_WEIGHTS, episode_info, git_commit
 from .report import StageResult, worst
 
-STAGES = ("p0_ingest", "p1_calibrate", "p2_depth", "p3_scale_bridge", "p4_export", "s23_load_retarget")
+STAGES = ("p0_ingest", "p1_calibrate", "p2_depth", "p3_scale_bridge", "p4_export", "s23_load_retarget",
+          "s4_scene")
 
 
 @dataclass

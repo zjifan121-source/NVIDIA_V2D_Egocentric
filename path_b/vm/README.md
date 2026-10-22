@@ -53,3 +53,20 @@ Example: `RESTORE_RUN=4c2eac31 RESTORE_FRAMES=1 bash setup.sh`.
 Code not yet on GitHub reaches the instance from the Mac with
 `git push --no-verify <host>:/root/v2d/repo.git <branch>`, then
 `git -C /root/v2d/NVIDIA_V2D_Egocentric pull --ff-only /root/v2d/repo.git <branch>`.
+
+## SPIDER for S4 (`s4_scene`, once per instance)
+
+SPIDER (facebookresearch/spider, CC BY-NC 4.0) is installed beside the repo, never copied into it,
+in its own Python 3.12 environment: its pins (mujoco 3.7.0, mujoco-warp 3.7.0.1, warp-lang 1.12.1)
+differ from FlashCHORD's (mujoco 3.8.1, warp-lang 1.14.0). The commit below is the one Path B's
+adapter was written against.
+
+```bash
+git clone https://github.com/facebookresearch/spider /root/v2d/spider
+git -C /root/v2d/spider checkout 44717007de41cbef7565dff7ff9f4453557a2d3d
+cd /root/v2d/spider && uv sync --python 3.12 && uv pip install coacd trimesh   # decompose.py needs both
+export SPIDER_DIR=/root/v2d/spider SPIDER_PY=/root/v2d/spider/.venv/bin/python
+export SPIDER_ROBOT=xhand            # ships with SPIDER; Sharpa needs SPIDER_ROBOT_ASSETS=<dir with bimanual.xml>
+```
+
+Without `SPIDER_DIR` and `SPIDER_PY`, `s4_scene` is skipped with that reason.
