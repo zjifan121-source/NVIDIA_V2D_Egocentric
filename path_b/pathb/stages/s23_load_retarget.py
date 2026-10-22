@@ -1,9 +1,9 @@
 """Stages 2-3 on Path B's bundles with the team's runner (tools/track3/run_load_retarget.py, default
 repairs), then the reconstruction-only score of what it would hand FlashCHORD (public episodes).
 
-Needs RETARGET_VENV (README §5.12). One object: the runner on that object's bundle. Two objects:
-pathb/merge_runner.py runs the same runner with --merge on Path B's own P4 bundles (one scene,
-the steadiest camera path supplies the world), so two-object episodes reach S4 too.
+Needs RETARGET_VENV (README §5.12). One object: the runner on that object's bundle. Two-object
+episodes are skipped for now: v2's merge runner is parked in cache/v2/, and v3 assembles them with
+run_load_retarget.py --merge in S5 mode A (V3_BUILD_SPEC.md §5, task 15).
 """
 from __future__ import annotations
 
@@ -14,16 +14,13 @@ import subprocess
 
 import numpy as np
 
-from ..paths import PATH_B, REPO
+from ..paths import REPO
 from ..report import Metric, StageResult
 from ..team import scorer
 
 
 def command(ctx, venv: str, out) -> list[str]:
     py = f"{venv}/bin/python"
-    if len(ctx.objects) > 1:
-        return [py, str(PATH_B / "pathb/merge_runner.py"), "--p4", str(ctx.root / "p4_export"), "--",
-                "--episode", str(ctx.number), "--merge", "--out", str(out)]
     name = ctx.objects[0]
     bundle = ctx.root / f"p4_export/episode_{ctx.number:06d}/{name}/result_slam_gravity_aligned"
     return [py, str(REPO / "tools/track3/run_load_retarget.py"), "--bundle", str(bundle),
@@ -37,6 +34,9 @@ def worst_seating(value) -> float | None:
 
 
 def run(ctx) -> StageResult:
+    if len(ctx.objects) > 1:
+        return StageResult([], skip="two-object scene: assembled with run_load_retarget.py --merge in S5 mode A "
+                                    "(task 15); v2's merge runner is parked in cache/v2/")
     venv = os.environ.get("RETARGET_VENV")
     if not venv:
         raise RuntimeError("set RETARGET_VENV to the stages 2-3 environment (README §5.12)")
