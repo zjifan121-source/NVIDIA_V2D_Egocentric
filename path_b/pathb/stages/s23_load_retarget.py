@@ -14,6 +14,7 @@ import subprocess
 
 import numpy as np
 
+from ..bundle import p4_bundle
 from ..paths import REPO
 from ..report import Metric, StageResult
 from ..team import scorer
@@ -22,7 +23,7 @@ from ..team import scorer
 def command(ctx, venv: str, out) -> list[str]:
     py = f"{venv}/bin/python"
     name = ctx.objects[0]
-    bundle = ctx.root / f"p4_export/episode_{ctx.number:06d}/{name}/result_slam_gravity_aligned"
+    bundle = p4_bundle(ctx, name)
     return [py, str(REPO / "tools/track3/run_load_retarget.py"), "--bundle", str(bundle),
             "--episode", str(ctx.number), "--object", name, "--out", str(out)]
 

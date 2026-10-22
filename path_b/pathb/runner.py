@@ -116,7 +116,7 @@ def run_stage(name: str, ctx: Context, force: bool) -> tuple[dict, bool]:
     if importlib.util.find_spec(f"pathb.stages.{name}") is None:
         # not written to disk, so the stage runs as soon as its module exists
         return {"stage": name, "status": "SKIP", "episode": ctx.number, "split": ctx.split, "seconds": 0.0,
-                "gpu_peak_mib": None, "metrics": [], "outputs": {},
+                "gpu_peak_mib": None, "metrics": [], "outputs": {}, "files_read": [],
                 "skip_reason": f"pathb/stages/{name}.py is not built yet", "error": None}, False
     path = ctx.root / name / "report.json"
     if not force and path.is_file():
@@ -137,7 +137,7 @@ def run_stage(name: str, ctx: Context, force: bool) -> tuple[dict, bool]:
         "episode": ctx.number, "split": ctx.split, "commit": git_commit(),
         "started_utc": started.isoformat(timespec="seconds"), "seconds": round(time.monotonic() - t0, 1),
         "gpu_peak_mib": gpu.peak, "metrics": metrics, "outputs": result.outputs,
-        "skip_reason": result.skip, "error": error,
+        "files_read": [str(f) for f in result.files_read], "skip_reason": result.skip, "error": error,
     }
     write_json(ctx.dir(name) / "report.json", report)
     return report, True

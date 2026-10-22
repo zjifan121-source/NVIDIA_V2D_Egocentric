@@ -9,6 +9,11 @@ import numpy as np
 from .team import retarget_tools
 
 
+def p4_bundle(ctx, name: str) -> Path:
+    """The episode's bundle for one object, as P4 exports it (BUNDLES.md layout); S3c completes it."""
+    return ctx.root / f"p4_export/episode_{ctx.number:06d}/{name}/result_slam_gravity_aligned"
+
+
 def rescaled_copy(src: Path, dest: Path, factor: float, link: bool = True,
                   skip: tuple[str, ...] = ()) -> Path:
     """dest/result.npz = src's with every length times `factor`; the other files are linked (or
