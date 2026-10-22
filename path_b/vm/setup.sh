@@ -157,7 +157,9 @@ envs() {
 
 bundles() {
   say "team bundles (rose-tea-cafe/v2d-t3-recon)"
-  local have; have=$(find "$RECON/data/outputs/hub" -name result.npz 2>/dev/null | wc -l)
+  # on a fresh instance hub/ does not exist yet, and a failing find would end the script (pipefail)
+  mkdir -p "$RECON/data/outputs/hub"
+  local have; have=$(find "$RECON/data/outputs/hub" -name result.npz | wc -l)
   if [ "$have" -lt 69 ]; then
     local episodes
     episodes=$(cd "$REPO" && uv run --project tools python -c \
