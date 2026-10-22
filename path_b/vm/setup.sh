@@ -8,7 +8,10 @@
 # Later runs: bash /root/v2d/NVIDIA_V2D_Egocentric/path_b/vm/setup.sh
 #
 # It stops and says what to do when it needs you: adding its GitHub deploy key (once per
-# instance), `hf auth login`, copying the MANO files. Settings (environment variables):
+# instance), `hf auth login`, copying the MANO files. path_b/vm/new_instance.sh (on the Mac) does
+# all three before it starts this script, so a new instance needs one command (vm/README.md).
+# Files the Mac drops in /root/v2d/inbox/ are moved into place: MANO_{RIGHT,LEFT}.pkl and
+# path_b.env (-> path_b/.env). Settings (environment variables):
 #     BRANCH=main_buffer        branch to check out on the first clone
 #     RESTORE_RUN=4c2eac31      Path B outputs to restore from Hugging Face (path_b/vm/hf_outputs.py)
 #     RESTORE_FRAMES=1          also restore that run's per-frame intermediates (~18 GB)
@@ -20,6 +23,7 @@ V2D=/root/v2d
 REPO=$V2D/NVIDIA_V2D_Egocentric
 RECON=$REPO/baseline/reconstruction
 LOGS=$V2D/logs
+INBOX=$V2D/inbox  # filled by new_instance.sh: MANO files, path_b.env
 BRANCH=${BRANCH:-main_buffer}
 GITHUB=git@github.com:zjifan121-source/NVIDIA_V2D_Egocentric.git
 UV_VERSION=0.11.6
@@ -42,6 +46,9 @@ check_host() {
   command -v docker >/dev/null || { echo "Docker is missing: use an image with Docker + NVIDIA Container Toolkit"; exit 1; }
   logged docker_gpu docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi -L
   ok "GPU visible inside Docker"
+  # without lingering, systemd stops root's user manager (and the tmux panes under it) whenever no
+  # SSH session is open; long jobs run in tmux
+  loginctl enable-linger root 2>/dev/null && ok "lingering on: tmux jobs outlive SSH sessions" || true
   local free_gb; free_gb=$(df -BG --output=avail / | tail -1 | tr -dc 0-9)
   [ "$free_gb" -ge 120 ] && ok "${free_gb} GB free" || echo "   warning: ${free_gb} GB free; a full setup with frames uses ~100 GB"
 }
@@ -104,6 +111,16 @@ code() {
   logged lfs git -C "$REPO" lfs pull  # from NVIDIA's public LFS store (.lfsconfig)
   # Unpushed work arrives from the Mac with: git push --no-verify l40s:/root/v2d/repo.git <branch>
   [ -d "$V2D/repo.git" ] || git init -q --bare -b main_buffer "$V2D/repo.git"
+  # Seeded with the clone's GitHub branches, so a push from the Mac sends only the new commits
+  # (an empty bare repo makes the Mac upload the whole ~900 MB history)
+  if [ -z "$(git -C "$V2D/repo.git" for-each-ref --count=1 refs/heads)" ]; then
+    git -C "$V2D/repo.git" fetch -q "$REPO" "+refs/remotes/origin/*:refs/heads/*"
+    git -C "$V2D/repo.git" update-ref -d refs/heads/HEAD 2>/dev/null || true
+  fi
+  if [ -f "$INBOX/path_b.env" ]; then
+    install -m 600 "$INBOX/path_b.env" "$REPO/path_b/.env" && rm -f "$INBOX/path_b.env"
+  fi
+  [ -f "$REPO/path_b/.env" ] && ok "path_b/.env present (git-ignored; source it only for v2d_submit.py)"
   ok "$(git -C "$REPO" log --oneline -1) on $(git -C "$REPO" branch --show-current)"
 }
 
@@ -174,6 +191,9 @@ mano() {
   say "MANO hand model (your license; never in git)"
   local dir=$RECON/data/weights/hand/models
   mkdir -p "$dir"
+  for f in MANO_RIGHT.pkl MANO_LEFT.pkl; do
+    [ -f "$INBOX/$f" ] && install -m 600 "$INBOX/$f" "$dir/$f" && rm -f "$INBOX/$f"
+  done
   if [ -f "$dir/MANO_RIGHT.pkl" ] && [ -f "$dir/MANO_LEFT.pkl" ]; then
     chmod 600 "$dir"/MANO_*.pkl
     ok "MANO_RIGHT.pkl and MANO_LEFT.pkl present"

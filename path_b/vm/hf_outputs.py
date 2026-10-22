@@ -17,6 +17,7 @@ Usage (repo root; needs `hf auth login`, with a Write token to upload):
     uv run --project tools python path_b/vm/hf_outputs.py upload --run 0fa525bc
     uv run --project tools python path_b/vm/hf_outputs.py list
     uv run --project tools python path_b/vm/hf_outputs.py download --run 4c2eac31 [--frames]
+    uv run --project tools python path_b/vm/hf_outputs.py pending --run t1_f238fec   # not on HF yet
 """
 from __future__ import annotations
 
@@ -172,16 +173,55 @@ def download(run: str, frames: bool) -> None:
           + (", with per-frame intermediates" if frames and manifest["frames"] else ", results only"))
 
 
+def uncovered(src: Path, remote: dict[str, int]) -> list[str]:
+    """Run-relative paths of src's regular files that Hugging Face does not hold, given remote
+    {run-relative path: size}: results missing there or of another size, frames whose episode has no
+    frames.tar there. Scratch copies are left out of uploads on purpose and not listed. With an empty
+    remote (the run was never uploaded) every regular file is listed."""
+    out = []
+    for path in sorted(p for p in src.rglob("*") if p.is_file() and not p.is_symlink()):
+        rel = path.relative_to(src)
+        if remote and rel.parts[0].startswith("episode_") and len(rel.parts) > 1:
+            k = kind(Path(*rel.parts[1:]))
+            if k == "scratch" or (k == "frames" and f"{rel.parts[0]}/frames.tar" in remote):
+                continue
+        if remote.get(str(rel)) != path.stat().st_size:
+            out.append(str(rel))
+    return out
+
+
+def pending(run: str) -> None:
+    """Print the files of a local run that Hugging Face does not hold (uncovered)."""
+    from huggingface_hub import HfApi
+    from huggingface_hub.errors import EntryNotFoundError
+    from huggingface_hub.hf_api import RepoFile
+    src = OUTPUTS / run
+    if not src.is_dir():
+        raise SystemExit(f"no run folder {src}")
+    try:
+        tree = HfApi().list_repo_tree(REPO_ID, path_in_repo=f"{PREFIX}/{run}", repo_type="dataset", recursive=True)
+        remote = {f.path[len(PREFIX) + len(run) + 2:]: f.size for f in tree if isinstance(f, RepoFile)}
+    except EntryNotFoundError:
+        remote = {}
+    for rel in uncovered(src, remote):
+        print(rel)
+
+
 def main() -> None:
+    global OUTPUTS
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=("upload", "download", "list"))
+    parser.add_argument("command", choices=("upload", "download", "list", "pending"))
     parser.add_argument("--run", help="folder under path_b/data/outputs/, e.g. 4c2eac31")
     parser.add_argument("--frames", action="store_true", help="include the per-frame intermediates (frames.tar)")
+    parser.add_argument("--outputs", type=Path, help=f"the runs' folder (default {OUTPUTS}); lets "
+                        "save_instance.sh run the Mac's copy of this script against an instance's checkout")
     args = parser.parse_args()
+    if args.outputs:
+        OUTPUTS = args.outputs.resolve()
     if args.command != "list" and not args.run:
         parser.error("--run is required")
     {"upload": lambda: upload(args.run, args.frames), "download": lambda: download(args.run, args.frames),
-     "list": list_runs}[args.command]()
+     "list": list_runs, "pending": lambda: pending(args.run)}[args.command]()
 
 
 if __name__ == "__main__":

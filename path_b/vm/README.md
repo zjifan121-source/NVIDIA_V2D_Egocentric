@@ -1,7 +1,25 @@
 # path_b/vm/ — set up a new GPU instance, save and restore outputs
 
 A GPU instance can be deleted whenever it is idle (on Verda, a shut-down instance keeps billing; a
-deleted one does not). Code lives in git, results on Hugging Face, and `setup.sh` rebuilds the rest.
+deleted one does not). Code lives in git, results on Hugging Face or the Mac, and `setup.sh`
+rebuilds the rest.
+
+## One command each way (from the Mac, repo root)
+
+| When | Command | What it does |
+|---|---|---|
+| Before deleting an instance | `path_b/vm/save_instance.sh` | Checks the instance's code is clean and known to the Mac; copies every output file Hugging Face does not hold (`hf_outputs.py pending`) to `path_b/data/outputs/<run>/` and the logs to `~/V2D/vm_logs/<instance>_<date>/` with a `SAVED.md`; ends with "safe to delete" or what is missing |
+| After deleting it | `path_b/vm/save_instance.sh --remove-deploy-key` | The same check, then deletes the instance's deploy key from GitHub |
+| A new instance is up | `path_b/vm/new_instance.sh <ip>` | Points the `l40s` alias at `<ip>`; puts `setup.sh`, the MANO files and `path_b/.env` on it; gives it a Hugging Face token and a read-only deploy key (added with `gh`); runs `setup.sh` in tmux and follows it; pushes this checkout's branch through the bare repo and runs the unit tests. Options: `--restore RUN` (default `4c2eac31`), `--no-restore`, `--no-frames`, `--branch B` |
+
+`new_instance.sh` takes about an hour on a fresh instance, mostly the stereo image and engine and
+the restore; rerunning it on a ready instance takes a few minutes and changes nothing. Its only
+manual step: the Hugging Face token comes from `path_b/.env`. With `HF_WRITE_TOKEN=` there, the
+instance can upload; with only the read-only `HF_TOKEN`, run `ssh -t l40s /root/.local/bin/hf auth
+login` with a write token before an upload. On the instance, `path_b/.env` is sourced only for
+`v2d_submit.py` (its `HF_TOKEN` would override the login).
+
+The sections below are what the two scripts do, step by step.
 
 ## Before deleting an instance
 
