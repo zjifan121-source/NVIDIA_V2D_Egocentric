@@ -66,3 +66,17 @@ def test_public_pick_breaks_ties_by_mppe():
     assert selection.pick_public(scores)[0] == "tracking"
     scores["keyframe"]["AUC"] = 0.52
     assert selection.pick_public(scores)[0] == "keyframe"
+
+
+def test_two_objects_add_rpe():
+    scores = {"keyframe": {"AUC": 0.5, "MPPE cm": 5.0, "RPE cm": 9.0}, "tracking": {"AUC": 0.5005, "MPPE cm": 6.0, "RPE cm": 3.0}}
+    assert selection.pick_public(scores)[0] == "keyframe" and selection.pick_public(scores, rpe=True)[0] == "tracking"
+    ref = np.concatenate([moving(), moving()], axis=1)
+    ref[:, 1, 0, 3] += 0.2  # the second object 20 cm beside the first
+    roll = ref.copy()
+    roll[10:, 1, 1, 3] += 0.03  # the second object drifts 3 cm from the first after frame 10
+    observed = np.ones(ref.shape[:2], bool)
+    G = [symmetry.group("mini_dust_pan")] * 2
+    plain = selection.observation_cost(roll, ref, observed, G)["cost_m"]
+    rel = selection.observation_cost(roll, ref, observed, G, relative=True)["cost_m"]
+    assert rel > plain > 0

@@ -10,6 +10,7 @@ Run from the repo root (README in path_b/):
     uv run --project path_b python path_b/run.py standin --episodes 40 26 --out <run>  # Mac: stand-in GPU outputs
     uv run --project path_b python path_b/run.py analysis --episodes 40 26 --out <run> [--tag v2]  # after waterfall
     uv run --project path_b python path_b/run.py a2 --episodes 40 26 --out <run>  # A2.5: variants, decision
+    uv run --project path_b python path_b/run.py p2 --episodes 26 --out <run>  # phase 2 (two objects) -> <run>_p2
     uv run --project path_b python path_b/run.py canonical --object white_pot --split all --out <run>
                                                     # phase A2.2: after s3a2_fuse_scan, -> <run>/canonical/
 Outputs: path_b/data/outputs/<run>/episode_XXXXXX/{<stage>/report.json, run.json, loss_report.md, ...};
@@ -40,7 +41,7 @@ def episodes(args) -> list[int]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("command", choices=("run", "waterfall", "visualize", "oracle", "pack", "canonical", "standin",
-                                            "analysis", "a2"))
+                                            "analysis", "a2", "p2"))
     which = parser.add_mutually_exclusive_group(required=True)
     which.add_argument("--episodes", type=int, nargs="+")
     which.add_argument("--split", choices=("public", "evaluation", "all"))
@@ -64,6 +65,12 @@ def main() -> int:
             if report["first_failing_stage"]:
                 failed.append(f"{number}: {report['first_failing_stage']}")
         print("first failing stage per episode: " + (", ".join(failed) or "none"))
+        return 0
+
+    if args.command == "p2":
+        from pathb import phase2
+        for root in phase2.main(out, episodes(args)):
+            print(f"phase 2: {root}")
         return 0
 
     if args.command == "a2":

@@ -9,6 +9,9 @@ world's offset). Per frame: the observed objects' mean position error, symmetry-
 (pathb/symmetry.py); a termination-equivalent frame (> 10 cm or > 0.5 rad) costs PENALTY_M. Lowest mean
 cost wins; ties go to the earlier candidate. Every candidate's own reference would not do: the still
 reference never moves, so its rollout always tracks it best.
+Phase 2 (two objects, V3_BUILD_SPEC.md §8 "S6 selection adds RPE"): public ties go to the lower RPE before
+MPPE; the observation cost also counts, on frames where both objects are observed, the error of the
+second object's position relative to the first (capped like the rest).
 """
 from __future__ import annotations
 
@@ -31,9 +34,10 @@ def matrices(poses: np.ndarray) -> np.ndarray:
     return T
 
 
-def observation_cost(rollout: np.ndarray, reference: np.ndarray, observed: np.ndarray, groups: list) -> dict:
+def observation_cost(rollout: np.ndarray, reference: np.ndarray, observed: np.ndarray, groups: list,
+                     relative: bool = False) -> dict:
     """rollout, reference: (n, k, 4, 4) object poses; observed: (n, k) frames to score; groups: per
-    object its (K, 4, 4) symmetry transforms."""
+    object its (K, 4, 4) symmetry transforms; relative: add the objects' relative-position error."""
     A = reference[0, 0] @ np.linalg.inv(rollout[0, 0])  # anchor object's frame 0
     aligned = A @ rollout
     n, k = observed.shape
@@ -45,19 +49,28 @@ def observation_cost(rollout: np.ndarray, reference: np.ndarray, observed: np.nd
         rot = symmetry.angle(reference[t, j, :3, :3], T[:3, :3])
         terminated[t, j] = pos > PENALTY_M or rot > MAX_ROT
         cost[t, j] = PENALTY_M if terminated[t, j] else pos
+    terms = cost
+    if relative and k > 1:
+        rel = np.full((n, 1), np.nan)
+        for t in np.flatnonzero(observed.all(axis=1)):
+            d = np.linalg.norm((aligned[t, 1:, :3, 3] - aligned[t, :1, :3, 3]) - (reference[t, 1:, :3, 3] - reference[t, :1, :3, 3]),
+                               axis=1).mean()
+            rel[t, 0] = min(float(d), PENALTY_M)
+        terms = np.concatenate([cost, rel], axis=1)
     frames = observed.any(axis=1)
-    per_frame = np.nanmean(cost[frames], axis=1) if frames.any() else np.array([])
+    per_frame = np.nanmean(terms[frames], axis=1) if frames.any() else np.array([])
     return {"cost_m": float(per_frame.mean()) if len(per_frame) else None, "frames": int(frames.sum()),
             "termination_frames": int(terminated.any(axis=1).sum()),
             "median_position_error_m": float(np.nanmedian(np.where(terminated, np.nan, cost))) if frames.any() else None}
 
 
-def pick_public(scores: dict[str, dict]) -> tuple[str, str]:
+def pick_public(scores: dict[str, dict], rpe: bool = False) -> tuple[str, str]:
     best = max(s["AUC"] for s in scores.values())
     tied = [c for c, s in scores.items() if s["AUC"] >= best - TIE_AUC]
-    choice = min(tied, key=lambda c: scores[c]["MPPE cm"])
-    why = f"best AUC {scores[choice]['AUC']:.3f}" + (f" (tie with {[c for c in tied if c != choice]}: lower MPPE)"
-                                                     if len(tied) > 1 else "")
+    key = (lambda c: (scores[c]["RPE cm"], scores[c]["MPPE cm"])) if rpe else (lambda c: scores[c]["MPPE cm"])
+    choice = min(tied, key=key)
+    why = f"best AUC {scores[choice]['AUC']:.3f}" + (
+        f" (tie with {[c for c in tied if c != choice]}: lower {'RPE, then MPPE' if rpe else 'MPPE'})" if len(tied) > 1 else "")
     return choice, why
 
 

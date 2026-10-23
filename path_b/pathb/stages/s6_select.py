@@ -14,7 +14,7 @@ import json
 import numpy as np
 import trimesh
 
-from .. import gt, selection, symmetry
+from .. import gt, phase2, selection, symmetry
 from ..report import Metric, StageResult
 from ..runner import write_json
 from ..team import scorer
@@ -44,7 +44,8 @@ def run(ctx) -> StageResult:
     if not rollouts:
         raise RuntimeError("no rollout (s6_eval/<candidate>/results)")
     reference, observed, groups = observation(ctx)
-    costs = {c: selection.observation_cost(selection.matrices(p), reference, observed, groups)
+    two = phase2.enabled(ctx)
+    costs = {c: selection.observation_cost(selection.matrices(p), reference, observed, groups, relative=two)
              for c, (_, p) in rollouts.items()}
     by_observation = selection.pick_evaluation(costs)
     out = {"costs": costs, "evaluation_rule_pick": by_observation[0]}
@@ -57,7 +58,7 @@ def run(ctx) -> StageResult:
             meshes = {name: ctx.root / f"s5_task/{cand}/run/score_input/meshes/episode_{ctx.number:06d}/{name}.obj"
                       for name in ctx.objects}
             scores[cand] = gt.score(ctx.episode, poses, meshes, ctx.files_read)
-        choice, reason = selection.pick_public(scores)
+        choice, reason = selection.pick_public(scores, rpe=two)
         out.update(scores=scores, rule="public: official AUC (ties: MPPE)")
         metrics += [Metric(f"{c}: rollout AUC", s["AUC"], "", kind="gt",
                            note=f"MPPE {s['MPPE cm']:.2f} cm, MP-SR {s['MP-SR']:.2f}, CD-O {s['CD-O cm']:.2f} cm")

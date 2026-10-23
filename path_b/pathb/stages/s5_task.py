@@ -18,7 +18,8 @@ object URDF and mesh, support USD, the MANO fields and an IK robot.
   still: S4b's still bundle with --still-object.
 - Two-object episodes (phase 1): mode A on the merged scene (--merge over each object's bundle: S4c's
   realised one where its gate says so, else S4b's); each object's DaiD run has hands of its own, so
-  one task needs phase 2's joint retarget (spec §8).
+  one task needs phase 2's joint retarget (spec §8). Phase 2 (pathb/phase2.py) adds --seat when S4a's
+  support.json has an object resting on another (the runner's support_stacked surfaces).
 Checks: the runner's on the partition S6 trains on (frames, no robot link > 2 cm inside an object,
 frame-0 seating gap < 1 cm, a support disk); mode B also the hand-over: every DaiD contact's robot-side
 point, carried by the task file's robot (fk.py), within 1 cm of the object surface on >= 90 % of
@@ -39,7 +40,7 @@ import pyarrow.parquet as pq
 import trimesh
 from scipy.spatial.transform import Rotation
 
-from .. import fk, gt
+from .. import fk, gt, phase2
 from ..paths import PATH_B, REPO, TRACK3_FPS
 from ..team import lr_command
 from ..report import Metric, StageResult
@@ -81,12 +82,24 @@ def choose(ctx, cand: str) -> dict:
         elif json.loads(gate.read_text())["use_realised"]:
             bundles[name] = ctx.root / f"s4c_retarget/{name}/{cand}/bundle"
             realised.append(name)
+    seat = []
+    support = ctx.root / "s4a_phases/support.json"
+    if phase2.enabled(ctx) and support.is_file():
+        stacked = {o: on for rel in json.loads(support.read_text()).values() for o, on in rel.items() if on != "table"}
+        seat = ["--seat"] if stacked else []
     if cand == "still":
-        return {"mode": "still", "bundles": bundles, "reason": "S4b still bundle with --still-object"}
+        return {"mode": "still", "bundles": bundles, "reason": "S4b still bundle with --still-object", "extra_flags": seat}
     if len(ctx.objects) == 1 and realised:
         return {"mode": "B", "bundles": bundles, "reason": "S4c gate: realised trajectory (Do as I Do)"}
+    if len(ctx.objects) > 1 and phase2.enabled(ctx) and len(realised) == len(ctx.objects):
+        return {"mode": "B", "bundles": bundles, "extra_flags": seat,
+                "reason": "phase 2: S4c gate took the realised two-object scene (Do as I Do)"}
     if len(ctx.objects) > 1:
-        why = f"two objects: merged scene, realised for {realised or 'none'} (phase 2 retargets them together)"
+        why = (f"two objects, phase 2: merged scene, realised for {realised or 'none'}"
+               + (", --seat (an object rests on another, S4a support.json)" if seat else "")
+               if phase2.enabled(ctx) else
+               f"two objects: merged scene, realised for {realised or 'none'} (phase 2 retargets them together)")
+        return {"mode": "A", "bundles": bundles, "reason": why, "extra_flags": seat}
     elif missing_gate:
         why = "S4c did not run (Do as I Do not installed): kinematic reference"
     else:
@@ -216,21 +229,24 @@ def write_partition(table: pa.Table, new: dict, dest: Path) -> None:
     pq.write_table(pa.Table.from_arrays(cols, schema=table.schema), dest)
 
 
-def handover(cells: dict, traj: dict, info: dict, mesh_path: Path, shift: np.ndarray) -> dict:
-    """DaiD's robot-side contact points carried by the task file's robot: distance to the object surface."""
-    mesh = trimesh.load(mesh_path, force="mesh", process=False)
-    T_o = matrices(np.asarray(cells["object_body_position"])[:, 0], np.asarray(cells["object_body_wxyz"])[:, 0])
-    worst = np.full(len(T_o), -1.0)
+def handover(cells: dict, traj: dict, info: dict, mesh_paths: list[Path], shift: np.ndarray) -> dict:
+    """DaiD's robot-side contact points carried by the task file's robot: distance to the surface of the
+    object each touched (part id 1, 2: the task's object bodies in order)."""
+    meshes = [trimesh.load(m, force="mesh", process=False) for m in mesh_paths]
+    pos, wxyz = np.asarray(cells["object_body_position"]), np.asarray(cells["object_body_wxyz"])
+    T_o = [matrices(pos[:, b], wxyz[:, b]) for b in range(len(meshes))]
+    worst = np.full(len(pos), -1.0)
     for side in SIDES:
         if "_poses" not in info[side]:
             continue
         pts = robot_points(traj, side, info[side]["_poses"], shift)
-        f, s = np.nonzero(traj[f"{side}_contact_body"] >= 0)
-        if not len(f):
-            continue
-        local = np.einsum("nji,nj->ni", T_o[f, :3, :3], pts[f, s] - T_o[f, :3, 3])
-        d = mesh.nearest.on_surface(local)[1]
-        np.maximum.at(worst, f, d)
+        part = traj[f"{side}_contact_part_ids"]
+        for b, (mesh, T) in enumerate(zip(meshes, T_o)):
+            f, s = np.nonzero((traj[f"{side}_contact_body"] >= 0) & (part == b + 1))
+            if not len(f):
+                continue
+            local = np.einsum("nji,nj->ni", T[f, :3, :3], pts[f, s] - T[f, :3, 3])
+            np.maximum.at(worst, f, mesh.nearest.on_surface(local)[1])
     frames = worst >= 0
     share = float(np.mean(worst[frames] <= CONTACT_M)) if frames.any() else None
     return {"contact_frames": int(frames.sum()), "within_1cm_share": share,
@@ -247,6 +263,8 @@ def lr_check(partition: Path, meshes: list, usda: Path, frames: int, out: Path) 
 
 
 def mode_b(ctx, d: Path, choice: dict, report: dict, seq: str) -> dict:
+    """One object, or (phase 2) the two-object scene: S4c's trajectory sits in the first object's folder
+    (a link to the scene's), and the merged task's bodies follow the roster."""
     name = ctx.objects[0]
     traj = dict(np.load(ctx.root / f"s4c_retarget/{name}/{choice['cand']}/trajectory_mjwp.npz"))
     src = parquet_file(report["processed"])
@@ -264,8 +282,9 @@ def mode_b(ctx, d: Path, choice: dict, report: dict, seq: str) -> dict:
         link.unlink()
     link.symlink_to(usda.name)
     _, cells_b = read_cells(dest)
-    over = handover(cells_b, traj, info, processed / f"{seq}.obj", shift)
-    check = lr_check(dest.parent, [processed / f"{seq}.obj"], link, int(ctx.episode["num_frames"]), d / "check_b.json")
+    meshes = [processed / f"{seq}.obj"] if len(ctx.objects) == 1 else [processed / f"{seq}_{o}.obj" for o in ctx.objects]
+    over = handover(cells_b, traj, info, meshes, shift)
+    check = lr_check(dest.parent, meshes, link, int(ctx.episode["num_frames"]), d / "check_b.json")
     for side in SIDES:
         info[side].pop("_poses", None)
     return {"partition": dest.parent, "sequence_id": seq_b, "support_usd": link, "world_shift_m": shift,
@@ -283,7 +302,7 @@ def run(ctx) -> StageResult:
         cd = d / cand
         cd.mkdir(exist_ok=True)
         seq = f"ep{ctx.number}_{cand}"
-        report = runner(ctx, choice["bundles"], FLAGS[choice["mode"]], seq, cd / "run")
+        report = runner(ctx, choice["bundles"], FLAGS[choice["mode"]] + choice.get("extra_flags", []), seq, cd / "run")
         task = {"candidate": cand, "mode": choice["mode"], "reason": choice["reason"], "bundles": choice["bundles"],
                 "flags": FLAGS[choice["mode"]], "partition": report["processed"], "sequence_id": seq,
                 "support_usd": report["support_usd"], "output_check": report["output_check"],

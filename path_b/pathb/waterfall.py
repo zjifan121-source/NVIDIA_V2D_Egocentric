@@ -13,7 +13,8 @@ the stage that makes it has run:
   realised_<cand.>   S4c's physically realised trajectories (Do as I Do)
   rollout_<cand.>    S6's evaluator rollouts of the trained policies
 Phase A2's variants (pathb/a2.py, run folders <run>_a2_mesh_fp and <run>_a2_mesh_points beside this
-one) add a column each: that variant's best candidate (rollout, else realised, else reference).
+one) add a column each: that variant's best candidate (rollout, else realised, else reference). Phase 2
+(pathb/phase2.py, <run>_p2) adds p2_<column> for its references, realised and rollouts, and p2_best.
 Every bundle column is scored twice: as submitted, and with the public scan as mesh, placed in our
 mesh's frame as the official metric registers it (gt.scan_in_frame): `<column>@scan`, "scan mesh -
 ceiling, not submittable", the score our poses would get with a perfect mesh.
@@ -45,7 +46,9 @@ BUNDLE_VARIANTS = ("fused", "stage2_clean", *[f"ref_{c}" for c in CANDIDATES],
 SCAN = "@scan"  # suffix: the same poses with the scan as mesh (ceiling, not submittable)
 ROLLOUTS = tuple(f"rollout_{c}" for c in CANDIDATES)
 SIBLINGS = ("a2_mesh_fp", "a2_mesh_points")  # phase A2 variant runs beside this one
-VARIANTS = ("raw", *BUNDLE_VARIANTS, *ROLLOUTS, *SIBLINGS)
+P2 = ("p2_ref_keyframe", "p2_ref_tracking", "p2_ref_still", "p2_realised_keyframe", "p2_realised_tracking",
+      "p2_rollout_keyframe", "p2_rollout_tracking", "p2_rollout_still", "p2_best")  # phase 2 run beside it
+VARIANTS = ("raw", *BUNDLE_VARIANTS, *ROLLOUTS, *SIBLINGS, *P2)
 ORACLES = PATH_B / "oracles"
 BASELINES = ("0fa525bc stage2_stereo", "S0.2 recon / place", "S0.2 still")
 
@@ -203,6 +206,15 @@ def episode(root: Path) -> dict:
             best = best_candidate(theirs)
             if best:
                 scores[sibling] = dict(theirs[best], candidate=best)
+    p2 = root.parent.parent / f"{root.parent.name}_p2" / root.name / "waterfall.json"
+    if p2.is_file():  # phase 2's run of this episode
+        from .analysis import best_candidate
+        theirs = json.loads(p2.read_text())["scores"]
+        for col in [c for c in theirs if c.startswith(("ref_", "realised_", "rollout_")) and SCAN not in c]:
+            scores[f"p2_{col}"] = theirs[col]
+        best = best_candidate(theirs)
+        if best:
+            scores["p2_best"] = dict(theirs[best], candidate=best)
     base = baselines(number, len(names))
     reference = base[BASELINES[0]]
     attribution = {f"{v} vs 0fa525bc stage2_stereo": s["AUC"] - reference

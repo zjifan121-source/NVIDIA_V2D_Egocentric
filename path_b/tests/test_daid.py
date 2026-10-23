@@ -62,3 +62,26 @@ def test_sharpa_joints_match_flash_chord():
     for side in ("right", "left"):
         assert len(m[side]["finger_joints"]) == 22
         assert all(j["daid_limits"] == j["flash_chord_limits"] for j in m[side]["finger_joints"])
+
+
+def test_two_objects_round_trip(tmp_path):
+    """Phase 2: right_object (roster-first) and left_object, DaiD's last 14 qpos numbers."""
+    fps, n = 20.25411910142744, 40
+    A, B = track(n, fps), track(n, fps)
+    B[:, :3, 3] += [0.2, -0.1, 0.0]
+    meta = daid.prepare(A, mano(n), tmp_path, fps, second=B)
+    z = np.load(tmp_path / "daid_input.npz")
+    assert meta["objects"] == 2 and meta["embodiment"] == "bimanual"
+    assert np.allclose(z["qpos_obj_left"][0, :2], [0.2, -0.1])  # same DaiD world as the first object
+    t_sim = np.arange(0, (meta["n_ref"] - 1) / daid.REF_HZ, 0.005)
+    t_sim = t_sim[: len(t_sim) // 10 * 10]
+
+    def obj(q):
+        return np.concatenate([daid.lerp(q[:, :3], z["t_ref"], t_sim),
+                               daid.slerp(Rotation.from_quat(q[:, [4, 5, 6, 3]]), z["t_ref"], t_sim).as_quat()[:, [3, 0, 1, 2]]], axis=1)
+    qpos = np.concatenate([np.zeros((len(t_sim), 56)), obj(z["qpos_obj"]), obj(z["qpos_obj_left"])], axis=1)
+    np.savez(tmp_path / "trajectory_mjwp.npz", qpos=qpos.reshape(-1, 10, 70), time=t_sim.reshape(-1, 10))
+    back = daid.read_back(tmp_path / "trajectory_mjwp.npz", [f"j{i}" for i in range(70)], meta)
+    assert np.abs(back["object_to_world"][:, :3, 3] - A[:, :3, 3]).max() < 1e-3
+    assert np.abs(back["second_object_to_world"][:, :3, 3] - B[:, :3, 3]).max() < 1e-3
+    assert back["robot_qpos"].shape == (n, 56)

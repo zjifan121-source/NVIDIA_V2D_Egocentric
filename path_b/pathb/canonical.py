@@ -228,6 +228,15 @@ def fit_mirror(points: np.ndarray) -> dict:
 
 
 # ---------------------------------------------------------------- 4-5: closing and meshing
+def watertight(mesh: o3d.geometry.TriangleMesh) -> bool:
+    """Closed 2-manifold, as trimesh counts it (the spec's S3a bar); Open3D's is_watertight also fails
+    any self-intersection, which a voxel solid of a thin or smeared cloud can have and the simulator does
+    not mind."""
+    import trimesh
+    return bool(len(mesh.triangles)) and trimesh.Trimesh(np.asarray(mesh.vertices), np.asarray(mesh.triangles),
+                                                        process=False).is_watertight
+
+
 def bottom_cap(points: np.ndarray, band: float = 0.01) -> tuple[np.ndarray, np.ndarray]:
     """Points on the table plane under the object's lowest band (the side the camera never sees)."""
     from scipy.spatial import ConvexHull, Delaunay
@@ -257,7 +266,7 @@ def poisson(points: np.ndarray, normals: np.ndarray) -> o3d.geometry.TriangleMes
     mesh.remove_unreferenced_vertices()
     trimmed = o3d.geometry.TriangleMesh(mesh)
     trimmed.remove_vertices_by_mask(np.asarray(density) < np.quantile(np.asarray(density), 0.01))
-    mesh = trimmed if trimmed.is_watertight() else mesh
+    mesh = trimmed if watertight(trimmed) else mesh
     if len(mesh.triangles) > MAX_FACES:  # may open it: close_surface then takes the voxel solid
         mesh = mesh.simplify_quadric_decimation(target_number_of_triangles=MAX_FACES)
     mesh.remove_degenerate_triangles()
@@ -296,10 +305,10 @@ def close_surface(points: np.ndarray, normals: np.ndarray) -> tuple[o3d.geometry
     the voxel solid. Which one and why go into canonical.json."""
     mesh = poisson(points, normals)
     ratio = np.ptp(np.asarray(mesh.vertices), axis=0) / np.ptp(points, axis=0)
-    if mesh.is_watertight() and np.all((ratio >= 0.8) & (ratio <= 1.25)):
+    if watertight(mesh) and np.all((ratio >= 0.8) & (ratio <= 1.25)):
         return mesh, {"closing": "screened Poisson"}
-    why = ("not watertight" if not mesh.is_watertight() else "") + \
-          (f"{' and ' if not mesh.is_watertight() else ''}ballooned (extents x{ratio.round(2).tolist()})"
+    why = ("not watertight" if not watertight(mesh) else "") + \
+          (f"{' and ' if not watertight(mesh) else ''}ballooned (extents x{ratio.round(2).tolist()})"
            if not np.all((ratio >= 0.8) & (ratio <= 1.25)) else "")
     return voxel_solid(points), {"closing": "voxel solid", "poisson": why}
 
@@ -341,16 +350,16 @@ def build(name: str, partials: list[o3d.geometry.TriangleMesh]) -> tuple[o3d.geo
     world = np.asarray(mesh.vertices) + origin
     ratio_cloud, ratio_fused = np.ptp(world, axis=0) / np.ptp(all_p, axis=0), np.ptp(world, axis=0) / np.ptp(pts, axis=0)
     report.update(world_to_canonical=-origin, coverage_before_completion=coverage, cap_points=len(cap_p),
-                  watertight=bool(mesh.is_watertight()), faces=len(mesh.triangles),
+                  watertight=watertight(mesh), faces=len(mesh.triangles),
                   extents_cm=(np.ptp(world, axis=0) * 100).round(1),
                   # bar against the completed cloud (Poisson must not balloon); against the fused partial
                   # completion legitimately doubles an unseen side, so that ratio is information only
                   extents_vs_completed=ratio_cloud.round(3), extents_vs_fused=ratio_fused.round(3),
                   extents_ok=bool(np.all((ratio_cloud >= 0.8) & (ratio_cloud <= 1.25))),
                   flags=(["coverage < 0.6"] if coverage < COVERAGE_FLAG else [])
-                  + (["not watertight"] if not mesh.is_watertight() else []),
+                  + (["not watertight"] if not watertight(mesh) else []),
                   fallbacks="not wired (SymmCompletion / AdaPoinTr / ForeHOI need torch and checkpoints)"
-                  + ("; next step for this object" if coverage < COVERAGE_FLAG or not mesh.is_watertight() else ""))
+                  + ("; next step for this object" if coverage < COVERAGE_FLAG or not watertight(mesh) else ""))
     return mesh, report
 
 

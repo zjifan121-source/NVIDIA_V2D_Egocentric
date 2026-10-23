@@ -69,7 +69,10 @@ def build(src: Path, variant: str, number: int) -> Path | None:
         m = trimesh.load(canon / name / "mesh.obj", force="mesh", process=False)
         d = root / f"s3a_mesh/{name}"
         d.mkdir(parents=True, exist_ok=True)
-        m.export(d / "mesh.obj")
+        # a plain material: the bundle writer copies the mtl an OBJ names, and the runner's merge reads it
+        (d / "material.mtl").write_text("newmtl material_0\nKd 0.8 0.8 0.8\n")
+        (d / "mesh.obj").write_text("mtllib material.mtl\nusemtl material_0\n"
+                                    + trimesh.exchange.obj.export_obj(m, include_normals=False, include_texture=False))
         m.export(d / "mesh.glb")
         volume = float(m.volume if m.is_watertight else m.convex_hull.volume)
         write_json(d / "mass.json", {"volume_m3": volume, "volume_from": "mesh" if m.is_watertight else "convex hull",
@@ -145,7 +148,7 @@ def main(src: Path, numbers: list[int]) -> Path:
             if root is None:
                 print(f"episode {number}: {variant} not built (its inputs are missing)", flush=True)
                 continue
-            run_episode(number, root.parent, tuple(RERUN))
+            run_episode(number, root.parent, tuple(RERUN), force=True)  # its S3a/S3b were just rebuilt
             from .waterfall import episode as waterfall_episode
             waterfall_episode(root)
             row[variant] = scores(root, read)

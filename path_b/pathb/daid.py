@@ -45,16 +45,23 @@ def embodiment(mano: dict) -> str:
     return max(share, key=share.get)
 
 
-def prepare(object_to_world: np.ndarray, mano: dict, out: Path, fps: float) -> dict:
-    """daid_input.npz in DaiD's world at REF_HZ; the meta needed to read the result back."""
+def object_qpos(T: np.ndarray, t_video: np.ndarray, t_ref: np.ndarray, offset: np.ndarray) -> np.ndarray:
+    """(n_ref, 7) DaiD free-joint qpos (position, wxyz) of a track resampled to t_ref."""
+    q = slerp(Rotation.from_matrix(T[:, :3, :3]), t_video, t_ref).as_quat()
+    return np.concatenate([lerp(T[:, :3, 3], t_video, t_ref) - offset, q[:, [3, 0, 1, 2]]], axis=1)
+
+
+def prepare(object_to_world: np.ndarray, mano: dict, out: Path, fps: float, second: np.ndarray | None = None) -> dict:
+    """daid_input.npz in DaiD's world at REF_HZ; the meta needed to read the result back. second: phase 2's
+    other object (DaiD's left_object; the first is its right_object), in the same DaiD world."""
     T = np.asarray(object_to_world, dtype=np.float64)
     n = len(T)
     t_video = np.arange(n) / fps
     t_ref = np.arange(int(round((t_video[-1] + PAD_S) * REF_HZ)) + 1) / REF_HZ
     offset = np.array([T[0, 0, 3], T[0, 1, 3], 0.0])
-    q = slerp(Rotation.from_matrix(T[:, :3, :3]), t_video, t_ref).as_quat()
-    arrays = {"qpos_obj": np.concatenate([lerp(T[:, :3, 3], t_video, t_ref) - offset, q[:, [3, 0, 1, 2]]], axis=1),
-              "t_ref": t_ref}
+    arrays = {"qpos_obj": object_qpos(T, t_video, t_ref, offset), "t_ref": t_ref}
+    if second is not None:
+        arrays["qpos_obj_left"] = object_qpos(np.asarray(second, dtype=np.float64), t_video, t_ref, offset)
     for side in ("right", "left"):
         arrays[f"{side}_joints"] = lerp(mano[f"{side}_joints"], t_video, t_ref) - offset
         arrays[f"{side}_vertices"] = (lerp(mano[f"{side}_vertices"], t_video, t_ref) - offset).astype(np.float32)
@@ -70,7 +77,7 @@ def prepare(object_to_world: np.ndarray, mano: dict, out: Path, fps: float) -> d
     out.mkdir(parents=True, exist_ok=True)
     np.savez(out / "daid_input.npz", **arrays)
     return {"offset": offset, "fps": fps, "n_video": n, "ref_hz": REF_HZ, "n_ref": len(t_ref), "pad_s": PAD_S,
-            "embodiment": embodiment(mano)}
+            "embodiment": "bimanual" if second is not None else embodiment(mano), "objects": 1 + (second is not None)}
 
 
 def read_back(trajectory: Path, joint_names: list[str], meta: dict) -> dict:
@@ -83,13 +90,20 @@ def read_back(trajectory: Path, joint_names: list[str], meta: dict) -> dict:
     qpos, time = qpos[order], time[order]
     t_video = np.arange(meta["n_video"]) / meta["fps"]
     covered = t_video <= time[-1] + 1e-9
-    obj = qpos[:, -7:]
-    T = np.tile(np.eye(4), (meta["n_video"], 1, 1))
-    T[:, :3, 3] = lerp(obj[:, :3], time, t_video) + np.asarray(meta["offset"])
-    T[:, :3, :3] = slerp(Rotation.from_quat(obj[:, [4, 5, 6, 3]]), time, t_video).as_matrix()
-    robot = lerp(qpos[:, :-7], time, t_video)
-    return {"object_to_world": T, "robot_qpos": robot, "joint_names": joint_names[: robot.shape[1]],
-            "covered_frames": int(covered.sum()), "sim_seconds": float(time[-1])}
+    k = int(meta.get("objects", 1))
+
+    def track(obj):
+        T = np.tile(np.eye(4), (meta["n_video"], 1, 1))
+        T[:, :3, 3] = lerp(obj[:, :3], time, t_video) + np.asarray(meta["offset"])
+        T[:, :3, :3] = slerp(Rotation.from_quat(obj[:, [4, 5, 6, 3]]), time, t_video).as_matrix()
+        return T
+    # one object: the last 7 numbers; two (phase 2): right_object then left_object, the last 14
+    out = {"object_to_world": track(qpos[:, -14:-7] if k == 2 else qpos[:, -7:])}
+    if k > 1:
+        out["second_object_to_world"] = track(qpos[:, -7:])
+    robot = lerp(qpos[:, :-7 * k], time, t_video)
+    return out | {"robot_qpos": robot, "joint_names": joint_names[: robot.shape[1]],
+                  "covered_frames": int(covered.sum()), "sim_seconds": float(time[-1])}
 
 
 # ManoSharpa's 16 contact slots (robotic_grounding retarget/params.py MANO_HAND_LINKS, the order
@@ -117,8 +131,9 @@ def mano_link(body: str) -> int | None:
 
 def contact_slots(realised: dict, offset: np.ndarray, side: str) -> dict:
     """One side's DaiD contacts in the 16 slots, v3 world: per frame and slot the deepest contact
-    (object-side point, normal into the object, part id 1 = the object's one body), and which
-    Sharpa body touched it with the robot-side point in that body's frame (for S5's check)."""
+    (object-side point, normal into the object, part id = 1 + the object's index: 1 for one object,
+    1 or 2 in phase 2's two-object scene), and which Sharpa body touched it with the robot-side point
+    in that body's frame (for S5's check)."""
     n = len(realised["video_time"])
     names = [str(b) for b in realised["body_names"]]
     out = {"positions": np.zeros((n, 16, 3)), "normals": np.zeros((n, 16, 3)), "part_ids": np.zeros((n, 16), np.int32),
@@ -131,7 +146,7 @@ def contact_slots(realised: dict, offset: np.ndarray, side: str) -> dict:
         out["dist"][f, s] = realised["contact_dist"][k]
         out["positions"][f, s] = realised["contact_object_point"][k] + offset
         out["normals"][f, s] = realised["contact_normal"][k]
-        out["part_ids"][f, s] = 1
+        out["part_ids"][f, s] = 1 + int(realised["contact_object"][k]) if "contact_object" in realised else 1
         out["body"][f, s] = b
         out["robot_local"][f, s] = realised["contact_robot_local"][k]
     out["dist"][out["part_ids"] == 0] = 0.0

@@ -5,7 +5,8 @@
 request.json: {"daid_dir": <do-as-i-do/retargeting>, "input": <daid_input.npz from pathb/daid.py>,
 "output_root": <dir>, "task": <name>, "embodiment": bimanual|right|left, "mesh": <S3a mesh.obj>,
 "convex": <S3a coacd/ pieces>, "object_density": kg/m^3, "warmup_duration": s, "settings": <s4c.yaml>,
-"video_fps": Hz, "n_video": frames}.
+"video_fps": Hz, "n_video": frames, optional "second": {"mesh", "convex"} (phase 2: DaiD's left_object,
+the first object being its right_object; daid_input.npz then has qpos_obj_left)}.
 
 Stage 1 is replaced: trajectory_keypoints.npz and task_info.json are written with DaiD's own
 process_dataset helpers (_build_side_qpos, joint indices) from the v3 reference; the object mesh goes
@@ -28,10 +29,12 @@ import yaml
 CONTACT_DIST = 0.005  # m: robot-object pairs closer than this count as contacts
 
 
-def realised_frames(model, data, obj_body: int, q_all: np.ndarray, t_sim: np.ndarray, t_video: np.ndarray) -> dict:
+def realised_frames(model, data, obj_bodies: list[int], q_all: np.ndarray, t_sim: np.ndarray,
+                    t_video: np.ndarray) -> dict:
     """The realised trajectory at the video frames (nearest sim step, <= 2.5 ms away): pose of every
-    hand body (wrists = <side>_hand_C_MC), the object, and the robot-object contacts (object-side point,
-    normal into the object, robot-side point in its body's frame, distance; DaiD writes no contacts)."""
+    hand body (wrists = <side>_hand_C_MC), each object (n, objects, 7), and the robot-object contacts
+    (object-side point, normal into the object, robot-side point in its body's frame, distance, which
+    object; DaiD writes no contacts)."""
     import mujoco
     order = np.argsort(t_sim, kind="stable")
     ts = t_sim[order]
@@ -41,23 +44,23 @@ def realised_frames(model, data, obj_body: int, q_all: np.ndarray, t_sim: np.nda
     bodies = [b for b in range(model.nbody)
               if model.body(b).name.startswith(("right_", "left_")) and "_base_" not in model.body(b).name]
     pose = np.zeros((len(t_video), len(bodies), 7))
-    obj = np.zeros((len(t_video), 7))
+    obj = np.zeros((len(t_video), len(obj_bodies), 7))
     rows = {k: [] for k in ("contact_frame", "contact_body", "contact_object_point", "contact_normal",
-                            "contact_robot_local", "contact_dist")}
+                            "contact_robot_local", "contact_dist", "contact_object")}
     slot = {b: k for k, b in enumerate(bodies)}
     for f, s in enumerate(steps):
         data.qpos[:] = q_all[s]
         mujoco.mj_forward(model, data)
         pose[f] = np.concatenate([data.xpos[bodies], data.xquat[bodies]], axis=1)
-        obj[f] = np.concatenate([data.xpos[obj_body], data.xquat[obj_body]])
+        obj[f] = np.concatenate([data.xpos[obj_bodies], data.xquat[obj_bodies]], axis=1)
         for c in data.contact[: data.ncon]:
             b1, b2 = int(model.geom_bodyid[c.geom1]), int(model.geom_bodyid[c.geom2])
-            if (b1 == obj_body) == (b2 == obj_body) or min(b1, b2) == 0 or c.dist > CONTACT_DIST:
+            if (b1 in obj_bodies) == (b2 in obj_bodies) or min(b1, b2) == 0 or c.dist > CONTACT_DIST:
                 continue
-            robot = b2 if b1 == obj_body else b1
+            robot, target = (b2, b1) if b1 in obj_bodies else (b1, b2)
             if robot not in slot:
                 continue
-            n = np.asarray(c.frame[:3]) * (-1.0 if b1 == obj_body else 1.0)  # MuJoCo: geom1 -> geom2; here into the object
+            n = np.asarray(c.frame[:3]) * (-1.0 if b1 == target else 1.0)  # MuJoCo: geom1 -> geom2; here into the object
             robot_point = c.pos - n * c.dist / 2
             rows["contact_frame"].append(f)
             rows["contact_body"].append(slot[robot])
@@ -65,7 +68,8 @@ def realised_frames(model, data, obj_body: int, q_all: np.ndarray, t_sim: np.nda
             rows["contact_normal"].append(n)
             rows["contact_robot_local"].append(data.xmat[robot].reshape(3, 3).T @ (robot_point - data.xpos[robot]))
             rows["contact_dist"].append(float(c.dist))
-    out = {k: np.asarray(v, dtype=np.int32 if k in ("contact_frame", "contact_body") else np.float64).reshape(
+            rows["contact_object"].append(obj_bodies.index(target))
+    out = {k: np.asarray(v, dtype=np.int32 if k in ("contact_frame", "contact_body", "contact_object") else np.float64).reshape(
         (-1, 3) if k in ("contact_object_point", "contact_normal", "contact_robot_local") else (-1,))
         for k, v in rows.items()}
     return dict(out, body_names=np.array([model.body(b).name for b in bodies]), body_pose=pose, object_pose=obj,
@@ -89,6 +93,7 @@ def main(request_path: str) -> int:
     root, task, emb = str(Path(req["output_root"]).resolve()), req["task"], req["embodiment"]
     dataset, data_id = "do_as_i_do", 0
     z = np.load(req["input"])
+    second = req.get("second")  # phase 2: DaiD's left_object
     N = len(z["qpos_obj"])
     t0 = time.time()
 
@@ -102,7 +107,8 @@ def main(request_path: str) -> int:
                                       is_right=side == "right")
             out.update({f"qpos_wrist_{side}": w, f"qpos_finger_{side}": f,
                         f"qpos_pip_{side}": joints[:, P.PIP_JOINT_IDX], f"qpos_dip_{side}": joints[:, P.DIP_JOINT_IDX],
-                        f"qpos_obj_{side}": z["qpos_obj"].copy(), f"mano_verts_{side}": z[f"{side}_vertices"],
+                        f"qpos_obj_{side}": (z["qpos_obj_left"] if second and side == "left" else z["qpos_obj"]).copy(),
+                        f"mano_verts_{side}": z[f"{side}_vertices"],
                         f"mano_faces_{side}": z[f"{side}_faces"], f"mano_finger_pose_{side}": z[f"{side}_hand_pose"],
                         f"mano_global_orient_{side}": z[f"{side}_rot"], f"mano_betas_{side}": z[f"{side}_betas"]})
         else:
@@ -125,10 +131,22 @@ def main(request_path: str) -> int:
     for i, p in enumerate(pieces):
         shutil.copy(p, mesh_dir / f"convex/{i}.obj")
     rel = str(Path(mesh_dir).relative_to(root))
-    (processed.parent / "task_info.json").write_text(json.dumps({
-        "task": task, "dataset_name": dataset, "robot_type": "mano", "embodiment_type": emb, "data_id": data_id,
-        "right_object_mesh_dir": rel if sides["right"] else None,
-        "left_object_mesh_dir": rel if sides["left"] and not sides["right"] else None}, indent=2))
+    info = {"task": task, "dataset_name": dataset, "robot_type": "mano", "embodiment_type": emb, "data_id": data_id,
+            "right_object_mesh_dir": rel if sides["right"] else None,
+            # one object: DaiD's shared-object convention (left None); two: the second is left_object
+            "left_object_mesh_dir": rel if sides["left"] and not sides["right"] else None}
+    if second:
+        mesh_b = Path(get_mesh_dir(root, dataset, task + "_left"))
+        if mesh_b.exists():
+            shutil.rmtree(mesh_b)
+        (mesh_b / "convex").mkdir(parents=True)
+        shutil.copy(second["mesh"], mesh_b / "visual.obj")
+        P._copy_obj_texture(second["mesh"], str(mesh_b))
+        for i, piece in enumerate(sorted(Path(second["convex"]).glob("piece_*.obj"))):
+            shutil.copy(piece, mesh_b / f"convex/{i}.obj")
+        info.update(left_object_mesh_dir=str(mesh_b.relative_to(root)),
+                    right_object_convex_dir=rel + "/convex", left_object_convex_dir=str(mesh_b.relative_to(root)) + "/convex")
+    (processed.parent / "task_info.json").write_text(json.dumps(info, indent=2))
 
     # stages 2-5, as launch.py, with s4c.yaml
     decompose_mesh(output_root_dir=root, dataset_name=dataset, task=task, data_id=data_id, embodiment_type=emb,
@@ -164,7 +182,7 @@ def main(request_path: str) -> int:
     # penetration: the realised trajectory replayed in the scene; contacts between the object (the
     # body with the free joint) and any robot geom, depth = -dist (DaiD reports none of its own)
     data = mujoco.MjData(model)
-    obj_body = next(int(model.jnt_bodyid[j]) for j in range(model.njnt) if int(model.jnt_type[j]) == 0)
+    obj_bodies = [int(model.jnt_bodyid[j]) for j in range(model.njnt) if int(model.jnt_type[j]) == 0]  # free joints
     traj = np.load(robot_dir / "trajectory_mjwp.npz")
     q_all = np.asarray(traj["qpos"]).reshape(-1, model.nq)
     depths = []
@@ -174,10 +192,10 @@ def main(request_path: str) -> int:
         d = 0.0
         for c in data.contact[: data.ncon]:
             b1, b2 = int(model.geom_bodyid[c.geom1]), int(model.geom_bodyid[c.geom2])
-            if (b1 == obj_body) != (b2 == obj_body) and min(b1, b2) != 0:  # object vs robot, not the floor
+            if (b1 in obj_bodies) != (b2 in obj_bodies) and min(b1, b2) != 0:  # object vs robot, not the floor
                 d = max(d, -float(c.dist))
         depths.append(d)
-    realised = realised_frames(model, data, obj_body, q_all, np.asarray(traj["time"]).reshape(-1),
+    realised = realised_frames(model, data, obj_bodies, q_all, np.asarray(traj["time"]).reshape(-1),
                                np.arange(req["n_video"]) / req["video_fps"])
     np.savez(Path(root) / "realised_frames.npz", **realised)
     (Path(root) / "daid_summary.json").write_text(json.dumps({
