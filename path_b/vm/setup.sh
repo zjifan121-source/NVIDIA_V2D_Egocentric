@@ -295,6 +295,11 @@ recon_weights() {
   fetch sam3d $py -m v2d.sam3d.docker.run_download_weights --output_dir data/weights/sam3d  # gated: HF login
   fetch wilor $py -m v2d.wilor.docker.run_download_weights --weights_dir data/weights/wilor
   fetch hamer $py -m v2d.hamer.docker.run_download_weights --weights_dir data/weights/hamer
+  # HaMeR reads ./_DATA/data/mano/MANO_RIGHT.pkl from its weights folder (its download_weights.py: placed
+  # by hand); a relative link to the MANO files above works inside the container's weights mount
+  if [ -d "$w/hamer/_DATA/data/mano" ] && [ -f "$w/hand/models/MANO_RIGHT.pkl" ]; then
+    ln -sfn ../../../../hand/models/MANO_RIGHT.pkl "$w/hamer/_DATA/data/mano/MANO_RIGHT.pkl"
+  fi
   fetch droid_slam $py -m v2d.droid_slam.docker.run_download_weights --output_dir data/weights/droid_slam
   fetch geocalib $py -m v2d.geocalib.docker.run_download_weights --output_dir data/weights/geocalib
   fetch gsplat_refinement $py -m v2d.gsplat_refinement.docker.run_download_weights --weights_path data/weights/gsplat_refinement
