@@ -5,7 +5,7 @@ Run from the repo root (README in path_b/):
     uv run --project path_b python path_b/run.py run --split public [--stages p0_ingest p1_calibrate] [--force]
     uv run --project path_b python path_b/run.py waterfall --split public
     uv run --project path_b python path_b/run.py visualize --episodes 13     # after run and waterfall
-    uv run --project path_b python path_b/run.py oracle --episodes 40 26     # S0.1 (not built yet: task 5)
+    uv run --project path_b python path_b/run.py oracle --episodes 40 26     # S0.1, on a GPU machine
     uv run --project path_b python path_b/run.py pack --split evaluation     # S7 (not built yet: task 16)
 Outputs: path_b/data/outputs/<run>/episode_XXXXXX/{<stage>/report.json, run.json, loss_report.md, ...};
 <run> defaults to the commit, so code changes never reuse stale results.
@@ -23,7 +23,7 @@ from pathb.runner import STAGES, run_episode  # noqa: E402
 
 
 # commands of V3_BUILD_SPEC.md §1 whose code comes with a later task (§5)
-NOT_BUILT = {"oracle": "S0.1, task 5", "pack": "S7, task 16"}
+NOT_BUILT = {"pack": "S7, task 16"}
 
 
 def episodes(args) -> list[int]:
@@ -54,6 +54,10 @@ def main() -> int:
                 failed.append(f"{number}: {report['first_failing_stage']}")
         print("first failing stage per episode: " + (", ".join(failed) or "none"))
         return 0
+
+    if args.command == "oracle":
+        from pathb import oracle
+        return oracle.main(episodes(args), args.out)
 
     if args.command in NOT_BUILT:
         print(f"run.py {args.command} is not built yet ({NOT_BUILT[args.command]})", file=sys.stderr)

@@ -83,3 +83,19 @@ def rescale_by_scan(episode: dict, name: str, read: list) -> str:
     if path:
         read.append(path)
     return name
+
+
+def scan_obj(episode: dict, name: str, out: Path, read: list) -> Path:
+    """The public scan as a textured OBJ in metres (run_baseline_reconstruction.scan_obj), for oracle
+    tests only (S0.1): the FAQ asks for our own meshes on scored episodes."""
+    import sys
+    from .paths import TOOLS_TRACK3
+    allowed(episode)
+    path = scan(name)
+    if path is None:
+        raise FileNotFoundError(f"no public scan for {name}")
+    read.append(path)
+    if str(TOOLS_TRACK3) not in sys.path:
+        sys.path.insert(0, str(TOOLS_TRACK3))
+    import run_baseline_reconstruction
+    return run_baseline_reconstruction.scan_obj(name, out)

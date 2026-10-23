@@ -114,3 +114,17 @@ def test_ground_truth_reference_scores(number, tmp_path):
     print(number, scores)
     assert scores["tracking"] > 0.99
     assert scores["keyframe"] >= scores["still"]
+
+
+def test_s01_settings_and_world_fit():
+    from pathb import oracle
+    steps, overrides = oracle.still_settings()
+    assert steps == 60_006_400 and "sim.njmax=512" in overrides and "task.motion_speed=1.0" in overrides
+    assert not any(o.startswith("sim.njmax=1024") for o in overrides)
+    rng = np.random.default_rng(0)
+    src = rng.normal(size=(50, 3))
+    yaw = np.radians(30)
+    Rz = np.array([[np.cos(yaw), -np.sin(yaw), 0], [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]])
+    dst = 0.6 * src @ Rz.T + [0.1, -0.2, 0.9]
+    s, A = oracle.yaw_similarity(src, dst)
+    assert np.isclose(s, 0.6) and np.allclose(A[:3, :3], Rz) and np.allclose(s * src @ A[:3, :3].T + A[:3, 3], dst)
