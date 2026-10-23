@@ -295,10 +295,13 @@ recon_weights() {
   fetch sam3d $py -m v2d.sam3d.docker.run_download_weights --output_dir data/weights/sam3d  # gated: HF login
   fetch wilor $py -m v2d.wilor.docker.run_download_weights --weights_dir data/weights/wilor
   fetch hamer $py -m v2d.hamer.docker.run_download_weights --weights_dir data/weights/hamer
-  # HaMeR reads ./_DATA/data/mano/MANO_RIGHT.pkl from its weights folder (its download_weights.py: placed
-  # by hand); a relative link to the MANO files above works inside the container's weights mount
-  if [ -d "$w/hamer/_DATA/data/mano" ] && [ -f "$w/hand/models/MANO_RIGHT.pkl" ]; then
-    ln -sfn ../../../../hand/models/MANO_RIGHT.pkl "$w/hamer/_DATA/data/mano/MANO_RIGHT.pkl"
+  # HaMeR reads _DATA/data/mano/MANO_RIGHT.pkl (its download_weights.py: placed by hand) and align_hands
+  # <mano_assets_root = _DATA/data>/models/MANO_{RIGHT,LEFT}.pkl; hard links to the MANO files above,
+  # since align_hands mounts only _DATA (a symlink out of it would dangle in the container)
+  if [ -d "$w/hamer/_DATA/data" ] && [ -f "$w/hand/models/MANO_RIGHT.pkl" ]; then
+    mkdir -p "$w/hamer/_DATA/data/mano" "$w/hamer/_DATA/data/models"
+    ln -f "$w/hand/models/MANO_RIGHT.pkl" "$w/hamer/_DATA/data/mano/MANO_RIGHT.pkl"
+    for f in MANO_RIGHT.pkl MANO_LEFT.pkl; do ln -f "$w/hand/models/$f" "$w/hamer/_DATA/data/models/$f"; done
   fi
   fetch droid_slam $py -m v2d.droid_slam.docker.run_download_weights --output_dir data/weights/droid_slam
   fetch geocalib $py -m v2d.geocalib.docker.run_download_weights --output_dir data/weights/geocalib
