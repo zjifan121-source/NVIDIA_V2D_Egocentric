@@ -104,3 +104,93 @@ def test_scan_registered_onto_the_partial(episode):
     scan = o3d.geometry.TriangleMesh(box()).transform(elsewhere)
     best = A21.chamfer_to_scan(partial, np.asarray(scan.vertices), np.asarray(scan.triangles))
     assert best["cm"] < 0.2
+
+
+# ---------------------------------------------------------------- A2.2 canonical mesh
+from pathb import canonical as C  # noqa: E402
+import trimesh  # noqa: E402
+
+
+def seen(mesh, eye, keep=None):
+    """The triangles a camera at eye sees (facing it), less the table side."""
+    dense = mesh.subdivide_midpoint(3)
+    dense.compute_triangle_normals()
+    c = np.asarray(dense.vertices)[np.asarray(dense.triangles)].mean(axis=1)
+    facing = ((np.asarray(eye) - c) * np.asarray(dense.triangle_normals)).sum(1) > 0
+    part = o3d.geometry.TriangleMesh(dense)
+    part.remove_triangles_by_mask(~facing | (c[:, 2] < 0.0005))
+    part.remove_unreferenced_vertices()
+    part.compute_vertex_normals()
+    return part
+
+
+def distance_cm(mesh, origin, truth):
+    pts = np.asarray(S.mesh_points(mesh, 20000).points) + origin
+    d = trimesh.Trimesh(np.asarray(truth.vertices), np.asarray(truth.triangles)).nearest.on_surface(pts)[1]
+    return np.percentile(d, [50, 95, 100]) * 100
+
+
+def dust_pan():
+    base = o3d.geometry.TriangleMesh.create_box(0.20, 0.16, 0.01).translate([-0.10, -0.08, 0])
+    wall = o3d.geometry.TriangleMesh.create_box(0.20, 0.01, 0.06).translate([-0.10, 0.07, 0.01])
+    handle = o3d.geometry.TriangleMesh.create_box(0.03, 0.12, 0.02).translate([-0.015, 0.08, 0.03])
+    m = (base + wall + handle).translate([0.2, 0.1, 0])
+    m.compute_vertex_normals()
+    return m
+
+
+def test_canonical_revolution_completes_a_half_seen_pot():
+    pot = o3d.geometry.TriangleMesh.create_cylinder(radius=0.1, height=0.12, resolution=120, split=24)
+    pot.translate([0.3, -0.1, 0.06])
+    pot.compute_vertex_normals()
+    mesh, rep = C.build("white_pot", [seen(pot, [0.8, -0.1, 0.5])])
+    assert rep["watertight"] and rep["extents_ok"] and rep["faces"] <= C.MAX_FACES
+    assert np.degrees(np.arccos(rep["symmetry"]["axis"][2])) < 1.0
+    p50, p95, worst = distance_cm(mesh, -rep["world_to_canonical"], pot)
+    assert p95 < 0.3 and worst < 1.0
+    assert rep["coverage_before_completion"] < 0.6 and "coverage < 0.6" in rep["flags"]
+
+
+def test_canonical_mirror_finds_the_dust_pan_plane():
+    pan = dust_pan()
+    mesh, rep = C.build("mini_dust_pan", [seen(pan, [0.45, -0.25, 0.5])])
+    sym = rep["symmetry"]
+    assert sym["applied"] and abs(abs(sym["normal"][0]) - 1) < 1e-3 and abs(abs(sym["d"]) - 0.2) < 0.002
+    assert rep["watertight"] and rep["extents_ok"]
+    p50, p95, worst = distance_cm(mesh, -rep["world_to_canonical"], pan)
+    assert p95 < 0.6 and worst < 1.5
+
+
+def test_canonical_registers_clips_from_two_placements():
+    pan = dust_pan()
+    first = seen(pan, [0.45, -0.25, 0.5])
+    moved = np.eye(4)
+    moved[:3, :3] = Rotation.from_rotvec([0, 0, 1.2]).as_matrix()
+    moved[:3, 3] = [-0.3, 0.4, 0.0]  # another episode: elsewhere on its table, turned
+    second = seen(o3d.geometry.TriangleMesh(pan).transform(moved), moved[:3, :3] @ [-0.2, 0.5, 0.5] + moved[:3, 3])
+    ref, moves = C.register([first, second])
+    assert ref == 0 and all(m["kept"] for m in moves)
+    T = moves[1]["T"] @ moved  # second's placement brought onto the first's: the identity
+    assert np.abs(T[:3, 3]).max() < 0.004 and Rotation.from_matrix(T[:3, :3]).magnitude() < np.radians(2)
+
+
+# ---------------------------------------------------------------- A2.3 register + re-expressed track
+from pathb.stages import s3a2_register as A23  # noqa: E402
+
+
+def test_register_carries_the_track_to_the_canonical_mesh(episode):
+    A21.run(episode)
+    np.savez(episode.root / "s3c_fuse/box/object_to_world.npz",
+             object_to_world=np.stack([pose(t) for t in range(N)]))  # phase A's track (its mesh frame = the box's)
+    C.main("box", episode.root.parent)
+    result = A23.run(episode)
+    reg = json.loads((episode.root / "s3a2_register/box/registration.json").read_text())
+    assert reg["start"] == "canonical.json" and reg["partial_explained"] > 0.8
+    canon = trimesh.load(episode.root.parent / "canonical/box/mesh.obj", force="mesh", process=False)
+    track = np.load(episode.root / "s3a2_register/box/object_to_world.npz")["object_to_world"]
+    truth = box()
+    for t in (0, N - 1):  # at rest before, and after the move
+        world = canon.vertices @ track[t, :3, :3].T + track[t, :3, 3]
+        placed = o3d.geometry.TriangleMesh(truth).transform(pose(t))
+        assert S.one_sided_cm(world, np.asarray(placed.vertices), np.asarray(placed.triangles)) < 0.5
+    assert {m.name: m.status for m in result.metrics}["box: share of the partial the canonical mesh explains"] == "PASS"

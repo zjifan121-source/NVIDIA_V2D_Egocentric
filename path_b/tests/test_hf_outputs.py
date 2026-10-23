@@ -47,3 +47,14 @@ def test_per_frame_folders_go_into_the_archive(tmp_path, monkeypatch):
     remote = {"episode_000040/frames.tar": 1, "episode_000040/p1b_masks/report.json": 2,
               **{f"episode_000040/s3a_mesh/blue_cup/views/{k:06d}.png": 1 for k in range(3)}}
     assert H.uncovered(run, remote) == []
+
+
+def test_run_level_folders_are_uploaded(tmp_path, monkeypatch):
+    monkeypatch.setattr(H, "OUTPUTS", tmp_path / "outputs")
+    monkeypatch.setattr(H, "STAGING", tmp_path / "staging")
+    run = tmp_path / "outputs/r"
+    write(run, "episode_000040/p0_ingest/report.json", b"{}")
+    write(run, "waterfall.md", b"w")
+    write(run, "canonical/white_pot/mesh.glb", b"g")
+    root, manifest = H.stage("r", frames=False)
+    assert (root / H.PREFIX / "r/canonical/white_pot/mesh.glb").is_file() and manifest["results"]["files"] == 3

@@ -3,7 +3,8 @@ checked against held-out depth, and rigid registration (scale fixed: every input
 
 Open3D: ScalableTSDFVolume (voxel 4 mm, sdf_trunc 16 mm, depth only) per set of frames, each frame's
 depth limited to the object's mask; marching cubes to a mesh. Point-to-plane ICP; FPFH + RANSAC for a
-start when two clouds share no frame (a scan against a fused patch).
+start when two clouds share no frame (a scan against a fused patch). ICP pairs only points whose
+normals agree, so thin walls register face to face.
 """
 from __future__ import annotations
 
@@ -105,12 +106,56 @@ def mesh_points(mesh: o3d.geometry.TriangleMesh, n: int = 20000, seed: int = 0) 
 
 
 def icp(source: o3d.geometry.PointCloud, target: o3d.geometry.PointCloud, init: np.ndarray = np.eye(4),
-        max_dist: float = 0.01, iterations: int = 60) -> dict:
-    """Point-to-plane ICP, scale fixed: T maps source onto target."""
-    r = o3d.pipelines.registration.registration_icp(
-        source, target, max_dist, init, o3d.pipelines.registration.TransformationEstimationPointToPlane(),
-        o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=iterations))
-    return {"T": np.asarray(r.transformation), "fitness": float(r.fitness), "rmse_m": float(r.inlier_rmse)}
+        max_dist: float = 0.01, iterations: int = 60, min_dot: float = 0.5, k: int = 8,
+        point_to_point: bool = False) -> dict:
+    """ICP, scale fixed: T maps source onto target. Each point pairs with its nearest target point (of
+    k) whose normal agrees (dot >= min_dot): a thin wall's two faces lie a wall's thickness apart with
+    opposite normals, and an end face's nearest point is often on the face beside it. Point-to-plane
+    by default; point_to_point (Kabsch) uses the outline of shared flat faces, which point-to-plane
+    cannot see (two clips that share only an object's top). fitness = share of source points paired."""
+    from scipy.spatial import cKDTree
+    P, Np = np.asarray(source.points), np.asarray(source.normals)
+    Q, Nq = np.asarray(target.points), np.asarray(target.normals)
+    tree = cKDTree(Q)
+    T = np.asarray(init, dtype=np.float64).copy()
+
+    def pairs(T):
+        p, n = P @ T[:3, :3].T + T[:3, 3], Np @ T[:3, :3].T
+        d, j = tree.query(p, k=k, distance_upper_bound=max_dist)
+        good = np.isfinite(d)
+        good[good] = (n[np.nonzero(good)[0]] * Nq[j[good]]).sum(axis=1) >= min_dot
+        first = np.argmax(good, axis=1)
+        ok = good[np.arange(len(p)), first]
+        return p, ok, j[np.arange(len(p)), first], d[np.arange(len(p)), first]
+
+    for _ in range(iterations):
+        p, ok, j, _ = pairs(T)
+        if ok.sum() < 6:
+            break
+        q, m = Q[j[ok]], Nq[j[ok]]
+        step = np.eye(4)
+        if point_to_point:
+            a, b = p[ok] - p[ok].mean(axis=0), q - q.mean(axis=0)
+            U, _, Vt = np.linalg.svd(a.T @ b)
+            R = Vt.T @ np.diag([1, 1, np.sign(np.linalg.det(Vt.T @ U.T))]) @ U.T
+            step[:3, :3], step[:3, 3] = R, q.mean(axis=0) - R @ p[ok].mean(axis=0)
+            x = np.r_[rotvec(R), step[:3, 3]]
+        else:
+            A = np.c_[np.cross(p[ok], m), m]  # small-angle point-to-plane
+            b = ((q - p[ok]) * m).sum(axis=1)
+            x = np.linalg.lstsq(A, b, rcond=None)[0]
+            step[:3, :3] = o3d.geometry.get_rotation_matrix_from_axis_angle(x[:3])
+            step[:3, 3] = x[3:]
+        T = step @ T
+        if np.linalg.norm(x) < 1e-7:
+            break
+    _, ok, _, d = pairs(T)
+    return {"T": T, "fitness": float(ok.mean()), "rmse_m": float(np.sqrt(np.mean(d[ok] ** 2))) if ok.any() else None}
+
+
+def rotvec(R: np.ndarray) -> np.ndarray:
+    from scipy.spatial.transform import Rotation
+    return Rotation.from_matrix(R).as_rotvec()
 
 
 def global_start(source: o3d.geometry.PointCloud, target: o3d.geometry.PointCloud, voxel: float = 0.005,
