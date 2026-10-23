@@ -345,6 +345,8 @@ def extra_sections(eps: list[dict], run: Path, base: dict | None) -> list[str]:
     """Pages after the first (--tag): phase A2's comparison and decision, phase 2's columns, what changed."""
     md = []
     decision = run / "a2_decision.json"
+    if not decision.is_file() and "_a2_" in run.name:  # a variant run: the decision sits in its source run
+        decision = run.parent / run.name.split("_a2_")[0] / "a2_decision.json"
     if decision.is_file():
         d = json.loads(decision.read_text())
         md += ["## g. Phase A2: S3 variants (A2.5)", "",
