@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -74,6 +75,26 @@ def prepare(ctx, d, n: int) -> None:
     B.frames_to_mp4(ctx.root / "p1_calibrate/cam_a", d / "cam_a.mp4")
 
 
+def cam_t(r: dict) -> list:
+    """A hand record's camera-frame wrist position, in either layout (see host_layout)."""
+    return r["camera"]["cam_t"] if "camera" in r else r.get("cam_t", [])
+
+
+def host_layout(folder) -> int:
+    """The GHCR HaMeR / WiLoR images (afe7dad) write cam_t and intrinsics at the record's top level; the
+    baseline host code that reads P1d's records (v2d_common.result_bundle._load_hand_track) takes
+    camera.cam_t and falls back to [0, 0, 0] without a word. Each record gains camera: {cam_t,
+    intrinsics}; the top-level fields stay. Returns the number of records changed."""
+    changed = 0
+    for f in sorted(Path(folder).glob("*/*.json")):
+        r = json.loads(f.read_text())
+        if "camera" not in r and "cam_t" in r:
+            r["camera"] = {"cam_t": r["cam_t"], "intrinsics": r.get("intrinsics")}
+            f.write_text(json.dumps(r, indent=2))
+            changed += 1
+    return changed
+
+
 def reject_nonfinite(d) -> dict[str, list[int]]:
     """Aligned records whose depth alignment is not finite move to hamer_aligned_rejected/: run_align_hands
     takes the median depth over the hand mask with no validity test, and our "no depth" pixels decode
@@ -84,7 +105,7 @@ def reject_nonfinite(d) -> dict[str, list[int]]:
         frames = []
         for f in sorted((d / f"hamer_aligned/{oid}").glob("*.json")):
             r = json.loads(f.read_text())
-            values = list(r.get("camera", {}).get("cam_t", [])) + [r.get("diagnostics", {}).get("scale", 0.0)]
+            values = list(cam_t(r)) + [r.get("diagnostics", {}).get("scale", 0.0)]
             if not np.isfinite(np.asarray(values, dtype=np.float64)).all():
                 dest = d / f"hamer_aligned_rejected/{oid}"
                 dest.mkdir(parents=True, exist_ok=True)
@@ -177,6 +198,7 @@ def run(ctx) -> StageResult:
     B.call("v2d.hamer.docker.run_render_hands_aligned_video:run_render_hands_aligned_video",
            {"frames_dir": ctx.root / "p1_calibrate/cam_a", "aligned_dir": d / "hamer_aligned_filled",
             "mano_assets_root": mano, "output_path": d / "overlay.mp4", "fps": TRACK3_FPS}, log)
+    host_layout(d / "hamer_aligned_filled")
     handed = d / "hamer_aligned_filled/handedness.json"
     if handed.is_file():
         shutil.copy(handed, d / "handedness.json")
