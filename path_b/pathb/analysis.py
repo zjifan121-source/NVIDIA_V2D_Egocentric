@@ -327,7 +327,65 @@ def episode_section(run: Path, number: int, read: list) -> dict:
             "camera": camera_panel(root, e, extra)}
 
 
-def markdown(eps: list[dict], run: Path, tag: str) -> str:
+def summary(eps: list[dict]) -> dict:
+    """The page's key numbers, saved next to it, so a later page can say what changed."""
+    out = {}
+    for e in eps:
+        sc = e["scores"]
+        out[str(e["number"])] = {
+            "best": e["best"], "best_auc": sc[e["best"]]["AUC"] if e["best"] else None, "still": e["still"],
+            "columns": {c: sc[c]["AUC"] for c in sc},
+            "losses": {r["stage"]: r["loss"] for r in e["attribution"]},
+            "cdo": {n: m["cdo_cm"] for n, m in e["mesh"].items()},
+            "camera_spread_cm": e["camera"]["plane_height_spread_cm"]}
+    return out
+
+
+def extra_sections(eps: list[dict], run: Path, base: dict | None) -> list[str]:
+    """Pages after the first (--tag): phase A2's comparison and decision, phase 2's columns, what changed."""
+    md = []
+    decision = run / "a2_decision.json"
+    if decision.is_file():
+        d = json.loads(decision.read_text())
+        md += ["## g. Phase A2: S3 variants (A2.5)", "",
+               "| Episode | Variant | Best candidate | AUC | MPPE cm | CD-O cm per object |", "|---|---|---|---|---|---|"]
+        for ep, row in d["episodes"].items():
+            for v, r in row.items():
+                md.append(f"| ep{ep} | `{v}` | `{r['best']}` | {fmt(r['AUC'])} | {fmt(r['MPPE cm'], 2)} | "
+                          + ", ".join(f"{n} {fmt(c, 2)}" for n, c in r["CD-O cm"].items()) + " |")
+        dec = d["decision"]
+        md += ["", f"**Decision (spec A2.5 rank rule):** `{dec['choice']}` — mean rank "
+               + ", ".join(f"{v} {m:.2f}" for v, m in dec["mean_rank"].items())
+               + ("; A2 lost on both AUC and CD-O" if dec["a2_lost_on_both"] else "")
+               + (f". {d['stand_ins']}: the decision is provisional until the dev cache." if d.get("stand_ins") else "."), ""]
+    p2 = [(e["number"], {c: e["scores"][c] for c in e["scores"] if c.startswith("p2_")}) for e in eps]
+    p2 = [(n, cols) for n, cols in p2 if cols]
+    if p2:
+        md += ["## h. Phase 2: two-object scope", "", "| Episode | Column | AUC | RPE cm | MPPE cm | Phase 1 (same column) |",
+               "|---|---|---|---|---|---|"]
+        for n, cols in p2:
+            e = next(x for x in eps if x["number"] == n)
+            for c, v in cols.items():
+                p1 = e["scores"].get(c[3:]) if c != "p2_best" else (e["scores"].get(e["best"]) if e["best"] else None)
+                md.append(f"| ep{n} | `{c}`{' (' + v['candidate'] + ')' if 'candidate' in v else ''} | {fmt(v['AUC'])} | "
+                          f"{fmt(v.get('RPE cm'), 2)} | {fmt(v.get('MPPE cm'), 2)} | {fmt((p1 or {}).get('AUC'))} |")
+        md.append("")
+    if base:
+        md += ["## What changed since the first page", ""]
+        now = summary(eps)
+        for ep, b in base.items():
+            a = now.get(ep)
+            if not a:
+                continue
+            md.append(f"- **ep{ep}:** best candidate {b['best']} {fmt(b['best_auc'])} → {a['best']} {fmt(a['best_auc'])}; "
+                      + "; ".join(f"{c} {fmt(a['columns'][c])}" for c in a["columns"] if c not in b["columns"] and SCAN not in c)
+                      + (f"; largest loss now {max((r for r in a['losses'].items() if r[1] is not None), key=lambda r: r[1])[0]}"
+                         if any(v is not None for v in a["losses"].values()) else ""))
+        md.append("")
+    return md
+
+
+def markdown(eps: list[dict], run: Path, tag: str, base: dict | None = None) -> str:
     today = date.today().isoformat()
     md = [f"# Dev-episode analysis: ep40 and ep26 ({today}{', ' + tag if tag else ''})", "",
           f"Run `{run.name}`; scored with the official Track 3 metric code (`pathb/gt.py`), public ground truth.",
@@ -414,6 +472,8 @@ def markdown(eps: list[dict], run: Path, tag: str) -> str:
     md += ["## f. Biggest flaws", ""]
     for label, (line, evidence) in zip(("Biggest flaw", "Second", "Third"), fl):
         md += [f"**{label}:** {line}", "", f"Evidence: {evidence}", ""]
+    if tag:
+        md += extra_sections(eps, run, base)
     return "\n".join(md)
 
 
@@ -499,9 +559,12 @@ def to_html(md: str, title: str) -> str:
 def main(run: Path, numbers: list[int], tag: str = "") -> tuple[Path, Path]:
     read: list = []
     eps = [episode_section(run, n, read) for n in numbers if episode_info(n)["split"] == "public"]
-    md = markdown(eps, run, tag)
     REPORTS.mkdir(exist_ok=True)
+    first = sorted(REPORTS.glob("dev_analysis_*.json"))
+    base = json.loads(first[0].read_text()) if tag and first else None
+    md = markdown(eps, run, tag, base)
     stem = f"dev_analysis_{date.today().isoformat()}" + (f"_{tag}" if tag else "")
+    (REPORTS / f"{stem}.json").write_text(json.dumps(summary(eps), indent=1) + "\n")
     (REPORTS / f"{stem}.md").write_text(md)
     (REPORTS / f"{stem}.html").write_text(to_html(md, "Dev episode analysis"))
     return REPORTS / f"{stem}.md", REPORTS / f"{stem}.html"
