@@ -38,7 +38,7 @@ STAGES = ("p0_ingest", "p1_calibrate", "p2_depth",  # S1
           "s23_load_retarget")  # kept for the still fallback (S6) and S5 mode A
 # Phase A2 (spec §11): the S3 observation variant, run only when asked for (--stages); in ORDER after
 # the stages it reads (S4a's rest windows, S3c's anchors).
-A2_STAGES = ("s3a2_fuse_scan", "s3a2_register")
+A2_STAGES = ("s3a2_fuse_scan", "s3a2_register", "s3b2_track_points")
 ORDER = STAGES[:STAGES.index("s4b_reference")] + A2_STAGES + STAGES[STAGES.index("s4b_reference"):]
 
 

@@ -40,12 +40,13 @@ ICP_MIN_FITNESS = 0.3  # rest-after onto rest-before: below this the anchors' mo
 BARS = {"frames": ((30, np.inf), (10, np.inf)), "rms_mm": ((0, 5), (0, 10)), "chamfer_cm": (0, 0.3)}
 
 
-def frame_masks(ctx, k: int, t: int, shape: tuple[int, int]) -> tuple[np.ndarray | None, bool]:
-    """The object's mask at depth resolution (eroded) and whether a hand touches it."""
+def frame_masks(ctx, k: int, t: int, shape: tuple[int, int]) -> tuple[np.ndarray | None, bool, float]:
+    """The object's mask at depth resolution (eroded), whether a hand touches it, and its area share
+    before erosion (the spec's 1 % bar is on the mask itself)."""
     tracks = B.mask_tracks(ctx.root)
     m = B.read_mask(tracks[f"obj_{k}"], t)
     if m is None:
-        return None, False
+        return None, False, 0.0
     obj = cv2.resize(m.astype(np.uint8), shape[::-1], interpolation=cv2.INTER_NEAREST) > 0
     hand = np.zeros(shape, bool)
     for side in ("hand_L", "hand_R"):
@@ -55,7 +56,7 @@ def frame_masks(ctx, k: int, t: int, shape: tuple[int, int]) -> tuple[np.ndarray
     kernel = np.ones((2 * HAND_DILATE_PX + 1,) * 2, np.uint8)
     touched = bool((cv2.dilate(hand.astype(np.uint8), kernel) > 0)[obj].any())
     eroded = cv2.erode(obj.astype(np.uint8), np.ones((2 * MASK_ERODE_PX + 1,) * 2, np.uint8)) > 0
-    return eroded, touched
+    return eroded, touched, float(m.mean())
 
 
 def rest_frames(ctx, k: int, ph: dict, K: np.ndarray, shape, c2w: np.ndarray) -> tuple[dict, list]:
@@ -68,13 +69,13 @@ def rest_frames(ctx, k: int, ph: dict, K: np.ndarray, shape, c2w: np.ndarray) ->
         a, b = ph[key]
         for t in range(a, b + 1):
             row = {"frame": t, "window": key}
-            mask, touched = frame_masks(ctx, k, t, shape)
+            mask, touched, share = frame_masks(ctx, k, t, shape)
             path = half / f"{t:06d}.png"
             if mask is None or not path.is_file():
                 log.append(row | {"used": False, "why": "no mask" if mask is None else "no depth"})
                 continue
-            row["mask_share"] = round(float(mask.mean()), 4)
-            if mask.mean() < MIN_AREA or touched:
+            row["mask_share"] = round(share, 4)
+            if share < MIN_AREA or touched:
                 log.append(row | {"used": False, "why": "hand touches the object" if touched else "mask < 1 %"})
                 continue
             depth = read_depth(path)
@@ -106,10 +107,9 @@ def rest_after_move(ctx, name: str, before: list, after: list) -> tuple[np.ndarr
 
 def chamfer_to_scan(partial: o3d.geometry.TriangleMesh, vertices: np.ndarray, faces: np.ndarray) -> dict:
     """One-sided partial -> scan (cm) with the scan registered onto the partial (scale fixed)."""
-    target = S.mesh_points(partial, 20000)
     scan_mesh = o3d.geometry.TriangleMesh(o3d.utility.Vector3dVector(vertices), o3d.utility.Vector3iVector(faces))
     scan_mesh.compute_vertex_normals()
-    source = S.mesh_points(scan_mesh, 20000)
+    target, source = S.mesh_points(partial, 5000), S.mesh_points(scan_mesh, 5000)  # the search; refined below
     centre = np.asarray(target.points).mean(axis=0) - np.asarray(source.points).mean(axis=0)
     starts = [S.global_start(source, target, seed=s) for s in range(2)]
     for R in Rotation.create_group("O").as_matrix():  # 24 orientations about the clouds' centres
@@ -120,12 +120,13 @@ def chamfer_to_scan(partial: o3d.geometry.TriangleMesh, vertices: np.ndarray, fa
     pts = np.asarray(target.points)
     best = None
     for T0 in starts:
-        T = S.icp(source, target, T0, max_dist=0.02)["T"]
-        T = S.icp(source, target, T, max_dist=0.005)["T"]
+        T = S.icp(source, target, T0, max_dist=0.02, iterations=30)["T"]
         cm = S.one_sided_cm(pts, vertices @ T[:3, :3].T + T[:3, 3], faces)
         if best is None or cm < best["cm"]:
             best = {"cm": cm, "T": T}
-    return best
+    target, source = S.mesh_points(partial, 20000), S.mesh_points(scan_mesh, 20000)
+    T = S.icp(source, target, S.icp(source, target, best["T"], max_dist=0.02)["T"], max_dist=0.005)["T"]
+    return {"cm": S.one_sided_cm(np.asarray(target.points), vertices @ T[:3, :3].T + T[:3, 3], faces), "T": T}
 
 
 def run(ctx) -> StageResult:

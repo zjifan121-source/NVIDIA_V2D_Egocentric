@@ -42,6 +42,8 @@ SAM3_URL=https://github.com/facebookresearch/sam3.git
 SAM3_COMMIT=${SAM3_COMMIT:-}
 DAID_URL=https://github.com/malik-group/do-as-i-do.git
 DAID_COMMIT=${DAID_COMMIT:-}
+TAPIP3D_URL=https://github.com/zbw001/TAPIP3D.git  # phase A2.4 (Apache-2.0)
+TAPIP3D_COMMIT=${TAPIP3D_COMMIT:-}
 KEY=/root/.ssh/v2d_github
 # github.com's published ed25519 host key fingerprint (docs.github.com, "GitHub's SSH key fingerprints")
 GITHUB_ED25519=SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU
@@ -344,6 +346,37 @@ v3_envs() {
   ok "venvs stereo, flash_chord, sam3, daid in $V; clones pinned in $THIRD/COMMITS.txt"
 }
 
+a2_envs() {  # phase A2.4's point tracker; optional: a failure leaves A2 to its FoundationPose variants
+  say "Phase A2 environment: TAPIP3D (V3_BUILD_SPEC.md §11 A2.4)"
+  local V=$V2D/venvs T=$THIRD/TAPIP3D
+  mkdir -p "$THIRD" "$V"
+  [ -f "$THIRD/COMMITS.txt" ] && grep -v '^TAPIP3D ' "$THIRD/COMMITS.txt" > "$THIRD/COMMITS.txt.new" || : > "$THIRD/COMMITS.txt.new"
+  clone_pinned "$TAPIP3D_URL" "$T" "$TAPIP3D_COMMIT"
+  mv "$THIRD/COMMITS.txt.new" "$THIRD/COMMITS.txt"
+  # its README: python 3.10, torch 2.4.1 cu124, xformers, torch-scatter (PyG wheels), requirements, pointops2
+  # (MegaSAM is for monocular video only: we give it depth and cameras)
+  if ! "$V/tapip3d/bin/python" -c "import torch, xformers, torch_scatter, pointops2" 2>/dev/null; then
+    logged env_tapip3d bash -c "uv venv -q --python 3.10 '$V/tapip3d' && P='$V/tapip3d/bin/python' \
+      && uv pip install -q --python \$P torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu124 \
+      && uv pip install -q --python \$P 'xformers==0.0.28.post1' --index-url https://download.pytorch.org/whl/cu124 \
+      && uv pip install -q --python \$P torch-scatter -f https://data.pyg.org/whl/torch-2.4.1+cu124.html \
+      && uv pip install -q --python \$P -r '$T/requirements.txt' setuptools wheel \
+      && cd '$T/third_party/pointops2' && \$P setup.py install"
+  fi
+  if [ ! -f "$T/checkpoints/tapip3d_final.pth" ]; then
+    mkdir -p "$T/checkpoints"
+    logged tapip3d_ckpt curl -fsSL -o "$T/checkpoints/tapip3d_final.pth" \
+      https://huggingface.co/zbww/tapip3d/resolve/main/tapip3d_final.pth
+  fi
+  if "$V/tapip3d/bin/python" -c "import torch, xformers, torch_scatter, pointops2" 2>/dev/null \
+     && [ -f "$T/checkpoints/tapip3d_final.pth" ]; then
+    ok "tapip3d in $V/tapip3d, clone in $T"
+  else
+    need "TAPIP3D environment incomplete ($LOGS/setup_env_tapip3d.log); A2.4 waits, A2's other variants do not"
+    return 1
+  fi
+}
+
 smoke() {
   say "smoke tests"
   if (cd "$REPO" && logged pytest uv run --project path_b pytest -q path_b/tests); then ok "Path B unit tests"
@@ -377,6 +410,7 @@ if hf auth whoami >/dev/null 2>&1; then outputs; fi
 if [ "${V3_ENVS:-1}" != 0 ]; then
   recon_images && recon_weights || true
   v3_envs || true
+  a2_envs || true
 fi
 smoke
 

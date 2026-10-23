@@ -12,6 +12,8 @@ the stage that makes it has run:
   ref_<candidate>    S4b's kinematic references: still, keyframe, tracking (playback, no simulation)
   realised_<cand.>   S4c's physically realised trajectories (Do as I Do)
   rollout_<cand.>    S6's evaluator rollouts of the trained policies
+Phase A2's variants (pathb/a2.py, run folders <run>_a2_mesh_fp and <run>_a2_mesh_points beside this
+one) add a column each: that variant's best candidate (rollout, else realised, else reference).
 Every bundle column is scored twice: as submitted, and with the public scan as mesh, placed in our
 mesh's frame as the official metric registers it (gt.scan_in_frame): `<column>@scan`, "scan mesh -
 ceiling, not submittable", the score our poses would get with a perfect mesh.
@@ -42,7 +44,8 @@ BUNDLE_VARIANTS = ("fused", "stage2_clean", *[f"ref_{c}" for c in CANDIDATES],
                    *[f"realised_{c}" for c in CANDIDATES[:2]])
 SCAN = "@scan"  # suffix: the same poses with the scan as mesh (ceiling, not submittable)
 ROLLOUTS = tuple(f"rollout_{c}" for c in CANDIDATES)
-VARIANTS = ("raw", *BUNDLE_VARIANTS, *ROLLOUTS)
+SIBLINGS = ("a2_mesh_fp", "a2_mesh_points")  # phase A2 variant runs beside this one
+VARIANTS = ("raw", *BUNDLE_VARIANTS, *ROLLOUTS, *SIBLINGS)
 ORACLES = PATH_B / "oracles"
 BASELINES = ("0fa525bc stage2_stereo", "S0.2 recon / place", "S0.2 still")
 
@@ -192,6 +195,14 @@ def episode(root: Path) -> dict:
         if rollout.is_file() and mesh_dir.is_dir():
             poses = scorer().evaluator_poses(rollout, e)  # parses the rollout only; scoring goes through gt
             scores[f"rollout_{c}"] = gt.score(e, poses, {n: next(mesh_dir.glob(f"{n}.*")) for n in names}, read)
+    for sibling in SIBLINGS:  # the A2 variant's own waterfall, its best candidate
+        other = root.parent.parent / f"{root.parent.name}_{sibling}" / root.name / "waterfall.json"
+        if other.is_file():
+            from .analysis import best_candidate
+            theirs = json.loads(other.read_text())["scores"]
+            best = best_candidate(theirs)
+            if best:
+                scores[sibling] = dict(theirs[best], candidate=best)
     base = baselines(number, len(names))
     reference = base[BASELINES[0]]
     attribution = {f"{v} vs 0fa525bc stage2_stereo": s["AUC"] - reference
