@@ -123,12 +123,13 @@ else
   rm -f "$keyfile"
 fi
 
-step "setup.sh in tmux (session 'setup'; about an hour on a fresh instance)"
+# ACCEPT_NVIDIA_MODEL_EULA=1: James accepted the NVIDIA Open Model License for TAO FoundationPose (2026-10-22, 2026-10-23)
+step "setup.sh in tmux (session 'setup'; about two hours on a fresh instance, mostly downloads)"
 LOG=/root/v2d/logs/setup_$(date -u +%Y%m%d_%H%M%S).log
 ssh "$HOST" "command -v tmux >/dev/null || (apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq tmux >/dev/null)
   loginctl enable-linger root 2>/dev/null || true
   tmux kill-session -t setup 2>/dev/null || true
-  tmux new -d -s setup 'BRANCH=$CLONE_BRANCH RESTORE_RUN=$RESTORE ${FRAMES:+RESTORE_FRAMES=1} bash /root/setup.sh > $LOG 2>&1; echo SETUP_EXIT \$? >> $LOG'"
+  tmux new -d -s setup 'ACCEPT_NVIDIA_MODEL_EULA=1 BRANCH=$CLONE_BRANCH RESTORE_RUN=$RESTORE ${FRAMES:+RESTORE_FRAMES=1} bash /root/setup.sh > $LOG 2>&1; echo SETUP_EXIT \$? >> $LOG'"
 echo "   log: $HOST:$LOG  (watch: ssh -t $HOST tmux attach -t setup)"
 seen=0
 while :; do

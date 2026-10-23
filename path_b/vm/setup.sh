@@ -299,11 +299,12 @@ recon_weights() {
   fetch geocalib $py -m v2d.geocalib.docker.run_download_weights --output_dir data/weights/geocalib
   fetch gsplat_refinement $py -m v2d.gsplat_refinement.docker.run_download_weights --weights_path data/weights/gsplat_refinement
   if [ -n "${ACCEPT_NVIDIA_MODEL_EULA:-}" ]; then
+    # --dev: the GHCR image predates the TensorRT backend; the host's modules run inside it (spec S3b)
     fetch foundation_pose $py -m v2d.foundation_pose.docker.run_download_weights --output_dir data/weights/foundation_pose \
-      --accept_nvidia_model_eula
+      --accept_nvidia_model_eula --dev
     # the tracker's default backend is TensorRT: engines for this GPU, next to the ONNX models
     [ -e "$w/foundation_pose/.done" ] && fetch foundation_pose_engines $py -c \
-      "from v2d.foundation_pose.docker.run_export_engines import run_export_engines; run_export_engines('data/weights/foundation_pose')"
+      "from v2d.foundation_pose.docker.run_export_engines import run_export_engines; run_export_engines('data/weights/foundation_pose', dev=True)"
   elif [ ! -e "$w/foundation_pose/.done" ]; then
     need "FoundationPose weights need the NVIDIA Open Model License (NGC TAO FoundationPose): once accepted, rerun with ACCEPT_NVIDIA_MODEL_EULA=1"
   fi
@@ -341,22 +342,25 @@ v3_envs() {
   fi
   # sam3: SAM 3 / 3.1 (facebook/sam3.1, gated: HF login), its README's torch
   clone_pinned "$SAM3_URL" "$THIRD/sam3" "$SAM3_COMMIT"
-  if ! "$V/sam3/bin/python" -c "import sam3, torch" 2>/dev/null; then
+  if ! "$V/sam3/bin/python" -c "from sam3.model_builder import build_sam3_multiplex_video_predictor" 2>/dev/null; then
     logged env_sam3 bash -c "uv venv -q --python 3.12 '$V/sam3' \
       && uv pip install -q --python '$V/sam3/bin/python' torch==2.10.0 torchvision --index-url https://download.pytorch.org/whl/cu128 \
-      && uv pip install -q --python '$V/sam3/bin/python' -e '$THIRD/sam3'"
+      && uv pip install -q --python '$V/sam3/bin/python' -e '$THIRD/sam3' \
+      && uv pip install -q --python '$V/sam3/bin/python' einops pycocotools psutil"  # imported, not in its dependencies
   fi
   # daid: Do as I Do retargeting (MIT; MuJoCo Warp, mink, viser, coacd), its README: pip install -e .
   clone_pinned "$DAID_URL" "$THIRD/do-as-i-do" "$DAID_COMMIT"
   if ! "$V/daid/bin/python" -c "import mujoco_warp, mink" 2>/dev/null; then
     logged env_daid bash -c "uv venv -q --python 3.12 '$V/daid' \
-      && uv pip install -q --python '$V/daid/bin/python' -e '$THIRD/do-as-i-do/retargeting'"
+      && uv pip install -q --no-sources --python '$V/daid/bin/python' -e '$THIRD/do-as-i-do/retargeting'"
+    # --no-sources: mujoco_warp's own pyproject sends mujoco to its nightly index, which has no 3.4.0
   fi
   mv "$THIRD/COMMITS.txt.new" "$THIRD/COMMITS.txt"
   local e failed=()
   for e in stereo flash_chord sam3 daid; do [ -x "$V/$e/bin/python" ] || failed+=("$e"); done
   "$V/flash_chord/bin/python" -c "import flash_chord, jax, mujoco_warp" 2>/dev/null || failed+=("flash_chord imports")
-  "$V/sam3/bin/python" -c "import sam3, torch; assert torch.cuda.is_available()" 2>/dev/null || failed+=("sam3 imports")
+  "$V/sam3/bin/python" -c "from sam3.model_builder import build_sam3_multiplex_video_predictor; import torch; assert torch.cuda.is_available()" \
+    2>/dev/null || failed+=("sam3 imports")
   "$V/daid/bin/python" -c "import mujoco_warp, mink" 2>/dev/null || failed+=("daid imports")
   if [ ${#failed[@]} -gt 0 ]; then need "v3 environments incomplete: ${failed[*]} ($LOGS/setup_env_*.log)"; return 1; fi
   ok "venvs stereo, flash_chord, sam3, daid in $V; clones pinned in $THIRD/COMMITS.txt"

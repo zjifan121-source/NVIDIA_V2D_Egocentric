@@ -20,10 +20,15 @@ from scipy.spatial.transform import Rotation
 from .. import baseline as B
 from .. import symmetry
 from ..geometry import read_transforms
-from ..paths import PATH_B
+from ..paths import PATH_B, RECON
 from ..report import Metric, StageResult
 from ..runner import write_json
 
+# spec S3b: the driver runs in the FoundationPose container with --dev (the host's baseline modules at
+# /workspace: the GHCR image predates the TensorRT backend), keeping the image's compiled extensions
+# (v2d_foundation_pose/docker/_config.py DEV_PRESERVE_VOLUMES)
+FP_DEV_PRESERVE = ["/workspace/v2d_foundation_pose/lib/FoundationPose/mycpp/build",
+                   "/workspace/v2d_foundation_pose/lib/FoundationPose/bundlesdf/mycuda"]
 RECOVERY = {"iou_thresh": 0.3,  # the baseline's re-registration threshold
             "trusted_iou": 0.5,  # default: a pose this good becomes the last good pose
             "lambda": 2.0,  # default: per rad of rotation away from the last good pose
@@ -88,7 +93,8 @@ def run(ctx) -> StageResult:
                        "mesh_path": str(mesh), "intrinsics_path": str(ctx.root / "p1c_camera/intrinsics.json"),
                        "weights_dir": str(B.WEIGHTS / "foundation_pose")},
             "outputs": {"output_dir": str(out)},
-            "env": {"PYTHONPATH": "/pathb_src"}, "extra_volumes": [f"{PATH_B}:/pathb_src:ro"]}, log)
+            "dev": True, "modules_dir": str(RECON / "modules"),
+            "env": {"PYTHONPATH": "/pathb_src"}, "extra_volumes": FP_DEV_PRESERVE + [f"{PATH_B}:/pathb_src:ro"]}, log)
         meta = json.loads((out / "track_meta.json").read_text())["frames"]
         T, have = read_transforms(out / "poses", n)
         steps = steps_deg(T, have)
