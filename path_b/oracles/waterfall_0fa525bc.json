@@ -1,0 +1,1021 @@
+[
+ {
+  "episode": 0,
+  "objects": [
+   "white_pot",
+   "white_pot_lid"
+  ],
+  "stereo_factor": 0.8761075166831103,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.06283512064343164,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 13.132304389855085,
+    "MPPE cm": 18.591679128219273,
+    "CD-O cm": 1.3856318710738984
+   },
+   "stage2": {
+    "AUC": 0.08788538873994638,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 13.270173767686305,
+    "MPPE cm": 16.88048095189014,
+    "CD-O cm": 1.3856318710738984
+   },
+   "stage2_stereo": {
+    "AUC": 0.09182305630026809,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 13.20885980812231,
+    "MPPE cm": 15.064442600763014,
+    "CD-O cm": 1.4033975917111594
+   },
+   "stage2_scan": {
+    "AUC": 0.09031501340482573,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 13.234218749918567,
+    "MPPE cm": 15.70444863785939,
+    "CD-O cm": 1.4047223026156184
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.02505026809651474,
+   "Path B stereo scale": 0.0039376675603217115,
+   "scale still missing (oracle - stereo)": -0.0015080428954423603,
+   "tracking, mesh and placement (1 - oracle)": 0.9096849865951743
+  }
+ },
+ {
+  "episode": 2,
+  "objects": [
+   "white_pot",
+   "white_pot_lid"
+  ],
+  "stereo_factor": 0.7362770191574664,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.04446064139941692,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 17.690586374141805,
+    "MPPE cm": 19.94472029340789,
+    "CD-O cm": 1.3988756807601948
+   },
+   "stage2": {
+    "AUC": 0.06477769679300291,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 17.18162454858561,
+    "MPPE cm": 18.506957469893038,
+    "CD-O cm": 1.3988756807601948
+   },
+   "stage2_stereo": {
+    "AUC": 0.06714650145772595,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 16.95665435490172,
+    "MPPE cm": 16.232325170392883,
+    "CD-O cm": 1.407637239388829
+   },
+   "stage2_scan": {
+    "AUC": 0.06495991253644315,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 17.180729946226343,
+    "MPPE cm": 18.46091096564812,
+    "CD-O cm": 1.3978111070545896
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.02031705539358599,
+   "Path B stereo scale": 0.0023688046647230426,
+   "scale still missing (oracle - stereo)": -0.0021865889212828032,
+   "tracking, mesh and placement (1 - oracle)": 0.9350400874635568
+  }
+ },
+ {
+  "episode": 11,
+  "objects": [
+   "blue_cup",
+   "beige_cup"
+  ],
+  "stereo_factor": 0.7601105847585223,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.21190693430656934,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 4.365763006870614,
+    "MPPE cm": 7.863066477291243,
+    "CD-O cm": 0.36814693436815643
+   },
+   "stage2": {
+    "AUC": 0.27965328467153283,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 4.238017177709164,
+    "MPPE cm": 7.129391731146102,
+    "CD-O cm": 0.36814693436815643
+   },
+   "stage2_stereo": {
+    "AUC": 0.37705291970802923,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 2.789232484887933,
+    "MPPE cm": 6.0460094177045285,
+    "CD-O cm": 0.36740106296658787
+   },
+   "stage2_scan": {
+    "AUC": 0.28672445255474455,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 4.098138709440579,
+    "MPPE cm": 6.980342203846663,
+    "CD-O cm": 0.36759365561902035
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.06774635036496349,
+   "Path B stereo scale": 0.0973996350364964,
+   "scale still missing (oracle - stereo)": -0.09032846715328469,
+   "tracking, mesh and placement (1 - oracle)": 0.7132755474452555
+  }
+ },
+ {
+  "episode": 12,
+  "objects": [
+   "blue_cup",
+   "plastic_dish_rack"
+  ],
+  "stereo_factor": 0.6824706381846388,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.2479281767955801,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 8.73409028116,
+    "MPPE cm": 7.143424670974928,
+    "CD-O cm": 0.4971816036720465
+   },
+   "stage2": {
+    "AUC": 0.34150552486187846,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 8.751535973268139,
+    "MPPE cm": 6.246849295816849,
+    "CD-O cm": 0.4971816036720465
+   },
+   "stage2_stereo": {
+    "AUC": 0.7370511049723757,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 4.002768519174013,
+    "MPPE cm": 2.996341976972346,
+    "CD-O cm": 0.49565498074912273
+   },
+   "stage2_scan": {
+    "AUC": 0.7774516574585636,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 4.0174918711013925,
+    "MPPE cm": 2.655693052818502,
+    "CD-O cm": 0.49784504147318676
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.09357734806629836,
+   "Path B stereo scale": 0.39554558011049723,
+   "scale still missing (oracle - stereo)": 0.0404005524861879,
+   "tracking, mesh and placement (1 - oracle)": 0.2225483425414364
+  }
+ },
+ {
+  "episode": 13,
+  "objects": [
+   "blue_cup",
+   "plastic_dish_rack"
+  ],
+  "stereo_factor": 0.731260192499816,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.26858552631578947,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 6.384158326185332,
+    "MPPE cm": 7.399008274947646,
+    "CD-O cm": 0.387787615586358
+   },
+   "stage2": {
+    "AUC": 0.43667763157894735,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 6.218639760769034,
+    "MPPE cm": 5.604161379235899,
+    "CD-O cm": 0.387787615586358
+   },
+   "stage2_stereo": {
+    "AUC": 0.762828947368421,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 4.261483083760124,
+    "MPPE cm": 2.7342299988631478,
+    "CD-O cm": 0.3870525400712679
+   },
+   "stage2_scan": {
+    "AUC": 0.5606907894736842,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 5.583898480043527,
+    "MPPE cm": 4.407522419674327,
+    "CD-O cm": 0.38960569934421946
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.16809210526315788,
+   "Path B stereo scale": 0.32615131578947365,
+   "scale still missing (oracle - stereo)": -0.20213815789473677,
+   "tracking, mesh and placement (1 - oracle)": 0.4393092105263158
+  }
+ },
+ {
+  "episode": 18,
+  "objects": [
+   "mini_sweeper",
+   "mini_dust_pan"
+  ],
+  "stereo_factor": 0.756500795079984,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.2445113314447592,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 21.432656311761182,
+    "MPPE cm": 15.360505989491013,
+    "CD-O cm": 0.39566127482244295
+   },
+   "stage2": {
+    "AUC": 0.25398371104815864,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 21.663741596682616,
+    "MPPE cm": 15.136179677630668,
+    "CD-O cm": 0.39566127482244295
+   },
+   "stage2_stereo": {
+    "AUC": 0.1590828611898017,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 21.824858707858965,
+    "MPPE cm": 16.558363538645082,
+    "CD-O cm": 0.39694188284592935
+   },
+   "stage2_scan": {
+    "AUC": 0.26283640226628896,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 21.743552138131477,
+    "MPPE cm": 15.09267482516031,
+    "CD-O cm": 0.39457462143463734
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.009472379603399445,
+   "Path B stereo scale": -0.09490084985835695,
+   "scale still missing (oracle - stereo)": 0.10375354107648727,
+   "tracking, mesh and placement (1 - oracle)": 0.737163597733711
+  }
+ },
+ {
+  "episode": 21,
+  "objects": [
+   "blue_cup",
+   "water_pitcher"
+  ],
+  "stereo_factor": 0.8057140866233281,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.2066532258064516,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 11.155648156096575,
+    "MPPE cm": 13.702217260501667,
+    "CD-O cm": 0.6583367045324304
+   },
+   "stage2": {
+    "AUC": 0.4050739247311828,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 11.64033722555457,
+    "MPPE cm": 8.175716709938715,
+    "CD-O cm": 0.6583367045324304
+   },
+   "stage2_stereo": {
+    "AUC": 0.5695564516129032,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 4.440738241590132,
+    "MPPE cm": 4.45193656279496,
+    "CD-O cm": 0.6582186603946968
+   },
+   "stage2_scan": {
+    "AUC": 0.6036626344086021,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 5.168308371576689,
+    "MPPE cm": 4.033021130259737,
+    "CD-O cm": 0.6565158689212673
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.19842069892473121,
+   "Path B stereo scale": 0.16448252688172044,
+   "scale still missing (oracle - stereo)": 0.03410618279569888,
+   "tracking, mesh and placement (1 - oracle)": 0.39633736559139787
+  }
+ },
+ {
+  "episode": 22,
+  "objects": [
+   "blue_cup",
+   "water_pitcher"
+  ],
+  "stereo_factor": 0.8773097757814527,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.3751653439153439,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 7.506725950258127,
+    "MPPE cm": 7.012035571811981,
+    "CD-O cm": 0.5695310725772238
+   },
+   "stage2": {
+    "AUC": 0.4214616402116402,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 7.5439656400380555,
+    "MPPE cm": 5.923201596785242,
+    "CD-O cm": 0.5695310725772238
+   },
+   "stage2_stereo": {
+    "AUC": 0.6458333333333333,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 3.73926415861191,
+    "MPPE cm": 3.721140227929102,
+    "CD-O cm": 0.5741999405341245
+   },
+   "stage2_scan": {
+    "AUC": 0.6428571428571428,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 3.7808471886692674,
+    "MPPE cm": 3.734169837138876,
+    "CD-O cm": 0.5746801292008762
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.04629629629629628,
+   "Path B stereo scale": 0.22437169312169308,
+   "scale still missing (oracle - stereo)": -0.0029761904761904656,
+   "tracking, mesh and placement (1 - oracle)": 0.3571428571428572
+  }
+ },
+ {
+  "episode": 23,
+  "objects": [
+   "wooden_piece_1",
+   "wooden_piece_2"
+  ],
+  "stereo_factor": 0.3568886165223631,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.015961538461538465,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 16.14752967545737,
+    "MPPE cm": 15.958889172571586,
+    "CD-O cm": 2.465743704577027
+   },
+   "stage2": {
+    "AUC": 0.03817307692307692,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 16.138377756789573,
+    "MPPE cm": 14.816227634182924,
+    "CD-O cm": 2.465743704577027
+   },
+   "stage2_stereo": {
+    "AUC": 0.03548076923076923,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 14.203937220934067,
+    "MPPE cm": 19.320231161274737,
+    "CD-O cm": 2.4654980749133433
+   },
+   "stage2_scan": {
+    "AUC": 0.04009615384615385,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 14.31263668709014,
+    "MPPE cm": 18.736708257821444,
+    "CD-O cm": 2.4366429108718535
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.022211538461538456,
+   "Path B stereo scale": -0.0026923076923076883,
+   "scale still missing (oracle - stereo)": 0.004615384615384618,
+   "tracking, mesh and placement (1 - oracle)": 0.9599038461538462
+  }
+ },
+ {
+  "episode": 26,
+  "objects": [
+   "plastic_dish_rack",
+   "white_pot"
+  ],
+  "stereo_factor": 0.8040828334222611,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.2412974683544304,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 10.83360989117589,
+    "MPPE cm": 8.927752986815456,
+    "CD-O cm": 1.0038833028129721
+   },
+   "stage2": {
+    "AUC": 0.2933148734177215,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 10.532737467462553,
+    "MPPE cm": 8.264592847359378,
+    "CD-O cm": 1.0038833028129721
+   },
+   "stage2_stereo": {
+    "AUC": 0.3334651898734177,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 8.76600696574505,
+    "MPPE cm": 7.024340575457176,
+    "CD-O cm": 1.0049499379343907
+   },
+   "stage2_scan": {
+    "AUC": 0.30636867088607594,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 9.645075668291323,
+    "MPPE cm": 7.712188719718259,
+    "CD-O cm": 1.0007505928932428
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.05201740506329111,
+   "Path B stereo scale": 0.04015031645569622,
+   "scale still missing (oracle - stereo)": -0.027096518987341778,
+   "tracking, mesh and placement (1 - oracle)": 0.693631329113924
+  }
+ },
+ {
+  "episode": 27,
+  "objects": [
+   "plastic_dish_rack",
+   "white_pot"
+  ],
+  "stereo_factor": 0.7539349945805047,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.44651930894308944,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 13.011415222775572,
+    "MPPE cm": 8.045897413322646,
+    "CD-O cm": 0.42931987968611157
+   },
+   "stage2": {
+    "AUC": 0.44651930894308944,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 12.9863725846182,
+    "MPPE cm": 8.0400347574739,
+    "CD-O cm": 0.42931987968611157
+   },
+   "stage2_stereo": {
+    "AUC": 0.5659298780487805,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 5.674150831548412,
+    "MPPE cm": 4.511266856102871,
+    "CD-O cm": 0.425353308414327
+   },
+   "stage2_scan": {
+    "AUC": 0.5492886178861789,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 6.389359287491407,
+    "MPPE cm": 4.862449350805418,
+    "CD-O cm": 0.4248244819272467
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.0,
+   "Path B stereo scale": 0.11941056910569103,
+   "scale still missing (oracle - stereo)": -0.01664126016260159,
+   "tracking, mesh and placement (1 - oracle)": 0.4507113821138211
+  }
+ },
+ {
+  "episode": 31,
+  "objects": [
+   "mini_sweeper",
+   "plastic_dish_rack"
+  ],
+  "stereo_factor": 0.5307180743511222,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.03825431034482759,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 38.47086770787226,
+    "MPPE cm": 21.43172669732797,
+    "CD-O cm": 0.5930227357702194
+   },
+   "stage2": {
+    "AUC": 0.0697198275862069,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 38.01621839729925,
+    "MPPE cm": 21.26415559722582,
+    "CD-O cm": 0.5930227357702194
+   },
+   "stage2_stereo": {
+    "AUC": 0.08836206896551724,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 26.937097578066606,
+    "MPPE cm": 16.08495783581217,
+    "CD-O cm": 0.5895379105905115
+   },
+   "stage2_scan": {
+    "AUC": 0.09385775862068964,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 20.192026162296532,
+    "MPPE cm": 11.348521317235958,
+    "CD-O cm": 0.5905488888936579
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.03146551724137931,
+   "Path B stereo scale": 0.018642241379310337,
+   "scale still missing (oracle - stereo)": 0.0054956896551724005,
+   "tracking, mesh and placement (1 - oracle)": 0.9061422413793103
+  }
+ },
+ {
+  "episode": 39,
+  "objects": [
+   "mini_dust_pan"
+  ],
+  "stereo_factor": 0.7423857768973425,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.1998432601880878,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 19.989007227773392,
+    "CD-O cm": 0.3365986324987878
+   },
+   "stage2": {
+    "AUC": 0.16829937304075238,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 24.00598721270533,
+    "CD-O cm": 0.3365986324987878
+   },
+   "stage2_stereo": {
+    "AUC": 0.318769592476489,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 15.313699088515168,
+    "CD-O cm": 0.33720055532708215
+   },
+   "stage2_scan": {
+    "AUC": 0.16810344827586207,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 35.058212164663,
+    "CD-O cm": 0.3360047162973248
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": -0.031543887147335414,
+   "Path B stereo scale": 0.15047021943573663,
+   "scale still missing (oracle - stereo)": -0.15066614420062693,
+   "tracking, mesh and placement (1 - oracle)": 0.8318965517241379
+  }
+ },
+ {
+  "episode": 40,
+  "objects": [
+   "mini_dust_pan"
+  ],
+  "stereo_factor": 0.7490531865719118,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.3389423076923077,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 10.4090942646814,
+    "CD-O cm": 0.24048497738296562
+   },
+   "stage2": {
+    "AUC": 0.3384615384615385,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 9.510182897511957,
+    "CD-O cm": 0.24048497738296562
+   },
+   "stage2_stereo": {
+    "AUC": 0.4908653846153846,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 5.8466931184491076,
+    "CD-O cm": 0.24138517308160257
+   },
+   "stage2_scan": {
+    "AUC": 0.4814903846153847,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 5.940506044475282,
+    "CD-O cm": 0.24137649030691213
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": -0.00048076923076922906,
+   "Path B stereo scale": 0.1524038461538461,
+   "scale still missing (oracle - stereo)": -0.009374999999999911,
+   "tracking, mesh and placement (1 - oracle)": 0.5185096153846154
+  }
+ },
+ {
+  "episode": 41,
+  "objects": [
+   "white_pot"
+  ],
+  "stereo_factor": 0.8310138954824992,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.28448996655518394,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 9.823820990416083,
+    "CD-O cm": 0.5630638087504015
+   },
+   "stage2": {
+    "AUC": 0.2872073578595318,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 9.464869432099492,
+    "CD-O cm": 0.5630638087504015
+   },
+   "stage2_stereo": {
+    "AUC": 0.46864548494983277,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 7.123104963221824,
+    "CD-O cm": 0.5496639001185062
+   },
+   "stage2_scan": {
+    "AUC": 0.43185618729096986,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 7.502501822861672,
+    "CD-O cm": 0.5557690918190453
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.002717391304347838,
+   "Path B stereo scale": 0.181438127090301,
+   "scale still missing (oracle - stereo)": -0.03678929765886291,
+   "tracking, mesh and placement (1 - oracle)": 0.5681438127090301
+  }
+ },
+ {
+  "episode": 42,
+  "objects": [
+   "white_pot"
+  ],
+  "stereo_factor": 0.8826787646436207,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.708171206225681,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 3.183119565396566,
+    "CD-O cm": 0.3113692106654711
+   },
+   "stage2": {
+    "AUC": 0.6926070038910506,
+    "SP-SR": 1.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 3.269435458872415,
+    "CD-O cm": 0.3113692106654711
+   },
+   "stage2_stereo": {
+    "AUC": 0.7346789883268483,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 2.883387701057745,
+    "CD-O cm": 0.31006963389566655
+   },
+   "stage2_scan": {
+    "AUC": 0.7419747081712063,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 2.797472717933487,
+    "CD-O cm": 0.3117617839805119
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": -0.015564202334630406,
+   "Path B stereo scale": 0.04207198443579774,
+   "scale still missing (oracle - stereo)": 0.007295719844357951,
+   "tracking, mesh and placement (1 - oracle)": 0.25802529182879375
+  }
+ },
+ {
+  "episode": 43,
+  "objects": [
+   "white_pot"
+  ],
+  "stereo_factor": 0.7862035099687239,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.17350460122699385,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 20.161319343231767,
+    "CD-O cm": 0.6764913485330154
+   },
+   "stage2": {
+    "AUC": 0.17561349693251532,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 20.34189515902112,
+    "CD-O cm": 0.6764913485330154
+   },
+   "stage2_stereo": {
+    "AUC": 0.2616947852760736,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 15.938973517444852,
+    "CD-O cm": 0.6744384259272558
+   },
+   "stage2_scan": {
+    "AUC": 0.15107361963190183,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 22.804063603567748,
+    "CD-O cm": 0.6807829964178169
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.002108895705521474,
+   "Path B stereo scale": 0.08608128834355827,
+   "scale still missing (oracle - stereo)": -0.11062116564417177,
+   "tracking, mesh and placement (1 - oracle)": 0.8489263803680982
+  }
+ },
+ {
+  "episode": 44,
+  "objects": [
+   "white_pot"
+  ],
+  "stereo_factor": 0.8677130914784152,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.7768574297188755,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 2.6883535703711785,
+    "CD-O cm": 0.4705397430675682
+   },
+   "stage2": {
+    "AUC": 0.7469879518072289,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 2.960549488740431,
+    "CD-O cm": 0.4705397430675682
+   },
+   "stage2_stereo": {
+    "AUC": 0.865210843373494,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 1.9680187437742476,
+    "CD-O cm": 0.4719753173794717
+   },
+   "stage2_scan": {
+    "AUC": 0.8554216867469879,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 2.085569318970353,
+    "CD-O cm": 0.472168858862095
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": -0.029869477911646625,
+   "Path B stereo scale": 0.11822289156626509,
+   "scale still missing (oracle - stereo)": -0.009789156626506035,
+   "tracking, mesh and placement (1 - oracle)": 0.14457831325301207
+  }
+ },
+ {
+  "episode": 45,
+  "objects": [
+   "white_pot"
+  ],
+  "stereo_factor": 1.0243219923261053,
+  "variants": [
+   "raw",
+   "stage2",
+   "stage2_stereo",
+   "stage2_scan"
+  ],
+  "scores": {
+   "raw": {
+    "AUC": 0.25215517241379315,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 8.512592986439449,
+    "CD-O cm": 1.2932171025896657
+   },
+   "stage2": {
+    "AUC": 0.41551724137931034,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 6.366344067218199,
+    "CD-O cm": 1.2932171025896657
+   },
+   "stage2_stereo": {
+    "AUC": 0.4056034482758621,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 6.609570965217963,
+    "CD-O cm": 1.2931656415315518
+   },
+   "stage2_scan": {
+    "AUC": 0.25754310344827586,
+    "SP-SR": 0.0,
+    "MP-SR": 0.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 12.061430258660861,
+    "CD-O cm": 1.294673488889789
+   }
+  },
+  "auc_attribution": {
+   "stage 2 repairs": 0.1633620689655172,
+   "Path B stereo scale": -0.009913793103448254,
+   "scale still missing (oracle - stereo)": -0.14806034482758623,
+   "tracking, mesh and placement (1 - oracle)": 0.7424568965517242
+  }
+ }
+]

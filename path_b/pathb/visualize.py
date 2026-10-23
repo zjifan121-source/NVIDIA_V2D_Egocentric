@@ -19,7 +19,8 @@ import trimesh
 from .geometry import read_depth
 from .paths import TRACK3, episode_info
 from .stages import p3_scale_bridge as P3
-from .team import retarget_tools, scorer
+from . import gt
+from .team import retarget_tools
 
 TEMPLATE = Path(__file__).with_name("visualize_page.html")
 WIDTH = 640  # displayed image width, px
@@ -114,15 +115,15 @@ def extents(vertices: np.ndarray) -> list[float]:
     return [round(100 * e, 1) for e in retarget_tools().oriented_extents(vertices)]
 
 
-def mesh_sizes(data: dict, bundle: Path, names: list[str], scale: dict) -> list[dict]:
+def mesh_sizes(episode: dict, data: dict, bundle: Path, names: list[str], scale: dict, read: list) -> list[dict]:
     L = retarget_tools()
     out = []
     for name, (_, scale_key, mesh) in zip(names, L.object_slots(data)):
         bundle_ext = extents(L.object_vertices(bundle, data, scale_key, mesh))
-        scan = next((p for p in (L.SCANS / f"{name}/{name}_visual.glb", L.SCANS / f"{name}/{name}.glb") if p.is_file()), None)
+        scan = gt.scan_vertices(episode, name, read)
         out.append({
             "name": name, "bundle": bundle_ext,
-            "scan": extents(np.asarray(trimesh.load(scan, force="mesh", process=False).vertices)) if scan else None,
+            "scan": extents(scan) if scan is not None else None,
             "stereo": [round(e * scale["factor"], 1) for e in bundle_ext],
             "scan_rescaled": [round(e * scale["oracle_scan_factor"], 1) for e in bundle_ext]
             if scale.get("oracle_scan_factor") else None,
@@ -130,20 +131,20 @@ def mesh_sizes(data: dict, bundle: Path, names: list[str], scale: dict) -> list[
     return out
 
 
-def motion(root: Path, number: int, names: list[str], raw: Path) -> dict:
+def motion(root: Path, episode: dict, names: list[str], raw: Path, read: list) -> dict:
     """Distance of each object from its start position, per frame, in cm (rotation-free)."""
-    L, S = retarget_tools(), scorer()
-    gt = S.ground_truth(number)
+    L = retarget_tools()
+    truth = gt.ground_truth(episode, read)
     sources = {"raw": raw, **{v: root / "waterfall" / v for v in ("stage2", "stage2_stereo", "stage2_scan")}}
     objects = []
     for i, name in enumerate(names):
-        series = {"gt": np.linalg.norm(gt[:, i, :3] - gt[0, i, :3], axis=1)}
+        series = {"gt": np.linalg.norm(truth[:, i, :3] - truth[0, i, :3], axis=1)}
         for variant, bundle in sources.items():
             if not (bundle / "result.npz").is_file():
                 continue
             data = dict(np.load(bundle / "result.npz"))
             pose = L.object_slots(data)[i][0]
-            p = data[pose][: len(gt), :3, 3].astype(np.float64)
+            p = data[pose][: len(truth), :3, 3].astype(np.float64)
             series[variant] = np.linalg.norm(p - p[0], axis=1)
         peak = series["gt"].max()
         objects.append({
@@ -155,7 +156,7 @@ def motion(root: Path, number: int, names: list[str], raw: Path) -> dict:
     moving = [o for o in objects if o["gt_peak_cm"] >= 10 and "stage2" in o["peak_ratio"]]
     # the factor that would make the bundle's motion as large as the real motion
     motion_factor = float(np.median([1 / o["peak_ratio"]["stage2"] for o in moving])) if moving else None
-    return {"frames": len(gt), "objects": objects, "motion_factor": motion_factor,
+    return {"frames": len(truth), "objects": objects, "motion_factor": motion_factor,
             "moving_objects": [o["name"] for o in moving]}
 
 
@@ -262,6 +263,9 @@ def page(root: Path) -> Path:
     loss = json.loads((root / "loss_report.json").read_text())
     scale = json.loads((root / "p3_scale_bridge/scale.json").read_text())
     waterfall = json.loads((root / "waterfall.json").read_text())
+    if "stage2" not in waterfall["scores"]:
+        raise SystemExit(f"{root}: a v3 waterfall; this page shows v2 runs (team bundle + stereo scale) only")
+    read: list = []
     run = json.loads((root / "run.json").read_text())
     bundle = Path(scale["bundle"])
     data = dict(np.load(bundle / "result.npz"))
@@ -286,8 +290,8 @@ def page(root: Path) -> Path:
                    "plane_ratio": [r["table_stereo"] / r["table_bundle"] if r["table_stereo"] else None for r in rows],
                    "ray_ratio": {n: [r["ray_by_object"][i] for r in rows] for i, n in enumerate(names)},
                    "factor": scale["factor"], "oracle": scale.get("oracle_scan_factor"), "method": scale["method"]},
-        "mesh": mesh_sizes(data, bundle, names, scale),
-        "motion": motion(root, number, names, bundle),
+        "mesh": mesh_sizes(episode, data, bundle, names, scale, read),
+        "motion": motion(root, episode, names, bundle, read),
         "camera": camera(root),
         "measurements": loss["measurements"],
         "stages": [{"stage": s["stage"], "status": s["status"]} for s in loss["stages"]],

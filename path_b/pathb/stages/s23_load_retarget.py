@@ -17,7 +17,7 @@ import numpy as np
 from ..bundle import p4_bundle
 from ..paths import REPO
 from ..report import Metric, StageResult
-from ..team import scorer
+from .. import gt
 
 
 def command(ctx, venv: str, out) -> list[str]:
@@ -73,11 +73,9 @@ def run(ctx) -> StageResult:
                               note=f"camera path lengths (m): {report['merge']['camera_path_m']}"))
     outputs = {"report": out / "report.json", "processed": report["processed"], "video": report["video"]}
     if ctx.public:
-        S = scorer()
         poses = np.load(out / f"score_input/results/episode_{ctx.number:06d}.npy")
-        meshes = {(ctx.number, name): out / f"score_input/meshes/episode_{ctx.number:06d}/{name}.obj"
-                  for name in ctx.objects}
-        scores = S.score([ctx.episode], {ctx.number: poses}, meshes)
+        meshes = {name: out / f"score_input/meshes/episode_{ctx.number:06d}/{name}.obj" for name in ctx.objects}
+        scores = gt.score(ctx.episode, poses, meshes, ctx.files_read)
         outputs["scores"] = scores
         metrics += [Metric(f"reconstruction-only {k}", v, "", kind="gt",
                            note="the trajectory FlashCHORD is trained to track: its ceiling") for k, v in scores.items()]

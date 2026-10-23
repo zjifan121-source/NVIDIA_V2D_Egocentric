@@ -9,9 +9,14 @@ import numpy as np
 from .team import retarget_tools
 
 
+def bundle_at(root: Path, number: int, name: str) -> Path:
+    """An episode's bundle for one object, as P4 exports it (BUNDLES.md layout); S3c completes it.
+    root: the episode's run folder (<out>/episode_XXXXXX)."""
+    return root / f"p4_export/episode_{number:06d}/{name}/result_slam_gravity_aligned"
+
+
 def p4_bundle(ctx, name: str) -> Path:
-    """The episode's bundle for one object, as P4 exports it (BUNDLES.md layout); S3c completes it."""
-    return ctx.root / f"p4_export/episode_{ctx.number:06d}/{name}/result_slam_gravity_aligned"
+    return bundle_at(ctx.root, ctx.number, name)
 
 
 def rescaled_copy(src: Path, dest: Path, factor: float, link: bool = True,

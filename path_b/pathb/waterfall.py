@@ -1,32 +1,40 @@
-"""Score waterfall on public episodes: how many points each step of the chain gains or loses.
+"""Score waterfall on public episodes (V3_BUILD_SPEC.md §1): what each step of the v3 chain scores,
+next to the numbers it replaces.
 
-Each variant is scored with the official metric code against public ground truth, as
-tools/track3/dryrun_public.py does (no simulation; two-object episodes pay for our placement):
-  raw            the team's bundle as uploaded (merged for two objects)
-  stage2         after stage 2's default repairs (hand and object cleaning, rest hold, levelling)
-  stage2_stereo  the same after Path B's stereo scale (P3)
-  stage2_scan    the same after the oracle scale from the public scans (--rescale-by-scan)
-AUC attribution: stage 2 repairs = stage2 - raw; Path B stereo scale = stage2_stereo - stage2;
-scale still missing = stage2_scan - stage2_stereo; tracking, mesh and placement = 1 - stage2_scan.
+Columns, each scored with the official metric code against public ground truth (pathb/gt.py), when
+the stage that makes it has run:
+  fused              the object track after S3c (the P4 bundle S3c completes)
+  ref_<candidate>    S4b's kinematic references: still, keyframe, tracking (playback, no simulation)
+  realised_<cand.>   S4c's physically realised trajectories (Do as I Do)
+  rollout_<cand.>    S6's evaluator rollouts of the trained policies
+Baselines (not recomputed): stage2_stereo from HF run 0fa525bc (oracles/waterfall_0fa525bc.json),
+and the S0.2 oracle file's reconstruction (one object: recon; a scene: place) and still values
+(oracles/oracle_2026-10-17.json). A scene of several objects is assembled from the per-object
+bundles with run_load_retarget.merged_bundle, the merge --merge runs (mode A).
 """
 from __future__ import annotations
 
 import json
+import os
+from contextlib import contextmanager
 from pathlib import Path
 
 import numpy as np
 import trimesh
 from scipy.spatial.transform import Rotation
 
-from . import loss
-from .bundle import rescaled_copy
-from .paths import TRACK3_FPS, episode_info
+from . import gt, loss
+from .bundle import bundle_at
+from .paths import PATH_B, episode_info
+from .reference import CANDIDATES
 from .runner import write_json
-from .stages.p3_scale_bridge import source_bundle
 from .team import retarget_tools, scorer
 
-VARIANTS = ("raw", "stage2", "stage2_stereo", "stage2_scan", "physics")
-PHYSICS_BUNDLE = "s4_physics/bundle"  # S4 writes its physically realized demonstration here (v2 doc, S4)
+BUNDLE_VARIANTS = ("fused", *[f"ref_{c}" for c in CANDIDATES], *[f"realised_{c}" for c in CANDIDATES[:2]])
+ROLLOUTS = tuple(f"rollout_{c}" for c in CANDIDATES)
+VARIANTS = (*BUNDLE_VARIANTS, *ROLLOUTS)
+ORACLES = PATH_B / "oracles"
+BASELINES = ("0fa525bc stage2_stereo", "S0.2 recon / place", "S0.2 still")
 
 
 def scene(bundle: Path, names: list[str], frames: int, work: Path, tag: str):
@@ -45,44 +53,87 @@ def scene(bundle: Path, names: list[str], frames: int, work: Path, tag: str):
     return np.stack(poses, axis=1), meshes
 
 
+@contextmanager
+def bundle_namespace(path: Path):
+    """run_load_retarget.bundle_dir_for reads $V2D_BUNDLE_NS; an absolute path replaces the hub."""
+    old = os.environ.get("V2D_BUNDLE_NS")
+    os.environ["V2D_BUNDLE_NS"] = str(path)
+    try:
+        yield
+    finally:
+        if old is None:
+            os.environ.pop("V2D_BUNDLE_NS")
+        else:
+            os.environ["V2D_BUNDLE_NS"] = old
+
+
+def merged(number: int, bundles: dict[str, Path], work: Path) -> Path:
+    """One scene bundle from per-object bundles, by the merge --merge uses (mode A)."""
+    ns = work / "ns" / f"episode_{number:06d}"
+    ns.mkdir(parents=True, exist_ok=True)
+    for name, bundle in bundles.items():
+        link = ns / name
+        if link.is_symlink() or link.exists():
+            link.unlink()
+        link.symlink_to(bundle.resolve())
+    with bundle_namespace(ns.parent):
+        dest, _ = retarget_tools().merged_bundle(number, work / "merged")
+    return dest
+
+
+def variant_bundles(root: Path, names: list[str]) -> dict[str, dict[str, Path]]:
+    """Per variant, the bundle of every object, for the variants whose stages have run."""
+    out = {}
+    fused = root / "s3c_fuse/report.json"
+    if fused.is_file() and json.loads(fused.read_text())["status"] not in ("SKIP", "ERROR"):
+        out["fused"] = {n: bundle_at(root, int(root.name.removeprefix("episode_")), n) for n in names}
+    for c in CANDIDATES:
+        out[f"ref_{c}"] = {n: root / f"s4b_reference/{n}/{c}" for n in names}
+        out[f"realised_{c}"] = {n: root / f"s4c_retarget/{n}/{c}/bundle" for n in names}
+    return {v: b for v, b in out.items() if v in VARIANTS and all((p / "result.npz").is_file() for p in b.values())}
+
+
+def baselines(number: int, objects: int) -> dict[str, float | None]:
+    out = dict.fromkeys(BASELINES)
+    wf = ORACLES / "waterfall_0fa525bc.json"
+    if wf.is_file():
+        row = next((r for r in json.loads(wf.read_text()) if r["episode"] == number), None)
+        if row and "stage2_stereo" in row["scores"]:
+            out[BASELINES[0]] = row["scores"]["stage2_stereo"]["AUC"]
+    oracle = ORACLES / "oracle_2026-10-17.json"
+    if oracle.is_file():
+        rows = {r["v"]: r["AUC"] for r in json.loads(oracle.read_text())["variants"] if r["ep"] == number}
+        out[BASELINES[1]] = rows.get("recon" if objects == 1 else "place")
+        out[BASELINES[2]] = rows.get("still")
+    return out
+
+
 def episode(root: Path) -> dict:
-    L, S = retarget_tools(), scorer()
     number = int(root.name.removeprefix("episode_"))
     e = episode_info(number)
     names = [o["name"] for o in e["objects"]]
-    frames = len(S.ground_truth(number))
-    factor = json.loads((root / "p3_scale_bridge/scale.json").read_text())["factor"]
+    frames = int(e["num_frames"])
     work = root / "waterfall"
     work.mkdir(exist_ok=True)
-    src = source_bundle(number, names, work)
-    bundles = {
-        "raw": src,
-        "stage2": L.cleaned_bundle(src, work / "stage2", TRACK3_FPS, level=True)[0],
-        "stage2_stereo": L.cleaned_bundle(rescaled_copy(src, work / "stereo_src", factor), work / "stage2_stereo",
-                                          TRACK3_FPS, level=True)[0],
-    }
-    try:
-        bundles["stage2_scan"] = L.cleaned_bundle(src, work / "stage2_scan", TRACK3_FPS, rescale_by_scan=names[0],
-                                                  level=True)[0]
-    except SystemExit:  # no public scan (wooden_spoon)
-        pass
-    physics = root / PHYSICS_BUNDLE
-    if (physics / "result.npz").is_file():
-        bundles["physics"] = physics  # already feasible by construction: scored as S4 wrote it, no repairs
+    read: list = []
     scores = {}
-    for tag, bundle in bundles.items():
-        poses, meshes = scene(bundle, names, frames, work, tag)
-        scores[tag] = S.score([e], {number: poses}, {(number, n): p for n, p in meshes.items()})
-    auc = {k: v["AUC"] for k, v in scores.items()}
-    attribution = {"stage 2 repairs": auc["stage2"] - auc["raw"],
-                   "Path B stereo scale": auc["stage2_stereo"] - auc["stage2"]}
-    if "stage2_scan" in auc:
-        attribution["scale still missing (oracle - stereo)"] = auc["stage2_scan"] - auc["stage2_stereo"]
-        attribution["tracking, mesh and placement (1 - oracle)"] = 1.0 - auc["stage2_scan"]
-    if "physics" in auc:
-        attribution["Path B physics (S4) over the stereo reference"] = auc["physics"] - auc["stage2_stereo"]
-    row = {"episode": number, "objects": names, "stereo_factor": factor, "variants": list(VARIANTS),
-           "scores": scores, "auc_attribution": attribution}
+    for variant, bundles in variant_bundles(root, names).items():
+        bundle = bundles[names[0]] if len(names) == 1 else merged(number, bundles, work / variant)
+        poses, meshes = scene(bundle, names, frames, work, variant)
+        scores[variant] = gt.score(e, poses, meshes, read)
+    for c in CANDIDATES:
+        rollout = root / f"s6_eval/{c}/episode_{number:06d}.parquet"
+        mesh_dir = root / f"s6_eval/{c}/meshes"
+        if rollout.is_file() and mesh_dir.is_dir():
+            poses = scorer().evaluator_poses(rollout, e)  # parses the rollout only; scoring goes through gt
+            scores[f"rollout_{c}"] = gt.score(e, poses, {n: next(mesh_dir.glob(f"{n}.*")) for n in names}, read)
+    base = baselines(number, len(names))
+    reference = base[BASELINES[0]]
+    attribution = {f"{v} vs 0fa525bc stage2_stereo": s["AUC"] - reference
+                   for v, s in scores.items() if reference is not None}
+    row = {"episode": number, "objects": names, "variants": [v for v in VARIANTS if v in scores],
+           "scores": scores, "baselines": base, "auc_attribution": attribution,
+           "files_read": [str(p) for p in read]}
     write_json(root / "waterfall.json", row)
     reports = {p.parent.name: json.loads(p.read_text()) for p in sorted(root.glob("*/report.json"))}
     loss.write(root, dict(sorted(reports.items(), key=lambda kv: stage_order(kv[0]))))
@@ -95,14 +146,20 @@ def stage_order(name: str) -> int:
 
 
 def summary(out: Path, rows: list[dict]) -> str:
-    lines = ["| Episode | Objects | Stereo factor | " + " | ".join(VARIANTS) + " |",
-             "|---|---|---|" + "---|" * len(VARIANTS)]
+    """AUC per episode: baselines first, then every v3 column."""
+    cols = [*BASELINES, *VARIANTS]
+    lines = ["| Episode | Objects | " + " | ".join(cols) + " |", "|---|---|" + "---|" * len(cols)]
     for r in rows:
-        cells = [f"{r['scores'][v]['AUC']:.3f}" if v in r["scores"] else "" for v in VARIANTS]
-        lines.append(f"| {r['episode']} | {' + '.join(r['objects'])} | {r['stereo_factor']:.3f} | " + " | ".join(cells) + " |")
-    means = [[r["scores"][v]["AUC"] for r in rows if v in r["scores"]] for v in VARIANTS]
-    lines.append("| **mean AUC** | | | " + " | ".join(f"**{np.mean(m):.3f}**" if m else "" for m in means) + " |")
+        values = [r["baselines"].get(c) for c in BASELINES] + [r["scores"].get(v, {}).get("AUC") for v in VARIANTS]
+        lines.append(f"| {r['episode']} | {' + '.join(r['objects'])} | "
+                     + " | ".join("" if v is None else f"{v:.3f}" for v in values) + " |")
+    means = []
+    for i, c in enumerate(cols):
+        vals = [(r["baselines"].get(c) if i < len(BASELINES) else r["scores"].get(c, {}).get("AUC")) for r in rows]
+        vals = [v for v in vals if v is not None]
+        means.append(f"**{np.mean(vals):.3f}**" if vals else "")
+    lines.append("| **mean AUC** | | " + " | ".join(means) + " |")
     text = "\n".join(lines) + "\n"
     write_json(out / "waterfall.json", rows)
-    (out / "waterfall.md").write_text("# Path B score waterfall (public episodes)\n\n" + text)
+    (out / "waterfall.md").write_text("# Path B v3 score waterfall (public episodes, AUC)\n\n" + text)
     return text

@@ -73,8 +73,11 @@ def main() -> int:
     rows = []
     for number in episodes(args):
         root = out / f"episode_{number:06d}"
-        if not (root / "p3_scale_bridge/scale.json").is_file():
-            print(f"episode {number}: no P3 scale yet, skipped", flush=True)
+        if manifest()[number]["split"] != "public":
+            print(f"episode {number}: evaluation split, no ground truth: skipped", flush=True)
+            continue
+        if not root.is_dir():
+            print(f"episode {number}: not run yet, skipped", flush=True)
             continue
         print(f"== waterfall episode {number}", flush=True)
         rows.append(waterfall.episode(root))

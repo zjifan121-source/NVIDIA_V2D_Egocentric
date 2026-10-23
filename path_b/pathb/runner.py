@@ -15,7 +15,7 @@ import sys
 import threading
 import time
 import traceback
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -43,6 +43,7 @@ class Context:
     episode: dict  # this episode's tools/track3/episodes.json entry
     root: Path  # <out>/episode_XXXXXX
     reports: dict  # stage name -> report of the stages already run or loaded
+    files_read: list = field(default_factory=list)  # ground truth / scans read (pathb/gt.py), per stage
 
     @property
     def number(self) -> int:
@@ -125,6 +126,7 @@ def run_stage(name: str, ctx: Context, force: bool) -> tuple[dict, bool]:
             return report, False
     started, t0 = datetime.now(timezone.utc), time.monotonic()
     error = None
+    ctx.files_read = []
     with GpuPeak() as gpu:
         try:
             result = importlib.import_module(f"pathb.stages.{name}").run(ctx)
@@ -137,7 +139,7 @@ def run_stage(name: str, ctx: Context, force: bool) -> tuple[dict, bool]:
         "episode": ctx.number, "split": ctx.split, "commit": git_commit(),
         "started_utc": started.isoformat(timespec="seconds"), "seconds": round(time.monotonic() - t0, 1),
         "gpu_peak_mib": gpu.peak, "metrics": metrics, "outputs": result.outputs,
-        "files_read": [str(f) for f in result.files_read], "skip_reason": result.skip, "error": error,
+        "files_read": [str(f) for f in [*result.files_read, *ctx.files_read]], "skip_reason": result.skip, "error": error,
     }
     write_json(ctx.dir(name) / "report.json", report)
     return report, True

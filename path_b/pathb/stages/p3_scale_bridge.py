@@ -22,7 +22,8 @@ import numpy as np
 from ..geometry import plane_in, read_depth
 from ..report import Metric, StageResult
 from ..runner import write_json
-from ..team import retarget_tools, scorer
+from .. import gt
+from ..team import retarget_tools
 
 REST_FRAMES = 30  # recordings open with both hands raised over the table (README §5.6)
 REACH_CM = 10.0  # rest ends when a wrist comes this close (stage 2's rest hold uses the same)
@@ -154,7 +155,8 @@ def run(ctx) -> StageResult:
     frames = [t for t in range(min(rest_end, len(valid))) if valid[t]]
     if not frames:
         raise RuntimeError(f"no frame before {rest_end} has a valid camera and object in {bundle}")
-    scan_ratios = {name: L.scan_size_ratio(L.object_vertices(bundle, data, scale_key, mesh), name)
+    scan_ratios = {name: gt.scan_size_ratio(ctx.episode, L.object_vertices(bundle, data, scale_key, mesh), name,
+                                            ctx.files_read)
                    for name, (_, scale_key, mesh) in zip(ctx.objects, slots)} if ctx.public else {}
 
     rows = measure(data, bundle, frames, planes, alignment, p2 / "depth_a_half", K_half)
@@ -204,14 +206,14 @@ def run(ctx) -> StageResult:
                note=f"before: {hand:.2f}; MANO hands are the team's ruler (BUNDLES.md)" if hand else "no valid hand"),
     ]
     if ctx.public:
-        gt = gt_trajectory_factor(scorer(), ctx.number, data, slots)
-        scale["gt_trajectory_factor"] = gt
-        if gt:
-            parts = ", ".join(f"{k} {v:.3f}" for k, v in gt["parts"].items())
+        truth = gt_trajectory_factor(gt.ground_truth(ctx.episode, ctx.files_read), data, slots)
+        scale["gt_trajectory_factor"] = truth
+        if truth:
+            parts = ", ".join(f"{k} {v:.3f}" for k, v in truth["parts"].items())
             metrics += [
-                Metric("scale factor vs GT trajectory scale", 100 * (factor / gt["factor"] - 1), "%", kind="gt",
+                Metric("scale factor vs GT trajectory scale", 100 * (factor / truth["factor"] - 1), "%", kind="gt",
                        ok=(-15, 15), warn=(-30, 30),
-                       note=f"GT factor {gt['factor']:.3f} from {parts}; mesh origins differ from the scan's, "
+                       note=f"GT factor {truth['factor']:.3f} from {parts}; mesh origins differ from the scan's, "
                             "so rotating objects add a few percent"),
             ]
         else:
@@ -231,14 +233,14 @@ def oracle_factor(scan_ratios: dict) -> float | None:
     return float(np.exp(-np.mean(np.log(ratios)))) if ratios else None
 
 
-def gt_trajectory_factor(S, episode: int, data: dict, slots) -> dict | None:
+def gt_trajectory_factor(gt: np.ndarray, data: dict, slots) -> dict | None:
     """The factor that would make the bundle's object motion the size of the ground truth's.
 
     Per object, the median over frames of |GT displacement from frame 0| / |bundle displacement|
     where the GT object has moved more than 3 cm; for two objects also the ratio of their frame-0
     distances. Both are rotation-free, so the bundle's world need not be aligned to the mocap's.
     """
-    gt = S.ground_truth(episode)  # (frames, objects, 7), per-frame slot order = episodes.json order
+    # gt: (frames, objects, 7) from pathb.gt.ground_truth, per-frame slot order = episodes.json order
     n = min(len(gt), len(data["camera_to_world_transform"]))
     parts = {}
     for i, (pose, _, _) in enumerate(slots[: gt.shape[1]]):

@@ -18,6 +18,7 @@ from ..bundle import rescaled_copy
 from ..paths import TRACK3_FPS, git_commit
 from ..report import Metric, StageResult, worst
 from ..runner import write_json
+from .. import gt
 from ..team import retarget_tools
 
 UPSTREAM = ("p0_ingest", "p1_calibrate", "p2_depth", "p3_scale_bridge")
@@ -58,7 +59,7 @@ def run(ctx) -> StageResult:
         metrics.append(Metric(f"{name} mesh extents after rescale",
                               " x ".join(f"{e * 100:.1f}" for e in L.oriented_extents(vertices)), "cm"))
         if ctx.public:
-            ratio = L.scan_size_ratio(vertices, name)
+            ratio = gt.scan_size_ratio(ctx.episode, vertices, name, ctx.files_read)
             if ratio:
                 metrics.append(Metric(f"{name} mesh / scan size after rescale", ratio, "x", kind="gt",
                                       ok=(0.8, 1.25), note="BUNDLES.md Must: 0.8-1.25"))
