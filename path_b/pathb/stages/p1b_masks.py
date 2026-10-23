@@ -106,7 +106,9 @@ def run(ctx) -> StageResult:
             overlap.append((L & R).sum() / max((L | R).sum(), 1))
     writer.release()
 
-    metrics = [Metric("segmenter", meta["model"], "", note=fallback or "")]
+    metrics = [Metric("segmenter", meta["model"], "", note=fallback or ""),
+               Metric("SAM 3.1 ran (1) or the SAM2 fallback (0)", 0 if fallback else 1, "", ok=(1, 1), warn=(0, 1),
+                      note="spec P1b: SAM 3.1 primary, SAM2 fallback")]
     for t in req["tracks"]:
         share = len(present[t["track"]]) / n
         is_object = "object" in t
@@ -114,7 +116,7 @@ def run(ctx) -> StageResult:
                               ok=(0.95, 1) if is_object else None, warn=(0.8, 1) if is_object else None,
                               note=f"prompt {t['text']!r}, seed frame {meta['tracks'][t['track']]['seed_frame']}"))
     metrics.append(Metric("left/right hand mask overlap (median IoU, frames with both)",
-                          float(np.median(overlap)) if overlap else None, "",
+                          float(np.median(overlap)) if overlap else None, "", ok=(0, 0.5), warn=(0, 0.8),
                           note=f"{both} frames with both; near 1 means both prompts found the same hand"))
     return StageResult(metrics, {"masks": d, "prompts": d / "prompts.json", "hand_tracks": d / "hand_tracks.json",
                                  "overlay": d / "overlay", "video": d / "masks_overlay.mp4"})

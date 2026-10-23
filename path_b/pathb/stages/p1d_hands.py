@@ -16,6 +16,7 @@ limit; world via P1c). P1b's hand bar: a mask on >= 90 % of the frames WiLoR fin
 from __future__ import annotations
 
 import json
+import os
 import shutil
 
 import cv2
@@ -40,10 +41,18 @@ def prepare(ctx, d, n: int) -> None:
     tracks = B.mask_tracks(ctx.root)
     masks = d / "masks"
     masks.mkdir(exist_ok=True)
-    for oid, name in HANDS.items():
+    for oid, name in HANDS.items():  # files, not a folder link: the containers mount p1d_hands only
         link = masks / oid
-        if not link.exists():
-            link.symlink_to(tracks[name].resolve())
+        if link.is_symlink():
+            link.unlink()
+        link.mkdir(exist_ok=True)
+        for f in tracks[name].glob("*.png"):
+            target = link / f.name
+            target.unlink(missing_ok=True)
+            try:
+                os.link(f, target)
+            except OSError:
+                shutil.copy2(f, target)
     calib = json.loads((ctx.root / "p1_calibrate/calib.json").read_text())
     W, H = calib["cam_a"]["size"]
     (d / "object_masks").mkdir(exist_ok=True)

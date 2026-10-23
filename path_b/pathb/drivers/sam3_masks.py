@@ -6,11 +6,13 @@ request.json: {"frames": <dir of %06d.jpg>, "out": <dir>, "tracks": [{"track": "
 ...], "min_prob": 0.35, "min_area": 0.005}. For each track: the seed frame is the first frame where
 some instance of the text has probability >= min_prob and a mask covering >= min_area of the image
 (V3_BUILD_SPEC.md P1b); that instance alone is kept and propagated over the whole clip in both
-directions. Writes <out>/<track>/%06d.png (255 = the object, every frame) and <out>/sam3_meta.json.
+directions; a hand's instance must differ from the other hand's (mask IoU <= 0.5 on the seed
+frame). Writes <out>/<track>/%06d.png (255 = the object, every frame) and <out>/sam3_meta.json.
 Imports only the sam3 package, numpy and PIL (no pathb).
 """
 from __future__ import annotations
 
+import inspect
 import json
 import sys
 import time
@@ -20,8 +22,12 @@ import numpy as np
 from PIL import Image
 
 
-def best(outputs: dict, min_prob: float, min_area: float, pixels: int):
-    """(object id, prob, mask, box) of the most probable instance that passes both bars, or None."""
+OTHER_HAND = {"hand_L": "hand_R", "hand_R": "hand_L"}
+
+
+def best(outputs: dict, min_prob: float, min_area: float, pixels: int, avoid: np.ndarray | None = None):
+    """(object id, prob, mask, box) of the most probable instance that passes both bars, or None;
+    avoid: a mask the instance must not repeat (IoU > 0.5), e.g. the other hand's."""
     ids = np.asarray(outputs["out_obj_ids"]).tolist()
     if not ids:
         return None
@@ -29,6 +35,8 @@ def best(outputs: dict, min_prob: float, min_area: float, pixels: int):
     masks = np.asarray(outputs["out_binary_masks"]).astype(bool)
     boxes = np.asarray(outputs["out_boxes_xywh"]).tolist() if outputs.get("out_boxes_xywh") is not None else [None] * len(ids)
     keep = [i for i in range(len(ids)) if probs[i] >= min_prob and masks[i].sum() >= min_area * pixels]
+    if avoid is not None and avoid.any():
+        keep = [i for i in keep if (masks[i] & avoid).sum() <= 0.5 * (masks[i] | avoid).sum()]
     if not keep:
         return None
     i = max(keep, key=lambda k: probs[k])
@@ -47,6 +55,10 @@ def main(request_path: str) -> int:
     pixels = w * h
     t0 = time.time()
     predictor = build_sam3_multiplex_video_predictor()
+    # the pinned SAM 3 base predictor passes offload_state_to_cpu to init_state, which the multiplex
+    # model's init_state does not take: pass on only the arguments it declares
+    init, takes = predictor.model.init_state, set(inspect.signature(predictor.model.init_state).parameters)
+    predictor.model.init_state = lambda **kw: init(**{k: v for k, v in kw.items() if k in takes})
     meta = {"model": "sam3.1 (build_sam3_multiplex_video_predictor)", "frames": n, "size": [w, h],
             "load_seconds": round(time.time() - t0, 1), "tracks": {}}
     session = predictor.handle_request(dict(type="start_session", resource_path=str(frames),
@@ -58,7 +70,11 @@ def main(request_path: str) -> int:
             predictor.handle_request(dict(type="reset_session", session_id=session))
             got = predictor.handle_request(dict(type="add_prompt", session_id=session, frame_index=f,
                                                 text=track["text"]))["outputs"]
-            pick = best(got, req["min_prob"], req["min_area"], pixels)
+            other = OTHER_HAND.get(track["track"])
+            avoid = None
+            if other and (out / other / f"{f:06d}.png").is_file():  # the other hand, written before this one
+                avoid = np.asarray(Image.open(out / other / f"{f:06d}.png")) > 0
+            pick = best(got, req["min_prob"], req["min_area"], pixels, avoid)
             if pick is not None:
                 seed = (f, *pick)
                 break
