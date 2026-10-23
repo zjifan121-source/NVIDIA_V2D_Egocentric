@@ -264,11 +264,27 @@ recon_images() {
 recon_weights() {
   say "reconstruction weights (data/weights/<module>)"
   local py=$RECON/.venv/bin/python w=$RECON/data/weights
+  # The sam2 / sam3d images' own hf CLI fails on today's Hub ("TypeError: process() takes no keyword
+  # arguments", 2026-10-23): if a module's download fails and host_<module> exists, the same files come
+  # from the host's hf, in the layout the module's lib/download_weights.py writes.
+  host_sam2() { hf download facebook/sam2.1-hiera-large --local-dir "$w/sam2"; }
+  host_sam3d() {
+    local ck=$w/sam3d/torch_home/hub/checkpoints f
+    hf download facebook/sam-3d-objects --local-dir "$w/sam3d/hf-download" \
+      && HF_HOME=$w/sam3d/hf_home hf download Ruicheng/moge-vitl && mkdir -p "$ck" || return 1
+    for f in dinov2_vitl14_reg4_pretrain.pth dinov2_vitb14_reg4_pretrain.pth; do
+      [ -s "$ck/$f" ] || curl -fsSL -o "$ck/$f" "https://dl.fbaipublicfiles.com/dinov2/${f%%_reg4*}/$f" || return 1
+    done
+  }
   fetch() {  # name, then the download command; a .done marker makes reruns skip it
     local name=$1; shift
     [ -e "$w/$name/.done" ] && return 0
     if ! (cd "$RECON" && logged "weights_$name" "$@"); then
-      need "weights for $name: download failed ($LOGS/setup_weights_$name.log)"; return 1
+      if declare -F "host_$name" >/dev/null && logged "weights_${name}_host" "host_$name"; then
+        ok "$name: the image's download failed; the host's hf fetched it ($LOGS/setup_weights_${name}_host.log)"
+      else
+        need "weights for $name: download failed ($LOGS/setup_weights_$name.log)"; return 1
+      fi
     fi
     mkdir -p "$w/$name" && touch "$w/$name/.done"
   }
