@@ -115,3 +115,22 @@ uv run --project path_b python path_b/run.py p2 --episodes 26 --out <run>_a2_mes
 uv run --project path_b python path_b/run.py analysis --episodes 40 26 --out <run>_a2_mesh_fp --tag v3
 ```
 | 2026-10-23 | Push at the end of 3b without `git pull --rebase` | James said yes to the push. `main_buffer`'s only new commit is PR #16's merge of this branch's task 1 (`10ab8e04`, tree identical to `0cb58b09`), which this branch already contains. Rebasing would change no file and would rename the 66 commits this log cites, so the branch is pushed as a fast-forward of `0cb58b09` (no force) and a new PR opens (PR #16 is merged) |
+
+## Phase B: what the run needs (2026-10-23)
+
+**Instance:** Verda L40S `cold-light-lies-fin-02` (86.38.238.153; James, 2026-10-23), set up with `vm/new_instance.sh` (setup.sh: dataset, 69 team bundles, environments, GHCR images, stereo engine, FoundationPose weights, sam3 / daid / tapip3d venvs; run `4c2eac31` restored with frames).
+**Inputs restored from HF:** run `4c2eac31` (P0–P2 of the 20 public episodes, with per-frame archives). No dev cache exists on HF (it never ran), so the ep40 smoke test is the first GPU run of v3. Evaluation episodes start from the video (P0–P2 included).
+**Run:** folder `path_b/data/outputs/phaseb` (fixed name, so fixes pushed mid-run resume in place; each report records its commit); stages `p0_ingest` … `s6_select` (spec §1 order), `--split public`, then the waterfall, then `--split evaluation`; no A2 stages, no phase 2 (`PATHB_PHASE2` unset).
+**GPU-hours (estimate; only P0–P2 and S6 training have measured figures):**
+
+| Stage group | Per episode | Basis |
+|---|---|---|
+| P0–P2 | 0.1 h (evaluation only) | run `4c2eac31`: P2 ~320 s, P0+P1 < 30 s |
+| P1b, P1c, P1d | ~0.25 h | estimate (SAM 3.1, DROID, WiLoR + HaMeR + align) |
+| S3a, S3b | ~0.45 h | estimate (SAM 3D on 5 views per object, FoundationPose per object; 1.7 objects per episode) |
+| S4c | ~0.85 h | estimate (Do as I Do, 2 candidates per object) |
+| S5, CPU stages | ~0.1 h | the Mac: S5 ~4 min per episode |
+| S6 train + eval | ~2.5 h | spec: 0.8 h per candidate (A6000), 3 candidates, evaluator ~3 min each |
+| **Total** | **~4.2 h** | **40 episodes ≈ 170 GPU-hours ≈ 7 days on one L40S** |
+
+The S6 share (~100 h) dominates; at this estimate the run ends around Oct 30, close to the Nov 1 stop, with little room for reruns. The ep40 smoke test measures every stage; the estimate is redone from it and, if it still overruns, the options go to James as proposals (not applied): train two candidates instead of three (keyframe + still, −32 h), or fewer S6 steps for the still candidate.
