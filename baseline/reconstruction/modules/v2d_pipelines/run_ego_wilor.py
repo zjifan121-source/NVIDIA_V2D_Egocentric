@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+# Modified for V2D Track 3 by Haisen Kang, 2026-10: optional SAM 3 object masks (object_segmenter="sam3") in place of
+# Grounding DINO + SAM2's object track; SAM2 then tracks the hands only.
 """WiLoR-driven hand pipeline: detect per frame → SAM2 → IoU match → per-track JSONs.
 
 Differs from ``run_hand_masks.py`` in two ways:
@@ -24,6 +26,9 @@ Steps:
   5.  Build SAM2 prompts (object + WiLoR hand box/mask prompts)
                                        → sam2_prompts.json + hand_tracks.json
   6.  SAM2 mask propagation            → masks/{1,2,…}/*.png
+  6b. (Object) SAM 3 object masks      [object_segmenter="sam3": replaces step 4 and SAM2's
+                                       object track; SAM2 tracks the hands only]
+                                       → masks/1/*.png + dino_detections.json + sam3_meta.json
   7.  Render prompts overlay + masks overlay
   8.  Object branch (SAM3D + FoundationPose + EKF)   [--object_prompt]
   9.  Match wilor detections to SAM2 tracks via silhouette IoU
@@ -652,6 +657,8 @@ def run_ego_wilor(
     object_mesh_path: str | None = None,
     skip_object_scale_estimation: bool = False,
     grounding_dino_weights: str = "data/weights/grounding_dino",
+    object_segmenter: str = "dino_sam2",
+    sam3_weights: str = "data/weights/sam3",
     sam3d_weights: str = "data/weights/sam3d",
     foundation_pose_weights: str = "data/weights/foundation_pose",
     reregister_iou_thresh: float | None = 0.3,
@@ -894,6 +901,32 @@ def run_ego_wilor(
     print(f"  min_iou         : {min_iou}")
     print(f"{'='*60}\n")
 
+    # Object segmenter: checked before any step runs, so a missing SAM 3 setup costs nothing and a run folder made
+    # with one segmenter is never resumed with the other (masks, prompts and object_track.json would mix).
+    if object_segmenter not in ("dino_sam2", "sam3"):
+        raise ValueError(f"object_segmenter must be 'dino_sam2' or 'sam3', got {object_segmenter!r}")
+    use_sam3 = object_prompt is not None and object_segmenter == "sam3"
+    sam3_meta = f"{output_dir}/sam3_meta.json"
+    if object_prompt is not None:
+        made_with = None
+        if os.path.exists(sam3_meta):
+            made_with = "sam3"
+        elif os.path.exists(object_track):
+            with open(object_track) as f:
+                made_with = json.load(f).get("segmenter", "dino_sam2")
+        if made_with not in (None, object_segmenter):
+            raise RuntimeError(f"{output_dir} holds object masks made with object_segmenter={made_with!r}; "
+                               f"use a fresh output folder for {object_segmenter!r}.")
+    if use_sam3:
+        sam3_python = shutil.which(os.environ.get("V2D_SAM3_PYTHON") or "")
+        sam3_checkpoint = os.path.abspath(os.path.join(sam3_weights, "sam3.pt"))
+        if not os.environ.get("V2D_SAM3_PYTHON") or not sam3_python:
+            raise RuntimeError("object_segmenter='sam3' needs V2D_SAM3_PYTHON, a Python with SAM 3 installed "
+                               "(see modules/v2d_t3_sam3/README.md).")
+        if not os.path.isfile(sam3_checkpoint):
+            raise RuntimeError(f"object_segmenter='sam3' needs the SAM 3 checkpoint {sam3_checkpoint} "
+                               "(see modules/v2d_t3_sam3/README.md).")
+
     # 0. AnyCalib undistortion (optional) ------------------------------------
     if undistort:
         os.makedirs(anycalib_dir, exist_ok=True)
@@ -1020,7 +1053,11 @@ def run_ego_wilor(
     object_track_id: int | None = None
     object_box = None
     obj_dets: list[dict] = []
-    if object_prompt is not None:
+    if use_sam3:
+        # SAM 3 finds the object from the prompt itself (step 6b); masks/1 stays the object's folder.
+        print("  [skip] Grounding DINO (ref frame): SAM 3 object masks")
+        object_track_id = 1
+    elif object_prompt is not None:
         if not _step("Grounding DINO (ref frame)", os.path.exists(dino_detections)):
             run_image_to_object_bboxes(
                 image_path  = ref_rgb,
@@ -1061,14 +1098,21 @@ def run_ego_wilor(
         with open(hand_tracks) as f:
             late_prompted = any(t.get("prompt_frame") == late_hand["frame_index"]
                                 for t in json.load(f).get("tracks", []))
-    if (late_hand is not None and not late_prompted) or not _sam2_prompt_artifacts_match(
+    # The object prompt must be in SAM2's prompts for dino_sam2 and absent for sam3 (a folder left by a failed run
+    # of the other mode would otherwise skip SAM2 with the wrong prompt set).
+    object_prompt_mismatch = False
+    if object_track_id is not None and os.path.exists(sam2_prompts):
+        with open(sam2_prompts) as f:
+            has_object_prompt = any(p.get("object_id") == object_track_id for p in json.load(f).get("prompts", []))
+        object_prompt_mismatch = has_object_prompt == use_sam3
+    if object_prompt_mismatch or (late_hand is not None and not late_prompted) or not _sam2_prompt_artifacts_match(
         sam2_prompts,
         hand_tracks,
         sam2_hand_prompt_source,
     ):
         prompts: list[Sam2Prompt] = []
         hand_meta: list[dict] = []
-        if object_track_id is not None:
+        if object_track_id is not None and not use_sam3:
             prompts.append(Sam2Prompt(
                 frame_index=reference_frame,
                 object_id=object_track_id,
@@ -1180,7 +1224,7 @@ def run_ego_wilor(
         rebuilt_sam2_prompts = True
         print(f"  Wrote {len(prompts)} prompt(s) → {sam2_prompts}")
         print(f"  Wrote hand track metadata → {hand_tracks}")
-        if object_track_id is not None:
+        if object_track_id is not None and not use_sam3:  # SAM 3 writes its own at step 6b
             with open(object_track, "w") as f:
                 json.dump({
                     "reference_frame": reference_frame,
@@ -1196,6 +1240,7 @@ def run_ego_wilor(
         _has_files(os.path.join(masks_dir, d))
         for d in (os.listdir(masks_dir) if os.path.isdir(masks_dir) else [])
     )
+    sam2_ran = not sam2_done  # SAM 3's hand subtraction (step 6b) must then be redone
     if not _step("SAM2 mask propagation", sam2_done):
         run_video_to_masks(
             video_path  = video_path,
@@ -1204,6 +1249,45 @@ def run_ego_wilor(
             weights_dir = sam2_weights,
             dev         = dev,
         )
+
+    # 6b. SAM 3 object masks (object_segmenter="sam3") ------------------------
+    # Runs in its own Python environment (modules/v2d_t3_sam3/README.md); writes masks/1 with the hand pixels of
+    # SAM2's hand tracks removed, and dino_detections.json + object_track.json in the formats used downstream.
+    if use_sam3:
+        object_masks = f"{masks_dir}/{object_track_id}"
+        if not _step("SAM 3 object masks", not sam2_ran and _has_files(object_masks)
+                     and os.path.exists(sam3_meta) and os.path.exists(dino_detections)):
+            with open(hand_tracks) as f:
+                hand_ids = [t["object_id"] for t in json.load(f)["tracks"]]
+            script = os.path.normpath(os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "..", "v2d_t3_sam3", "sam3_object_masks.py"))
+            subprocess.run([
+                sam3_python, script,
+                "--video", video_path, "--prompt", object_prompt, "--ref", str(reference_frame),
+                "--checkpoint", sam3_checkpoint,
+                "--masks_out", object_masks,
+                "--hand_masks", *[f"{masks_dir}/{i}" for i in hand_ids],
+                "--detections_out", dino_detections, "--meta_out", sam3_meta,
+            ], check=True)
+        with open(dino_detections) as f:
+            obj_dets = json.load(f)
+        with open(sam3_meta) as f:
+            s3 = json.load(f)
+        record = {
+            "reference_frame": reference_frame,
+            "object_id":       object_track_id,
+            "prompt":          object_prompt,
+            "label":           obj_dets[0].get("label"),
+            "confidence":      float(obj_dets[0].get("confidence") or 0.0),
+            "segmenter":       "sam3",
+            "sam3_cut_off":    s3.get("cut_off"),
+            "sam3_candidates": len(s3.get("candidates", [])),
+            "sam3_frames_filled": len(s3.get("frames_filled", [])),
+        }
+        tmp = f"{object_track}.tmp"  # replace, never write through: run folders hard-link this file from other runs
+        with open(tmp, "w") as f:
+            json.dump(record, f, indent=2)
+        os.replace(tmp, object_track)
 
     # 7. Verification renders ------------------------------------------------
     with open(hand_tracks) as f:
@@ -2421,6 +2505,11 @@ def parse_args() -> argparse.Namespace:
                    help="With --object_mesh_path, trust the provided mesh scale "
                         "and skip FoundationPose/MoGe scale estimation.")
     p.add_argument("--grounding_dino_weights",  default="data/weights/grounding_dino")
+    p.add_argument("--object_segmenter", choices=("dino_sam2", "sam3"), default="dino_sam2",
+                   help="Object masks: Grounding DINO box + SAM2 (default), or SAM 3 from the prompt alone "
+                        "(needs V2D_SAM3_PYTHON; modules/v2d_t3_sam3/README.md). Hands always use SAM2.")
+    p.add_argument("--sam3_weights",            default="data/weights/sam3",
+                   help="Folder with sam3.pt (Hugging Face facebook/sam3).")
     p.add_argument("--sam3d_weights",           default="data/weights/sam3d")
     p.add_argument("--foundation_pose_weights", default="data/weights/foundation_pose")
     p.add_argument("--reregister_iou_thresh", type=float, default=0.3,
@@ -2697,6 +2786,8 @@ def run_from_args(args: argparse.Namespace) -> None:
         object_mesh_path        = args.object_mesh_path,
         skip_object_scale_estimation = args.skip_object_scale_estimation,
         grounding_dino_weights  = args.grounding_dino_weights,
+        object_segmenter        = args.object_segmenter,
+        sam3_weights            = args.sam3_weights,
         sam3d_weights           = args.sam3d_weights,
         foundation_pose_weights = args.foundation_pose_weights,
         reregister_iou_thresh   = args.reregister_iou_thresh,
