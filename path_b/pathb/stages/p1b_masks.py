@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -30,6 +31,7 @@ MIN_PROB = 0.35  # default
 MIN_AREA = 0.005  # default: share of the image
 HANDS = (("hand_L", "left hand"), ("hand_R", "right hand"))
 OVERLAY_FRAMES = 8
+HAND_REACH = 0.04  # share of the image width: a hand's pieces lie this close to its main blob (fingers cut by an object)
 COLORS = [(40, 200, 40), (40, 120, 255), (255, 80, 40), (220, 40, 220), (40, 220, 220)]
 
 
@@ -51,6 +53,49 @@ def overlay(image: np.ndarray, masks: list[np.ndarray]) -> np.ndarray:
     for m, color in zip(masks, COLORS):
         out[m] = 0.5 * out[m] + 0.5 * np.array(color, np.float32)
     return out.astype(np.uint8)
+
+
+def hand_blob(mask: np.ndarray, previous: np.ndarray | None, reach: int) -> np.ndarray:
+    """One hand's mask without far pieces: the anchor is the component overlapping the previous
+    frame's kept mask most (else the largest); components within `reach` px of it stay."""
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(mask.astype(np.uint8), connectivity=8)
+    if n <= 2:
+        return mask
+    areas = stats[1:, cv2.CC_STAT_AREA]
+    anchor = 1 + int(np.argmax(areas))
+    if previous is not None and previous.any():
+        overlap = np.bincount(labels[previous], minlength=n)[1:]
+        if overlap.max() > 0:
+            anchor = 1 + int(np.argmax(overlap))
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * reach + 1, 2 * reach + 1))
+    near = cv2.dilate((labels == anchor).astype(np.uint8), kernel) > 0
+    keep = np.unique(labels[near & (labels > 0)])
+    return np.isin(labels, keep)
+
+
+def clean_hands(d: Path, n: int, width: int) -> dict[str, dict]:
+    """Hand masks in place without far pieces (hand_blob, frame by frame in order). SAM 3.1's hand masks
+    leak onto a second region on some frames (ep40: the box widens 375 -> 909 px for one frame),
+    and HaMeR crops around the mask's box, so the wrist jumps ~15 cm. Objects are left as they are:
+    a hand legitimately cuts an object in pieces."""
+    out = {}
+    reach = max(1, round(HAND_REACH * width))
+    for track, _ in HANDS:
+        previous, frames, removed = None, 0, []
+        for k in range(n):
+            f = d / track / f"{k:06d}.png"
+            m = cv2.imread(str(f), cv2.IMREAD_GRAYSCALE)
+            if m is None:
+                continue
+            m = m > 0
+            kept = hand_blob(m, previous, reach)
+            if kept.sum() < m.sum():
+                frames += 1
+                removed.append(1 - kept.sum() / m.sum())
+                cv2.imwrite(str(f), kept.astype(np.uint8) * 255)
+            previous = kept if kept.any() else previous
+        out[track] = {"frames": frames, "removed_share_median": float(np.median(removed)) if removed else 0.0}
+    return out
 
 
 def run(ctx) -> StageResult:
@@ -77,6 +122,7 @@ def run(ctx) -> StageResult:
             tail = "\n".join((d / "sam2.log").read_text().splitlines()[-15:])
             raise RuntimeError(f"{fallback}; the SAM2 fallback failed too (exit {rc2}):\n{tail}")
     meta = json.loads((d / ("sam2_meta.json" if fallback else "sam3_meta.json")).read_text())
+    cleaned = clean_hands(d, n, cv2.imread(str(frames[0])).shape[1])
     write_json(d / "prompts.json", {"model": meta["model"], "fallback_reason": fallback,
                                     "tracks": {t: {k: v for k, v in m.items() if k != "present_frames"}
                                                for t, m in meta["tracks"].items()}})
@@ -115,6 +161,10 @@ def run(ctx) -> StageResult:
         metrics.append(Metric(f"{t['track']} ({t.get('object', t['text'])}): frames with a mask", share, "share",
                               ok=(0.95, 1) if is_object else None, warn=(0.8, 1) if is_object else None,
                               note=f"prompt {t['text']!r}, seed frame {meta['tracks'][t['track']]['seed_frame']}"))
+    metrics += [Metric(f"{t}: frames with far pieces removed", c["frames"], "frames",
+                       note=f"median share of the mask removed {c['removed_share_median']:.2f}; pieces farther than "
+                            f"{HAND_REACH:.0%} of the width from the hand's blob")
+                for t, c in cleaned.items()]
     metrics.append(Metric("left/right hand mask overlap (median IoU, frames with both)",
                           float(np.median(overlap)) if overlap else None, "", ok=(0, 0.5), warn=(0, 0.8),
                           note=f"{both} frames with both; near 1 means both prompts found the same hand"))
