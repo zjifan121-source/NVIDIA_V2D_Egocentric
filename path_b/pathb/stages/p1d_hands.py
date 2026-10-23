@@ -80,6 +80,37 @@ def wilor_hands(d, n: int) -> dict[bool, set[int]]:
     return out
 
 
+def handedness_votes(d, tracks: dict, n: int, min_iou: float = 0.3) -> dict[str, dict]:
+    """Per P1b hand track, WiLoR's left/right votes on the frames where one of its boxes overlaps the
+    track's mask box (IoU >= min_iou): the baseline takes handedness from WiLoR, P1b from a text
+    prompt, so WiLoR decides."""
+    votes = {name: {"right": 0, "left": 0} for name in HANDS.values()}
+    for k in range(n):
+        p = d / f"wilor_raw/{k:06d}.json"
+        if not p.is_file():
+            continue
+        dets = json.loads(p.read_text())
+        for name in HANDS.values():
+            m = B.read_mask(tracks[name], k)
+            if m is None or not m.any():
+                continue
+            ys, xs = np.nonzero(m)
+            mb = (xs.min(), ys.min(), xs.max(), ys.max())
+            best, side = 0.0, None
+            for det in dets:
+                b = det["bbox"]
+                ix = max(0, min(mb[2], b["x1"]) - max(mb[0], b["x0"]))
+                iy = max(0, min(mb[3], b["y1"]) - max(mb[1], b["y0"]))
+                inter = ix * iy
+                union = (mb[2] - mb[0]) * (mb[3] - mb[1]) + (b["x1"] - b["x0"]) * (b["y1"] - b["y0"]) - inter
+                iou = inter / union if union > 0 else 0.0
+                if iou > best:
+                    best, side = iou, bool(det["is_right"])
+            if side is not None and best >= min_iou:
+                votes[name]["right" if side else "left"] += 1
+    return votes
+
+
 def run(ctx) -> StageResult:
     d = ctx.dir("p1d_hands")
     n = len(list((ctx.root / "p1_calibrate/cam_a").glob("*.jpg")))
@@ -91,6 +122,16 @@ def run(ctx) -> StageResult:
     if not any((d / "wilor_raw").glob("*.json")):
         B.call("v2d.wilor.docker.run_video_to_hands:run_video_to_hands",
                {"video_path": d / "cam_a.mp4", "output_dir": d / "wilor_raw", "weights_dir": W / "wilor"}, log)
+    tracks = B.mask_tracks(ctx.root)
+    votes = handedness_votes(d, tracks, n)
+    meta = json.loads((d / "hand_tracks.json").read_text())
+    for t in meta["tracks"]:
+        v = votes[HANDS[str(t["object_id"])]]
+        t["prompt_is_right"] = t["is_right"]
+        if v["right"] + v["left"] > 0:
+            t["is_right"] = v["right"] > v["left"]
+        t["wilor_votes"] = v
+    write_json(d / "hand_tracks.json", meta)
     B.call("v2d.hamer.docker.run_masks_to_hands:run_masks_to_hands",
            {"frames_dir": ctx.root / "p1_calibrate/cam_a", "masks_dir": d / "masks", "tracks_path": d / "hand_tracks.json",
             "output_dir": d / "hamer", "weights_dir": W / "hamer", "bbox_expansion": BBOX_EXPANSION,
@@ -112,8 +153,13 @@ def run(ctx) -> StageResult:
 
     c2w, have_cam = read_transforms(ctx.root / "p1c_camera/camera_to_world", n)
     wilor = wilor_hands(d, n)
-    tracks = B.mask_tracks(ctx.root)
     metrics, scales = [], {}
+    for t in meta["tracks"]:
+        name = HANDS[str(t["object_id"])]
+        metrics.append(Metric(f"{name}: handedness (WiLoR vote)", "right" if t["is_right"] else "left", "",
+                              note=f"votes {t['wilor_votes']}; P1b prompt said "
+                                   f"{'right' if t['prompt_is_right'] else 'left'}"
+                                   + (" (corrected)" if t["is_right"] != t["prompt_is_right"] else "")))
     for oid, name in HANDS.items():
         filled = records(d / f"hamer_aligned_filled/{oid}")
         real = records(d / f"hamer_aligned/{oid}")
@@ -126,7 +172,7 @@ def run(ctx) -> StageResult:
         world = np.array([c2w[k, :3, :3] @ cam_t[k] + c2w[k, :3, 3] for k in frames])
         speeds = (np.linalg.norm(np.diff(world, axis=0), axis=1) * TRACK3_FPS / np.diff(frames)
                   if len(frames) > 1 else np.array([]))
-        right = name == "hand_R"
+        right = next(t["is_right"] for t in meta["tracks"] if HANDS[str(t["object_id"])] == name)
         seen = wilor[right]
         metrics += [
             Metric(f"{name}: frames with a pose / frames with a mask", len(posed) / len(masked) if masked else None,
