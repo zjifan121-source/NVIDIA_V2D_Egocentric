@@ -74,6 +74,26 @@ def prepare(ctx, d, n: int) -> None:
     B.frames_to_mp4(ctx.root / "p1_calibrate/cam_a", d / "cam_a.mp4")
 
 
+def reject_nonfinite(d) -> dict[str, list[int]]:
+    """Aligned records whose depth alignment is not finite move to hamer_aligned_rejected/: run_align_hands
+    takes the median depth over the hand mask with no validity test, and our "no depth" pixels decode
+    as infinity, so a hand mostly over missing depth gets an infinite scale and position. Rejected
+    frames are left to tracks_interpolate (gaps up to MAX_GAP), like frames HaMeR did not see."""
+    out = {}
+    for oid in HANDS:
+        frames = []
+        for f in sorted((d / f"hamer_aligned/{oid}").glob("*.json")):
+            r = json.loads(f.read_text())
+            values = list(r.get("camera", {}).get("cam_t", [])) + [r.get("diagnostics", {}).get("scale", 0.0)]
+            if not np.isfinite(np.asarray(values, dtype=np.float64)).all():
+                dest = d / f"hamer_aligned_rejected/{oid}"
+                dest.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(f), dest / f.name)
+                frames.append(int(f.stem))
+        out[oid] = frames
+    return out
+
+
 def records(folder) -> dict[int, dict]:
     return {int(p.stem): json.loads(p.read_text()) for p in sorted(folder.glob("*.json")) if p.stem.isdigit()}
 
@@ -149,6 +169,7 @@ def run(ctx) -> StageResult:
            {"hamer_dir": d / "hamer", "depth_dir": d / "depth", "intrinsics_path": d / "intrinsics.json",
             "mano_assets_root": mano, "output_dir": d / "hamer_aligned", "hand_masks_dir": d / "masks",
             "object_masks_dir": d / "object_masks", "mask_min_pixels": MASK_MIN_PIXELS}, log)
+    rejected = reject_nonfinite(d)
     shutil.rmtree(d / "hamer_aligned_filled", ignore_errors=True)
     B.call("v2d.wilor.docker.run_tracks_interpolate:run_tracks_interpolate",
            {"aligned_dir": d / "hamer_aligned", "masks_dir": d / "masks", "output_dir": d / "hamer_aligned_filled",
@@ -189,6 +210,8 @@ def run(ctx) -> StageResult:
         metrics += [
             Metric(f"{name}: hand-mask pixels without stereo depth (median)", float(np.median(holes)) if holes else None,
                    "share", note="run_align_hands takes the median over the mask with no validity test"),
+            Metric(f"{name}: aligned frames rejected (non-finite depth fit)", len(rejected[oid]), "frames",
+                   note="left to tracks_interpolate; frames " + (", ".join(map(str, rejected[oid][:12])) or "none")),
             Metric(f"{name}: frames with a pose / frames with a mask", len(posed) / len(masked) if masked else None,
                    "share", ok=(0.9, 1), note=f"{len(posed)} of {len(masked)}"),
             Metric(f"{name}: hand scale (median, depth fit)", scales[name]["median"], "x", ok=(0.8, 1.2),

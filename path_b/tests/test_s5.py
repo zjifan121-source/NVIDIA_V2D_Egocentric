@@ -137,3 +137,4 @@ def test_mode_b_round_trip_on_ep41(tmp_path):
     _, back = S5.read_cells(dest)
     over = S5.handover(back, traj, info, [RUN / "ep41_white_pot.obj"], shift)
     assert over["pass"] and over["within_1cm_share"] == 1.0  # MANO contacts are mesh vertices: distance ~0
+
