@@ -16,7 +16,7 @@ Usage (repo root; needs `hf auth login`, with a Write token to upload):
     uv run --project tools python path_b/vm/hf_outputs.py upload --run 4c2eac31 --frames
     uv run --project tools python path_b/vm/hf_outputs.py upload --run 0fa525bc
     uv run --project tools python path_b/vm/hf_outputs.py list
-    uv run --project tools python path_b/vm/hf_outputs.py download --run 4c2eac31 [--frames]
+    uv run --project tools python path_b/vm/hf_outputs.py download --run 4c2eac31 [--frames] [--episodes 40 26]
     uv run --project tools python path_b/vm/hf_outputs.py pending --run t1_f238fec   # not on HF yet
 """
 from __future__ import annotations
@@ -145,9 +145,10 @@ def list_runs() -> None:
               + f", uploaded {m['created_utc']}")
 
 
-def download(run: str, frames: bool) -> None:
+def download(run: str, frames: bool, episodes: list[int] | None = None) -> None:
     from huggingface_hub import snapshot_download
-    patterns = [f"{PREFIX}/{run}/**"]
+    patterns = ([f"{PREFIX}/{run}/MANIFEST.json"] + [f"{PREFIX}/{run}/episode_{e:06d}/**" for e in episodes]
+                if episodes else [f"{PREFIX}/{run}/**"])
     ignore = [] if frames else [f"{PREFIX}/{run}/**/frames.tar"]
     tmp = STAGING / f"download_{run}"
     snapshot_download(REPO_ID, repo_type="dataset", allow_patterns=patterns, ignore_patterns=ignore,
@@ -169,7 +170,7 @@ def download(run: str, frames: bool) -> None:
             shutil.copy2(path, target)
     shutil.copy2(src / "MANIFEST.json", dest / "MANIFEST.json")
     shutil.rmtree(tmp)
-    print(f"restored {run} into {dest}: {len(manifest['episodes'])} episodes"
+    print(f"restored {run} into {dest}: " + (f"episodes {episodes}" if episodes else f"{len(manifest['episodes'])} episodes")
           + (", with per-frame intermediates" if frames and manifest["frames"] else ", results only"))
 
 
@@ -213,6 +214,7 @@ def main() -> None:
     parser.add_argument("command", choices=("upload", "download", "list", "pending"))
     parser.add_argument("--run", help="folder under path_b/data/outputs/, e.g. 4c2eac31")
     parser.add_argument("--frames", action="store_true", help="include the per-frame intermediates (frames.tar)")
+    parser.add_argument("--episodes", type=int, nargs="+", help="download: only these episodes of the run")
     parser.add_argument("--outputs", type=Path, help=f"the runs' folder (default {OUTPUTS}); lets "
                         "save_instance.sh run the Mac's copy of this script against an instance's checkout")
     args = parser.parse_args()
@@ -220,7 +222,7 @@ def main() -> None:
         OUTPUTS = args.outputs.resolve()
     if args.command != "list" and not args.run:
         parser.error("--run is required")
-    {"upload": lambda: upload(args.run, args.frames), "download": lambda: download(args.run, args.frames),
+    {"upload": lambda: upload(args.run, args.frames), "download": lambda: download(args.run, args.frames, args.episodes),
      "list": list_runs, "pending": lambda: pending(args.run)}[args.command]()
 
 
