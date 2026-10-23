@@ -3,6 +3,8 @@ next to the numbers it replaces.
 
 Columns, each scored with the official metric code against public ground truth (pathb/gt.py), when
 the stage that makes it has run:
+  raw                S3b's camera-frame poses through P4's camera (P1c in the v3 world), S3a's mesh:
+                     the track before S3c's anchors and smoothing
   fused              the object track after S3c (the P4 bundle S3c completes)
   stage2_clean       Edmond's stage-2 repairs on that bundle (run_load_retarget.cleaned_bundle defaults:
                      rest hold, hand and object cleaning, levelling; a scene merged first, as his runner
@@ -40,7 +42,7 @@ BUNDLE_VARIANTS = ("fused", "stage2_clean", *[f"ref_{c}" for c in CANDIDATES],
                    *[f"realised_{c}" for c in CANDIDATES[:2]])
 SCAN = "@scan"  # suffix: the same poses with the scan as mesh (ceiling, not submittable)
 ROLLOUTS = tuple(f"rollout_{c}" for c in CANDIDATES)
-VARIANTS = (*BUNDLE_VARIANTS, *ROLLOUTS)
+VARIANTS = ("raw", *BUNDLE_VARIANTS, *ROLLOUTS)
 ORACLES = PATH_B / "oracles"
 BASELINES = ("0fa525bc stage2_stereo", "S0.2 recon / place", "S0.2 still")
 
@@ -116,6 +118,30 @@ def baselines(number: int, objects: int) -> dict[str, float | None]:
     return out
 
 
+def raw_scene(root: Path, names: list[str], frames: int):
+    """S3b's poses through P4's camera, S3a's meshes (None until both stages have run). A frame
+    without a pose holds the previous one (the first held back to the first pose)."""
+    from .geometry import read_transforms
+    c2w, cam_ok = read_transforms(root / "p4_export/camera_to_world", frames)
+    poses, meshes = [], {}
+    for name in names:
+        folder, mesh = root / f"s3b_track/{name}/poses", root / f"s3a_mesh/{name}/mesh.obj"
+        if not (folder.is_dir() and mesh.is_file() and cam_ok.any()):
+            return None
+        T_cam, have = read_transforms(folder, frames)
+        have &= cam_ok
+        if not have.any():
+            return None
+        T = c2w @ T_cam
+        last = int(np.argmax(have))
+        for t in range(frames):
+            last = t if have[t] else last
+            T[t] = T[last]
+        poses.append(np.concatenate([T[:, :3, 3], Rotation.from_matrix(T[:, :3, :3]).as_quat()], axis=-1))
+        meshes[name] = mesh
+    return np.stack(poses, axis=1), meshes
+
+
 def scan_meshes(e: dict, meshes: dict[str, Path], work: Path, tag: str, read: list) -> dict[str, Path] | None:
     """The scan in each of our meshes' frames (gt.scan_in_frame), as files the scorer takes."""
     out = {}
@@ -138,6 +164,12 @@ def episode(root: Path) -> dict:
     work.mkdir(exist_ok=True)
     read: list = []
     scores = {}
+    raw = raw_scene(root, names, frames)
+    if raw is not None:
+        scores["raw"] = gt.score(e, *raw, read)
+        scanned = scan_meshes(e, raw[1], work, "raw", read)
+        if scanned:
+            scores["raw" + SCAN] = gt.score(e, raw[0], scanned, read)
     variants = variant_bundles(root, names)
     if "fused" in variants:  # Edmond's repairs on the fused bundle (merged first for a scene)
         L = retarget_tools()
@@ -182,7 +214,7 @@ def stage_order(name: str) -> int:
 
 def summary(out: Path, rows: list[dict]) -> str:
     """AUC per episode: baselines first, then every v3 column."""
-    cols = [*BASELINES, *VARIANTS, *[v + SCAN for v in BUNDLE_VARIANTS]]
+    cols = [*BASELINES, *VARIANTS, *[v + SCAN for v in ("raw", *BUNDLE_VARIANTS)]]
     lines = ["| Episode | Objects | " + " | ".join(cols) + " |", "|---|---|" + "---|" * len(cols)]
     for r in rows:
         values = [r["baselines"].get(c) for c in BASELINES] + [r["scores"].get(v, {}).get("AUC") for v in cols[len(BASELINES):]]

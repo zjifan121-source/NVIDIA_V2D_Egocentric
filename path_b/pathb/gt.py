@@ -146,3 +146,41 @@ def cdo_cm(episode: dict, name: str, vertices: np.ndarray, faces: np.ndarray, re
     return float(S.metric_module("CD-O")._object_chamfer_cm(
         (ref["vertices"], ref["faces"]), (np.asarray(vertices), np.asarray(faces, dtype=np.int64)),
         1000 * int(episode["episode"]) + 7))
+
+
+def official_frame_errors(episode: dict, poses: np.ndarray, meshes: dict[str, Path], read: list) -> dict:
+    """Per frame and object, the errors the official Track 3 pose metrics see: each mesh registered to
+    its scan and the poses moved to the scan's anchor (the kit's _register_object_body /
+    _convert_object_body), the scene aligned by its frame-0 pose (_align_registered_scene); then the
+    anchor's position error (m) and the symmetry-aware rotation error (rad, _symmetry_orientation_errors)
+    and the symmetry-aware mean point error (m, _symmetry_point_errors, AUC's ADD). poses (n, k, 7)
+    xyzw in episodes.json object order; meshes budgeted as the packer does (score_local.mesh_payload)."""
+    allowed(episode)
+    S = scorer()
+    M = S.metric_module("AUC")
+    number = int(episode["episode"])
+    names = [o["name"] for o in episode["objects"]]
+    truth = ground_truth(episode, read)
+    achieved = np.asarray(poses, dtype=np.float64)[:, None].copy()
+    reference = truth[:, None].astype(np.float64).copy()
+    points, axes, orders = [], [], []
+    for slot, name in enumerate(names):
+        read.append(scan(name))
+        ref = S.reference_object(name)
+        _, v, f = S.mesh_payload(Path(meshes[name]))
+        anchor_c, rotation = M._register_object_body((v, f), (ref["vertices"], ref["faces"]), ref["anchor"],
+                                                     1_000_003 * number + 101 * slot)
+        achieved[:, :, slot] = M._convert_object_body(achieved[:, :, slot], anchor_c, rotation)
+        reference[:, :, slot, :3] += np.einsum("...ij,j->...i", M._rotation_matrix(reference[:, :, slot, 3:]),
+                                               ref["anchor"])
+        points.append(ref["points"] - ref["anchor"])
+        axes.append(ref["axis"])
+        orders.append(int(ref["order"]))
+    achieved = M._align_registered_scene(achieved, reference, axes)
+    position = np.linalg.norm(achieved[:, 0, :, :3] - reference[:, 0, :, :3], axis=-1)
+    rotation = M._symmetry_orientation_errors(achieved, reference, axes, orders)[:, 0]
+    add = np.stack([M._symmetry_point_errors(achieved[:, :, i], reference[:, :, i], points[i], axes[i], orders[i])[:, 0]
+                    for i in range(len(names))], axis=1)
+    return {"names": names, "position_m": position, "rotation_rad": rotation, "add_m": add,
+            "truth_displacement_m": np.linalg.norm(reference[:, 0, :, :3] - reference[:1, 0, :, :3], axis=-1),
+            "ours_displacement_m": np.linalg.norm(achieved[:, 0, :, :3] - achieved[:1, 0, :, :3], axis=-1)}
