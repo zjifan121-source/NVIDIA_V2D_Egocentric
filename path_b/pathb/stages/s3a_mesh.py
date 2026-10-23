@@ -212,7 +212,11 @@ def mesh_for(ctx, name: str, track: str, d, calib, c2w, have, n) -> tuple[dict, 
     for k in views:
         v = out / f"views/{k:06d}"
         v.mkdir(parents=True, exist_ok=True)
-        if not (v / "transform.json").is_file():
+        inputs = view_inputs(ctx, obj_dir, k)  # a cached view counts only for the same image, mask and depth
+        sha = v / "inputs.sha256"
+        cached = (v / "transform.json").is_file() and sha.is_file() and sha.read_text().strip() == inputs
+        if not cached:
+            (v / "transform.json").unlink(missing_ok=True)
             try:
                 B.call("v2d.sam3d.docker.run_image_to_mesh:run_image_to_mesh",
                        {"image_path": ctx.root / f"p1_calibrate/cam_a/{k:06d}.jpg", "mask_path": obj_dir / f"{k:06d}.png",
@@ -225,6 +229,7 @@ def mesh_for(ctx, name: str, track: str, d, calib, c2w, have, n) -> tuple[dict, 
             except RuntimeError as e:
                 rows.append({"frame": k, "error": str(e).splitlines()[0]})
                 continue
+            (v / "inputs.sha256").write_text(inputs + "\n")
         T, s = read_transform(v / "transform.json")  # raw mesh -> this view's OpenCV camera, scale s
         raw = surface_points(v / "mesh.obj")
         mask, depth = observation(B.read_mask(obj_dir, k), read_depth(ctx.root / f"p1d_hands/depth/{k:06d}.png"), S)
@@ -290,6 +295,14 @@ def mesh_for(ctx, name: str, track: str, d, calib, c2w, have, n) -> tuple[dict, 
             metrics.append(Metric(f"{name}: size vs the scan", gt.scan_size_ratio(ctx.episode, mesh.vertices, name, read),
                                   "x", kind="gt", ok=(0.8, 1.25)))
     return report, metrics, read
+
+
+def view_inputs(ctx, obj_dir: Path, k: int) -> str:
+    """SHA-256 over one view's SAM 3D inputs: the frame, the object mask and P1d's depth."""
+    h = hashlib.sha256()
+    for f in (ctx.root / f"p1_calibrate/cam_a/{k:06d}.jpg", obj_dir / f"{k:06d}.png", ctx.root / f"p1d_hands/depth/{k:06d}.png"):
+        h.update(f.read_bytes() if f.is_file() else b"-")
+    return h.hexdigest()
 
 
 def run(ctx) -> StageResult:
