@@ -22,6 +22,7 @@ def test_evaluation_episodes_are_refused_before_any_read():
                  lambda: gt.score(EVALUATION, np.zeros((10, 1, 7)), {}, read),
                  lambda: gt.scan_size_ratio(EVALUATION, np.zeros((4, 3)), "white_pot", read),
                  lambda: gt.scan_vertices(EVALUATION, "white_pot", read),
+                 lambda: gt.scan_mesh(EVALUATION, "white_pot", read),
                  lambda: gt.rescale_by_scan(EVALUATION, "white_pot", read)):
         with pytest.raises(gt.GroundTruthFirewall):
             call()

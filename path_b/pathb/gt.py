@@ -76,6 +76,17 @@ def scan_vertices(episode: dict, name: str, read: list) -> np.ndarray | None:
     return np.asarray(trimesh.load(path, force="mesh", process=False).vertices)
 
 
+def scan_mesh(episode: dict, name: str, read: list) -> tuple[np.ndarray, np.ndarray] | None:
+    """The scan as the official metric uses it (score_local.reference_object): (vertices m, faces)."""
+    allowed(episode)
+    path = scan(name)
+    if path is None:
+        return None
+    read.append(path)
+    ref = scorer().reference_object(name)
+    return np.asarray(ref["vertices"], dtype=np.float64), np.asarray(ref["faces"], dtype=np.int64)
+
+
 def rescale_by_scan(episode: dict, name: str, read: list) -> str:
     """Permission for run_load_retarget's --rescale-by-scan (cleaned_bundle(rescale_by_scan=name))."""
     allowed(episode)

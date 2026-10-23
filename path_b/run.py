@@ -19,7 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from pathb.paths import OUTPUTS, git_commit, manifest  # noqa: E402
-from pathb.runner import STAGES, run_episode  # noqa: E402
+from pathb.runner import ORDER, STAGES, run_episode  # noqa: E402
 
 
 # commands of V3_BUILD_SPEC.md §1 whose code comes with a later task (§5)
@@ -39,7 +39,8 @@ def main() -> int:
     which.add_argument("--episodes", type=int, nargs="+")
     which.add_argument("--split", choices=("public", "evaluation", "all"))
     parser.add_argument("--out", type=Path, help="default: path_b/data/outputs/<commit>")
-    parser.add_argument("--stages", nargs="+", choices=STAGES, default=list(STAGES))
+    parser.add_argument("--stages", nargs="+", choices=ORDER, default=list(STAGES),
+                        help="default: every stage of the chain; phase A2's (s3a2_*) only when named")
     parser.add_argument("--force", action="store_true", help="rerun stages whose reports exist")
     args = parser.parse_args()
     commit = git_commit()

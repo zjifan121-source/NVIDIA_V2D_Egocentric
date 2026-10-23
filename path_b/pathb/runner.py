@@ -36,6 +36,10 @@ STAGES = ("p0_ingest", "p1_calibrate", "p2_depth",  # S1
           "s6_train", "s6_eval", "s6_select",  # S6
           "s7_pack",  # S7 (run.py pack runs it over all episodes)
           "s23_load_retarget")  # kept for the still fallback (S6) and S5 mode A
+# Phase A2 (spec §11): the S3 observation variant, run only when asked for (--stages); in ORDER after
+# the stages it reads (S4a's rest windows, S3c's anchors).
+A2_STAGES = ("s3a2_fuse_scan", "s3a2_register")
+ORDER = STAGES[:STAGES.index("s4b_reference")] + A2_STAGES + STAGES[STAGES.index("s4b_reference"):]
 
 
 @dataclass
@@ -158,7 +162,7 @@ def run_episode(number: int, out: Path, stages: tuple[str, ...] = STAGES, force:
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     print(f"== episode {number} ({ctx.split}, {' + '.join(ctx.objects)})", flush=True)
     rerun = force
-    for name in STAGES:
+    for name in ORDER:
         if name not in stages:
             existing = ctx.root / name / "report.json"
             if existing.is_file():
