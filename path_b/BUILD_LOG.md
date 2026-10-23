@@ -83,3 +83,34 @@ Phase A build complete (2026-10-22, `7c8776a8`): spec §5 tasks 1–15 built; on
 | 2026-10-23 | A2.5 decision: S3 = `a2_mesh_fp` (canonical mesh + phase A's FoundationPose track re-registered), provisional | Spec rank rule over ep40/ep26: mean of (AUC rank, CD-O rank) ties at 1.5 (A2 wins AUC on both episodes, loses CD-O on both), ties → the deterministic variant. Inputs are stand-ins (team bundles), so the rule reruns on the dev cache. Why AUC rises while CD-O worsens: the kit registers our mesh to the scan scale-free and follows the scan's anchor through our poses; the canonical mesh is fused where the object was seen and registered to the track's rest pose, so that anchor sits on the real object; the team mesh sits off the track, so the anchor swings with every rotation (raw 0.460 → 0.687 on ep40 with the same poses). `@scan` (scan placed by the same registration) cannot show this |
 | 2026-10-23 | Phase 2's S4c uses Do as I Do's own two-object scene | Spec §8 says the released code is one hand, one object and plans 1–2 days to extend it. DaiD's scene builder, IK, MPC and tracking error already handle a right_object and a left_object (qpos −14:−7 and −7:); only its stage 1 (which we replace) writes one object. So the driver writes the second object's mesh dir and `qpos_obj_left`; one density per scene (the mean). Spec stale on this point |
 | 2026-10-23 | Phase 2 on the stand-ins keeps phase 1 for ep26 | Equal AUC (0.500, both a degenerate split: the static rack ~1, the pot > 10 cm off ~0), RPE 28.1 (phase 1) vs 28.3 cm (phase 2). The inputs are the cause, not phase 2: S4a's stand-in phases call the moving pot "at rest", so A2.1 smeared it and gave the rack one frame. Rerun on the dev cache |
+
+## Phase boundary: end of step 3b (2026-10-23, `c73829ae`)
+
+**Done since phase A began** (all on the Mac; no VM job since task 2): spec §5 tasks 1–15 built ("Phase A build complete", `7c8776a8`); step 1 `SPEC_AUDIT.md`; step 2 `reports/dev_analysis_2026-10-23.html`; step 3a phase A2 (A2.1–A2.3 built and run, A2.4 coded, A2.5 run and decided); step 3b phase 2 (§8) built and run on ep26; `reports/dev_analysis_2026-10-23_v2.html`. Branch: 66 commits ahead of `main_buffer` (which has not moved); PR #16 is open on this branch (task 1 only).
+
+**Scores (public, official metric; GPU-stage inputs are stand-ins from run `4c2eac31`'s v2 bundles):**
+
+| Episode | Baselines (stage2_stereo / S0.2 recon or place / still) | raw | fused | best ref (phase A) | A2 `a2_mesh_fp` | phase 2 `p2_best` |
+|---|---|---|---|---|---|---|
+| ep40 | 0.491 / 0.338 / 0.40 | 0.460 | 0.519 | 0.540 | **0.726** | – (one object) |
+| ep26 | 0.333 / 0.447 / 0.50 | 0.295 | 0.349 | 0.349 | 0.500 | 0.500 (RPE 28.3 vs 28.1 cm) |
+
+**Decisions this phase:** A2.5 → S3 = `a2_mesh_fp` (tie on the rank rule, deterministic wins; provisional until the dev cache); phase 2 keeps phase 1 for ep26 (equal AUC, lower RPE); phase 2's S4c uses DaiD's own two-object scene; the Mac runs S5 (CPU stages 2–3 venv, LFS meshes); S4b falls back to the fused track's rest anchor when S3c finds none; waterfall gained `raw`, `stage2_clean`, `@scan`, `a2_*`, `p2_*`.
+
+**Biggest flaw (step 2):** the object's position in the camera frame costs 0.62 AUC (v1) / 0.51 (v2); the mesh's placement relative to the track (not its shape) explains A2's +0.19 on ep40.
+
+**GPU hours used:** 0 (the L40S refused the Mac's key, then showed a new host key; not confirmed).
+
+**Waiting for a GPU:** the dev cache (P1b, P1c, P1d, S3a, S3b on ep40/ep26) and S0.1; smoke tests of tasks 6–8, 10–11, 13 (S4c, phase 1 and the phase-2 scene), 14 (FlashCHORD replay), 15 (S6); A2.4 (TAPIP3D). Then the stand-in conclusions above are redone on real v3 outputs.
+
+**Resume:**
+```bash
+path_b/vm/new_instance.sh <ip>                       # on the Mac, once the instance accepts the key
+ssh -t l40s "tmux new -s dev 'bash /root/v2d/NVIDIA_V2D_Egocentric/path_b/vm/dev_cache.sh'"
+# then, on the Mac, with the dev cache restored as <run>:
+RETARGET_VENV=~/V2D/venvs/retarget RETARGET_DEVICE=cpu MANO_DIR=~/V2D/mano_v1_2 \
+  uv run --project path_b python path_b/run.py run --episodes 40 26 --out <run>   # CPU stages on real inputs
+uv run --project path_b python path_b/run.py a2 --episodes 40 26 --out <run>
+uv run --project path_b python path_b/run.py p2 --episodes 26 --out <run>_a2_mesh_fp
+uv run --project path_b python path_b/run.py analysis --episodes 40 26 --out <run>_a2_mesh_fp --tag v3
+```
