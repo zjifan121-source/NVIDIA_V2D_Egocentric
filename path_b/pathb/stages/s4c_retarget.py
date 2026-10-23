@@ -5,9 +5,9 @@ $RETARGET_VENV), the reference at 50 Hz in DaiD's world (pathb/daid.py), then Da
 with the Sharpa hands in MuJoCo Warp (drivers/daid_run.py, $DAID_PY, DaiD in $DAID_DIR), settings in
 pathb/s4c.yaml; the warm-up weld lasts S4a's rest-before window. The Sharpa joints match FlashCHORD's
 sharpawave URDF one to one (pathb/sharpa_map.json).
-Out per object and candidate: trajectory_mjwp.npz (robot joints and realised object at video frames),
-scene.xml (DaiD's), metrics.json, bundle/ (the candidate's bundle with object_to_world = realised),
-gate.json. Gate: realised used if its playback AUC >= the kinematic one - 0.01 (public; evaluation
+Out per object and candidate: trajectory_mjwp.npz (at the video frames, v3 world: robot joints, realised
+object, wrists, contacts in ManoSharpa's 16 MANO-link slots), scene.xml (DaiD's), metrics.json,
+bundle/ (the candidate's bundle with object_to_world = realised), gate.json. Gate: realised used if its playback AUC >= the kinematic one - 0.01 (public; evaluation
 takes the public decision of its task type, oracles/s4c_gate.json) and it passes the checks:
 penetration <= 5 mm, object moved <= 1 cm before the first reach, object speed <= 1.5 m/s.
 """
@@ -96,12 +96,28 @@ def run(ctx) -> StageResult:
                 "task": f"ep{ctx.number}_{name}_{cand}", "embodiment": meta["embodiment"],
                 "mesh": str(ctx.root / f"s3a_mesh/{name}/mesh.obj"), "convex": str(ctx.root / f"s3a_mesh/{name}/coacd"),
                 "object_density": mass["density_kg_m3"], "warmup_duration": warmup,
-                "settings": str(PATH_B / "pathb/s4c.yaml")})
+                "settings": str(PATH_B / "pathb/s4c.yaml"), "video_fps": TRACK3_FPS, "n_video": meta["n_video"]})
             run_logged([daid_py, PATH_B / "pathb/drivers/daid_run.py", out / "request.json"], log, cwd=daid_dir)
             summary = json.loads((out / "daid/daid_summary.json").read_text())
             back = daid.read_back(summary["trajectory"], summary["qpos_joint_names"], meta)
-            np.savez(out / "trajectory_mjwp.npz", object_to_world=back["object_to_world"], robot_qpos=back["robot_qpos"],
-                     joint_names=np.array(back["joint_names"]), fps=TRACK3_FPS)
+            realised = dict(np.load(summary["realised_frames"]))
+            offset = np.asarray(meta["offset"])
+            arrays = {"object_to_world": back["object_to_world"], "robot_qpos": back["robot_qpos"],
+                      "joint_names": np.array(back["joint_names"]), "fps": TRACK3_FPS,
+                      "body_names": realised["body_names"], "body_pose": realised["body_pose"]}
+            arrays["body_pose"][..., :3] += offset
+            contact_frames = {}
+            for side in ("right", "left"):
+                w = daid.wrist(realised, offset, side)
+                if w is None:
+                    continue  # not in DaiD's scene (one-hand embodiment): S5 keeps the kinematic retarget
+                arrays[f"{side}_wrist_position"], arrays[f"{side}_wrist_wxyz"] = w
+                slots = daid.contact_slots(realised, offset, side)
+                arrays.update({f"{side}_contact_{k}": v for k, v in slots.items()})
+                contact_frames[side] = int((slots["part_ids"] > 0).any(axis=1).sum())
+            np.savez(out / "trajectory_mjwp.npz", **arrays)
+            replay_gap = float(np.linalg.norm(realised["object_pose"][:, :3] + offset
+                                              - back["object_to_world"][:, :3, 3], axis=1).max())
             if not (out / "scene.xml").exists():
                 (out / "scene.xml").symlink_to(summary["scene"])
             base = dict(np.load(src / "result.npz"))
@@ -111,7 +127,8 @@ def run(ctx) -> StageResult:
                 base["object_to_camera_transform"].dtype)
             write_bundle(src, out / "bundle", base)
             chk = checks(back["object_to_world"], ph, summary.get("penetration_max_m"))
-            gate = {"checks": chk, "daid_errors": summary["errors"], "covered_frames": back["covered_frames"]}
+            gate = {"checks": chk, "daid_errors": summary["errors"], "covered_frames": back["covered_frames"],
+                    "contact_frames": contact_frames, "replay_object_gap_m": replay_gap}
             if ctx.public:
                 k_auc = playback_auc(ctx, name, src, out, f"kinematic_{cand}")
                 r_auc = playback_auc(ctx, name, out / "bundle", out, f"realised_{cand}")
@@ -132,6 +149,11 @@ def run(ctx) -> StageResult:
                 Metric(f"{name}/{cand}: object speed (max)", chk["max_speed_m_s"], "m/s", ok=(0, MAX_SPEED)),
                 Metric(f"{name}/{cand}: DaiD object tracking error", summary["errors"].get("obj_pos_err"), "m",
                        note=f"rotation {summary['errors'].get('obj_quat_err')}; {summary['optimize_seconds']} s"),
+                Metric(f"{name}/{cand}: frames with a robot-object contact",
+                       ", ".join(f"{side} {k}" for side, k in contact_frames.items()) or "none", "",
+                       note="MuJoCo replay at the video frames, per hand"),
+                Metric(f"{name}/{cand}: replayed vs read-back object (max)", replay_gap * 1000, "mm", ok=(0, 5),
+                       note="nearest 5 ms step vs interpolation: the two read-outs of one trajectory"),
                 Metric(f"{name}/{cand}: gate", "realised" if gate["use_realised"] else "kinematic", "",
                        note=(f"AUC realised {gate['realised_auc']:.3f} vs kinematic {gate['kinematic_auc']:.3f}"
                              if ctx.public else gate["rule"])),

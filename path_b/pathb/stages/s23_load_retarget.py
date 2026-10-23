@@ -15,17 +15,18 @@ import subprocess
 import numpy as np
 
 from ..bundle import p4_bundle
-from ..paths import REPO
+from ..paths import PATH_B, REPO
 from ..report import Metric, StageResult
 from .. import gt
 
 
 def command(ctx, venv: str, out) -> list[str]:
+    """The runner; on evaluation episodes through drivers/run_lr.py, so its bundle check reads no scan."""
     py = f"{venv}/bin/python"
     name = ctx.objects[0]
     bundle = p4_bundle(ctx, name)
-    return [py, str(REPO / "tools/track3/run_load_retarget.py"), "--bundle", str(bundle),
-            "--episode", str(ctx.number), "--object", name, "--out", str(out)]
+    script = REPO / "tools/track3/run_load_retarget.py" if ctx.public else PATH_B / "pathb/drivers/run_lr.py"
+    return [py, str(script), "--bundle", str(bundle), "--episode", str(ctx.number), "--object", name, "--out", str(out)]
 
 
 def worst_seating(value) -> float | None:
@@ -50,6 +51,8 @@ def run(ctx) -> StageResult:
     if result.returncode:
         tail = "\n".join((d / "stdout.log").read_text().splitlines()[-15:])
         raise RuntimeError(f"run_load_retarget failed (exit {result.returncode}):\n{tail}")
+    if ctx.public:
+        ctx.files_read.extend(p for p in (gt.scan(n) for n in ctx.objects) if p)  # its bundle check reads the scans
     report = json.loads((out / "report.json").read_text())
     check = report["output_check"]
     task = check.get("task_error_cm", {})

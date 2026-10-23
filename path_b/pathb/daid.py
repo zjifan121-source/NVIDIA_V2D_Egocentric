@@ -9,7 +9,9 @@ hands (pathb/drivers/mano_world.py: joints, vertices, MANO parameters) resampled
 in DaiD's world: the v3 world with the object's frame-0 xy at the origin and the table, z = 0, as
 the floor (DaiD itself centres xy too). DaiD optimizes up to one planning horizon before the
 reference ends, so the last frame is held PAD_S past the clip. Back: DaiD's qpos per sim step
-(object = the last 7 numbers, free joint pos + wxyz) sampled at the video's frame times.
+(object = the last 7 numbers, free joint pos + wxyz) sampled at the video's frame times, and from
+the driver's MuJoCo replay (realised_frames.npz) the wrists and the robot-object contacts in
+ManoSharpa's 16 MANO-link slots, for S5's task file.
 """
 from __future__ import annotations
 
@@ -88,3 +90,58 @@ def read_back(trajectory: Path, joint_names: list[str], meta: dict) -> dict:
     robot = lerp(qpos[:, :-7], time, t_video)
     return {"object_to_world": T, "robot_qpos": robot, "joint_names": joint_names[: robot.shape[1]],
             "covered_frames": int(covered.sum()), "sim_seconds": float(time[-1])}
+
+
+# ManoSharpa's 16 contact slots (robotic_grounding retarget/params.py MANO_HAND_LINKS, the order
+# v2d_task_library_loader's contact_utils writes them in)
+MANO_LINKS = ("link_palm", "link_thumb1", "link_thumb2", "link_thumb3", "link_index1", "link_index2", "link_index3",
+              "link_middle1", "link_middle2", "link_middle3", "link_ring1", "link_ring2", "link_ring3",
+              "link_pinky1", "link_pinky2", "link_pinky3")
+DIGITS = ("thumb", "index", "middle", "ring", "pinky")
+SEGMENT = {"thumb": {"CMC_VL": 1, "MC": 1, "MCP_VL": 2, "PP": 2, "DP": 3, "elastomer": 3, "fingertip": 3},
+           "finger": {"MCP_VL": 1, "PP": 1, "MP": 2, "DP": 3, "elastomer": 3, "fingertip": 3}}
+
+
+def mano_link(body: str) -> int | None:
+    """Slot of a Sharpa body: the MANO link of the same digit and segment (MANO link 1 = the thumb's
+    metacarpal, the fingers' proximal phalanx); the palm and the pinky metacarpal -> link_palm."""
+    name = body.split("_", 1)[1]
+    if name.startswith("hand_") or name == "pinky_MC":
+        return 0
+    digit, part = name.split("_", 1)
+    if digit not in DIGITS:
+        return None
+    seg = SEGMENT["thumb" if digit == "thumb" else "finger"].get(part)
+    return None if seg is None else 1 + 3 * DIGITS.index(digit) + seg - 1
+
+
+def contact_slots(realised: dict, offset: np.ndarray, side: str) -> dict:
+    """One side's DaiD contacts in the 16 slots, v3 world: per frame and slot the deepest contact
+    (object-side point, normal into the object, part id 1 = the object's one body), and which
+    Sharpa body touched it with the robot-side point in that body's frame (for S5's check)."""
+    n = len(realised["video_time"])
+    names = [str(b) for b in realised["body_names"]]
+    out = {"positions": np.zeros((n, 16, 3)), "normals": np.zeros((n, 16, 3)), "part_ids": np.zeros((n, 16), np.int32),
+           "body": np.full((n, 16), -1, np.int32), "robot_local": np.zeros((n, 16, 3)), "dist": np.full((n, 16), np.inf)}
+    for k, f in enumerate(realised["contact_frame"]):
+        b = int(realised["contact_body"][k])
+        s = mano_link(names[b]) if names[b].startswith(side + "_") else None
+        if s is None or realised["contact_dist"][k] >= out["dist"][f, s]:
+            continue
+        out["dist"][f, s] = realised["contact_dist"][k]
+        out["positions"][f, s] = realised["contact_object_point"][k] + offset
+        out["normals"][f, s] = realised["contact_normal"][k]
+        out["part_ids"][f, s] = 1
+        out["body"][f, s] = b
+        out["robot_local"][f, s] = realised["contact_robot_local"][k]
+    out["dist"][out["part_ids"] == 0] = 0.0
+    return out
+
+
+def wrist(realised: dict, offset: np.ndarray, side: str) -> tuple[np.ndarray, np.ndarray] | None:
+    """<side>_hand_C_MC (FlashCHORD's wrist, the URDF root link) in the v3 world: position, wxyz."""
+    names = [str(b) for b in realised["body_names"]]
+    if f"{side}_hand_C_MC" not in names:
+        return None
+    p = realised["body_pose"][:, names.index(f"{side}_hand_C_MC")]
+    return p[:, :3] + offset, p[:, 3:] / np.linalg.norm(p[:, 3:], axis=1, keepdims=True)

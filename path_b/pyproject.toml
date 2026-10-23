@@ -14,6 +14,7 @@ dependencies = [
     "fast_simplification>=0.1",
     "pillow",
     "networkx",  # trimesh's stable poses, used by stage 2's levelling (cleaned_bundle)
+    "rtree>=1.0",  # trimesh's nearest-surface queries (S5's contact hand-over check)
     # Path B's own: video decoding, undistortion, rectification, feature matching.
     "opencv-python-headless>=4.10",
 ]

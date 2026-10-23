@@ -31,6 +31,8 @@ def test_evaluation_episodes_are_refused_before_any_read():
 # What reads ground truth or scans: score_local / run_load_retarget calls and the data folders.
 FORBIDDEN = re.compile(r"\.ground_truth\(|scan_size_ratio\(|\.score\(\[|rescale_by_scan\s*=|\bSCANS\b|"
                        r"public/data|public/mesh|_visual\.glb")
+# The one allowed mention: drivers/run_lr.py points the runner's scan dir at nothing (evaluation episodes).
+BLANKS_SCANS = ("drivers/run_lr.py", re.compile(r'^L\.SCANS = Path\("/nonexistent/[^"]*"\)$'))
 
 
 def test_only_gt_py_reads_ground_truth_or_scans():
@@ -39,6 +41,8 @@ def test_only_gt_py_reads_ground_truth_or_scans():
         if path.name == "gt.py":
             continue
         for i, line in enumerate(path.read_text().splitlines(), 1):
+            if str(path.relative_to(PATHB)) == BLANKS_SCANS[0] and BLANKS_SCANS[1].match(line.strip()):
+                continue
             code = re.sub(r"\bgt\.(ground_truth|score|scan_size_ratio|scan_vertices|rescale_by_scan)\(", "", line)
             if FORBIDDEN.search(code.split("#")[0]):
                 offenders.append(f"{path.relative_to(PATHB)}:{i}: {line.strip()}")

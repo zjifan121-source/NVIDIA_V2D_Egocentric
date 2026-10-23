@@ -514,5 +514,12 @@
   ],
   "unexpected": []
  },
- "unmatched": []
+ "unmatched": [],
+ "kinematics": {
+  "max_frame_offset_mm": 0.2,
+  "max_rotation_deg": 0.0001,
+  "frames": "the 45 joint and link frames both models have, per hand",
+  "how": "pathb/fk.py on both files, 200 random finger configurations, wrist at the identity (DaiD's 6 wrist DoF at 0 put <side>_hand_C_MC at the identity)",
+  "note": "DaiD's finger bases sit 0.2 mm lower along the hand's z than FlashCHORD's; axes agree, so DaiD's joint angles drive FlashCHORD's hands as they are"
+ }
 }
