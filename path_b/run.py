@@ -6,7 +6,7 @@ Run from the repo root (README in path_b/):
     uv run --project path_b python path_b/run.py waterfall --split public
     uv run --project path_b python path_b/run.py visualize --episodes 13     # after run and waterfall
     uv run --project path_b python path_b/run.py oracle --episodes 40 26     # S0.1, on a GPU machine
-    uv run --project path_b python path_b/run.py pack --split evaluation     # S7 (not built yet: task 16)
+    uv run --project path_b python path_b/run.py pack --split evaluation --out <run>  # S7: preflight + pack, no upload (public: dry pack)
     uv run --project path_b python path_b/run.py standin --episodes 40 26 --out <run>  # Mac: stand-in GPU outputs
     uv run --project path_b python path_b/run.py analysis --episodes 40 26 --out <run> [--tag v2]  # after waterfall
     uv run --project path_b python path_b/run.py a2 --episodes 40 26 --out <run>  # A2.5: variants, decision
@@ -19,6 +19,7 @@ Outputs: path_b/data/outputs/<run>/episode_XXXXXX/{<stage>/report.json, run.json
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -29,7 +30,7 @@ from pathb.runner import ORDER, STAGES, run_episode  # noqa: E402
 
 
 # commands of V3_BUILD_SPEC.md §1 whose code comes with a later task (§5)
-NOT_BUILT = {"pack": "S7, task 16"}
+NOT_BUILT: dict[str, str] = {}
 
 
 def episodes(args) -> list[int]:
@@ -72,6 +73,16 @@ def main() -> int:
         for root in phase2.main(out, episodes(args)):
             print(f"phase 2: {root}")
         return 0
+
+    if args.command == "pack":
+        from pathb import preflight
+        path = preflight.main(out, episodes(args))
+        report = json.loads(path.read_text())
+        print(f"preflight: {len(report['problems'])} problem(s); packed: {report['packed']}; "
+              f"{len(report['mesh_warnings'])} MESH WARNING line(s) -> {path.parent}")
+        for problem in report["problems"]:
+            print("  " + problem)
+        return 0 if report["packed"] else 1
 
     if args.command == "a2":
         from pathb import a2

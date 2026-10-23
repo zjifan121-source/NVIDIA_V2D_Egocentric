@@ -16,7 +16,7 @@ not as written), **missing** (not built yet), **not run** (built, waiting for th
 | **§1 Repository** | | | |
 | Move v2 files to `cache/v2/`; drop `s4_scene` | Done (task 1, `ae1f0e08`) | same | |
 | New `runner.STAGES` | As listed. Phase A2's `s3a2_fuse_scan`, `s3a2_register` sit in `runner.ORDER` (after S4a, before S4b) but not in the default chain | different | Decision 2026-10-22 "A2: stages run only when named" (§11 says A2 replaces S3 only if it wins) |
-| `run.py` gains `pack`, `oracle` | `oracle` built; `pack` is a stub (task 16). Also added: `standin` (Mac stand-ins), `canonical` (A2.2) | different | `pack` is task 16 (phase B); the two extra commands come from the stand-in decision and §11 |
+| `run.py` gains `pack`, `oracle` | Both built (`pack`: task 16). Also added: `standin` (Mac stand-ins), `canonical` (A2.2), `analysis`, `a2`, `p2` | different | The extra commands come from the stand-in decision, step 2 and §11/§8 |
 | `waterfall` gains `keyframe`, `realised`, `rollout_<candidate>` | Columns `fused`, `stage2_clean`, `ref_{keyframe,tracking,still}`, `realised_{keyframe,tracking}`, `rollout_{…}`, every bundle column again as `<column>@scan`; baselines `0fa525bc stage2_stereo`, S0.2 recon/place and still | different | Decision 2026-10-22 "Waterfall columns" and "Waterfall: stage2_clean and <column>@scan" (spec stale: `keyframe`/`realised` are per candidate) |
 | README §Stages rewritten | Rewritten in task 1; the State column is stale (P3/P4 still say "v3 in task 9") | different | Not updated after tasks 9–15 |
 | **§2 Environments** | | | |
@@ -84,11 +84,11 @@ not as written), **missing** (not built yet), **not run** (built, waiting for th
 | s6_select evaluation: lowest rollout-vs-reference error from the evaluator JSON, termination frames penalised | Rollouts against one shared observation (S4b keyframe reference on held/trusted frames, frame-0 anchor alignment, symmetry-aware, frames > 10 cm / 0.5 rad cost 10 cm); also run on public episodes to check it against the score | different | Decision "task 15: evaluation episodes select by the rollout vs one shared observation" (the JSON's own-reference error always favours still) |
 | S6 on ep40, ep26 | Coded | not run | VM |
 | **S7 Pack and submit** | | | |
-| Preflight, pack, upload, tag, HF | `run.py pack` stub | missing | Task 16 (phase B); Kaggle upload is on HOLD |
+| Preflight, pack, upload, tag, HF | `run.py pack` (`pathb/preflight.py`): preflight (selection + rollout, mesh geometry S3a = URDF = packer, GT firewall on evaluation episodes, git clean + pushed), then the team packer (`tools/track3/pack_submission.py`, which runs the kit's packer) and the kit's `tools/preflight.py --skip-kaggle`; `MESH WARNING` lines collected. No upload, tag or HF step in `pack` | different | Team packer reused (rule 4): it relabels bodies to roster names and calls the kit's packer, so the kit command is not called by hand. Upload and tag are on HOLD (James); HF upload is `hf_outputs.py` after the run. Dry pack on the public split waits for phase B's public half |
 | **§6 Run plan** | Day plan not followed: no VM job has run since task 2 (the instance refused the Mac's key, then showed a new host key) | different | VM provisioning wait |
 | **§7 Compliance** | | | |
 | GT firewall: `pathb/paths.py` gains `gt_allowed(ctx)`; `files_read` per stage | `pathb/gt.py` (`allowed`, every reader), `files_read` in every report, test over all files | different | Placement only (spec stale: `gt.py`, not `paths.py`) |
-| Mesh hash S3a → S5 → S7 | S3a writes `sha256.txt`; the S5/S7 comparison is preflight (task 16) | missing | Task 16 |
+| Mesh hash S3a → S5 → S7 | Preflight compares a geometry hash (vertices rounded to 1 µm, sorted, SHA-256) of S3a's mesh, the URDF's mesh and the packer's mesh | different | The three are different files (S3a OBJ, the loader's OBJ, the runner's score OBJ); equal file hashes cannot happen, equal geometry can (decision, task 16) |
 | `manual_inputs.json` per episode | Not written | missing | No hand-chosen parameter exists yet; nothing writes the (empty) file |
 | `THIRD_PARTY.md` | Not written | missing | Not done; licences known (DaiD MIT, SAM 3.1 SAM licence, FoundationStereo/FoundationPose NVIDIA, Open3D MIT) |
 | **§8 Phase 2** | Not started | missing | After A2 (James, 2026-10-22 follow-up: A2 first) |
@@ -124,7 +124,7 @@ the spec as written:
 7. **S4b's anchor fallback** when S3c has no anchor frame: the rest poses of every reference.
 8. **S4c settings and embodiment rule** (spec silent): the realised trajectory, when the gate takes it.
 9. **A2** (built, not adopted): would replace the mesh and the track for everything after A2.5 if it wins.
-10. **S7 missing**: no preflight yet, so nothing has checked a submission; no upload happens before it is built.
+10. **S7 mesh check by geometry, not file hash**, and the team packer instead of the kit command (task 16): a mesh that changed between S3a and the packer still stops the pack.
 
 ## Differences that are internal only
 

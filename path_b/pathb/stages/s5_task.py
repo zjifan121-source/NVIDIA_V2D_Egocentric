@@ -301,7 +301,9 @@ def run(ctx) -> StageResult:
         choice = dict(choose(ctx, cand), cand=cand)
         cd = d / cand
         cd.mkdir(exist_ok=True)
-        seq = f"ep{ctx.number}_{cand}"
+        # body names end with the object's name (a merged scene's do: <seq>_<object>), which the team
+        # packer's relabel needs (tools/track3/pack_submission.py)
+        seq = f"ep{ctx.number}_{cand}" + (f"_{ctx.objects[0]}" if len(ctx.objects) == 1 else "")
         report = runner(ctx, choice["bundles"], FLAGS[choice["mode"]] + choice.get("extra_flags", []), seq, cd / "run")
         task = {"candidate": cand, "mode": choice["mode"], "reason": choice["reason"], "bundles": choice["bundles"],
                 "flags": FLAGS[choice["mode"]], "partition": report["processed"], "sequence_id": seq,

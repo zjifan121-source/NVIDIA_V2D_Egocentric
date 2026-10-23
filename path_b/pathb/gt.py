@@ -9,6 +9,7 @@ pathb module calls them for ground truth or scans.
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import numpy as np
@@ -184,3 +185,11 @@ def official_frame_errors(episode: dict, poses: np.ndarray, meshes: dict[str, Pa
     return {"names": names, "position_m": position, "rotation_rad": rotation, "add_m": add,
             "truth_displacement_m": np.linalg.norm(reference[:, 0, :, :3] - reference[:1, 0, :, :3], axis=-1),
             "ours_displacement_m": np.linalg.norm(achieved[:, 0, :, :3] - achieved[:1, 0, :, :3], axis=-1)}
+
+
+GT_PATHS = re.compile(r"public/data|public/mesh|_visual\.glb")
+
+
+def is_ground_truth_path(path) -> bool:
+    """A file read that S7's preflight must not find in an evaluation episode's report (§7)."""
+    return bool(GT_PATHS.search(str(path)))
