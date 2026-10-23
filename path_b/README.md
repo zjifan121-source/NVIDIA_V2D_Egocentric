@@ -26,20 +26,22 @@ whose module is not built yet reports SKIP and writes no report.
 | `p0_ingest` | S1 | Decodes `ego_cam_a/b/c`; frame counts and resolutions must match the manifest and calibration | `report.json` | built |
 | `p1_calibrate` | S1 | Rectifies the head stereo pair (left `ego_cam_c`, right `ego_cam_b`) and undistorts `ego_cam_a` with the 14-coefficient factory model. The calibration does not say whether its intrinsics are native or upright, so all four readings are tried on the episode's frames and the best kept | `rect_left/`, `rect_right/`, `cam_a/`, `calib.json` | built |
 | `p2_depth` | S1 | FoundationStereo (the baseline's `v2d_foundation_stereo`, read-only) on the rectified pairs; the table plane in every frame; depth reprojected into `ego_cam_a`, with its extrinsics reading chosen by feature reprojection | `depth_rect/`, `planes.json`, `alignment.json`, `depth_a_half/` | built |
-| `p1b_masks` | S1 | SAM 3.1 text-prompted masks for each roster object and both hands (SAM2 + Grounding DINO fallback) | `obj_0/`, `hand_L/`, `hand_R/`, `prompts.json` | task 6 |
-| `p1c_camera` | S1 | DROID-SLAM with the stereo depth (hands and objects masked out) as its depth prior: a metric camera path | `camera_to_world/`, `trajectory.txt` | task 7 |
-| `p1d_hands` | S1 | WiLoR → HaMeR → depth alignment on the stereo depth, late hands on | `hamer_aligned_filled/`, `hand_scale.json` | task 8 |
-| `p3_scale_bridge` | S2 | v2 (today): the team bundle's scale from the stereo support plane. v3: the same ruler against the P1c camera, as a check (expected 1.00) | `scale.json` | v3 in task 9 |
-| `p4_export` | S2 | v2 (today): the team bundle rescaled. v3: the bundle of P1c camera and P1d hands in the world (table z = 0) | `episode_XXXXXX/<object>/...` | v3 in task 9 |
-| `s3a_mesh` | S3 | SAM 3D Objects per view on the stereo pointmap, MV-SAM3D fusion, metric size fit, CoACD | `mesh.glb`, `coacd/`, `mass.json` | task 10 |
-| `s3b_track` | S3 | FoundationPose with the symmetry-aware recovery rule | `poses/`, `track_meta.json` | task 11 |
-| `s3c_fuse` | S3 | ESKF/RTS on world poses with rest anchors | `object_to_world.npz`, `anchors.json` | task 12 |
-| `s4a_phases` | S4 | Rest-before, carry and rest-after windows from wrist-to-object distance | `phases.json` | task 2 |
-| `s4b_reference` | S4 | Kinematic references: `keyframe`, `tracking`, `still` | `<candidate>/` bundles | task 4 |
-| `s4c_retarget` | S4 | Do as I Do retargeting of the Sharpa hands in MuJoCo Warp; gate realised vs kinematic | `<candidate>/trajectory_mjwp.npz`, `bundle/` | task 13 |
-| `s5_task` | S5 | FlashCHORD ManoSharpa parquet from S4c (mode B); `run_load_retarget.py` fallback (mode A) | task parquet, URDF, support USD | task 14 |
-| `s6_train`, `s6_eval`, `s6_select` | S6 | FlashSAC per candidate, kit evaluation, selection | checkpoints, rollouts, `selection.json` | task 15 |
-| `s7_pack` | S7 | Preflight and the kit packer, over all evaluation episodes (`run.py pack`) | `track3_submission.parquet` | task 16 |
+| `p1b_masks` | S1 | SAM 3.1 text-prompted masks for each roster object and both hands (SAM2 + Grounding DINO fallback) | `obj_0/`, `hand_L/`, `hand_R/`, `prompts.json` | built (task 6); GPU smoke test pending |
+| `p1c_camera` | S1 | DROID-SLAM with the stereo depth (hands and objects masked out) as its depth prior: a metric camera path | `camera_to_world/`, `trajectory.txt` | built (task 7); GPU smoke test pending |
+| `p1d_hands` | S1 | WiLoR → HaMeR → depth alignment on the stereo depth, late hands on | `hamer_aligned_filled/`, `hand_scale.json` | built (task 8); GPU smoke test pending |
+| `p3_scale_bridge` | S2 | Stereo camera height over P1c's on the rest window: the scale check (expected 1.00), the table plane and gravity | `scale.json` | v3 built (task 9); ran on the Mac |
+| `p4_export` | S2 | The v3 world (table top z = 0, +z up) and per object the bundle of P1c's camera and P1d's hands, no object yet | `episode_XXXXXX/<object>/...` | v3 built (task 9); ran on the Mac |
+| `s3a_mesh` | S3 | SAM 3D Objects per view on the stereo pointmap, MV-SAM3D fusion, metric size fit, CoACD | `mesh.glb`, `coacd/`, `mass.json` | built (task 10); GPU smoke test pending |
+| `s3b_track` | S3 | FoundationPose with the symmetry-aware recovery rule | `poses/`, `track_meta.json` | built (task 11); GPU smoke test pending |
+| `s3c_fuse` | S3 | ESKF/RTS on world poses with rest anchors | `object_to_world.npz`, `anchors.json` | built (task 12); ran on the Mac |
+| `s4a_phases` | S4 | Rest-before, carry and rest-after windows from wrist-to-object distance | `phases.json` | built (task 2); ran on the Mac |
+| `s4b_reference` | S4 | Kinematic references: `keyframe`, `tracking`, `still` | `<candidate>/` bundles | built (task 4); ran on the Mac |
+| `s4c_retarget` | S4 | Do as I Do retargeting of the Sharpa hands in MuJoCo Warp; gate realised vs kinematic | `<candidate>/trajectory_mjwp.npz`, `bundle/` | built (task 13); GPU smoke test pending |
+| `s5_task` | S5 | FlashCHORD ManoSharpa parquet from S4c (mode B); `run_load_retarget.py` fallback (mode A) | task parquet, URDF, support USD | built (task 14); ran on the Mac (CPU venv, mode A) |
+| `s6_train`, `s6_eval`, `s6_select` | S6 | FlashSAC per candidate, kit evaluation, selection | checkpoints, rollouts, `selection.json` | built (task 15); GPU smoke test pending |
+| `s7_pack` | S7 | Preflight and the kit packer, over all evaluation episodes (`run.py pack`) | `track3_submission.parquet` | task 16 (phase B) |
+| `s3a2_fuse_scan`, `s3a2_register`, `s3b2_track_points` | §11 A2 | Phase A2: partial scans from stereo depth at rest, canonical mesh per object (`run.py canonical`), registration and the re-expressed track, mesh-free point tracks (TAPIP3D); comparison and decision by `run.py a2` | `partial_scan.ply`, `<run>/canonical/`, `registration.json`, `poses/` | built; run only when named; A2.4 GPU smoke pending |
+| phase 2 (`run.py p2`) | §8 | Two-object scope with `PATHB_PHASE2=1`: S4a support relation, S4b anchored on the roster-first object, S4c two-object Do as I Do scene, S5 two bodies (`--seat`), S6 RPE | `<run>_p2/` | built; ran on the Mac (ep26) |
 | `s23_load_retarget` | S5/S6 | Stages 2–3 with the team's `run_load_retarget.py` (default repairs), then the reconstruction-only score on public episodes. One object only; v3 merges two-object scenes in S5 mode A | `run/` (the runner's own output) | built (v2) |
 
 Depth PNGs use the baseline's inverse-depth encoding (`pixel = 65535 / (depth_m + 1)`); 0 means no depth.

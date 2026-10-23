@@ -1,7 +1,27 @@
 # path_b/vm/ — set up a new GPU instance, save and restore outputs
 
 A GPU instance can be deleted whenever it is idle (on Verda, a shut-down instance keeps billing; a
-deleted one does not). Code lives in git, results on Hugging Face, and `setup.sh` rebuilds the rest.
+deleted one does not). Code lives in git, results on Hugging Face or the Mac, and `setup.sh`
+rebuilds the rest.
+
+## One command each way (from the Mac, repo root)
+
+| When | Command | What it does |
+|---|---|---|
+| Before deleting an instance | `path_b/vm/save_instance.sh` | Checks the instance's code is clean and known to the Mac; copies every output file Hugging Face does not hold (`hf_outputs.py pending`) to `path_b/data/outputs/<run>/` and the logs to `~/V2D/vm_logs/<instance>_<date>/` with a `SAVED.md`; ends with "safe to delete" or what is missing |
+| Right before deleting it | `path_b/vm/save_instance.sh --remove-deploy-key` | The same, then deletes the instance's deploy key from GitHub (it needs the instance reachable, and the key is useless once the instance is gone) |
+| Phase A dev cache (once the instance is ready) | `ssh -t l40s "tmux new -s dev 'bash /root/v2d/NVIDIA_V2D_Egocentric/path_b/vm/dev_cache.sh'"` | On ep40 and ep26: P0–P2 from `4c2eac31`, the chain to S4b (P1b, P1c, P1d, P3/P4, S3a, S3b, S3c, S4a, S4b), then S0.1 (`run.py oracle`); uploads `dev_<commit>` and `dev_<commit>_s01` with frames. Rerun to resume |
+| A new instance is up | `path_b/vm/new_instance.sh <ip>` | Points the `l40s` alias at `<ip>`; puts `setup.sh`, the MANO files and `path_b/.env` on it; gives it a Hugging Face token and a read-only deploy key (added with `gh`); runs `setup.sh` in tmux and follows it; pushes this checkout's branch through the bare repo and runs the unit tests. Options: `--restore RUN` (default `4c2eac31`), `--no-restore`, `--no-frames`, `--branch B` |
+
+`new_instance.sh` takes about an hour on a fresh instance, mostly the stereo image and engine and
+the restore; rerunning it on a ready instance takes a few minutes and changes nothing. Its only
+manual step: the Hugging Face token comes from `path_b/.env`. With `HF_WRITE_TOKEN=` there, the
+instance can upload; with only the read-only `HF_TOKEN`, run `ssh -t l40s /root/.local/bin/hf auth
+login` with a write token before an upload. On the instance, `path_b/.env` is sourced where its
+read-only `HF_TOKEN` is needed (P1b's SAM 3.1 and S3a's SAM 3D downloads; `v2d_submit.py`); it
+overrides the login, so uploads run with `HF_TOKEN=$HF_WRITE_TOKEN`, or with it unset (`dev_cache.sh`).
+
+The sections below are what the two scripts do, step by step.
 
 ## Before deleting an instance
 

@@ -57,6 +57,7 @@ class StageResult:
     metrics: list[Metric]
     outputs: dict = field(default_factory=dict)
     skip: str | None = None  # why the stage does not apply to this episode
+    files_read: list = field(default_factory=list)  # every input file the stage read (spec §7)
 
 
 def worst(statuses) -> str:

@@ -179,3 +179,11 @@ def cam_a_candidates(calib: dict, rect: Rectification) -> dict[str, np.ndarray]:
             for ref, ref_from_left in (("left", np.eye(4)), ("right", right_from_left)):
                 out[f"{direction}_{ref}{'_turned' if mirrored else ''}"] = a_from_ref @ ref_from_left
     return out
+
+
+def stereo_frame(i: int, alignment: dict, frames: int | None = None) -> int:
+    """The stereo frame matching ego_cam_a frame i (P2's alignment.json offset; the stereo streams
+    lead ego_cam_a by about one frame). Every stage that mixes stereo and colour frames goes
+    through here (V3_BUILD_SPEC.md §3); depth_a_half/ already applies it."""
+    j = i + int(alignment.get("offset", 0))
+    return max(0, min(j, frames - 1)) if frames else max(0, j)

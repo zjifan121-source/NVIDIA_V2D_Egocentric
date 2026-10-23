@@ -1,2 +1,4 @@
 # Run outputs (frames, depth, bundles, reports): local only, like baseline/reconstruction/data/
 /data/
+# Small test fixtures are tracked despite the root *.npz rule
+!/tests/fixtures/*.npz

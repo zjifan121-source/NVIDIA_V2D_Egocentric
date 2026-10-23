@@ -15,7 +15,7 @@ import sys
 import threading
 import time
 import traceback
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -36,6 +36,10 @@ STAGES = ("p0_ingest", "p1_calibrate", "p2_depth",  # S1
           "s6_train", "s6_eval", "s6_select",  # S6
           "s7_pack",  # S7 (run.py pack runs it over all episodes)
           "s23_load_retarget")  # kept for the still fallback (S6) and S5 mode A
+# Phase A2 (spec §11): the S3 observation variant, run only when asked for (--stages); in ORDER after
+# the stages it reads (S4a's rest windows, S3c's anchors).
+A2_STAGES = ("s3a2_fuse_scan", "s3a2_register", "s3b2_track_points")
+ORDER = STAGES[:STAGES.index("s4b_reference")] + A2_STAGES + STAGES[STAGES.index("s4b_reference"):]
 
 
 @dataclass
@@ -43,6 +47,7 @@ class Context:
     episode: dict  # this episode's tools/track3/episodes.json entry
     root: Path  # <out>/episode_XXXXXX
     reports: dict  # stage name -> report of the stages already run or loaded
+    files_read: list = field(default_factory=list)  # ground truth / scans read (pathb/gt.py), per stage
 
     @property
     def number(self) -> int:
@@ -116,7 +121,7 @@ def run_stage(name: str, ctx: Context, force: bool) -> tuple[dict, bool]:
     if importlib.util.find_spec(f"pathb.stages.{name}") is None:
         # not written to disk, so the stage runs as soon as its module exists
         return {"stage": name, "status": "SKIP", "episode": ctx.number, "split": ctx.split, "seconds": 0.0,
-                "gpu_peak_mib": None, "metrics": [], "outputs": {},
+                "gpu_peak_mib": None, "metrics": [], "outputs": {}, "files_read": [],
                 "skip_reason": f"pathb/stages/{name}.py is not built yet", "error": None}, False
     path = ctx.root / name / "report.json"
     if not force and path.is_file():
@@ -125,6 +130,7 @@ def run_stage(name: str, ctx: Context, force: bool) -> tuple[dict, bool]:
             return report, False
     started, t0 = datetime.now(timezone.utc), time.monotonic()
     error = None
+    ctx.files_read = []
     with GpuPeak() as gpu:
         try:
             result = importlib.import_module(f"pathb.stages.{name}").run(ctx)
@@ -137,7 +143,7 @@ def run_stage(name: str, ctx: Context, force: bool) -> tuple[dict, bool]:
         "episode": ctx.number, "split": ctx.split, "commit": git_commit(),
         "started_utc": started.isoformat(timespec="seconds"), "seconds": round(time.monotonic() - t0, 1),
         "gpu_peak_mib": gpu.peak, "metrics": metrics, "outputs": result.outputs,
-        "skip_reason": result.skip, "error": error,
+        "files_read": [str(f) for f in [*result.files_read, *ctx.files_read]], "skip_reason": result.skip, "error": error,
     }
     write_json(ctx.dir(name) / "report.json", report)
     return report, True
@@ -156,7 +162,7 @@ def run_episode(number: int, out: Path, stages: tuple[str, ...] = STAGES, force:
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     print(f"== episode {number} ({ctx.split}, {' + '.join(ctx.objects)})", flush=True)
     rerun = force
-    for name in STAGES:
+    for name in ORDER:
         if name not in stages:
             existing = ctx.root / name / "report.json"
             if existing.is_file():

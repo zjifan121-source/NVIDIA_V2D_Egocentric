@@ -4,14 +4,6 @@ import pytest
 from pathb.stages.p3_scale_bridge import gt_trajectory_factor
 
 
-class FakeScorer:
-    def __init__(self, gt):
-        self.gt = gt
-
-    def ground_truth(self, episode):
-        return self.gt
-
-
 def poses(positions):
     T = np.tile(np.eye(4), (len(positions), 1, 1))
     T[:, :3, 3] = positions
@@ -34,7 +26,7 @@ def test_gt_factor_recovers_the_scale_of_the_motion_and_the_placement():
             "object_1_to_world_transform": poses(bundle_b)}
     slots = [("object_to_world_transform", "object_scale", "mesh.obj"),
              ("object_1_to_world_transform", "object_1_scale", "mesh_1.obj")]
-    out = gt_trajectory_factor(FakeScorer(gt), 0, data, slots)
+    out = gt_trajectory_factor(gt, data, slots)
     assert out["factor"] == pytest.approx(0.8, abs=0.02)
     assert set(out["parts"]) == {"motion of object 0", "frame-0 distance between the objects"}
 
@@ -43,4 +35,4 @@ def test_gt_factor_is_none_when_nothing_moves():
     gt = np.zeros((50, 1, 7))
     gt[:, :, 6] = 1.0
     data = {"camera_to_world_transform": np.zeros((50, 4, 4)), "object_to_world_transform": poses(np.zeros((50, 3)))}
-    assert gt_trajectory_factor(FakeScorer(gt), 0, data, [("object_to_world_transform", "s", "m")]) is None
+    assert gt_trajectory_factor(gt, data, [("object_to_world_transform", "s", "m")]) is None

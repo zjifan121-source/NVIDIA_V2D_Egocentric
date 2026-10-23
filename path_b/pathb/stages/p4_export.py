@@ -1,93 +1,76 @@
-"""P4 export: Path B's bundles in the team's layout (tools/track3/BUNDLES.md §4), one per object.
+"""P4 export (v3): the episode's bundles before the object is known (V3_BUILD_SPEC.md P4).
 
-Each object's HF bundle is rescaled by P3's factor (one factor per episode: the objects share the
-head camera). Next to result_slam_gravity_aligned/ go run.json (how it was made), numeric_qa.json
-(every P0-P3 measurement) and status.json (verdict and first failing stage), so a bundle carries
-its own diagnosis wherever it is copied.
+The v3 world (pathb/world.py: table top z = 0, +z up) from P3's table plane; P1c's camera moved into
+it (camera_to_world/); then per object a bundle in the BUNDLES.md layout written by the baseline's
+own result writer, with that camera and P1d's hands, plus table_plane, gravity and world_from_p1c.
+No object track yet (S3c completes each bundle) and no mesh.obj until S3a. Next to each bundle:
+run.json, numeric_qa.json (P0-P3 measurements) and status.json.
 """
 from __future__ import annotations
 
 import json
-import shutil
 import sys
 
 import numpy as np
-import trimesh
 
-from ..bundle import rescaled_copy
+from .. import world as V
+from ..bundle import p4_bundle, write_v3_bundle
+from ..geometry import read_transforms, write_transform
 from ..paths import TRACK3_FPS, git_commit
 from ..report import Metric, StageResult, worst
 from ..runner import write_json
-from ..team import retarget_tools
 
-UPSTREAM = ("p0_ingest", "p1_calibrate", "p2_depth", "p3_scale_bridge")
+UPSTREAM = ("p0_ingest", "p1_calibrate", "p2_depth", "p1b_masks", "p1c_camera", "p1d_hands", "p3_scale_bridge")
+
+
+def world_extra(W: np.ndarray) -> dict:
+    return {"table_plane": np.array([0.0, 0.0, 1.0, 0.0]), "gravity": np.array([0.0, 0.0, -1.0]),
+            "world_from_p1c": W, "gravity_alignment_applied": True, "fps": TRACK3_FPS}
 
 
 def run(ctx) -> StageResult:
-    L = retarget_tools()
+    d = ctx.dir("p4_export")
+    n = int(ctx.episode["num_frames"])
     scale = json.loads((ctx.root / "p3_scale_bridge/scale.json").read_text())
-    factor = scale["factor"]
-    base = ctx.dir("p4_export") / f"episode_{ctx.number:06d}"
+    c2w_p1c, have = read_transforms(ctx.root / "p1c_camera/camera_to_world", n)
+    rest = [t for t in range(scale["rest_window"][0], scale["rest_window"][1] + 1) if have[t]]
+    W = V.from_table(np.array(scale["table_plane"]["normal"]), scale["table_plane"]["d"], c2w_p1c, rest)
+    cams = d / "camera_to_world"
+    cams.mkdir(exist_ok=True)
+    c2w = W[None] @ c2w_p1c
+    for t in range(n):
+        if have[t]:
+            write_transform(cams / f"{t:06d}.json", c2w[t])
+    write_json(d / "world.json", {"world_from_p1c": W, "table": "z = 0", "up": "+z",
+                                  "y": "mean camera forward over the rest window, on the table",
+                                  "origin": f"the table under the camera at frame {rest[0]}"})
     reports = {name: ctx.reports[name] for name in UPSTREAM if name in ctx.reports}
     qa = {name: r["metrics"] for name, r in reports.items()}
     status = {"state": worst(r["status"] for r in reports.values()),
-              "first_failing_stage": next((n for n, r in reports.items() if r["status"] in ("FAIL", "ERROR")), None),
-              "stages": {n: r["status"] for n, r in reports.items()}}
-    metrics, finite, frames_off = [], True, 0
-    table_z = None
+              "first_failing_stage": next((s for s, r in reports.items() if r["status"] in ("FAIL", "ERROR")), None),
+              "stages": {s: r["status"] for s, r in reports.items()}}
+    metrics = [Metric("camera height above the table (median, rest window)", float(np.median(c2w[rest, 2, 3])), "m",
+                      note="v3 world: the table top is z = 0"),
+               Metric("camera z axis below the horizon (median, rest window)",
+                      float(np.degrees(np.median(np.arcsin(np.clip(-c2w[rest, 2, 2], -1, 1))))), "deg",
+                      note="how far the head looks down at the table")]
+    log = d / "writer.log"
+    log.write_text("")
     for name in ctx.objects:
-        src = L.bundle_dir_for(ctx.number, name)
-        folder = base / name
-        dest = folder / "result_slam_gravity_aligned"
-        if dest.exists():
-            shutil.rmtree(dest)
-        # threejs_scene/ shows the unscaled scene, so it is left behind
-        rescaled_copy(src, dest, factor, link=False, skip=("threejs_scene",))
-        data = np.load(dest / "result.npz")
-        finite &= all(np.isfinite(data[k]).all() for k in data.files if data[k].dtype.kind == "f")
-        frames_off = max(frames_off, abs(data["camera_to_world_transform"].shape[0] - int(ctx.episode["num_frames"])))
-        vertices = L.object_vertices(dest, dict(data), "object_scale", "mesh.obj")
-        object_scale = float(data["object_scale"])
-        # mesh.obj keeps the bundle's vertices and object_scale carries the factor; S3/S4 get the
-        # scaled geometry as a file too, so no consumer can miss the scale
-        scaled = trimesh.load(dest / "mesh.obj", force="mesh", process=False)
-        scaled.apply_scale(object_scale)
-        scaled.export(dest / "mesh_scaled.obj")
-        if table_z is None:
-            table_z = table_height(scale, data["camera_to_world_transform"].astype(np.float64))
-        metrics.append(Metric(f"{name} mesh extents after rescale",
-                              " x ".join(f"{e * 100:.1f}" for e in L.oriented_extents(vertices)), "cm"))
-        if ctx.public:
-            ratio = L.scan_size_ratio(vertices, name)
-            if ratio:
-                metrics.append(Metric(f"{name} mesh / scan size after rescale", ratio, "x", kind="gt",
-                                      ok=(0.8, 1.25), note="BUNDLES.md Must: 0.8-1.25"))
-        write_json(folder / "run.json", {
-            "producer": "path_b", "command": sys.argv, "commit": git_commit(), "source_bundle": str(src),
-            "scale_factor": factor, "scale_applied": scale["applied"],
-            "fps": TRACK3_FPS,
-            "object_scale": object_scale,
-            "mesh_scaled": "result_slam_gravity_aligned/mesh_scaled.obj",
-            "table_z_world_m": table_z,
-            "frames_in_world": "metres after rescaling; gravity is +z; the table plane is z = table_z_world_m",
-            "notes": "Stage 1 bridge: the team's bundle rescaled to stereo metric scale (Path B P3).",
-        })
+        bundle = write_v3_bundle(ctx, p4_bundle(ctx, name), log, extra=world_extra(W))
+        data = np.load(bundle / "result.npz")
+        finite = all(np.isfinite(data[k]).all() for k in data.files if data[k].dtype.kind == "f")
+        metrics += [
+            Metric(f"{name}: frames minus manifest", int(data["camera_to_world_transform"].shape[0]) - n, "frames", ok=(0, 0)),
+            Metric(f"{name}: all arrays finite", int(finite), "", ok=(1, 1)),
+            Metric(f"{name}: camera valid", float(data["camera_is_valid"].mean()), "share", ok=(0.99, 1)),
+            *[Metric(f"{name}: {side} hand valid", float(data[f"hand_{side}_is_valid"].mean()), "share",
+                     note="BUNDLES.md Should: >= 95 % of the frames the hand is visible") for side in ("left", "right")],
+        ]
+        folder = bundle.parent
+        write_json(folder / "run.json", {"producer": "path_b v3", "command": sys.argv, "commit": git_commit(),
+                                         "fps": TRACK3_FPS, "world": "table top z = 0, +z up (p4_export/world.json)",
+                                         "notes": "camera P1c, hands P1d; object and mesh come from S3a-S3c"})
         write_json(folder / "numeric_qa.json", qa)
         write_json(folder / "status.json", status)
-    metrics[:0] = [
-        Metric("objects exported minus manifest", len(ctx.objects) - len(list(base.iterdir())), "", ok=(0, 0)),
-        Metric("frames off the manifest (worst object)", frames_off, "frames", ok=(0, 0)),
-        Metric("all arrays finite", int(finite), "", ok=(1, 1)),
-        Metric("table height in the rescaled world", table_z, "m",
-               note="median over rest frames of camera z minus the stereo camera-to-support distance"),
-        Metric("overlay video", "not made yet", "", note="BUNDLES.md asks for one before an HF upload"),
-    ]
-    return StageResult(metrics, {"bundles": base, "factor": factor, "table_z_world_m": table_z})
-
-
-def table_height(scale: dict, c2w_rescaled: np.ndarray) -> float | None:
-    """z of the support plane in the rescaled bundle world: the camera's world z minus its stereo
-    distance to the support plane (the plane normal is within MAX_TILT_DEG of gravity)."""
-    heights = [c2w_rescaled[r["frame"], 2, 3] - r["table_stereo"] for r in scale["frames"]
-               if r.get("table_stereo") is not None and r["frame"] < len(c2w_rescaled)]
-    return float(np.median(heights)) if heights else None
+    return StageResult(metrics, {"bundles": d / f"episode_{ctx.number:06d}", "world": d / "world.json"})

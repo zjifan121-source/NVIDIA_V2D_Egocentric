@@ -14,17 +14,18 @@ import subprocess
 
 import numpy as np
 
+from ..bundle import p4_bundle
 from ..paths import REPO
+from ..team import lr_command
 from ..report import Metric, StageResult
-from ..team import scorer
+from .. import gt
 
 
-def command(ctx, venv: str, out) -> list[str]:
-    py = f"{venv}/bin/python"
+def command(ctx, out) -> tuple[list[str], dict]:
+    """The runner through drivers/run_lr.py (team.lr_command): no scan read on evaluation episodes."""
     name = ctx.objects[0]
-    bundle = ctx.root / f"p4_export/episode_{ctx.number:06d}/{name}/result_slam_gravity_aligned"
-    return [py, str(REPO / "tools/track3/run_load_retarget.py"), "--bundle", str(bundle),
-            "--episode", str(ctx.number), "--object", name, "--out", str(out)]
+    return lr_command(ctx.public, ["--bundle", p4_bundle(ctx, name), "--episode", ctx.number, "--object", name,
+                                   "--out", out])
 
 
 def worst_seating(value) -> float | None:
@@ -37,18 +38,18 @@ def run(ctx) -> StageResult:
     if len(ctx.objects) > 1:
         return StageResult([], skip="two-object scene: assembled with run_load_retarget.py --merge in S5 mode A "
                                     "(task 15); v2's merge runner is parked in cache/v2/")
-    venv = os.environ.get("RETARGET_VENV")
-    if not venv:
-        raise RuntimeError("set RETARGET_VENV to the stages 2-3 environment (README §5.12)")
     d = ctx.dir("s23_load_retarget")
     out = d / "run"
     if out.exists():
         shutil.rmtree(out)  # the bundle changed, or this stage would have been kept
     with open(d / "stdout.log", "w") as log:
-        result = subprocess.run(command(ctx, venv, out), cwd=REPO, stdout=log, stderr=subprocess.STDOUT)
+        cmd, env = command(ctx, out)
+        result = subprocess.run(cmd, cwd=REPO, env=env, stdout=log, stderr=subprocess.STDOUT)
     if result.returncode:
         tail = "\n".join((d / "stdout.log").read_text().splitlines()[-15:])
         raise RuntimeError(f"run_load_retarget failed (exit {result.returncode}):\n{tail}")
+    if ctx.public:
+        ctx.files_read.extend(p for p in (gt.scan(n) for n in ctx.objects) if p)  # its bundle check reads the scans
     report = json.loads((out / "report.json").read_text())
     check = report["output_check"]
     task = check.get("task_error_cm", {})
@@ -72,11 +73,9 @@ def run(ctx) -> StageResult:
                               note=f"camera path lengths (m): {report['merge']['camera_path_m']}"))
     outputs = {"report": out / "report.json", "processed": report["processed"], "video": report["video"]}
     if ctx.public:
-        S = scorer()
         poses = np.load(out / f"score_input/results/episode_{ctx.number:06d}.npy")
-        meshes = {(ctx.number, name): out / f"score_input/meshes/episode_{ctx.number:06d}/{name}.obj"
-                  for name in ctx.objects}
-        scores = S.score([ctx.episode], {ctx.number: poses}, meshes)
+        meshes = {name: out / f"score_input/meshes/episode_{ctx.number:06d}/{name}.obj" for name in ctx.objects}
+        scores = gt.score(ctx.episode, poses, meshes, ctx.files_read)
         outputs["scores"] = scores
         metrics += [Metric(f"reconstruction-only {k}", v, "", kind="gt",
                            note="the trajectory FlashCHORD is trained to track: its ceiling") for k, v in scores.items()]

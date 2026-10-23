@@ -8,7 +8,9 @@ folders, so this folder does not affect it):
                                                    waterfall, HTML pages
   path_b/runs/<run>/episode_XXXXXX/frames.tar      only with --frames: the per-frame intermediates
                                                    (rectified pairs, undistorted ego_cam_a, stereo
-                                                   depth), one archive per episode instead of ~1,700 files
+                                                   depth, and any folder of more than 50 files: v3's
+                                                   masks, depth priors, hand stages, poses), one
+                                                   archive per episode instead of thousands of files
 <run> is a folder name under path_b/data/outputs/ (the commit a run was made with). Restoring puts
 everything back there, so `run.py run --out` keeps the stages whose reports exist.
 
@@ -16,7 +18,8 @@ Usage (repo root; needs `hf auth login`, with a Write token to upload):
     uv run --project tools python path_b/vm/hf_outputs.py upload --run 4c2eac31 --frames
     uv run --project tools python path_b/vm/hf_outputs.py upload --run 0fa525bc
     uv run --project tools python path_b/vm/hf_outputs.py list
-    uv run --project tools python path_b/vm/hf_outputs.py download --run 4c2eac31 [--frames]
+    uv run --project tools python path_b/vm/hf_outputs.py download --run 4c2eac31 [--frames] [--episodes 40 26]
+    uv run --project tools python path_b/vm/hf_outputs.py pending --run t1_f238fec   # not on HF yet
 """
 from __future__ import annotations
 
@@ -41,6 +44,7 @@ FRAMES = {("p1_calibrate", "rect_left"), ("p1_calibrate", "rect_right"), ("p1_ca
           ("p2_depth", "depth_rect"), ("p2_depth", "intrinsics_rect"), ("p2_depth", "depth_a_half")}
 SCRATCH = {("p3_scale_bridge", "merged"), ("episode", "waterfall"), ("run", "intermediate"),
            ("run", "bundle_cleaned")}
+CROWDED = 50  # files in one folder: more is a per-frame folder (v3's masks, priors, poses) -> frames.tar
 
 
 def kind(rel: Path) -> str:
@@ -53,6 +57,11 @@ def kind(rel: Path) -> str:
             # the half-resolution depth's intrinsics are a result: Stage 2 needs them with the depth
             return "result" if rel.name == "intrinsics.json" and b == "depth_a_half" else "frames"
     return "result"
+
+
+def crowded(root: Path) -> set[Path]:
+    """Folders under root with more than CROWDED entries: per-frame folders, archived like FRAMES."""
+    return {d for d in root.rglob("*") if d.is_dir() and sum(1 for _ in d.iterdir()) > CROWDED}
 
 
 def sha256(path: Path) -> str:
@@ -79,9 +88,12 @@ def stage(run: str, frames: bool) -> tuple[Path, dict]:
     for episode in sorted(src.glob("episode_*")):
         manifest["episodes"].append(episode.name)
         frame_files = []
+        per_frame = crowded(episode)
         for path in sorted(p for p in episode.rglob("*") if p.is_file() and not p.is_symlink()):
             rel = path.relative_to(episode)
             k = kind(rel)
+            if k == "result" and path.parent in per_frame:
+                k = "frames"
             if k == "scratch":
                 continue
             if k == "frames":
@@ -104,10 +116,11 @@ def stage(run: str, frames: bool) -> tuple[Path, dict]:
                     tar.add(path, arcname=str(path.relative_to(episode)))
             manifest["frames"][episode.name] = {"files": len(frame_files), "bytes": tar_path.stat().st_size,
                                                 "sha256": sha256(tar_path)}
-    # run-level files, e.g. the waterfall summary over all episodes
-    for path in sorted(p for p in src.iterdir() if p.is_file() and not p.is_symlink()):
-        dest.mkdir(parents=True, exist_ok=True)
-        os.link(path, dest / path.name)
+    # run-level files and folders, e.g. the waterfall summary, A2's canonical/<object>/ meshes
+    for path in sorted(p for p in src.rglob("*") if p.is_file() and not p.is_symlink()
+                       and not p.relative_to(src).parts[0].startswith("episode_")):
+        (dest / path.relative_to(src)).parent.mkdir(parents=True, exist_ok=True)
+        os.link(path, dest / path.relative_to(src))
         manifest["results"]["files"] += 1
         manifest["results"]["bytes"] += path.stat().st_size
     manifest["commits"] = sorted(manifest["commits"])
@@ -144,9 +157,10 @@ def list_runs() -> None:
               + f", uploaded {m['created_utc']}")
 
 
-def download(run: str, frames: bool) -> None:
+def download(run: str, frames: bool, episodes: list[int] | None = None) -> None:
     from huggingface_hub import snapshot_download
-    patterns = [f"{PREFIX}/{run}/**"]
+    patterns = ([f"{PREFIX}/{run}/MANIFEST.json"] + [f"{PREFIX}/{run}/episode_{e:06d}/**" for e in episodes]
+                if episodes else [f"{PREFIX}/{run}/**"])
     ignore = [] if frames else [f"{PREFIX}/{run}/**/frames.tar"]
     tmp = STAGING / f"download_{run}"
     snapshot_download(REPO_ID, repo_type="dataset", allow_patterns=patterns, ignore_patterns=ignore,
@@ -168,20 +182,63 @@ def download(run: str, frames: bool) -> None:
             shutil.copy2(path, target)
     shutil.copy2(src / "MANIFEST.json", dest / "MANIFEST.json")
     shutil.rmtree(tmp)
-    print(f"restored {run} into {dest}: {len(manifest['episodes'])} episodes"
+    print(f"restored {run} into {dest}: " + (f"episodes {episodes}" if episodes else f"{len(manifest['episodes'])} episodes")
           + (", with per-frame intermediates" if frames and manifest["frames"] else ", results only"))
 
 
+def uncovered(src: Path, remote: dict[str, int]) -> list[str]:
+    """Run-relative paths of src's regular files that Hugging Face does not hold, given remote
+    {run-relative path: size}: results missing there or of another size, frames whose episode has no
+    frames.tar there. Scratch copies are left out of uploads on purpose and not listed. With an empty
+    remote (the run was never uploaded) every regular file is listed."""
+    out = []
+    per_frame = crowded(src)
+    for path in sorted(p for p in src.rglob("*") if p.is_file() and not p.is_symlink()):
+        rel = path.relative_to(src)
+        if remote and rel.parts[0].startswith("episode_") and len(rel.parts) > 1:
+            k = kind(Path(*rel.parts[1:]))
+            if k == "result" and path.parent in per_frame:
+                k = "frames"
+            if k == "scratch" or (k == "frames" and f"{rel.parts[0]}/frames.tar" in remote):
+                continue
+        if remote.get(str(rel)) != path.stat().st_size:
+            out.append(str(rel))
+    return out
+
+
+def pending(run: str) -> None:
+    """Print the files of a local run that Hugging Face does not hold (uncovered)."""
+    from huggingface_hub import HfApi
+    from huggingface_hub.errors import EntryNotFoundError
+    from huggingface_hub.hf_api import RepoFile
+    src = OUTPUTS / run
+    if not src.is_dir():
+        raise SystemExit(f"no run folder {src}")
+    try:
+        tree = HfApi().list_repo_tree(REPO_ID, path_in_repo=f"{PREFIX}/{run}", repo_type="dataset", recursive=True)
+        remote = {f.path[len(PREFIX) + len(run) + 2:]: f.size for f in tree if isinstance(f, RepoFile)}
+    except EntryNotFoundError:
+        remote = {}
+    for rel in uncovered(src, remote):
+        print(rel)
+
+
 def main() -> None:
+    global OUTPUTS
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=("upload", "download", "list"))
+    parser.add_argument("command", choices=("upload", "download", "list", "pending"))
     parser.add_argument("--run", help="folder under path_b/data/outputs/, e.g. 4c2eac31")
     parser.add_argument("--frames", action="store_true", help="include the per-frame intermediates (frames.tar)")
+    parser.add_argument("--episodes", type=int, nargs="+", help="download: only these episodes of the run")
+    parser.add_argument("--outputs", type=Path, help=f"the runs' folder (default {OUTPUTS}); lets "
+                        "save_instance.sh run the Mac's copy of this script against an instance's checkout")
     args = parser.parse_args()
+    if args.outputs:
+        OUTPUTS = args.outputs.resolve()
     if args.command != "list" and not args.run:
         parser.error("--run is required")
-    {"upload": lambda: upload(args.run, args.frames), "download": lambda: download(args.run, args.frames),
-     "list": list_runs}[args.command]()
+    {"upload": lambda: upload(args.run, args.frames), "download": lambda: download(args.run, args.frames, args.episodes),
+     "list": list_runs, "pending": lambda: pending(args.run)}[args.command]()
 
 
 if __name__ == "__main__":

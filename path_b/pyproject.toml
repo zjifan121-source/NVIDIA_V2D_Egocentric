@@ -14,6 +14,10 @@ dependencies = [
     "fast_simplification>=0.1",
     "pillow",
     "networkx",  # trimesh's stable poses, used by stage 2's levelling (cleaned_bundle)
+    "rtree>=1.0",  # trimesh's nearest-surface queries (S5's contact hand-over check)
+    # Phase A2 (spec §11): TSDF fusion, ICP, Poisson. 0.19.0: 0.20's macOS wheel needs Homebrew's libusb.
+    "open3d==0.19.0",
+    "scikit-image>=0.24",  # A2.2's voxel-solid closing (marching cubes) when Poisson balloons
     # Path B's own: video decoding, undistortion, rectification, feature matching.
     "opencv-python-headless>=4.10",
 ]
