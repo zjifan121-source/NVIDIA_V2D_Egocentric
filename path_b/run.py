@@ -10,6 +10,7 @@ Run from the repo root (README in path_b/):
     uv run --project path_b python path_b/run.py standin --episodes 40 26 --out <run>  # Mac: stand-in GPU outputs
     uv run --project path_b python path_b/run.py analysis --episodes 40 26 --out <run> [--tag v2]  # after waterfall
     uv run --project path_b python path_b/run.py a2 --episodes 40 26 --out <run>  # A2.5: variants, decision
+    uv run --project path_b python path_b/run.py review --split all --out <run>  # phase-1 review page (after phase B)
     uv run --project path_b python path_b/run.py p2 --episodes 26 --out <run>  # phase 2 (two objects) -> <run>_p2
     uv run --project path_b python path_b/run.py canonical --object white_pot --split all --out <run>
                                                     # phase A2.2: after s3a2_fuse_scan, -> <run>/canonical/
@@ -42,7 +43,7 @@ def episodes(args) -> list[int]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("command", choices=("run", "waterfall", "visualize", "oracle", "pack", "canonical", "standin",
-                                            "analysis", "a2", "p2"))
+                                            "analysis", "a2", "p2", "review"))
     which = parser.add_mutually_exclusive_group(required=True)
     which.add_argument("--episodes", type=int, nargs="+")
     which.add_argument("--split", choices=("public", "evaluation", "all"))
@@ -83,6 +84,14 @@ def main() -> int:
         for problem in report["problems"]:
             print("  " + problem)
         return 0 if report["packed"] else 1
+
+    if args.command == "review":
+        from pathb import review
+        md, page, ranking = review.main(out, episodes(args))
+        print(f"review: {page}\n        {md}\nwhat to fix next, ranked (mean public AUC at stake):")
+        for i, r in enumerate(ranking, 1):
+            print(f"  {i}. {r['stage']}: {r['auc_at_stake']:.3f} ({len(r['episodes'])} episodes; {r['kind']}: {r['action']})")
+        return 0
 
     if args.command == "a2":
         from pathb import a2

@@ -61,6 +61,7 @@ def observation_cost(rollout: np.ndarray, reference: np.ndarray, observed: np.nd
     per_frame = np.nanmean(terms[frames], axis=1) if frames.any() else np.array([])
     return {"cost_m": float(per_frame.mean()) if len(per_frame) else None, "frames": int(frames.sum()),
             "termination_frames": int(terminated.any(axis=1).sum()),
+            "first_termination_frame": int(np.flatnonzero(terminated.any(axis=1))[0]) if terminated.any() else None,
             "median_position_error_m": float(np.nanmedian(np.where(terminated, np.nan, cost))) if frames.any() else None}
 
 

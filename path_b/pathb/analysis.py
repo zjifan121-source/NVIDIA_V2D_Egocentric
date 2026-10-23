@@ -25,6 +25,7 @@ import trimesh
 from . import gt
 from .paths import PATH_B, episode_info
 from .runner import Context
+from .team import scorer
 from .waterfall import SCAN, merged, raw_scene, scene
 
 ORACLE = PATH_B / "oracles/oracle_2026-10-17.json"
@@ -60,6 +61,13 @@ def variant_poses(root: Path, variant: str, names: list[str], frames: int, work:
     """(poses, meshes) of a waterfall column, rebuilt as the waterfall scores it."""
     if variant == "raw":
         return raw_scene(root, names, frames)
+    if variant.startswith("rollout_"):  # S6's rollout with S5's runner's meshes, as the waterfall scores it
+        rollout = root / f"s6_eval/{variant[8:]}/results/{root.name}.parquet"
+        mesh_dir = root / f"s5_task/{variant[8:]}/run/score_input/meshes/{root.name}"
+        if not (rollout.is_file() and mesh_dir.is_dir()):
+            return None
+        poses = scorer().evaluator_poses(rollout, episode_info(int(root.name[8:])))
+        return poses, {n: next(mesh_dir.glob(f"{n}.*")) for n in names}
     if variant.startswith("ref_"):
         bundles = {n: root / f"s4b_reference/{n}/{variant[4:]}" for n in names}
     elif variant.startswith("realised_"):
@@ -301,14 +309,14 @@ def flaws(eps: list[dict]) -> list[tuple[str, str]]:
     return out[:3]
 
 
-def episode_section(run: Path, number: int, read: list) -> dict:
+def episode_section(run: Path, number: int, read: list, best: str | None = None) -> dict:
     root = run / f"episode_{number:06d}"
     e = episode_info(number)
     names = [o["name"] for o in e["objects"]]
     wf = json.loads((root / "waterfall.json").read_text())
     scores = wf["scores"]
     orc, extra = oracle(number)
-    best = best_candidate(scores)
+    best = best or best_candidate(scores)
     still = scores.get("ref_still", {}).get("AUC")
     errs = frame_errors(root, e, [c for c in ("raw", "fused", best) if c], read)
     residual = []  # median depth residual per object, from S3b's own per-frame records (cm)
@@ -536,7 +544,7 @@ ol li { margin-bottom:8px }
 """
 
 
-def to_html(md: str, title: str) -> str:
+def to_html(md: str, title: str, css: str = "") -> str:
     """The subset of markdown this page uses (headings, paragraphs, tables, lists, quotes, bold, code;
     raw HTML blocks pass through)."""
     def inline(t: str) -> str:
@@ -579,7 +587,7 @@ def to_html(md: str, title: str) -> str:
             out.append(f"<p>{inline(ln)}</p>")
         i += 1
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" '
-            f'content="width=device-width,initial-scale=1"><title>{esc(title)}</title><style>{CSS}</style></head>'
+            f'content="width=device-width,initial-scale=1"><title>{esc(title)}</title><style>{CSS}{css}</style></head>'
             f'<body><main>{"".join(out)}</main></body></html>')
 
 
