@@ -54,12 +54,17 @@ def main(request_path: str) -> int:
     w, h = Image.open(files[0]).size
     pixels = w * h
     t0 = time.time()
-    predictor = build_sam3_multiplex_video_predictor()
+    try:  # FlashAttention 3 (the builder's default) exists for Hopper GPUs only; the L40S is Ada
+        import flash_attn_interface  # noqa: F401
+        fa3 = torch.cuda.get_device_capability()[0] >= 9
+    except ImportError:
+        fa3 = False
+    predictor = build_sam3_multiplex_video_predictor(use_fa3=fa3)
     # the pinned SAM 3 base predictor passes offload_state_to_cpu to init_state, which the multiplex
     # model's init_state does not take: pass on only the arguments it declares
     init, takes = predictor.model.init_state, set(inspect.signature(predictor.model.init_state).parameters)
     predictor.model.init_state = lambda **kw: init(**{k: v for k, v in kw.items() if k in takes})
-    meta = {"model": "sam3.1 (build_sam3_multiplex_video_predictor)", "frames": n, "size": [w, h],
+    meta = {"model": "sam3.1 (build_sam3_multiplex_video_predictor)", "use_fa3": fa3, "frames": n, "size": [w, h],
             "load_seconds": round(time.time() - t0, 1), "tracks": {}}
     session = predictor.handle_request(dict(type="start_session", resource_path=str(frames),
                                             offload_video_to_cpu=True))["session_id"]
