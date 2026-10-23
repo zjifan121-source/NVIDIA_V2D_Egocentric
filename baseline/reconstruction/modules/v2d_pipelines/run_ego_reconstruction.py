@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+# Modified for V2D Track 3 by Haisen Kang, 2026-10: --object_segmenter sam3 / --sam3_weights passed to run_ego_wilor.
 """Unified egocentric reconstruction entrypoint.
 
 This script keeps the old pipeline scripts untouched and maps a smaller public
@@ -574,6 +575,14 @@ def parse_args() -> argparse.Namespace:
         "--video", "--video_path", dest="video", required=True, help="Input MP4 video."
     )
     p.add_argument("--object_prompt", "--prompt", dest="object_prompt", required=True)
+    p.add_argument(
+        "--object_segmenter",
+        choices=("dino_sam2", "sam3"),
+        default="dino_sam2",
+        help="Object masks: Grounding DINO box + SAM2 (default), or SAM 3 from the prompt alone "
+        "(needs V2D_SAM3_PYTHON; modules/v2d_t3_sam3/README.md). Hands always use SAM2.",
+    )
+    p.add_argument("--sam3_weights", default="data/weights/sam3", help="Folder with sam3.pt (facebook/sam3).")
     p.add_argument("--output_dir", required=True)
     p.add_argument(
         "--object_mesh", "--object_mesh_path", dest="object_mesh", default=None
@@ -699,6 +708,8 @@ def _validate_args(args: argparse.Namespace) -> None:
             unsupported.append("--object_mesh")
         if args.run_gsplat_refinement:
             unsupported.append("--run_gsplat_refinement")
+        if args.object_segmenter != "dino_sam2":
+            unsupported.append("--object_segmenter")
         if unsupported:
             joined = ", ".join(unsupported)
             raise ValueError(
@@ -765,6 +776,8 @@ def _run_hamer(args: argparse.Namespace) -> Path:
         object_mesh_path=args.object_mesh,
         skip_object_scale_estimation=args.skip_object_scale_estimation,
         grounding_dino_weights=args.grounding_dino_weights,
+        object_segmenter=args.object_segmenter,
+        sam3_weights=args.sam3_weights,
         sam3d_weights=args.sam3d_weights,
         foundation_pose_weights=args.foundation_pose_weights,
         reregister_iou_thresh=args.reregister_iou_thresh,

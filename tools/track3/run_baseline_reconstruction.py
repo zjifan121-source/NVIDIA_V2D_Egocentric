@@ -69,6 +69,9 @@ def main() -> int:
                         help="re-detect the object when its rendered mask overlaps SAM2's less than this (pipeline default 0.3)")
     parser.add_argument("--late-hands", action="store_true",
                         help="also track a second hand that enters after the reference frame")
+    parser.add_argument("--object-segmenter", choices=("dino_sam2", "sam3"), default="dino_sam2",
+                        help="object masks: Grounding DINO + SAM2 (default) or SAM 3 from the prompt alone; needs "
+                             "V2D_SAM3_PYTHON (baseline/reconstruction/modules/v2d_t3_sam3/README.md)")
     parser.add_argument("--dev", action="store_true", help="mount local module code over the images (as the Hyperstack runs do)")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -109,6 +112,8 @@ def main() -> int:
             cmd += ["--reregister_iou_thresh", str(args.reregister_iou)]
         if args.late_hands:
             cmd.append("--late_hand_prompts")
+        if args.object_segmenter != "dino_sam2":
+            cmd += ["--object_segmenter", args.object_segmenter]
         if args.dev:
             cmd.append("--dev")
         print(f"\n== episode {args.episode} / {obj['name']} (prompt {obj['prompt']!r}) -> {out}", flush=True)
@@ -128,7 +133,7 @@ def main() -> int:
         record = {"episode": args.episode, "split": episode["split"], "object": obj["name"],
                   "prompt": obj["prompt"], "reference_frame": args.reference_frame, "command": cmd,
                   "seed": str(args.seed) if args.seed else None, "scan_mesh": args.scan_mesh,
-                  "reregister_iou": args.reregister_iou,
+                  "reregister_iou": args.reregister_iou, "object_segmenter": args.object_segmenter,
                   "git_commit": commit, "git_dirty": dirty, "branch": branch,
                   "container_runtime": os.environ.get("V2D_CONTAINER_RUNTIME", "docker"),
                   "started_utc": datetime.now(timezone.utc).isoformat(timespec="seconds")}
