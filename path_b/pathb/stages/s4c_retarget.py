@@ -86,7 +86,7 @@ def run(ctx) -> StageResult:
             log = out / "daid.log"
             log.write_text("")
             run_logged([mano_py, PATH_B / "pathb/drivers/mano_world.py", src, out / "mano_world.npz",
-                        PATH_B.parent / "baseline/reconstruction/data/weights/hand"], log)
+                        os.environ.get("MANO_DIR", PATH_B.parent / "baseline/reconstruction/data/weights/hand")], log)
             mano = dict(np.load(out / "mano_world.npz"))
             ref = np.load(src / "result.npz")["object_to_world_transform"].astype(np.float64)
             meta = daid.prepare(ref, mano, out / "input", TRACK3_FPS)

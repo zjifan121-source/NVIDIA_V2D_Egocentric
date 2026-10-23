@@ -18,3 +18,21 @@ def retarget_tools():
 def scorer():
     import score_local
     return score_local
+
+
+def lr_command(ctx_public: bool, args: list) -> tuple[list[str], dict]:
+    """(command, environment) running run_load_retarget.py through pathb/drivers/run_lr.py in
+    $RETARGET_VENV: scans blanked on evaluation episodes (PATHB_NO_SCANS), the device from
+    $RETARGET_DEVICE when set (cpu on the Mac), MANO_DIR passed through."""
+    import os
+    from .paths import PATH_B
+    venv = os.environ.get("RETARGET_VENV")
+    if not venv:
+        raise RuntimeError("set RETARGET_VENV to the stages 2-3 environment (README §5.12)")
+    env = dict(os.environ)
+    env.pop("PATHB_NO_SCANS", None)
+    if not ctx_public:
+        env["PATHB_NO_SCANS"] = "1"
+    device = os.environ.get("RETARGET_DEVICE")
+    cmd = [f"{venv}/bin/python", str(PATH_B / "pathb/drivers/run_lr.py"), *map(str, args)]
+    return cmd + (["--device", device] if device else []), env

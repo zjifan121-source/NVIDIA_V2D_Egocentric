@@ -15,18 +15,17 @@ import subprocess
 import numpy as np
 
 from ..bundle import p4_bundle
-from ..paths import PATH_B, REPO
+from ..paths import REPO
+from ..team import lr_command
 from ..report import Metric, StageResult
 from .. import gt
 
 
-def command(ctx, venv: str, out) -> list[str]:
-    """The runner; on evaluation episodes through drivers/run_lr.py, so its bundle check reads no scan."""
-    py = f"{venv}/bin/python"
+def command(ctx, out) -> tuple[list[str], dict]:
+    """The runner through drivers/run_lr.py (team.lr_command): no scan read on evaluation episodes."""
     name = ctx.objects[0]
-    bundle = p4_bundle(ctx, name)
-    script = REPO / "tools/track3/run_load_retarget.py" if ctx.public else PATH_B / "pathb/drivers/run_lr.py"
-    return [py, str(script), "--bundle", str(bundle), "--episode", str(ctx.number), "--object", name, "--out", str(out)]
+    return lr_command(ctx.public, ["--bundle", p4_bundle(ctx, name), "--episode", ctx.number, "--object", name,
+                                   "--out", out])
 
 
 def worst_seating(value) -> float | None:
@@ -39,15 +38,13 @@ def run(ctx) -> StageResult:
     if len(ctx.objects) > 1:
         return StageResult([], skip="two-object scene: assembled with run_load_retarget.py --merge in S5 mode A "
                                     "(task 15); v2's merge runner is parked in cache/v2/")
-    venv = os.environ.get("RETARGET_VENV")
-    if not venv:
-        raise RuntimeError("set RETARGET_VENV to the stages 2-3 environment (README §5.12)")
     d = ctx.dir("s23_load_retarget")
     out = d / "run"
     if out.exists():
         shutil.rmtree(out)  # the bundle changed, or this stage would have been kept
     with open(d / "stdout.log", "w") as log:
-        result = subprocess.run(command(ctx, venv, out), cwd=REPO, stdout=log, stderr=subprocess.STDOUT)
+        cmd, env = command(ctx, out)
+        result = subprocess.run(cmd, cwd=REPO, env=env, stdout=log, stderr=subprocess.STDOUT)
     if result.returncode:
         tail = "\n".join((d / "stdout.log").read_text().splitlines()[-15:])
         raise RuntimeError(f"run_load_retarget failed (exit {result.returncode}):\n{tail}")

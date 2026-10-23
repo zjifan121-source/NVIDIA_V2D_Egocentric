@@ -1,8 +1,8 @@
 """S5 task file: FlashCHORD's ManoSharpa parquet per candidate (V3_BUILD_SPEC.md S5).
 
-Each candidate's scene comes from the team's runner (tools/track3/run_load_retarget.py in $RETARGET_VENV;
-on evaluation episodes through pathb/drivers/run_lr.py, which reads no public scan): object URDF and
-mesh, support USD, the MANO fields and an IK robot.
+Each candidate's scene comes from the team's runner (tools/track3/run_load_retarget.py in $RETARGET_VENV,
+through pathb/drivers/run_lr.py: no public scan on evaluation episodes, $RETARGET_DEVICE, $MANO_DIR):
+object URDF and mesh, support USD, the MANO fields and an IK robot.
 - Mode B (keyframe and tracking, when S4c's gate takes the realised trajectory): the runner on S4c's
   realised bundle with --no-rest-hold --no-object-clean --no-level (the object stays where the physics
   left it, next to DaiD's hands); then the parquet's robot and contacts become DaiD's: wrists, the 22
@@ -40,7 +40,8 @@ import trimesh
 from scipy.spatial.transform import Rotation
 
 from .. import fk, gt
-from ..paths import PATH_B, REPO, TOOLS_TRACK3, TRACK3_FPS
+from ..paths import PATH_B, REPO, TRACK3_FPS
+from ..team import lr_command
 from ..report import Metric, StageResult
 from ..runner import write_json
 from .s23_load_retarget import worst_seating
@@ -94,12 +95,14 @@ def choose(ctx, cand: str) -> dict:
 
 
 def runner(ctx, bundles: dict, flags: list, seq: str, out: Path) -> dict:
-    """run_load_retarget.py on the candidate's bundle(s); its report."""
-    venv = retarget_venv()
-    script = TOOLS_TRACK3 / "run_load_retarget.py" if ctx.public else PATH_B / "pathb/drivers/run_lr.py"
-    cmd = [f"{venv}/bin/python", script, "--episode", ctx.number, "--sequence-id", seq, "--out", out,
-           "--skip-video", *flags]
-    env = dict(os.environ)
+    """run_load_retarget.py on the candidate's bundle(s) (team.lr_command); its report."""
+    args = ["--episode", ctx.number, "--sequence-id", seq, "--out", out, "--skip-video", *flags]
+    if len(bundles) == 1:
+        name, bundle = next(iter(bundles.items()))
+        args += ["--object", name, "--bundle", bundle]
+    else:
+        args += ["--merge"]
+    cmd, env = lr_command(ctx.public, args)
     if len(bundles) > 1:
         ns = out.parent / "ns" / f"episode_{ctx.number:06d}"
         ns.mkdir(parents=True, exist_ok=True)
@@ -109,10 +112,6 @@ def runner(ctx, bundles: dict, flags: list, seq: str, out: Path) -> dict:
                 link.unlink()
             link.symlink_to(Path(bundle).resolve())
         env["V2D_BUNDLE_NS"] = str(ns.parent)  # run_load_retarget.bundle_dir_for: an absolute path replaces the hub
-        cmd += ["--merge"]
-    else:
-        name, bundle = next(iter(bundles.items()))
-        cmd += ["--object", name, "--bundle", bundle]
     if out.exists():
         shutil.rmtree(out)  # inputs changed, or this stage would have been kept
     log = out.parent / "runner.log"
