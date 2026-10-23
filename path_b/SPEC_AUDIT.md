@@ -125,6 +125,10 @@ the spec as written:
 8. **S4c settings and embodiment rule** (spec silent): the realised trajectory, when the gate takes it.
 9. **A2** (built, not adopted): would replace the mesh and the track for everything after A2.5 if it wins.
 10. **S7 mesh check by geometry, not file hash**, and the team packer instead of the kit command (task 16): a mesh that changed between S3a and the packer still stops the pack.
+11. **S4c MPC settings cut** (256 samples, 1.6 s horizon, 0.4 s control step, ≤ 16 iterations instead of DaiD's
+    override): the realised trajectory, when the gate takes it, and through it S5's task and S6's policy.
+12. **P1b hand-mask cleaning and P1d's depth handling**: the hands every later stage uses (S4a phases, S4c,
+    S5's contacts and wrists, S6's training).
 
 ## Differences that are internal only
 
