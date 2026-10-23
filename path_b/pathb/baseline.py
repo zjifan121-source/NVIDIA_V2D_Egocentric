@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import cv2
@@ -15,14 +17,35 @@ from .paths import HOST_PY, PATH_B, RECON, TRACK3_FPS
 WEIGHTS = RECON / "data/weights"
 
 
+def shim() -> Path:
+    """path_b/data/shim/v2d/common -> the baseline's v2d_common, for machines without the baseline
+    host venv (the Mac): its CPU-only functions (result_bundle) then run in path_b's own Python."""
+    root = PATH_B / "data/shim"
+    common = root / "v2d/common"
+    if not common.exists():
+        common.parent.mkdir(parents=True, exist_ok=True)
+        (common.parent / "__init__.py").write_text("")
+        common.symlink_to(RECON / "modules/v2d_common")
+    return root
+
+
+def interpreter(function: str) -> tuple[str, dict]:
+    if HOST_PY.exists():
+        return str(HOST_PY), dict(os.environ)
+    if function.startswith("v2d.common."):
+        return sys.executable, dict(os.environ, PYTHONPATH=str(shim()))
+    raise RuntimeError(f"{function} needs the baseline host venv ({HOST_PY}): run it on the GPU machine")
+
+
 def call(function: str, kwargs: dict, log: Path) -> None:
     """One baseline wrapper call; its output goes to `log`. Raises with the log's tail on failure."""
     spec = log.with_suffix(".call.json")
     spec.write_text(json.dumps({"function": function, "kwargs": {k: str(v) if isinstance(v, Path) else v
                                                                   for k, v in kwargs.items()}}, indent=1) + "\n")
+    py, env = interpreter(function)
     with open(log, "a") as f:
-        rc = subprocess.run([str(HOST_PY), str(PATH_B / "pathb/drivers/baseline_call.py"), str(spec)],
-                            cwd=RECON, stdout=f, stderr=subprocess.STDOUT).returncode
+        rc = subprocess.run([py, str(PATH_B / "pathb/drivers/baseline_call.py"), str(spec)],
+                            cwd=RECON, env=env, stdout=f, stderr=subprocess.STDOUT).returncode
     if rc:
         tail = "\n".join(log.read_text().splitlines()[-20:])
         raise RuntimeError(f"{function} failed (exit {rc}); last lines of {log}:\n{tail}")

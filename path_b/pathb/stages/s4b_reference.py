@@ -39,8 +39,9 @@ def inputs(ctx, name: str, data: dict) -> tuple[np.ndarray, np.ndarray, np.ndarr
         trusted = None
         meta = ctx.root / f"s3b_track/{name}/track_meta.json"
         if meta.is_file():
-            frames = json.loads(meta.read_text())["frames"]
-            trusted = np.array([f["iou"] >= R.TRUST_IOU and not f["recovered"] for f in frames])
+            rows = {f["frame"]: f for f in json.loads(meta.read_text())["frames"]}
+            trusted = np.array([(rows.get(t, {}).get("iou") or 0.0) >= R.TRUST_IOU and not rows.get(t, {}).get("recovered")
+                                for t in range(len(T))])
         return T, before, after, trusted, "s3c_fuse"
     T = data["object_to_world_transform"].astype(np.float64)
     rb, ra = phases["rest_before"], phases["rest_after"]
