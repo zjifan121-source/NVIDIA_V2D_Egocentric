@@ -200,10 +200,15 @@ def main(request_path: str) -> int:
     realised = realised_frames(model, data, obj_bodies, q_all, np.asarray(traj["time"]).reshape(-1),
                                np.arange(req["n_video"]) / req["video_fps"])
     np.savez(Path(root) / "realised_frames.npz", **realised)
+    # DaiD's errors mix scalars and per-frame series (tracking_error.py): means here, series in a file
+    series = {k: np.asarray(v, dtype=np.float64) for k, v in (errors or {}).items() if np.ndim(v)}
+    if series:
+        np.savez(Path(root) / "tracking_errors.npz", **series)
+    errors = {k: float(np.mean(np.asarray(v, dtype=np.float64))) for k, v in (errors or {}).items()}
     (Path(root) / "daid_summary.json").write_text(json.dumps({
         "penetration_max_m": float(max(depths)) if depths else None,
         "penetration_p95_m": float(np.percentile(depths, 95)) if depths else None,
-        "errors": {k: float(v) for k, v in (errors or {}).items()}, "qpos_joint_names": names,
+        "errors": errors, "qpos_joint_names": names,
         "trajectory": str(robot_dir / "trajectory_mjwp.npz"), "scene": config.model_path,
         "realised_frames": str(Path(root) / "realised_frames.npz"),
         "contacts": int(len(realised["contact_frame"])),
