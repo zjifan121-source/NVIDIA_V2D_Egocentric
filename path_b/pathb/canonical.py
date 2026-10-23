@@ -245,7 +245,9 @@ def bottom_cap(points: np.ndarray, band: float = 0.01) -> tuple[np.ndarray, np.n
 
 def poisson(points: np.ndarray, normals: np.ndarray) -> o3d.geometry.TriangleMesh:
     pc = S.cloud(points, normals).voxel_down_sample(S.VOXEL)
-    mesh, density = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pc, depth=POISSON_DEPTH)
+    # one thread: Open3D's OpenMP next to another library's (sklearn, via the scorer) crashed in
+    # Poisson on macOS, and a single thread is deterministic
+    mesh, density = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pc, depth=POISSON_DEPTH, n_threads=1)
     labels, counts, _ = mesh.cluster_connected_triangles()  # Poisson can leave small closed bubbles
     keep = int(np.argmax(np.asarray(counts)))
     vertex_keep = np.zeros(len(mesh.vertices), bool)
