@@ -99,3 +99,18 @@ def scan_obj(episode: dict, name: str, out: Path, read: list) -> Path:
         sys.path.insert(0, str(TOOLS_TRACK3))
     import run_baseline_reconstruction
     return run_baseline_reconstruction.scan_obj(name, out)
+
+
+def cdo_cm(episode: dict, name: str, vertices: np.ndarray, faces: np.ndarray, read: list) -> float:
+    """The official CD-O (cm) of a mesh against the object's scan, as tools/track3/eval_mesh.py
+    computes it (score_local's reference object and the kit's CD-O code)."""
+    allowed(episode)
+    path = scan(name)
+    if path is None:
+        raise FileNotFoundError(f"no public scan for {name}")
+    read.append(path)
+    S = scorer()
+    ref = S.reference_object(name)
+    return float(S.metric_module("CD-O")._object_chamfer_cm(
+        (ref["vertices"], ref["faces"]), (np.asarray(vertices), np.asarray(faces, dtype=np.int64)),
+        1000 * int(episode["episode"]) + 7))
