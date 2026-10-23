@@ -87,6 +87,27 @@ def scan_mesh(episode: dict, name: str, read: list) -> tuple[np.ndarray, np.ndar
     return np.asarray(ref["vertices"], dtype=np.float64), np.asarray(ref["faces"], dtype=np.int64)
 
 
+def scan_in_frame(episode: dict, name: str, vertices: np.ndarray, faces: np.ndarray, read: list
+                  ) -> tuple[np.ndarray, np.ndarray] | None:
+    """The scan at its true size placed in a mesh's own frame, as the official Track 3 metric registers
+    that mesh to the scan (surface centroids, then _align_rigid on size-normalised samples): the scan's
+    points p go to cc + R^T (p - rc - offset), without the metric's division by the size ratio. Scored
+    with the mesh's poses it is the pose-only ceiling: a perfect mesh where ours is (not submittable)."""
+    ref = scan_mesh(episode, name, read)
+    if ref is None:
+        return None
+    M = scorer().metric_module("AUC")
+    cv, cf = np.asarray(vertices, dtype=np.float64), np.asarray(faces, dtype=np.int64)
+    rv, rf = ref
+    cc, cr = M._surface_moments(cv, cf)
+    rc, rr = M._surface_moments(rv, rf)
+    seed = 1000 * int(episode["episode"]) + 11
+    cp = (M._sample_mesh_surface(cv, cf, 3000, seed) - cc) * (rr / cr)
+    rp = M._sample_mesh_surface(rv, rf, 3000, seed) - rc
+    R, offset = M._align_rigid(rp, cp)
+    return cc + (rv - rc - offset) @ R, rf
+
+
 def rescale_by_scan(episode: dict, name: str, read: list) -> str:
     """Permission for run_load_retarget's --rescale-by-scan (cleaned_bundle(rescale_by_scan=name))."""
     allowed(episode)

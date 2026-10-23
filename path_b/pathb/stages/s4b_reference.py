@@ -34,15 +34,27 @@ def inputs(ctx, name: str, data: dict) -> tuple[np.ndarray, np.ndarray, np.ndarr
     if (fused / "object_to_world.npz").is_file():
         T = np.load(fused / "object_to_world.npz")["object_to_world"]
         anchors = json.loads((fused / "anchors.json").read_text())
-        before = np.array(anchors["rest_before"]["pose"])
-        after = np.array(anchors["rest_after"]["pose"]) if anchors.get("rest_after") else None
+        source = "s3c_fuse"
+        # S3c leaves an anchor out when no rest frame passes its 2 cm depth-residual test; the
+        # window's own rest anchor over the fused track stands in, and the source says so
+        missing = [k for k in ("rest_before", "rest_after") if phases.get(k) and not anchors.get(k)]
+        def anchor(key):
+            if anchors.get(key):
+                return np.array(anchors[key]["pose"])
+            w = phases.get(key)
+            return fuse.rest_anchor(T[w[0]:w[1] + 1]) if w else None
+        before = anchor("rest_before")
+        before = T[0] if before is None else before
+        after = anchor("rest_after")
+        if missing:
+            source += f" ({' and '.join(missing)} anchor from the fused track: no frame within S3c's depth-residual bar)"
         trusted = None
         meta = ctx.root / f"s3b_track/{name}/track_meta.json"
         if meta.is_file():
             rows = {f["frame"]: f for f in json.loads(meta.read_text())["frames"]}
             trusted = np.array([(rows.get(t, {}).get("iou") or 0.0) >= R.TRUST_IOU and not rows.get(t, {}).get("recovered")
                                 for t in range(len(T))])
-        return T, before, after, trusted, "s3c_fuse"
+        return T, before, after, trusted, source
     T = data["object_to_world_transform"].astype(np.float64)
     rb, ra = phases["rest_before"], phases["rest_after"]
     before = fuse.rest_anchor(T[rb[0]:rb[1] + 1]) if rb else T[0]
