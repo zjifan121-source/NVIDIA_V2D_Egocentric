@@ -1,0 +1,518 @@
+{
+ "source": {
+  "do_as_i_do": "malik-group/do-as-i-do@824591b808c3 retargeting/retargeting/assets/robots/sharpa/<side>.xml",
+  "flash_chord": "baseline/robotic_grounding/flash_chord/src/flash_chord/assets/urdfs/sharpawave/<side>_sharpawave.urdf"
+ },
+ "note": "finger joints of both models, matched by name; DaiD adds 6 wrist DoF (<side>_pos_x/y/z, <side>_rot_x/y/z)",
+ "right": {
+  "finger_joints": [
+   {
+    "joint": "right_thumb_CMC_FE",
+    "flash_chord_limits": [
+     -0.1745,
+     1.9199
+    ],
+    "daid_limits": [
+     -0.1745,
+     1.9199
+    ]
+   },
+   {
+    "joint": "right_thumb_CMC_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "right_thumb_MCP_FE",
+    "flash_chord_limits": [
+     -0.5236,
+     1.3963
+    ],
+    "daid_limits": [
+     -0.5236,
+     1.3963
+    ]
+   },
+   {
+    "joint": "right_thumb_MCP_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "right_thumb_IP",
+    "flash_chord_limits": [
+     0.0,
+     1.7453
+    ],
+    "daid_limits": [
+     0.0,
+     1.7453
+    ]
+   },
+   {
+    "joint": "right_index_MCP_FE",
+    "flash_chord_limits": [
+     -0.17453293,
+     1.5708
+    ],
+    "daid_limits": [
+     -0.17453293,
+     1.5708
+    ]
+   },
+   {
+    "joint": "right_index_MCP_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "right_index_PIP",
+    "flash_chord_limits": [
+     0.0,
+     1.7453
+    ],
+    "daid_limits": [
+     0.0,
+     1.7453
+    ]
+   },
+   {
+    "joint": "right_index_DIP",
+    "flash_chord_limits": [
+     0.0,
+     1.3963
+    ],
+    "daid_limits": [
+     0.0,
+     1.3963
+    ]
+   },
+   {
+    "joint": "right_middle_MCP_FE",
+    "flash_chord_limits": [
+     -0.17453293,
+     1.5708
+    ],
+    "daid_limits": [
+     -0.17453293,
+     1.5708
+    ]
+   },
+   {
+    "joint": "right_middle_MCP_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "right_middle_PIP",
+    "flash_chord_limits": [
+     0.0,
+     1.7453
+    ],
+    "daid_limits": [
+     0.0,
+     1.7453
+    ]
+   },
+   {
+    "joint": "right_middle_DIP",
+    "flash_chord_limits": [
+     0.0,
+     1.3963
+    ],
+    "daid_limits": [
+     0.0,
+     1.3963
+    ]
+   },
+   {
+    "joint": "right_ring_MCP_FE",
+    "flash_chord_limits": [
+     -0.17453293,
+     1.5708
+    ],
+    "daid_limits": [
+     -0.17453293,
+     1.5708
+    ]
+   },
+   {
+    "joint": "right_ring_MCP_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "right_ring_PIP",
+    "flash_chord_limits": [
+     0.0,
+     1.7453
+    ],
+    "daid_limits": [
+     0.0,
+     1.7453
+    ]
+   },
+   {
+    "joint": "right_ring_DIP",
+    "flash_chord_limits": [
+     0.0,
+     1.3963
+    ],
+    "daid_limits": [
+     0.0,
+     1.3963
+    ]
+   },
+   {
+    "joint": "right_pinky_CMC",
+    "flash_chord_limits": [
+     0.0,
+     0.2618
+    ],
+    "daid_limits": [
+     0.0,
+     0.2618
+    ]
+   },
+   {
+    "joint": "right_pinky_MCP_FE",
+    "flash_chord_limits": [
+     -0.17453293,
+     1.5708
+    ],
+    "daid_limits": [
+     -0.17453293,
+     1.5708
+    ]
+   },
+   {
+    "joint": "right_pinky_MCP_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "right_pinky_PIP",
+    "flash_chord_limits": [
+     0.0,
+     1.7453
+    ],
+    "daid_limits": [
+     0.0,
+     1.7453
+    ]
+   },
+   {
+    "joint": "right_pinky_DIP",
+    "flash_chord_limits": [
+     0.0,
+     1.3963
+    ],
+    "daid_limits": [
+     0.0,
+     1.3963
+    ]
+   }
+  ],
+  "daid_only_joints": [
+   "right_pos_x",
+   "right_pos_y",
+   "right_pos_z",
+   "right_rot_x",
+   "right_rot_y",
+   "right_rot_z"
+  ],
+  "unexpected": []
+ },
+ "left": {
+  "finger_joints": [
+   {
+    "joint": "left_thumb_CMC_FE",
+    "flash_chord_limits": [
+     -0.1745,
+     1.9199
+    ],
+    "daid_limits": [
+     -0.1745,
+     1.9199
+    ]
+   },
+   {
+    "joint": "left_thumb_CMC_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "left_thumb_MCP_FE",
+    "flash_chord_limits": [
+     -0.5236,
+     1.3963
+    ],
+    "daid_limits": [
+     -0.5236,
+     1.3963
+    ]
+   },
+   {
+    "joint": "left_thumb_MCP_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "left_thumb_IP",
+    "flash_chord_limits": [
+     0.0,
+     1.7453
+    ],
+    "daid_limits": [
+     0.0,
+     1.7453
+    ]
+   },
+   {
+    "joint": "left_index_MCP_FE",
+    "flash_chord_limits": [
+     -0.17453293,
+     1.5708
+    ],
+    "daid_limits": [
+     -0.17453293,
+     1.5708
+    ]
+   },
+   {
+    "joint": "left_index_MCP_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "left_index_PIP",
+    "flash_chord_limits": [
+     0.0,
+     1.7453
+    ],
+    "daid_limits": [
+     0.0,
+     1.7453
+    ]
+   },
+   {
+    "joint": "left_index_DIP",
+    "flash_chord_limits": [
+     0.0,
+     1.3963
+    ],
+    "daid_limits": [
+     0.0,
+     1.3963
+    ]
+   },
+   {
+    "joint": "left_middle_MCP_FE",
+    "flash_chord_limits": [
+     -0.17453293,
+     1.5708
+    ],
+    "daid_limits": [
+     -0.17453293,
+     1.5708
+    ]
+   },
+   {
+    "joint": "left_middle_MCP_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "left_middle_PIP",
+    "flash_chord_limits": [
+     0.0,
+     1.7453
+    ],
+    "daid_limits": [
+     0.0,
+     1.7453
+    ]
+   },
+   {
+    "joint": "left_middle_DIP",
+    "flash_chord_limits": [
+     0.0,
+     1.3963
+    ],
+    "daid_limits": [
+     0.0,
+     1.3963
+    ]
+   },
+   {
+    "joint": "left_ring_MCP_FE",
+    "flash_chord_limits": [
+     -0.17453293,
+     1.5708
+    ],
+    "daid_limits": [
+     -0.17453293,
+     1.5708
+    ]
+   },
+   {
+    "joint": "left_ring_MCP_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "left_ring_PIP",
+    "flash_chord_limits": [
+     0.0,
+     1.7453
+    ],
+    "daid_limits": [
+     0.0,
+     1.7453
+    ]
+   },
+   {
+    "joint": "left_ring_DIP",
+    "flash_chord_limits": [
+     0.0,
+     1.3963
+    ],
+    "daid_limits": [
+     0.0,
+     1.3963
+    ]
+   },
+   {
+    "joint": "left_pinky_CMC",
+    "flash_chord_limits": [
+     0.0,
+     0.2618
+    ],
+    "daid_limits": [
+     0.0,
+     0.2618
+    ]
+   },
+   {
+    "joint": "left_pinky_MCP_FE",
+    "flash_chord_limits": [
+     -0.17453293,
+     1.5708
+    ],
+    "daid_limits": [
+     -0.17453293,
+     1.5708
+    ]
+   },
+   {
+    "joint": "left_pinky_MCP_AA",
+    "flash_chord_limits": [
+     -0.3491,
+     0.3491
+    ],
+    "daid_limits": [
+     -0.3491,
+     0.3491
+    ]
+   },
+   {
+    "joint": "left_pinky_PIP",
+    "flash_chord_limits": [
+     0.0,
+     1.7453
+    ],
+    "daid_limits": [
+     0.0,
+     1.7453
+    ]
+   },
+   {
+    "joint": "left_pinky_DIP",
+    "flash_chord_limits": [
+     0.0,
+     1.3963
+    ],
+    "daid_limits": [
+     0.0,
+     1.3963
+    ]
+   }
+  ],
+  "daid_only_joints": [
+   "left_pos_x",
+   "left_pos_y",
+   "left_pos_z",
+   "left_rot_x",
+   "left_rot_y",
+   "left_rot_z"
+  ],
+  "unexpected": []
+ },
+ "unmatched": []
+}

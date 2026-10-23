@@ -1,0 +1,29 @@
+# S4c (Do as I Do) settings: names as in do-as-i-do retargeting/config/default.yaml and
+# config/override/do_as_i_do.yaml. Values are DaiD's own do_as_i_do override unless marked
+# "default:" (V3_BUILD_SPEC.md S4c knobs). Read by pathb/drivers/daid_run.py in the daid venv;
+# the stage adds per-episode values (warmup_duration from S4a's rest-before window).
+optimizer:
+  horizon: 3.0               # s, planning horizon (DaiD override)
+  num_samples: 1024          # sampled control sequences per iteration (DaiD override)
+  ctrl_dt: 0.5               # s, control step (DaiD override)
+  terminal_rew_scale: 10.0   # failure/terminal weight (DaiD override)
+  sim_dt: 0.005              # s (DaiD override)
+  ref_dt: 0.02               # default: S4c resamples the 20.254 Hz video reference to 50 Hz = 4 sim steps
+  max_sim_steps: 0           # 0 = the full (padded) trajectory
+  seed: 0
+warmup:
+  # default: the weld lasts the rest-before window (set per episode); DaiD's override uses 3.0 s
+  ref_interp_max: 3.0        # s, cap of warmup_ref_{base,finger}_interp_duration (DaiD override)
+scene:
+  # the table is the MuJoCo floor at z = 0 (spec): objects and hands collide with it, no pedestal
+  object_floor_collision: true
+  hand_floor_collision: true
+  use_pedestal: false
+  use_support: false
+  add_ur3_arm: false         # FlashCHORD's Sharpa Wave hands float; no UR3 wrist cylinder
+  friction_scale: 1.5        # launch.py's value
+decompose:
+  thicken: 0.002             # launch.py's values; S3a's CoACD pieces are used as they are
+  dilate: 0.002
+ik:
+  smoothing: true            # launch.py's value
