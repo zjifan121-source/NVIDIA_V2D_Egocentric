@@ -88,3 +88,35 @@ def plane_in(T: np.ndarray, normal: np.ndarray, d: float) -> tuple[np.ndarray, f
     """The plane n.X + d = 0 in another frame, where X_new = T X (4x4 rigid)."""
     n = T[:3, :3] @ np.asarray(normal, float)
     return n, float(d - n @ T[:3, 3])
+
+
+def read_transform(path: Path) -> tuple[np.ndarray, np.ndarray]:
+    """A Transform3d JSON (the baseline's pose files: rotation wxyz, translation, scale) as
+    (4x4 rigid matrix, per-axis scale); the baseline's matrix is rigid @ diag(scale)."""
+    import json
+    from scipy.spatial.transform import Rotation
+    d = json.loads(Path(path).read_text())
+    w, x, y, z = d["rotation"]
+    T = np.eye(4)
+    T[:3, :3] = Rotation.from_quat([x, y, z, w]).as_matrix()
+    T[:3, 3] = d["translation"]
+    return T, np.asarray(d.get("scale", [1.0, 1.0, 1.0]), dtype=np.float64)
+
+
+def write_transform(path: Path, T: np.ndarray, scale=(1.0, 1.0, 1.0)) -> None:
+    import json
+    from scipy.spatial.transform import Rotation
+    x, y, z, w = Rotation.from_matrix(np.asarray(T, dtype=np.float64)[:3, :3]).as_quat()
+    Path(path).write_text(json.dumps({"rotation": [w, x, y, z], "translation": np.asarray(T)[:3, 3].tolist(),
+                                      "scale": [float(s) for s in scale]}) + "\n")
+
+
+def read_transforms(folder: Path, n: int) -> tuple[np.ndarray, np.ndarray]:
+    """(N, 4, 4) poses of a %06d.json folder and which frames had a file (missing: identity)."""
+    T, have = np.tile(np.eye(4), (n, 1, 1)), np.zeros(n, bool)
+    for i in range(n):
+        p = Path(folder) / f"{i:06d}.json"
+        if p.is_file():
+            T[i], _ = read_transform(p)
+            have[i] = True
+    return T, have

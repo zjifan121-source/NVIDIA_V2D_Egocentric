@@ -75,3 +75,20 @@ def from_bundle(data: dict, vertices: np.ndarray, pose_key: str = "object_to_wor
               for side in ("left", "right")]
     T = data[pose_key]
     return phases(near_frames(T, vertices, wrists, cm), T, dilate)
+
+
+def rest_window_2d(object_masks: list, hand_masks: list, cap: int = 30, dilate_px: int = 25) -> list[int]:
+    """[0, last] opening frames before any hand mask, dilated by dilate_px, touches an object mask,
+    capped at `cap` frames (P3's opening-frames rule). Stands in for S4a's rest_before in the stages
+    that run before the object is tracked (P1c, P3). masks: per track, a list of (H, W) bool per frame."""
+    import cv2
+    n = min(len(m) for m in object_masks + hand_masks)
+    kernel = np.ones((2 * dilate_px + 1, 2 * dilate_px + 1), np.uint8)
+    for t in range(min(n, cap)):
+        hands = np.zeros_like(object_masks[0][t], dtype=np.uint8)
+        for h in hand_masks:
+            hands |= h[t].astype(np.uint8)
+        near = cv2.dilate(hands, kernel) > 0
+        if any((near & o[t]).any() for o in object_masks):
+            return [0, t - 1] if t > 0 else [0, 0]
+    return [0, min(n, cap) - 1]
