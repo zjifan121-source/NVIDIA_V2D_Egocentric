@@ -34,6 +34,8 @@ BBOX_EXPANSION = 1.7  # the pipeline's hamer_bbox_expansion
 MASK_MIN_PIXELS = 1  # the pipeline's value in hamer-primary mode
 MAX_GAP = 15  # the pipeline's interp_max_gap_frames
 MAX_WRIST_SPEED = 2.0  # m/s, run_load_retarget.bad_hand_frames
+SPIKE_WINDOW = 2  # frames each side
+SPIKE_M = MAX_WRIST_SPEED * SPIKE_WINDOW / TRACK3_FPS  # 0.2 m: farther than the speed bar allows over the window
 
 
 def prepare(ctx, d, n: int) -> None:
@@ -95,6 +97,30 @@ def host_layout(folder) -> int:
     return changed
 
 
+def hand_depth(d, tracks: dict, n: int) -> Path:
+    """depth_hands/: P1d's depth with the pixels inside each hand mask that have no stereo depth set
+    to the median of the mask's valid depth. run_align_hands takes the median depth over the hand mask
+    with no validity test (our "no depth" decodes as infinity, which biases it far: ep40, ~30 % of the
+    mask); values equal to the median leave the median unchanged, so it gets the valid pixels' median.
+    Only align_hands reads this copy; depth/ (S3a, S3b) is unchanged."""
+    out = d / "depth_hands"
+    out.mkdir(exist_ok=True)
+    for k in range(n):
+        src = d / f"depth/{k:06d}.png"
+        if not src.is_file():
+            continue
+        depth = read_depth(src)
+        for name in HANDS.values():
+            m = B.read_mask(tracks[name], k)
+            if m is None:
+                continue
+            valid = m & (depth > 0)
+            if valid.any():
+                depth[m & (depth <= 0)] = float(np.median(depth[valid]))
+        write_depth(out / f"{k:06d}.png", depth)
+    return out
+
+
 def reject_nonfinite(d) -> dict[str, list[int]]:
     """Aligned records whose depth alignment is not finite move to hamer_aligned_rejected/: run_align_hands
     takes the median depth over the hand mask with no validity test, and our "no depth" pixels decode
@@ -112,6 +138,29 @@ def reject_nonfinite(d) -> dict[str, list[int]]:
                 shutil.move(str(f), dest / f.name)
                 frames.append(int(f.stem))
         out[oid] = frames
+    return out
+
+
+def reject_spikes(d) -> dict[str, list[int]]:
+    """Aligned records farther than SPIKE_M from the median of their real neighbours (SPIKE_WINDOW
+    frames each side, camera frame) move to hamer_aligned_rejected/. ep40 (2026-10-23): the unchecked
+    median over a hand mask with ~30 % missing depth puts single frames 0.5-0.8 m too far (0.46 ->
+    0.99 -> 0.47 m in one frame); like non-finite fits, they are left to tracks_interpolate."""
+    out = {}
+    for oid in HANDS:
+        files = sorted((d / f"hamer_aligned/{oid}").glob("*.json"))
+        frames = np.array([int(f.stem) for f in files])
+        pos = np.array([cam_t(json.loads(f.read_text())) for f in files], dtype=np.float64).reshape(-1, 3)
+        bad = []
+        for i, k in enumerate(frames):
+            near = (np.abs(frames - k) <= SPIKE_WINDOW) & (frames != k)
+            if near.sum() >= 2 and np.linalg.norm(pos[i] - np.median(pos[near], axis=0)) > SPIKE_M:
+                bad.append(i)
+        dest = d / f"hamer_aligned_rejected/{oid}"
+        for i in bad:
+            dest.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(files[i]), dest / files[i].name)
+        out[oid] = [int(frames[i]) for i in bad]
     return out
 
 
@@ -187,10 +236,13 @@ def run(ctx) -> StageResult:
             "output_dir": d / "hamer", "weights_dir": W / "hamer", "bbox_expansion": BBOX_EXPANSION,
             "mask_min_pixels": MASK_MIN_PIXELS}, log)
     B.call("v2d.hamer.docker.run_align_hands:run_align_hands",
-           {"hamer_dir": d / "hamer", "depth_dir": d / "depth", "intrinsics_path": d / "intrinsics.json",
+           {"hamer_dir": d / "hamer", "depth_dir": hand_depth(d, tracks, n), "intrinsics_path": d / "intrinsics.json",
             "mano_assets_root": mano, "output_dir": d / "hamer_aligned", "hand_masks_dir": d / "masks",
             "object_masks_dir": d / "object_masks", "mask_min_pixels": MASK_MIN_PIXELS}, log)
+    shutil.rmtree(d / "depth_hands", ignore_errors=True)  # ~2 MB a frame; only align_hands reads it
+    shutil.rmtree(d / "hamer_aligned_rejected", ignore_errors=True)
     rejected = reject_nonfinite(d)
+    spikes = reject_spikes(d)
     shutil.rmtree(d / "hamer_aligned_filled", ignore_errors=True)
     B.call("v2d.wilor.docker.run_tracks_interpolate:run_tracks_interpolate",
            {"aligned_dir": d / "hamer_aligned", "masks_dir": d / "masks", "output_dir": d / "hamer_aligned_filled",
@@ -234,6 +286,8 @@ def run(ctx) -> StageResult:
                    "share", note="run_align_hands takes the median over the mask with no validity test"),
             Metric(f"{name}: aligned frames rejected (non-finite depth fit)", len(rejected[oid]), "frames",
                    note="left to tracks_interpolate; frames " + (", ".join(map(str, rejected[oid][:12])) or "none")),
+            Metric(f"{name}: aligned frames rejected (> {SPIKE_M:.2f} m from their neighbours)", len(spikes[oid]), "frames",
+                   note="left to tracks_interpolate; frames " + (", ".join(map(str, spikes[oid][:12])) or "none")),
             Metric(f"{name}: frames with a pose / frames with a mask", len(posed) / len(masked) if masked else None,
                    "share", ok=(0.9, 1), note=f"{len(posed)} of {len(masked)}"),
             Metric(f"{name}: hand scale (median, depth fit)", scales[name]["median"], "x", ok=(0.8, 1.2),
