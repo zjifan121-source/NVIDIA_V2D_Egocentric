@@ -174,11 +174,18 @@ def run(ctx) -> StageResult:
     if not (os.path.exists(daid_py) and os.path.isdir(daid_dir)):
         return StageResult([], skip=f"Do as I Do not installed ({daid_py}, {daid_dir}): kinematic references go to S5")
     decisions = json.loads(GATE_FILE.read_text()) if GATE_FILE.is_file() else {}
-    sim = yaml.safe_load((PATH_B / "pathb/s4c.yaml").read_text())["sim"]
-    metrics, outputs = [Metric("MuJoCo Warp buffers per world (contacts / constraint rows)",
-                               f"{sim['nconmax_per_env']} / {sim['njmax_per_env']}", "",
-                               note="changed from DaiD's 120 / 500: ep40's dust pan (31 CoACD pieces on the table) "
-                                    "needs 578 rows at frame 0 (smoke test 2026-10-23)")], {}
+    settings = yaml.safe_load((PATH_B / "pathb/s4c.yaml").read_text())
+    sim, opt = settings["sim"], settings["optimizer"]
+    metrics, outputs = [
+        Metric("MuJoCo Warp buffers per world (contacts / constraint rows)",
+               f"{sim['nconmax_per_env']} / {sim['njmax_per_env']}", "",
+               note="changed from DaiD's 120 / 500: ep40's dust pan (31 CoACD pieces on the table) "
+                    "needs 578 rows at frame 0 (smoke test 2026-10-23)"),
+        Metric("MPC samples / horizon / control step / iterations",
+               f"{opt['num_samples']} / {opt['horizon']} s / {opt['ctrl_dt']} s / {opt['max_num_iterations']}", "",
+               note="changed from DaiD's override 1024 / 3.0 s / 0.5 s / 32: 8.5 min per control step on ep40 "
+                    "(L40S, 2026-10-23), > 5 h per object; horizon and control step are DaiD's default.yaml"),
+    ], {}
     phases = {o: json.loads((ctx.root / f"s4a_phases/{o}/phases.json").read_text()) for o in ctx.objects}
     two = phase2.enabled(ctx)
     groups = [list(ctx.objects)] if two else [[o] for o in ctx.objects]  # phase 2: one scene, both objects

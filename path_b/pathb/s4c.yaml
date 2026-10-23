@@ -3,9 +3,15 @@
 # "default:" (V3_BUILD_SPEC.md S4c knobs). Read by pathb/drivers/daid_run.py in the daid venv;
 # the stage adds per-episode values (warmup_duration from S4a's rest-before window).
 optimizer:
-  horizon: 3.0               # s, planning horizon (DaiD override)
-  num_samples: 1024          # sampled control sequences per iteration (DaiD override)
-  ctrl_dt: 0.5               # s, control step (DaiD override)
+  # default: the override's 1024 samples x 3.0 s horizon x up to 32 iterations per 0.5 s control step
+  # took 8.5 min per control step on ep40 (L40S, 2026-10-23 smoke test): ~2.7 h per candidate, > 5 h
+  # per object, ~370 GPU-h for phase B's S4c. DaiD's own default.yaml horizon and control step, a
+  # quarter of the samples and half the iterations: ~1/15 of the cost. S4c's gate keeps the
+  # kinematic reference whenever the realised one scores worse.
+  horizon: 1.6               # default: s, planning horizon (DaiD default.yaml; override 3.0)
+  num_samples: 256           # default: sampled control sequences per iteration (override 1024)
+  ctrl_dt: 0.4               # default: s, control step (DaiD default.yaml; override 0.5)
+  max_num_iterations: 16     # default: per control step, early stop as DaiD (override 32)
   terminal_rew_scale: 10.0   # failure/terminal weight (DaiD override)
   sim_dt: 0.005              # s (DaiD override)
   ref_dt: 0.02               # default: S4c resamples the 20.254 Hz video reference to 50 Hz = 4 sim steps
