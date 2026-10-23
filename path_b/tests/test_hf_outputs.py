@@ -28,3 +28,22 @@ def test_uncovered(tmp_path):
                                         "episode_000040/s4a_phases/report.json"]
     # never uploaded: every regular file, scratch included
     assert len(H.uncovered(run, {})) == len(files)
+
+
+def test_per_frame_folders_go_into_the_archive(tmp_path, monkeypatch):
+    monkeypatch.setattr(H, "OUTPUTS", tmp_path / "outputs")
+    monkeypatch.setattr(H, "STAGING", tmp_path / "staging")
+    run = tmp_path / "outputs/r"
+    write(run, "episode_000040/p1b_masks/report.json", b"{}")
+    for k in range(H.CROWDED + 1):  # one v3 per-frame folder (masks)
+        write(run, f"episode_000040/p1b_masks/obj_0/{k:06d}.png")
+    for k in range(3):
+        write(run, f"episode_000040/s3a_mesh/blue_cup/views/{k:06d}.png")  # a few files stay results
+    root, manifest = H.stage("r", frames=True)
+    assert manifest["frames"]["episode_000040"]["files"] == H.CROWDED + 1
+    assert manifest["results"]["files"] == 4
+    with H.tarfile.open(root / H.PREFIX / "r/episode_000040/frames.tar") as tar:
+        assert "p1b_masks/obj_0/000000.png" in tar.getnames()
+    remote = {"episode_000040/frames.tar": 1, "episode_000040/p1b_masks/report.json": 2,
+              **{f"episode_000040/s3a_mesh/blue_cup/views/{k:06d}.png": 1 for k in range(3)}}
+    assert H.uncovered(run, remote) == []

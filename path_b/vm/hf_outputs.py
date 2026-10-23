@@ -8,7 +8,9 @@ folders, so this folder does not affect it):
                                                    waterfall, HTML pages
   path_b/runs/<run>/episode_XXXXXX/frames.tar      only with --frames: the per-frame intermediates
                                                    (rectified pairs, undistorted ego_cam_a, stereo
-                                                   depth), one archive per episode instead of ~1,700 files
+                                                   depth, and any folder of more than 50 files: v3's
+                                                   masks, depth priors, hand stages, poses), one
+                                                   archive per episode instead of thousands of files
 <run> is a folder name under path_b/data/outputs/ (the commit a run was made with). Restoring puts
 everything back there, so `run.py run --out` keeps the stages whose reports exist.
 
@@ -42,6 +44,7 @@ FRAMES = {("p1_calibrate", "rect_left"), ("p1_calibrate", "rect_right"), ("p1_ca
           ("p2_depth", "depth_rect"), ("p2_depth", "intrinsics_rect"), ("p2_depth", "depth_a_half")}
 SCRATCH = {("p3_scale_bridge", "merged"), ("episode", "waterfall"), ("run", "intermediate"),
            ("run", "bundle_cleaned")}
+CROWDED = 50  # files in one folder: more is a per-frame folder (v3's masks, priors, poses) -> frames.tar
 
 
 def kind(rel: Path) -> str:
@@ -54,6 +57,11 @@ def kind(rel: Path) -> str:
             # the half-resolution depth's intrinsics are a result: Stage 2 needs them with the depth
             return "result" if rel.name == "intrinsics.json" and b == "depth_a_half" else "frames"
     return "result"
+
+
+def crowded(root: Path) -> set[Path]:
+    """Folders under root with more than CROWDED entries: per-frame folders, archived like FRAMES."""
+    return {d for d in root.rglob("*") if d.is_dir() and sum(1 for _ in d.iterdir()) > CROWDED}
 
 
 def sha256(path: Path) -> str:
@@ -80,9 +88,12 @@ def stage(run: str, frames: bool) -> tuple[Path, dict]:
     for episode in sorted(src.glob("episode_*")):
         manifest["episodes"].append(episode.name)
         frame_files = []
+        per_frame = crowded(episode)
         for path in sorted(p for p in episode.rglob("*") if p.is_file() and not p.is_symlink()):
             rel = path.relative_to(episode)
             k = kind(rel)
+            if k == "result" and path.parent in per_frame:
+                k = "frames"
             if k == "scratch":
                 continue
             if k == "frames":
@@ -180,10 +191,13 @@ def uncovered(src: Path, remote: dict[str, int]) -> list[str]:
     frames.tar there. Scratch copies are left out of uploads on purpose and not listed. With an empty
     remote (the run was never uploaded) every regular file is listed."""
     out = []
+    per_frame = crowded(src)
     for path in sorted(p for p in src.rglob("*") if p.is_file() and not p.is_symlink()):
         rel = path.relative_to(src)
         if remote and rel.parts[0].startswith("episode_") and len(rel.parts) > 1:
             k = kind(Path(*rel.parts[1:]))
+            if k == "result" and path.parent in per_frame:
+                k = "frames"
             if k == "scratch" or (k == "frames" and f"{rel.parts[0]}/frames.tar" in remote):
                 continue
         if remote.get(str(rel)) != path.stat().st_size:
