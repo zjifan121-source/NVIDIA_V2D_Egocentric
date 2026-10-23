@@ -15,15 +15,34 @@ Slurm scripts for the Track 3 pipeline on CMU Babel. They assume the repo at
 One-time setup for the stereo seed (`seed.sbatch`, `fs.sbatch`, `run.sbatch`), on a compute node:
 
     uv venv --python 3.11 /data/user_data/$USER/v2d/venvs/stereo
-    uv pip install --python /data/user_data/$USER/v2d/venvs/stereo numpy scipy opencv-python-headless onnxruntime-gpu==1.20.0
+    uv pip install --python /data/user_data/$USER/v2d/venvs/stereo numpy scipy opencv-python-headless onnxruntime-gpu==1.20.0 \
+      nvidia-cudnn-cu12==9.* nvidia-cublas-cu12 nvidia-cuda-runtime-cu12 nvidia-cuda-nvrtc-cu12 nvidia-cufft-cu12 nvidia-curand-cu12
     python baseline/reconstruction/modules/v2d_foundation_stereo/lib/download_weights.py \
       --output_dir /data/user_data/$USER/v2d/recon_data/weights/foundation_stereo
+
+The `nvidia-*` wheels are the CUDA 12 / cuDNN 9 libraries onnxruntime-gpu loads; `run.sbatch` puts
+their `lib/` folders on `LD_LIBRARY_PATH` when it runs FoundationStereo on the GPU.
 
 The calibration and stereo code is `tools/track3/stereo_seed.py`; the late-hand fix is
 `--late-hands` in `tools/track3/run_baseline_reconstruction.py` (`--late_hand_prompts` in
 `run_ego_wilor.py`).
 
-GPU jobs go to `preempt` (requeued on preemption; every script resumes). CPU work goes to `maxlab-cpu`.
+Traps that cost most of the score (public ep41 drops from AUC 0.84 to under 0.4):
+
+- **Seed folder.** `run.sbatch ... fs_sam3d` reconstructs from `stereo_test/seed_fs/ep<N>`, whose
+  `depth/` is FoundationStereo (`depth_scale.json` says so, `median_scale` 1.0). `stereo_test/seed/ep<N>`
+  is the stage-1 folder: its `depth/` is MoGe rescaled to stereo (`median_scale` about 0.7), which scored
+  0.15 on ep41.
+- **No 180° turn.** The calibration lists the head cameras as `rotation_deg: 180`, but the released
+  videos are already upright and the calibration fits them as stored. On ep41 the seed's
+  `anycalib/undistorted_intrinsics.json` has cx 994.80, cy 767.54; cx 1032.20, cy 751.46 means the
+  intrinsics were turned.
+- **Score in the scan's frame.** Our poses are in our mesh's frame; compare them with ground truth only
+  through `score_playback.sh` (it uses the metric's own registration). Read `recon_ourmesh`.
+
+GPU jobs go to `preempt` (requeued on preemption; every script resumes). `train_diag.sbatch` requeues itself on
+TERM; it checks for a cancel first, but if a cancelled run still comes back, stop it with
+`scancel --signal=KILL --full <job>`. CPU work goes to `maxlab-cpu`.
 `preempt_qos` allows 100 queued and 24 running jobs per user, so keep one job per run.
 
 ## Order

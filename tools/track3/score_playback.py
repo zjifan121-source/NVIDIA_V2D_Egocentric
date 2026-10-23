@@ -78,7 +78,7 @@ if __name__ == '__main__':
                 sizes[f"{ns}/{e['episode']}"] = mesh_extents(ns, e)
             except SystemExit as err:
                 print(f'skip {ns} ep{e["episode"]}: {err}', flush=True)
-    with ProcessPoolExecutor(16) as ex:
+    with ProcessPoolExecutor(min(16, len(os.sched_getaffinity(0)))) as ex:  # CPUs this job may use, not the node's
         res = list(ex.map(job, [(ns, e, n) for ns, e in built for n in NAMES]))
     json.dump({'results': res, 'mesh_sizes': sizes}, open(out, 'w'), indent=1)
     by = {}
