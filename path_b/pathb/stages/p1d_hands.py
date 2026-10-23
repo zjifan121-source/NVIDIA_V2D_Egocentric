@@ -222,6 +222,10 @@ def run(ctx) -> StageResult:
         B.call("v2d.wilor.docker.run_video_to_hands:run_video_to_hands",
                {"video_path": d / "cam_a.mp4", "output_dir": d / "wilor_raw", "weights_dir": W / "wilor"}, log)
     tracks = B.mask_tracks(ctx.root)
+    # masks_to_hands and align_hands skip frames whose output exists: a rerun (new P1b masks, new
+    # depth) must start from empty folders. WiLoR's raw detections depend on the video only.
+    for stale in ("hamer", "hamer_aligned", "hamer_aligned_rejected", "hamer_aligned_filled"):
+        shutil.rmtree(d / stale, ignore_errors=True)
     votes = handedness_votes(d, tracks, n)
     meta = json.loads((d / "hand_tracks.json").read_text())
     for t in meta["tracks"]:
