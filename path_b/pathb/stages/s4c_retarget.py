@@ -22,6 +22,7 @@ import subprocess
 from pathlib import Path
 
 import numpy as np
+import yaml
 
 from .. import daid, gt, phase2
 from .. import phases as P
@@ -173,7 +174,11 @@ def run(ctx) -> StageResult:
     if not (os.path.exists(daid_py) and os.path.isdir(daid_dir)):
         return StageResult([], skip=f"Do as I Do not installed ({daid_py}, {daid_dir}): kinematic references go to S5")
     decisions = json.loads(GATE_FILE.read_text()) if GATE_FILE.is_file() else {}
-    metrics, outputs = [], {}
+    sim = yaml.safe_load((PATH_B / "pathb/s4c.yaml").read_text())["sim"]
+    metrics, outputs = [Metric("MuJoCo Warp buffers per world (contacts / constraint rows)",
+                               f"{sim['nconmax_per_env']} / {sim['njmax_per_env']}", "",
+                               note="changed from DaiD's 120 / 500: ep40's dust pan (31 CoACD pieces on the table) "
+                                    "needs 578 rows at frame 0 (smoke test 2026-10-23)")], {}
     phases = {o: json.loads((ctx.root / f"s4a_phases/{o}/phases.json").read_text()) for o in ctx.objects}
     two = phase2.enabled(ctx)
     groups = [list(ctx.objects)] if two else [[o] for o in ctx.objects]  # phase 2: one scene, both objects

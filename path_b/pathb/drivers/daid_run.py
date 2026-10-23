@@ -165,6 +165,7 @@ def main(request_path: str) -> int:
                               max_sim_steps=opt["max_sim_steps"], force=True, show_viewer=False, output_root_dir=root,
                               sim_dt=opt["sim_dt"], ref_dt=opt["ref_dt"], ctrl_dt=opt["ctrl_dt"], horizon=opt["horizon"],
                               num_samples=opt["num_samples"], terminal_rew_scale=opt["terminal_rew_scale"],
+                              nconmax_per_env=s["sim"]["nconmax_per_env"], njmax_per_env=s["sim"]["njmax_per_env"],
                               warmup_duration=req["warmup_duration"], warmup_ref_base_interp_duration=interp,
                               warmup_ref_finger_interp_duration=interp)
     resolve_scene_pedestal(output_root_dir=root, dataset_name=dataset, robot_type="sharpa", embodiment_type=emb,

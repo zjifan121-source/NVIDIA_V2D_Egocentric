@@ -11,6 +11,12 @@ optimizer:
   ref_dt: 0.02               # default: S4c resamples the 20.254 Hz video reference to 50 Hz = 4 sim steps
   max_sim_steps: 0           # 0 = the full (padded) trajectory
   seed: 0
+sim:
+  # default: DaiD's 120 contacts / 500 constraint rows per world overflow on ep40 (2026-10-23 smoke
+  # test: the dust pan rests on the table as 31 CoACD pieces, 578 rows at frame 0); about 4x that,
+  # with room for the grasp (memory: 1024 worlds x 2048 rows x ~70 dofs x 4 B ~ 0.6 GB)
+  nconmax_per_env: 512
+  njmax_per_env: 2048
 warmup:
   # default: the weld lasts the rest-before window (set per episode); DaiD's override uses 3.0 s
   ref_interp_max: 3.0        # s, cap of warmup_ref_{base,finger}_interp_duration (DaiD override)
