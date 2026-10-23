@@ -114,3 +114,4 @@ uv run --project path_b python path_b/run.py a2 --episodes 40 26 --out <run>
 uv run --project path_b python path_b/run.py p2 --episodes 26 --out <run>_a2_mesh_fp
 uv run --project path_b python path_b/run.py analysis --episodes 40 26 --out <run>_a2_mesh_fp --tag v3
 ```
+| 2026-10-23 | Push at the end of 3b without `git pull --rebase` | James said yes to the push. `main_buffer`'s only new commit is PR #16's merge of this branch's task 1 (`10ab8e04`, tree identical to `0cb58b09`), which this branch already contains. Rebasing would change no file and would rename the 66 commits this log cites, so the branch is pushed as a fast-forward of `0cb58b09` (no force) and a new PR opens (PR #16 is merged) |
