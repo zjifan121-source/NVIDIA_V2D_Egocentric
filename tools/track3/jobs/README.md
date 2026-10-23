@@ -40,7 +40,9 @@ Traps that cost most of the score (public ep41 drops from AUC 0.84 to under 0.4)
 - **Score in the scan's frame.** Our poses are in our mesh's frame; compare them with ground truth only
   through `score_playback.sh` (it uses the metric's own registration). Read `recon_ourmesh`.
 
-GPU jobs go to `preempt` (requeued on preemption; every script resumes). CPU work goes to `maxlab-cpu`.
+GPU jobs go to `preempt` (requeued on preemption; every script resumes). `train_diag.sbatch` requeues itself on
+TERM; it checks for a cancel first, but if a cancelled run still comes back, stop it with
+`scancel --signal=KILL --full <job>`. CPU work goes to `maxlab-cpu`.
 `preempt_qos` allows 100 queued and 24 running jobs per user, so keep one job per run.
 
 ## Order

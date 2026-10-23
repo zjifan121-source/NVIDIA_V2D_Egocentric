@@ -46,7 +46,9 @@ CHILD=
 requeue_self() {  # time-limit warning (USR1) or a terminate (TERM, e.g. some preemptions)
   echo "== $(date) signal: stopping and requeueing (restart=${SLURM_RESTART_COUNT:-0})"
   [ -n "$CHILD" ] && kill -TERM "$CHILD" 2>/dev/null && wait "$CHILD" 2>/dev/null
-  [ "${SLURM_RESTART_COUNT:-0}" -lt 20 ] && scontrol requeue "$SLURM_JOB_ID"
+  # scancel also sends TERM: do not undo a cancel (state reads CANCELLED then)
+  scontrol show job "$SLURM_JOB_ID" 2>/dev/null | grep -q 'JobState=CANCELLED' && { echo "== cancelled: not requeueing"; exit 0; }
+  [ "${SLURM_RESTART_COUNT:-0}" -lt 60 ] && scontrol requeue "$SLURM_JOB_ID"
   exit 0
 }
 trap requeue_self USR1 TERM
@@ -61,7 +63,7 @@ if [ ! -f "$RUN/train.done" ]; then
   [ -n "$STATE" ] && RESUME=(training.resume=true "training.checkpoint_path='$STATE'") && echo "== resuming from $STATE"
   SECONDS=0
   # shellcheck disable=SC2086
-  $PY scripts/train_flash_sac.py experiment=sharpa_flash_sac "task.parquet='$PARQUET'" reset.seed=42 \
+  $PY scripts/train_flash_sac.py experiment=sharpa_flash_sac "task.parquet='$PARQUET'" reset.seed=${SEED:-42} \
     logging.mode=offline logging.upload_checkpoints=false logging.run_name=$NAME \
     training.total_environment_steps=$STEPS output_dir="$RUN/train" $EXTRA "${RESUME[@]}" >> "$RUN/train.log" 2>&1 &
   CHILD=$!
