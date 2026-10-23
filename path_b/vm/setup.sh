@@ -16,6 +16,11 @@
 #     RESTORE_RUN=4c2eac31      Path B outputs to restore from Hugging Face (path_b/vm/hf_outputs.py)
 #     RESTORE_FRAMES=1          also restore that run's per-frame intermediates (~18 GB)
 #     SELF_TEST=1               also run the local scorer's self-test (~17 min, CPU)
+#     V3_ENVS=0                 skip Path B v3's environments (default: build them; ~30 GB, ~30 min):
+#                               the team's 12 reconstruction images and their weights, venvs stereo,
+#                               flash_chord, sam3 and daid; SAM 3 and Do as I Do clones in third_party/
+#     ACCEPT_NVIDIA_MODEL_EULA=1  also download TAO FoundationPose (NVIDIA Open Model License; only
+#                               after James has accepted it)
 # Logs: /root/v2d/logs/setup_<step>.log
 set -euo pipefail
 
@@ -28,6 +33,15 @@ BRANCH=${BRANCH:-main_buffer}
 GITHUB=git@github.com:zjifan121-source/NVIDIA_V2D_Egocentric.git
 UV_VERSION=0.11.6
 RETARGET=$V2D/venvs/retarget
+THIRD=$V2D/third_party
+GHCR=ghcr.io/ryanzhou123232
+# the team's published images (built at afe7dad; FoundationPose with the TensorRT runtime fix)
+RECON_IMAGES=(foundation_pose grounding_dino sam2 sam3d wilor hamer geocalib droid_slam gsplat_refinement mediapipe moge anycalib)
+# third-party code for Path B v3, never in the repo (V3_BUILD_SPEC.md §2); commits pinned on first clone
+SAM3_URL=https://github.com/facebookresearch/sam3.git
+SAM3_COMMIT=${SAM3_COMMIT:-}
+DAID_URL=https://github.com/malik-group/do-as-i-do.git
+DAID_COMMIT=${DAID_COMMIT:-}
 KEY=/root/.ssh/v2d_github
 # github.com's published ed25519 host key fingerprint (docs.github.com, "GitHub's SSH key fingerprints")
 GITHUB_ED25519=SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU
@@ -228,6 +242,105 @@ outputs() {
   ok "restored into path_b/data/outputs/$RESTORE_RUN"
 }
 
+recon_images() {
+  say "reconstruction images ($GHCR, ${#RECON_IMAGES[@]} modules)"
+  local m tag missing=()
+  for m in "${RECON_IMAGES[@]}"; do
+    docker image inspect "v2d_$m" >/dev/null 2>&1 && continue
+    tag=afe7dad; [ "$m" = foundation_pose ] && tag=afe7dad-trt-fix
+    # ghcr drops long streams now and then; finished layers survive a retry
+    if logged "pull_$m" bash -c "for t in 1 2 3; do docker pull -q $GHCR/v2d_$m:$tag && exit 0; sleep 15; done; exit 1"; then
+      docker tag "$GHCR/v2d_$m:$tag" "v2d_$m"
+    else
+      missing+=("$m")
+    fi
+  done
+  if [ ${#missing[@]} -gt 0 ]; then need "image pulls failed: ${missing[*]} ($LOGS/setup_pull_<module>.log)"; return 1; fi
+  ok "all ${#RECON_IMAGES[@]} present"
+}
+
+recon_weights() {
+  say "reconstruction weights (data/weights/<module>)"
+  local py=$RECON/.venv/bin/python w=$RECON/data/weights
+  fetch() {  # name, then the download command; a .done marker makes reruns skip it
+    local name=$1; shift
+    [ -e "$w/$name/.done" ] && return 0
+    if ! (cd "$RECON" && logged "weights_$name" "$@"); then
+      need "weights for $name: download failed ($LOGS/setup_weights_$name.log)"; return 1
+    fi
+    mkdir -p "$w/$name" && touch "$w/$name/.done"
+  }
+  fetch moge $py -m v2d.moge.docker.run_download_weights --output_dir data/weights/moge
+  fetch sam2 $py -m v2d.sam2.docker.run_download_weights --output_dir data/weights/sam2
+  fetch anycalib $py -m v2d.anycalib.docker.run_download_weights --output_dir data/weights/anycalib
+  fetch grounding_dino $py -m v2d.grounding_dino.docker.run_download_weights --output_dir data/weights/grounding_dino
+  fetch sam3d $py -m v2d.sam3d.docker.run_download_weights --output_dir data/weights/sam3d  # gated: HF login
+  fetch wilor $py -m v2d.wilor.docker.run_download_weights --weights_dir data/weights/wilor
+  fetch hamer $py -m v2d.hamer.docker.run_download_weights --weights_dir data/weights/hamer
+  fetch droid_slam $py -m v2d.droid_slam.docker.run_download_weights --output_dir data/weights/droid_slam
+  fetch geocalib $py -m v2d.geocalib.docker.run_download_weights --output_dir data/weights/geocalib
+  fetch gsplat_refinement $py -m v2d.gsplat_refinement.docker.run_download_weights --weights_path data/weights/gsplat_refinement
+  if [ -n "${ACCEPT_NVIDIA_MODEL_EULA:-}" ]; then
+    fetch foundation_pose $py -m v2d.foundation_pose.docker.run_download_weights --output_dir data/weights/foundation_pose \
+      --accept_nvidia_model_eula
+  elif [ ! -e "$w/foundation_pose/.done" ]; then
+    need "FoundationPose weights need the NVIDIA Open Model License (NGC TAO FoundationPose): once accepted, rerun with ACCEPT_NVIDIA_MODEL_EULA=1"
+  fi
+  local have; have=$(find "$w" -maxdepth 2 -name .done | wc -l)
+  ok "$have modules downloaded: $(cd "$w" && ls -d */ 2>/dev/null | tr -d / | tr '\n' ' ')"
+}
+
+clone_pinned() {  # url, folder, commit (empty: keep the clone's HEAD and record it)
+  local url=$1 dir=$2 commit=$3
+  [ -d "$dir/.git" ] || logged "clone_$(basename "$dir")" git clone -q --recurse-submodules "$url" "$dir"
+  if [ -n "$commit" ] && [ "$(git -C "$dir" rev-parse HEAD)" != "$commit" ]; then
+    git -C "$dir" fetch -q origin && git -C "$dir" checkout -q "$commit" && git -C "$dir" submodule update -q --init --recursive
+  fi
+  printf '%s %s %s\n' "$(basename "$dir")" "$url" "$(git -C "$dir" rev-parse HEAD)" >> "$THIRD/COMMITS.txt.new"
+}
+
+v3_envs() {
+  say "Path B v3 environments (V3_BUILD_SPEC.md §2)"
+  local V=$V2D/venvs
+  mkdir -p "$THIRD" "$V"
+  rm -f "$THIRD/COMMITS.txt.new"
+  # stereo: tools/track3/stereo_seed.py (jobs/README.md, verbatim pins)
+  if ! "$V/stereo/bin/python" -c "import cv2, onnxruntime, scipy" 2>/dev/null; then
+    logged env_stereo bash -c "uv venv -q --python 3.11 '$V/stereo' && uv pip install -q --python '$V/stereo/bin/python' \
+      numpy scipy opencv-python-headless onnxruntime-gpu==1.20.0"
+  fi
+  # flash_chord: FlashCHORD's own uv.lock (the container's pins), train + dev extras; editable
+  # install with hatchling writes nothing into baseline/
+  local FC=$REPO/baseline/robotic_grounding/flash_chord
+  if ! "$V/flash_chord/bin/python" -c "import flash_chord, jax, mujoco_warp" 2>/dev/null; then
+    logged env_flash_chord bash -c "uv venv -q --python 3.11 '$V/flash_chord' \
+      && uv export -q --project '$FC' --frozen --extra train --extra dev --no-emit-project --no-hashes -o '$V/flash_chord.req.txt' \
+      && uv pip install -q --python '$V/flash_chord/bin/python' -r '$V/flash_chord.req.txt' \
+      && uv pip install -q --python '$V/flash_chord/bin/python' --no-deps -e '$FC'"
+  fi
+  # sam3: SAM 3 / 3.1 (facebook/sam3.1, gated: HF login), its README's torch
+  clone_pinned "$SAM3_URL" "$THIRD/sam3" "$SAM3_COMMIT"
+  if ! "$V/sam3/bin/python" -c "import sam3, torch" 2>/dev/null; then
+    logged env_sam3 bash -c "uv venv -q --python 3.12 '$V/sam3' \
+      && uv pip install -q --python '$V/sam3/bin/python' torch==2.10.0 torchvision --index-url https://download.pytorch.org/whl/cu128 \
+      && uv pip install -q --python '$V/sam3/bin/python' -e '$THIRD/sam3'"
+  fi
+  # daid: Do as I Do retargeting (MIT; MuJoCo Warp, mink, viser, coacd), its README: pip install -e .
+  clone_pinned "$DAID_URL" "$THIRD/do-as-i-do" "$DAID_COMMIT"
+  if ! "$V/daid/bin/python" -c "import mujoco_warp, mink" 2>/dev/null; then
+    logged env_daid bash -c "uv venv -q --python 3.12 '$V/daid' \
+      && uv pip install -q --python '$V/daid/bin/python' -e '$THIRD/do-as-i-do/retargeting'"
+  fi
+  mv "$THIRD/COMMITS.txt.new" "$THIRD/COMMITS.txt"
+  local e failed=()
+  for e in stereo flash_chord sam3 daid; do [ -x "$V/$e/bin/python" ] || failed+=("$e"); done
+  "$V/flash_chord/bin/python" -c "import flash_chord, jax, mujoco_warp" 2>/dev/null || failed+=("flash_chord imports")
+  "$V/sam3/bin/python" -c "import sam3, torch; assert torch.cuda.is_available()" 2>/dev/null || failed+=("sam3 imports")
+  "$V/daid/bin/python" -c "import mujoco_warp, mink" 2>/dev/null || failed+=("daid imports")
+  if [ ${#failed[@]} -gt 0 ]; then need "v3 environments incomplete: ${failed[*]} ($LOGS/setup_env_*.log)"; return 1; fi
+  ok "venvs stereo, flash_chord, sam3, daid in $V; clones pinned in $THIRD/COMMITS.txt"
+}
+
 smoke() {
   say "smoke tests"
   if (cd "$REPO" && logged pytest uv run --project path_b pytest -q path_b/tests); then ok "Path B unit tests"
@@ -258,6 +371,10 @@ envs
 mano || true
 stereo
 if hf auth whoami >/dev/null 2>&1; then outputs; fi
+if [ "${V3_ENVS:-1}" != 0 ]; then
+  recon_images && recon_weights || true
+  v3_envs || true
+fi
 smoke
 
 if [ ${#NEEDS_YOU[@]} -gt 0 ]; then
