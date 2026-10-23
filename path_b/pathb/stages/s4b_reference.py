@@ -87,7 +87,7 @@ def run(ctx) -> StageResult:
                 L.still_scene(data)  # hands held at frame 0, as --still-object
             bundle = write_bundle(hands, d / name / cand, data)
             counts = R.provenance(how)
-            report["candidates"][cand] = {"bundle": bundle, "frames": counts}
+            report["candidates"][cand] = {"bundle": bundle, "frames": counts, "how": how}  # how: per frame (S6 select)
             outputs[f"{name}/{cand}"] = bundle
             metrics.append(Metric(f"{name}: {cand} frames held / trusted / interpolated / tracked / blended",
                                   " / ".join(str(counts[k]) for k in ("held", "trusted", "interpolated", "tracked",

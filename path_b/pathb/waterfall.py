@@ -122,8 +122,8 @@ def episode(root: Path) -> dict:
         poses, meshes = scene(bundle, names, frames, work, variant)
         scores[variant] = gt.score(e, poses, meshes, read)
     for c in CANDIDATES:
-        rollout = root / f"s6_eval/{c}/episode_{number:06d}.parquet"
-        mesh_dir = root / f"s6_eval/{c}/meshes"
+        rollout = root / f"s6_eval/{c}/results/episode_{number:06d}.parquet"
+        mesh_dir = root / f"s5_task/{c}/run/score_input/meshes/episode_{number:06d}"  # S5's runner's meshes
         if rollout.is_file() and mesh_dir.is_dir():
             poses = scorer().evaluator_poses(rollout, e)  # parses the rollout only; scoring goes through gt
             scores[f"rollout_{c}"] = gt.score(e, poses, {n: next(mesh_dir.glob(f"{n}.*")) for n in names}, read)

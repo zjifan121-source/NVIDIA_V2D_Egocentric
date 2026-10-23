@@ -20,9 +20,7 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import shutil
-import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -30,25 +28,13 @@ from pathlib import Path
 import numpy as np
 import trimesh
 
-from . import gt
+from . import gt, policy
 from .paths import PATH_B, REPO, TRACK3_FPS, episode_info
+from .policy import run_logged, still_settings  # noqa: F401 (still_settings: tests, summary)
 from .team import retarget_tools
 
-FLASH_CHORD = REPO / "baseline/robotic_grounding/flash_chord"
-KIT = REPO / "assets/data/v2d_submission_kit"
-STILL_JOB = REPO / "tools/track3/jobs/still_submit.sh"
-L40S_BUFFERS = ["sim.njmax=512", "sim.nconmax=512"]  # spec S6 (James 2026-10-20: njmax 512 on the L40S)
 STILL_SCORES = {40: 0.40, 26: 0.50}  # spec S0.1: the episode's still score (S0.2 oracle file)
 LR_FLAGS = ["--no-rest-hold", "--no-object-clean", "--no-level", "--skip-video"]
-
-
-def still_settings() -> tuple[int, list[str]]:
-    """(steps, Hydra overrides) of the still submission, read from jobs/still_submit.sh, with the
-    contact buffers replaced by the L40S ones."""
-    text = STILL_JOB.read_text()
-    steps = int(re.search(r"^STEPS=(\d+)", text, re.M).group(1))
-    extra = re.search(r'^export EXTRA="([^"]+)"', text, re.M).group(1).split()
-    return steps, [o for o in extra if not o.startswith(("sim.njmax=", "sim.nconmax="))] + L40S_BUFFERS
 
 
 def T_of(P: np.ndarray) -> np.ndarray:
@@ -132,15 +118,6 @@ def gt_bundles(e: dict, work: Path, read: list) -> tuple[Path, dict]:
     return ns, fit
 
 
-def run_logged(cmd: list, log: Path, cwd: Path, env: dict | None = None) -> None:
-    with open(log, "a") as f:
-        f.write(f"\n$ {' '.join(map(str, cmd))}\n")
-        f.flush()
-        rc = subprocess.run([str(c) for c in cmd], cwd=cwd, env=env, stdout=f, stderr=subprocess.STDOUT).returncode
-    if rc:
-        raise RuntimeError(f"exit {rc}: {' '.join(map(str, cmd[:3]))} ...; see {log}")
-
-
 def episode(number: int, out: Path) -> dict:
     e = episode_info(number)
     gt.allowed(e)
@@ -153,7 +130,6 @@ def episode(number: int, out: Path) -> dict:
     seq = f"s01_ep{number}"
     lr = work / "lr"
     retarget = os.environ.get("RETARGET_VENV") or "/root/v2d/venvs/retarget"
-    flash = os.environ.get("FLASH_CHORD_VENV") or "/root/v2d/venvs/flash_chord"
 
     def save():
         state["files_read"] = sorted(set(state["files_read"]) | {str(p) for p in read})
@@ -177,35 +153,13 @@ def episode(number: int, out: Path) -> dict:
         report = json.loads((lr / "report.json").read_text())
         state["partition"], state["lr_check"] = report["processed"], report["output_check"]
         save()
-    steps, overrides = still_settings()
     run = work / "flash"
-    if not (run / "train.done").is_file():
-        run.mkdir(exist_ok=True)
-        resume = sorted((run / "train").glob("state_*.safetensors"), key=lambda p: int(re.sub(r"\D", "", p.stem) or 0))
-        env = dict(os.environ, XLA_PYTHON_CLIENT_PREALLOCATE="false", WANDB_MODE="offline", WANDB_DIR=str(run),
-                   WANDB_SILENT="true")
-        cmd = [f"{flash}/bin/python", "scripts/train_flash_sac.py", "experiment=sharpa_flash_sac",
-               f"task.parquet='{state['partition']}'", "reset.seed=42", "logging.mode=offline",
-               "logging.upload_checkpoints=false", f"logging.run_name={seq}",
-               f"training.total_environment_steps={steps}", f"output_dir={run / 'train'}", *overrides]
-        if resume:
-            cmd += ["training.resume=true", f"training.checkpoint_path='{resume[-1]}'"]
-        t0 = datetime.now(timezone.utc)
-        run_logged(cmd, run / "train.log", FLASH_CHORD, env)
-        state["train_seconds"] = (datetime.now(timezone.utc) - t0).total_seconds()
-        state["nefc_overflow_lines"] = (run / "train.log").read_text().count("nefc overflow")
-        (run / "train.done").touch()
+    if "checkpoint" not in state:
+        info = policy.train(state["partition"], run, seq)
+        state.update(checkpoint=info["checkpoint"], train_seconds=info["seconds"],
+                     nefc_overflow_lines=info["nefc_overflow_lines"])
         save()
-    if not (run / "eval.done").is_file():
-        shutil.rmtree(run / "results", ignore_errors=True)
-        ckpt = sorted((run / "train").glob("policy_*.safetensors"), key=lambda p: int(re.sub(r"\D", "", p.stem) or 0))[-1]
-        (run / "checkpoints.json").write_text(json.dumps({str(number): str(ckpt)}) + "\n")
-        run_logged([f"{flash}/bin/python", KIT / "examples/run_policy_evaluation.py", "--checkpoints",
-                    run / "checkpoints.json", "--results", run / "results", "--runtime-root", FLASH_CHORD],
-                   run / "eval.log", FLASH_CHORD, dict(os.environ, XLA_PYTHON_CLIENT_PREALLOCATE="false"))
-        state["checkpoint"] = str(ckpt)
-        (run / "eval.done").touch()
-        save()
+    policy.evaluate(state["checkpoint"], number, run)
     from .team import scorer
     poses = scorer().evaluator_poses(run / "results" / f"episode_{number:06d}.parquet", e)  # parses the rollout
     meshes = {name: lr / f"score_input/meshes/episode_{number:06d}/{name}.obj" for name in names}
