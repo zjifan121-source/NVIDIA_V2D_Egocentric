@@ -283,6 +283,9 @@ recon_weights() {
   if [ -n "${ACCEPT_NVIDIA_MODEL_EULA:-}" ]; then
     fetch foundation_pose $py -m v2d.foundation_pose.docker.run_download_weights --output_dir data/weights/foundation_pose \
       --accept_nvidia_model_eula
+    # the tracker's default backend is TensorRT: engines for this GPU, next to the ONNX models
+    [ -e "$w/foundation_pose/.done" ] && fetch foundation_pose_engines $py -c \
+      "from v2d.foundation_pose.docker.run_export_engines import run_export_engines; run_export_engines('data/weights/foundation_pose')"
   elif [ ! -e "$w/foundation_pose/.done" ]; then
     need "FoundationPose weights need the NVIDIA Open Model License (NGC TAO FoundationPose): once accepted, rerun with ACCEPT_NVIDIA_MODEL_EULA=1"
   fi

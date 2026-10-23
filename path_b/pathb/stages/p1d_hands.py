@@ -174,7 +174,12 @@ def run(ctx) -> StageResult:
                   if len(frames) > 1 else np.array([]))
         right = next(t["is_right"] for t in meta["tracks"] if HANDS[str(t["object_id"])] == name)
         seen = wilor[right]
+        holes = [float((read_depth(d / f"depth/{k:06d}.png")[m] <= 0).mean())
+                 for k in sorted(masked)[:: max(1, len(masked) // 20)]
+                 if (m := B.read_mask(tracks[name], k)) is not None]
         metrics += [
+            Metric(f"{name}: hand-mask pixels without stereo depth (median)", float(np.median(holes)) if holes else None,
+                   "share", note="run_align_hands takes the median over the mask with no validity test"),
             Metric(f"{name}: frames with a pose / frames with a mask", len(posed) / len(masked) if masked else None,
                    "share", ok=(0.9, 1), note=f"{len(posed)} of {len(masked)}"),
             Metric(f"{name}: hand scale (median, depth fit)", scales[name]["median"], "x", ok=(0.8, 1.2),
