@@ -12,9 +12,10 @@ import shutil
 import sys
 
 import numpy as np
+import trimesh
 
 from ..bundle import rescaled_copy
-from ..paths import git_commit
+from ..paths import TRACK3_FPS, git_commit
 from ..report import Metric, StageResult, worst
 from ..runner import write_json
 from ..team import retarget_tools
@@ -33,6 +34,7 @@ def run(ctx) -> StageResult:
               "first_failing_stage": next((n for n, r in reports.items() if r["status"] in ("FAIL", "ERROR")), None),
               "stages": {n: r["status"] for n, r in reports.items()}}
     metrics, finite, frames_off = [], True, 0
+    table_z = None
     for name in ctx.objects:
         src = L.bundle_dir_for(ctx.number, name)
         folder = base / name
@@ -45,6 +47,14 @@ def run(ctx) -> StageResult:
         finite &= all(np.isfinite(data[k]).all() for k in data.files if data[k].dtype.kind == "f")
         frames_off = max(frames_off, abs(data["camera_to_world_transform"].shape[0] - int(ctx.episode["num_frames"])))
         vertices = L.object_vertices(dest, dict(data), "object_scale", "mesh.obj")
+        object_scale = float(data["object_scale"])
+        # mesh.obj keeps the bundle's vertices and object_scale carries the factor; S3/S4 get the
+        # scaled geometry as a file too, so no consumer can miss the scale
+        scaled = trimesh.load(dest / "mesh.obj", force="mesh", process=False)
+        scaled.apply_scale(object_scale)
+        scaled.export(dest / "mesh_scaled.obj")
+        if table_z is None:
+            table_z = table_height(scale, data["camera_to_world_transform"].astype(np.float64))
         metrics.append(Metric(f"{name} mesh extents after rescale",
                               " x ".join(f"{e * 100:.1f}" for e in L.oriented_extents(vertices)), "cm"))
         if ctx.public:
@@ -55,6 +65,11 @@ def run(ctx) -> StageResult:
         write_json(folder / "run.json", {
             "producer": "path_b", "command": sys.argv, "commit": git_commit(), "source_bundle": str(src),
             "scale_factor": factor, "scale_applied": scale["applied"],
+            "fps": TRACK3_FPS,
+            "object_scale": object_scale,
+            "mesh_scaled": "result_slam_gravity_aligned/mesh_scaled.obj",
+            "table_z_world_m": table_z,
+            "frames_in_world": "metres after rescaling; gravity is +z; the table plane is z = table_z_world_m",
             "notes": "Stage 1 bridge: the team's bundle rescaled to stereo metric scale (Path B P3).",
         })
         write_json(folder / "numeric_qa.json", qa)
@@ -63,6 +78,16 @@ def run(ctx) -> StageResult:
         Metric("objects exported minus manifest", len(ctx.objects) - len(list(base.iterdir())), "", ok=(0, 0)),
         Metric("frames off the manifest (worst object)", frames_off, "frames", ok=(0, 0)),
         Metric("all arrays finite", int(finite), "", ok=(1, 1)),
+        Metric("table height in the rescaled world", table_z, "m",
+               note="median over rest frames of camera z minus the stereo camera-to-support distance"),
         Metric("overlay video", "not made yet", "", note="BUNDLES.md asks for one before an HF upload"),
     ]
-    return StageResult(metrics, {"bundles": base, "factor": factor})
+    return StageResult(metrics, {"bundles": base, "factor": factor, "table_z_world_m": table_z})
+
+
+def table_height(scale: dict, c2w_rescaled: np.ndarray) -> float | None:
+    """z of the support plane in the rescaled bundle world: the camera's world z minus its stereo
+    distance to the support plane (the plane normal is within MAX_TILT_DEG of gravity)."""
+    heights = [c2w_rescaled[r["frame"], 2, 3] - r["table_stereo"] for r in scale["frames"]
+               if r.get("table_stereo") is not None and r["frame"] < len(c2w_rescaled)]
+    return float(np.median(heights)) if heights else None

@@ -6,6 +6,7 @@ stage ran again in this call (its inputs may have changed). Stages pass results 
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import json
 import platform
 import shutil
@@ -24,7 +25,17 @@ from . import loss
 from .paths import STEREO_WEIGHTS, episode_info, git_commit
 from .report import StageResult, worst
 
-STAGES = ("p0_ingest", "p1_calibrate", "p2_depth", "p3_scale_bridge", "p4_export", "s23_load_retarget")
+# Execution order; names are module names in pathb/stages/ (V3_BUILD_SPEC.md §1). A stage whose
+# module is not built yet reports SKIP.
+STAGES = ("p0_ingest", "p1_calibrate", "p2_depth",  # S1
+          "p1b_masks", "p1c_camera", "p1d_hands",
+          "p3_scale_bridge", "p4_export",  # S2
+          "s3a_mesh", "s3b_track", "s3c_fuse",  # S3
+          "s4a_phases", "s4b_reference", "s4c_retarget",  # S4
+          "s5_task",  # S5
+          "s6_train", "s6_eval", "s6_select",  # S6
+          "s7_pack",  # S7 (run.py pack runs it over all episodes)
+          "s23_load_retarget")  # kept for the still fallback (S6) and S5 mode A
 
 
 @dataclass
@@ -102,6 +113,11 @@ class GpuPeak:
 
 def run_stage(name: str, ctx: Context, force: bool) -> tuple[dict, bool]:
     """(report, whether it ran)."""
+    if importlib.util.find_spec(f"pathb.stages.{name}") is None:
+        # not written to disk, so the stage runs as soon as its module exists
+        return {"stage": name, "status": "SKIP", "episode": ctx.number, "split": ctx.split, "seconds": 0.0,
+                "gpu_peak_mib": None, "metrics": [], "outputs": {},
+                "skip_reason": f"pathb/stages/{name}.py is not built yet", "error": None}, False
     path = ctx.root / name / "report.json"
     if not force and path.is_file():
         report = json.loads(path.read_text())

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Path B Scale Bridge</title>
+<style>
+:root{
+  color-scheme:light;
+  --page:#f6f5f2; --surface:#fcfcfb; --border:#e3e1db; --grid:#ecebe6; --axis:#b9b7ae;
+  --text:#0b0b0b; --text-2:#52514e; --text-3:#7a7974;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s7:#6250d6; --neutral:#a9a79e;
+  --good:#1a9c6c; --warn:#c98500; --crit:#d03b3b;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --page:#121211; --surface:#1a1a19; --border:#2e2e2b; --grid:#262624; --axis:#55544f;
+    --text:#f0efec; --text-2:#c3c2b7; --text-3:#94938b;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s7:#9085e9; --neutral:#6e6d66;
+    --good:#2fb985; --warn:#e0a32a; --crit:#e66767;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --page:#121211; --surface:#1a1a19; --border:#2e2e2b; --grid:#262624; --axis:#55544f;
+  --text:#f0efec; --text-2:#c3c2b7; --text-3:#94938b;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s7:#9085e9; --neutral:#6e6d66;
+  --good:#2fb985; --warn:#e0a32a; --crit:#e66767;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+main{max-width:1080px;margin:0 auto;padding:32px 16px 64px}
+h1{font-size:26px;line-height:1.25;margin:0 0 6px;letter-spacing:-.01em}
+.meta{color:var(--text-2);font-size:14px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:22px 0 4px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.kpi .v{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--text-3);font-size:12.5px}
+section{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-top:18px}
+h2{font-size:18px;margin:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.verdict{font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.v-good{color:var(--good);background:color-mix(in srgb,var(--good) 14%,transparent)}
+.v-warn{color:var(--warn);background:color-mix(in srgb,var(--warn) 15%,transparent)}
+.v-bad{color:var(--crit);background:color-mix(in srgb,var(--crit) 14%,transparent)}
+.v-neutral{color:var(--text-2);background:color-mix(in srgb,var(--neutral) 22%,transparent)}
+.sub{color:var(--text-2);margin:6px 0 16px;max-width:78ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:760px){.two,.three{grid-template-columns:1fr}main{padding-top:20px}section{padding:16px}}
+figure{margin:0}
+figure img{width:100%;height:auto;border-radius:8px;display:block;background:var(--grid)}
+figcaption{font-size:12.5px;color:var(--text-2);margin-top:6px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--text-2);margin:2px 0 6px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.sw.ln{height:3px;width:16px;border-radius:2px;vertical-align:3px}
+.sw.dash{height:0;width:16px;border-top:2px dashed;background:none!important;vertical-align:3px}
+.ctitle{font-size:13.5px;font-weight:600;margin:0 0 2px}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+svg text{fill:var(--text-2);font-size:11px;font-family:inherit}
+svg text.rl{fill:var(--text);font-size:12px}
+svg text.val{fill:var(--text);font-size:11.5px;font-weight:600}
+svg text.al{fill:var(--text-3);font-size:11px}
+.scale{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-3);margin-top:6px}
+.scale img{height:10px;width:140px;border-radius:2px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--text-3);font-weight:600;font-size:12px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.best td{font-weight:600}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.chip{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;letter-spacing:.02em}
+.c-PASS{color:var(--good);background:color-mix(in srgb,var(--good) 14%,transparent)}
+.c-WARN{color:var(--warn);background:color-mix(in srgb,var(--warn) 15%,transparent)}
+.c-FAIL,.c-ERROR{color:var(--crit);background:color-mix(in srgb,var(--crit) 14%,transparent)}
+.c-INFO,.c-SKIP{color:var(--text-3);background:color-mix(in srgb,var(--neutral) 20%,transparent)}
+.note{font-size:12.5px;color:var(--text-3)}
+.filter{font-size:13px;color:var(--text-2);display:inline-flex;gap:6px;align-items:center;margin-bottom:8px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:10px}
+.fact{border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.fact b{display:block;font-size:17px;font-variant-numeric:tabular-nums}
+.fact span{font-size:12px;color:var(--text-3)}
+footer{color:var(--text-3);font-size:12.5px;margin-top:22px}
+code{font-size:12.5px}
+</style>
+</head>
+<body>
+<main id="page"></main>
+<script>
+const P = __PAGE_DATA__;
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const num = (v, d = 3) => (v == null || !isFinite(v)) ? "–" : Number(v).toFixed(d);
+const fmtTick = t => Math.abs(t) >= 100 ? t.toFixed(0) : +t.toFixed(3) + "";
+
+function niceDomain(lo, hi, n = 5) {
+  if (!isFinite(lo) || !isFinite(hi)) { lo = 0; hi = 1; }
+  if (hi === lo) { hi = lo + (Math.abs(lo) || 1) * 0.1; lo = lo - (Math.abs(lo) || 1) * 0.1; }
+  const raw = (hi - lo) / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), e = raw / mag;
+  const step = (e >= 7.5 ? 10 : e >= 3.5 ? 5 : e >= 1.5 ? 2 : 1) * mag;
+  const a = Math.floor(lo / step + 1e-9) * step, b = Math.ceil(hi / step - 1e-9) * step, ticks = [];
+  for (let t = a; t <= b + step * 1e-6; t += step) ticks.push(+t.toFixed(10));
+  return [a, b, ticks];
+}
+
+// Line chart: series [{name, values, color, width, dash, dots}], x values, optional hlines [{y, color, label}].
+function lineChart(o) {
+  const W = o.w || 560, H = o.h || 250, hasLabels = (o.hlines || []).some(h => h.label && h.y != null);
+  const m = {l: 46, r: hasLabels ? 110 : 14, t: 12, b: o.xlabel ? 38 : 26};
+  const xs = o.x, xmin = Math.min(...xs), xmax = Math.max(...xs);
+  const vals = [];
+  o.series.forEach(s => s.values.forEach(v => { if (v != null && isFinite(v)) vals.push(v); }));
+  (o.hlines || []).forEach(h => { if (h.y != null) vals.push(h.y); });
+  const [y0, y1, yt] = niceDomain(o.ymin ?? Math.min(...vals), o.ymax ?? Math.max(...vals), 5);
+  const X = v => m.l + (v - xmin) / ((xmax - xmin) || 1) * (W - m.l - m.r);
+  const Y = v => m.t + (1 - (v - y0) / ((y1 - y0) || 1)) * (H - m.t - m.b);
+  let g = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.aria || "")}">`;
+  yt.forEach(t => g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(t)}" y2="${Y(t)}" style="stroke:var(--grid)"/>` +
+    `<text x="${m.l - 6}" y="${Y(t)}" dominant-baseline="middle" text-anchor="end">${fmtTick(t)}</text>`);
+  niceDomain(xmin, xmax, 6)[2].filter(t => t >= xmin && t <= xmax).forEach(t =>
+    g += `<text x="${X(t)}" y="${H - m.b + 15}" text-anchor="middle">${fmtTick(t)}</text>`);
+  g += `<line x1="${m.l}" x2="${W - m.r}" y1="${H - m.b}" y2="${H - m.b}" style="stroke:var(--axis)"/>`;
+  if (o.xlabel) g += `<text class="al" x="${(m.l + W - m.r) / 2}" y="${H - 4}" text-anchor="middle">${esc(o.xlabel)}</text>`;
+  if (o.ylabel) g += `<text class="al" transform="translate(11 ${(m.t + H - m.b) / 2}) rotate(-90)" text-anchor="middle">${esc(o.ylabel)}</text>`;
+  (o.hlines || []).forEach(h => {
+    if (h.y == null) return;
+    g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(h.y)}" y2="${Y(h.y)}" style="stroke:${h.color};stroke-width:1.5;stroke-dasharray:5 4"/>`;
+    if (h.label) g += `<text x="${W - m.r + 6}" y="${Y(h.y)}" dominant-baseline="middle" style="fill:${h.color}">${esc(h.label)}</text>`;
+  });
+  o.series.forEach(s => {
+    let d = "", pen = false;
+    s.values.forEach((v, i) => {
+      if (v == null || !isFinite(v)) { pen = false; return; }
+      d += (pen ? "L" : "M") + X(xs[i]).toFixed(1) + " " + Y(v).toFixed(1) + " "; pen = true;
+    });
+    g += `<path d="${d}" style="fill:none;stroke:${s.color};stroke-width:${s.width || 1.8};${s.dash ? `stroke-dasharray:${s.dash};` : ""}stroke-linejoin:round;stroke-linecap:round"><title>${esc(s.name)}</title></path>`;
+    if (s.dots) s.values.forEach((v, i) => {
+      if (v != null && isFinite(v)) g += `<circle cx="${X(xs[i])}" cy="${Y(v)}" r="2.6" style="fill:${s.color}"><title>${esc(s.name)} · frame ${xs[i]}: ${num(v)}</title></circle>`;
+    });
+  });
+  return g + "</svg>";
+}
+
+// Horizontal bars: rows [{label, value, color, text}].
+function hbar(rows, o = {}) {
+  const W = o.w || 560, rh = o.rowH || 32, lw = o.labelW || 210, H = rows.length * rh + 24;
+  const max = o.max ?? Math.max(...rows.map(r => r.value || 0)) * 1.05;
+  const X = v => lw + Math.max(0, v || 0) / (max || 1) * (W - lw - 70);
+  let g = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  niceDomain(0, max, 4)[2].filter(t => t <= max + 1e-9).forEach(t =>
+    g += `<line x1="${X(t)}" x2="${X(t)}" y1="0" y2="${H - 22}" style="stroke:var(--grid)"/><text x="${X(t)}" y="${H - 8}" text-anchor="middle">${fmtTick(t)}</text>`);
+  rows.forEach((r, i) => {
+    const y = i * rh;
+    g += `<text class="rl" x="${lw - 10}" y="${y + rh / 2}" dominant-baseline="middle" text-anchor="end">${esc(r.label)}</text>` +
+      `<rect x="${lw}" y="${y + 6}" width="${X(r.value) - lw}" height="${rh - 12}" rx="3" style="fill:${r.color}"/>` +
+      `<text class="val" x="${X(r.value) + 6}" y="${y + rh / 2}" dominant-baseline="middle">${esc(r.text ?? num(r.value))}</text>`;
+  });
+  return g + "</svg>";
+}
+
+// Diverging bars around zero: rows [{label, value}].
+function diverging(rows, o = {}) {
+  const W = o.w || 560, rh = 32, lw = o.labelW || 250, H = rows.length * rh + 24;
+  const span = Math.max(...rows.map(r => Math.abs(r.value || 0))) * 1.15 || 1;
+  const mid = lw + (W - lw - 20) / 2, X = v => mid + v / span * (W - lw - 20) / 2 * 0.82;
+  let g = `<svg viewBox="0 0 ${W} ${H}" role="img"><line x1="${mid}" x2="${mid}" y1="0" y2="${H - 22}" style="stroke:var(--axis)"/>`;
+  g += `<text x="${mid}" y="${H - 8}" text-anchor="middle">0</text>`;
+  rows.forEach((r, i) => {
+    const y = i * rh, v = r.value || 0, x = Math.min(X(0), X(v)), w = Math.abs(X(v) - X(0));
+    const colour = r.color || (v >= 0 ? "var(--s3)" : "var(--crit)");
+    g += `<text class="rl" x="${lw - 10}" y="${y + rh / 2}" dominant-baseline="middle" text-anchor="end">${esc(r.label)}</text>` +
+      `<rect x="${x}" y="${y + 7}" width="${Math.max(w, 1)}" height="${rh - 14}" rx="3" style="fill:${colour}"/>` +
+      `<text class="val" x="${v >= 0 ? X(v) + 6 : X(v) - 6}" y="${y + rh / 2}" dominant-baseline="middle" text-anchor="${v >= 0 ? "start" : "end"}">${esc(r.text ?? (v >= 0 ? "+" : "") + num(v))}</text>`;
+  });
+  return g + "</svg>";
+}
+
+// Vertical grouped bars: groups (x labels), series [{name, color, values}].
+function grouped(o) {
+  const W = o.w || 520, H = o.h || 220, m = {l: 40, r: 8, t: 12, b: 28};
+  const vals = o.series.flatMap(s => s.values).filter(v => v != null);
+  const [, y1, yt] = niceDomain(0, Math.max(...vals), 4);
+  const Y = v => m.t + (1 - v / y1) * (H - m.t - m.b), gw = (W - m.l - m.r) / o.groups.length;
+  const bw = Math.min(20, (gw - 16) / o.series.length);
+  let g = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  yt.forEach(t => g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(t)}" y2="${Y(t)}" style="stroke:var(--grid)"/><text x="${m.l - 6}" y="${Y(t)}" dominant-baseline="middle" text-anchor="end">${fmtTick(t)}</text>`);
+  o.groups.forEach((label, gi) => {
+    const x0 = m.l + gi * gw + (gw - bw * o.series.length) / 2;
+    o.series.forEach((s, si) => {
+      const v = s.values[gi];
+      if (v == null) return;
+      g += `<rect x="${x0 + si * bw}" y="${Y(v)}" width="${bw - 2}" height="${Y(0) - Y(v)}" rx="2" style="fill:${s.color}"><title>${esc(s.name)} · ${esc(label)}: ${num(v, 1)} ${esc(o.unit || "")}</title></rect>`;
+    });
+    g += `<text x="${m.l + gi * gw + gw / 2}" y="${H - 9}" text-anchor="middle">${esc(label)}</text>`;
+  });
+  g += `<line x1="${m.l}" x2="${W - m.r}" y1="${Y(0)}" y2="${Y(0)}" style="stroke:var(--axis)"/>`;
+  if (o.ylabel) g += `<text class="al" transform="translate(10 ${(m.t + H - m.b) / 2}) rotate(-90)" text-anchor="middle">${esc(o.ylabel)}</text>`;
+  return g + "</svg>";
+}
+
+// Dot plot on one axis: rows [{label, value, color}]; reference = vertical dashed line.
+function dotPlot(rows, o = {}) {
+  const W = o.w || 560, rh = 30, lw = o.labelW || 230, H = rows.length * rh + 26;
+  const vals = rows.map(r => r.value).filter(v => v != null);
+  const [a, b, ticks] = niceDomain(Math.min(...vals) - 0.05, Math.max(...vals) + 0.05, 5);
+  const X = v => lw + (v - a) / (b - a) * (W - lw - 50);
+  let g = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  ticks.forEach(t => g += `<line x1="${X(t)}" x2="${X(t)}" y1="0" y2="${H - 24}" style="stroke:var(--grid)"/><text x="${X(t)}" y="${H - 8}" text-anchor="middle">${fmtTick(t)}</text>`);
+  if (o.reference != null) g += `<line x1="${X(o.reference)}" x2="${X(o.reference)}" y1="0" y2="${H - 24}" style="stroke:var(--text);stroke-width:1.5;stroke-dasharray:4 4"/>`;
+  rows.forEach((r, i) => {
+    const y = i * rh + rh / 2;
+    g += `<text class="rl" x="${lw - 10}" y="${y}" dominant-baseline="middle" text-anchor="end">${esc(r.label)}</text>`;
+    if (r.value == null) { g += `<text x="${lw}" y="${y}" dominant-baseline="middle">not available</text>`; return; }
+    g += `<line x1="${lw}" x2="${W - 50}" y1="${y}" y2="${y}" style="stroke:var(--grid)"/>` +
+      `<circle cx="${X(r.value)}" cy="${y}" r="6.5" style="fill:${r.color};stroke:var(--surface);stroke-width:2"/>` +
+      `<text class="val" x="${X(r.value) + 11}" y="${y}" dominant-baseline="middle">${num(r.value)}</text>`;
+  });
+  return g + "</svg>";
+}
+
+const legend = items => `<div class="legend">${items.map(([label, color, kind]) =>
+  `<span><i class="sw ${kind || ""}" style="${kind === "dash" ? `border-color:${color}` : `background:${color}`}"></i>${esc(label)}</span>`).join("")}</div>`;
+const verdict = key => { const [cls, text] = P.verdicts[key]; return `<span class="verdict v-${cls}">${esc(text)}</span>`; };
+const takeaway = key => `<p class="sub">${esc(P.verdicts[key][2])}</p>`;
+const OBJ = ["var(--s3)", "var(--s7)", "var(--s1)", "var(--s2)"];
+
+function render() {
+  const S = P.waterfall.scores, stereo = S.stage2_stereo, base = S.stage2;
+  document.title = `Episode ${P.episode} Scale Bridge`;
+  let h = `<header><h1>Episode ${P.episode}: where the scale bridge gains and loses points</h1>
+    <div class="meta">${esc(P.objects.join(" + "))} · ${esc(P.split)}${P.task ? " · " + esc(P.task) : ""} · Path B run <code>${esc(P.commit)}</code>, ${esc(String(P.finished).slice(0, 16).replace("T", " "))} UTC</div>
+    <div class="kpis">
+      <div class="kpi"><div class="v">${num(base.AUC)} → ${num(stereo.AUC)}</div><div class="l">Reconstruction-only AUC, stage 2 → Path B (higher is better)</div></div>
+      <div class="kpi"><div class="v">${num(base["MPPE cm"], 2)} → ${num(stereo["MPPE cm"], 2)} cm</div><div class="l">Mean keypoint error (lower is better)</div></div>
+      <div class="kpi"><div class="v">${num(P.rulers.factor)}×</div><div class="l">Scale factor, from the ${esc(P.rulers.method)}</div></div>
+      <div class="kpi"><div class="v">${esc(P.first_failing || "none")}</div><div class="l">First failing stage in the loss report</div></div>
+    </div></header>`;
+
+  // 1. Waterfall
+  const V = P.waterfall.variants, colours = {raw: "var(--neutral)", stage2: "var(--text-3)", stage2_stereo: "var(--s1)", stage2_scan: "var(--s2)"};
+  const metrics = ["AUC", "SP-SR", "MP-SR", "MPPE cm", "RPE cm", "CD-O cm"];
+  h += `<section><h2>1 · Score waterfall ${verdict("waterfall")}</h2>${takeaway("waterfall")}
+    <div class="two"><div><div class="ctitle">AUC at each step</div><div class="chart">${hbar(V.map(v => ({label: P.waterfall.labels[v], value: S[v].AUC, color: colours[v]})), {max: 1})}</div></div>
+    <div><div class="ctitle">Where the AUC points go</div><div class="chart">${diverging(Object.entries(P.waterfall.attribution).map(([k, v]) => k.startsWith("tracking") ?
+      {label: k, value: v, color: "var(--neutral)", text: num(v) + " still missing"} : {label: k, value: v}))}</div>
+    <p class="note">Gains are green, losses red. The grey row is what no scale can fix, the points still missing to a perfect 1.0: tracking, mesh and placement (Stage 2–3 work).</p></div></div>
+    <div class="scroll"><table><thead><tr><th>Step</th>${metrics.map(m => `<th class="num">${m}</th>`).join("")}</tr></thead><tbody>
+    ${V.map(v => `<tr class="${v === "stage2_stereo" ? "best" : ""}"><td><i class="sw" style="background:${colours[v]}"></i>${esc(P.waterfall.labels[v])}</td>${metrics.map(m => `<td class="num">${num(S[v][m], m.includes("cm") ? 2 : 3)}</td>`).join("")}</tr>`).join("")}
+    </tbody></table></div><p class="note">Official metric code against public ground truth, no simulation. AUC, SP-SR, MP-SR: higher is better; MPPE, RPE, CD-O: lower is better.</p></section>`;
+
+  // 2. Stereo view
+  const st = P.stereo;
+  h += `<section><h2>2 · What stereo sees ${verdict("stereo")}</h2>${takeaway("stereo")}
+    <div class="three">
+      <figure><img src="${st.cam_a}" alt="ego_cam_a frame 0 with object ray markers"><figcaption>ego_cam_a, frame 0, undistorted with the factory calibration. Circles: each object's ray from the bundle.</figcaption></figure>
+      <figure><img src="${st.depth}" alt="stereo depth"><figcaption>Stereo depth, rectified left camera (stereo frame ${st.stereo_frame}).</figcaption>
+        <div class="scale"><span>0.2 m</span><img src="${st.scale_strip}" alt=""><span>1.6 m</span></div></figure>
+      <figure><img src="${st.planes}" alt="planes found"><figcaption>Planes found (1 cm band). White outline: the support plane used for scale.</figcaption></figure>
+    </div>
+    <div class="scroll"><table><thead><tr><th>Plane</th><th class="num">Distance from ego_cam_a</th><th class="num">Share of points</th><th>Used</th></tr></thead><tbody>
+    ${st.legend.map((p, i) => `<tr><td><i class="sw" style="background:var(--${p.colour})"></i>Plane ${i + 1}</td><td class="num">${num(p.distance_m)} m</td><td class="num">${num(100 * p.share, 0)}%</td><td>${p.chosen ? "<b>support plane</b>" : ""}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="note">Shares count stereo points in the lower 60% of the image; the floor is usually the largest plane and the farthest.</p></section>`;
+
+  // 3. Rulers
+  const R = P.rulers, names = Object.keys(R.ray_ratio);
+  h += `<section><h2>3 · The two rulers, frame by frame ${verdict("rulers")}</h2>${takeaway("rulers")}
+    <div class="two"><div><div class="ctitle">Camera to the support surface</div>
+      ${legend([["Stereo (m)", "var(--s1)", "ln"], ["Bundle (bundle units)", "var(--neutral)", "ln"]])}
+      <div class="chart">${lineChart({x: R.frames, xlabel: "frame (rest frames before a hand reaches)", series: [
+        {name: "stereo (m)", values: R.stereo_m, color: "var(--s1)", dots: true, width: 2},
+        {name: "bundle (units)", values: R.bundle, color: "var(--neutral)", dots: true, width: 2}]})}</div></div>
+    <div><div class="ctitle">Stereo ÷ bundle, per frame</div>
+      ${legend([["Support plane", "var(--s1)", "ln"], ...names.map((n, i) => [`Ray through ${n}`, OBJ[i], "ln"]), ["Factor used", "var(--s1)", "dash"], ["Scan oracle", "var(--s2)", "dash"]])}
+      <div class="chart">${lineChart({x: R.frames, xlabel: "frame", series: [
+        {name: "support plane", values: R.plane_ratio, color: "var(--s1)", dots: true, width: 2},
+        ...names.map((n, i) => ({name: `ray through ${n}`, values: R.ray_ratio[n], color: OBJ[i], dots: true, width: 1.5}))],
+        hlines: [{y: R.factor, color: "var(--s1)", label: `factor ${num(R.factor)}`}, {y: R.oracle, color: "var(--s2)", label: R.oracle ? `scan ${num(R.oracle)}` : ""}]})}</div></div></div>
+    <p class="note">The factor is the median of the support-plane ratios over these frames. The head barely moves before the reach, so both lines on the left should be flat: a jumping stereo line means the plane under the object switched; a jumping bundle line means the bundle's object pose or mesh moved. Rays through different objects disagreeing means the bundle's camera-frame scale differs per object.</p></section>`;
+
+  // 4. Mesh size vs world scale
+  const dims = ["longest", "middle", "shortest"], F = P.factors;
+  h += `<section><h2>4 · Mesh size vs world scale ${verdict("mesh")}</h2>${takeaway("mesh")}
+    ${legend([["Scan (real object)", "var(--neutral)"], ["Bundle mesh", "var(--text-3)"], ["After stereo rescale", "var(--s1)"], ["After scan rescale", "var(--s2)"]])}
+    <div class="two">${P.mesh.map(m => `<div><div class="ctitle">${esc(m.name)}: mesh dimensions (cm)</div><div class="chart">${grouped({groups: dims, unit: "cm", series: [
+      {name: "scan", color: "var(--neutral)", values: m.scan || [null, null, null]},
+      {name: "bundle mesh", color: "var(--text-3)", values: m.bundle},
+      {name: "after stereo rescale", color: "var(--s1)", values: m.stereo},
+      {name: "after scan rescale", color: "var(--s2)", values: m.scan_rescaled || [null, null, null]}]})}</div>
+      <p class="note">${m.scan ? `Stereo-rescaled mesh is ${num(m.stereo.reduce((a, v, i) => a + v / m.scan[i], 0) / 3, 2)}× the scan; the bundle mesh was ${num(m.bundle.reduce((a, v, i) => a + v / m.scan[i], 0) / 3, 2)}×.` : "No public scan for this object."}</p></div>`).join("")}</div>
+    <div class="ctitle" style="margin-top:12px">Which factor each source asks for (× every length in the bundle)</div>
+    <div class="chart" style="max-width:760px">${dotPlot([
+      {label: "Stereo, support plane (used)", value: F["support plane"], color: "var(--s1)"},
+      {label: "Stereo, object rays", value: F["object ray"], color: "var(--s3)"},
+      {label: "Scan oracle (mesh size)", value: F["scan oracle"], color: "var(--s2)"},
+      {label: "Real motion (ground truth)", value: F.motion, color: "var(--text)"}], {reference: F.motion, w: 740, labelW: 240})}</div>
+    <p class="note">The dashed line is the factor that makes the bundle's objects move as far as the real ones (section 5). The scan oracle only says how big the mesh is; when the bundle's mesh and world disagree, it points the wrong way.</p></section>`;
+
+  // 5. Motion vs ground truth
+  const MV = [["gt", "Ground truth", "var(--text)", 2.6], ["raw", "Team bundle", "var(--neutral)", 1.4], ["stage2", "+ stage 2", "var(--text-3)", 1.6], ["stage2_stereo", "+ stereo scale", "var(--s1)", 2], ["stage2_scan", "Scan-oracle scale", "var(--s2)", 1.6]];
+  const frames = [...Array(P.motion.frames).keys()];
+  h += `<section><h2>5 · Motion against ground truth ${verdict("motion")}</h2>${takeaway("motion")}
+    ${legend(MV.map(([k, label, c]) => [label, c, k === "stage2_scan" ? "dash" : "ln"]))}
+    <div class="two">${P.motion.objects.map(o => `<div><div class="ctitle">${esc(o.name)}: distance from its start position (cm)</div><div class="chart">${lineChart({x: frames, xlabel: "frame", ymin: 0,
+      series: MV.filter(([k]) => o.series[k]).map(([k, label, c, w]) => ({name: label, values: o.series[k], color: c, width: w, dash: k === "stage2_scan" ? "6 4" : null}))})}</div></div>`).join("")}</div>
+    <div class="scroll"><table><thead><tr><th>Object</th><th class="num">Real peak</th>${MV.slice(1).map(([, label]) => `<th class="num">${esc(label)}</th>`).join("")}</tr></thead><tbody>
+    ${P.motion.objects.map(o => `<tr><td>${esc(o.name)}</td><td class="num">${num(o.gt_peak_cm, 1)} cm</td>${MV.slice(1).map(([k]) => `<td class="num">${
+      o.gt_peak_cm < 2 ? (o.peak_cm[k] != null ? num(o.peak_cm[k], 1) + " cm drift" : "–") : (o.peak_ratio[k] != null ? num(o.peak_ratio[k], 2) + "×" : "–")}</td>`).join("")}</tr>`).join("")}
+    </tbody></table></div>
+    <p class="note">Peak distance from the start, as a multiple of the real peak (1.00× = right scale). An object that really stays put (under 2 cm) shows how far each version wanders instead. Distances are rotation-free, so no alignment is needed; the bundle tracks its mesh origin and the ground truth the scan origin, so turning objects add a few cm either way. Stage 2 holds objects still until a hand reaches them.</p></section>`;
+
+  // 6. Camera checks
+  const C = P.camera;
+  h += `<section><h2>6 · Camera checks ${verdict("camera")}</h2>${takeaway("camera")}
+    <div class="two"><div><div class="ctitle">Stereo features landing within 5 px of ego_cam_a, by frame offset</div>
+      <div class="chart">${hbar(C.offsets.map((o, i) => ({label: `stereo = ego_cam_a ${o >= 0 ? "+" : ""}${o}`, value: 100 * C.within_5px[i], color: o === C.chosen_offset ? "var(--s1)" : "var(--neutral)", text: num(100 * C.within_5px[i], 0) + "%"})), {max: 100, labelW: 170})}</div></div>
+    <div><div class="ctitle">Stereo rows: matched features' vertical offset (median)</div>
+      <div class="chart">${hbar([{label: "Factory rectification", value: C.rows_before, color: "var(--neutral)", text: num(C.rows_before, 2) + " px"}, {label: "After the row correction", value: C.rows_after, color: "var(--s1)", text: num(C.rows_after, 2) + " px"}], {labelW: 170})}</div>
+      <div class="facts"><div class="fact"><b>${num(C.calibration_vs_pnp.deg, 2)}° · ${num(C.calibration_vs_pnp.mm, 1)} mm</b><span>ego_cam_a pose: calibration vs. features (PnP)</span></div>
+      <div class="fact"><b>${esc(C.reading)}</b><span>calibration reading kept</span></div></div></div></div></section>`;
+
+  // 7. Every measurement
+  const rows = Object.entries(P.measurements).flatMap(([stage, ms]) => ms.map(m => ({stage, ...m})));
+  h += `<section><h2>7 · Every measurement ${verdict("table")}</h2>${takeaway("table")}
+    <label class="filter"><input type="checkbox" id="only"> Show only WARN and FAIL</label>
+    <div class="scroll"><table id="m"><thead><tr><th>Stage</th><th>Measurement</th><th class="num">Value</th><th>Unit</th><th>Bar</th><th>Kind</th><th>Status</th><th>Note</th></tr></thead><tbody>
+    ${rows.map(m => `<tr data-s="${m.status}"><td>${esc(m.stage)}</td><td>${esc(m.name)}</td><td class="num">${typeof m.value === "number" ? (Number.isInteger(m.value) ? m.value : num(m.value, Math.abs(m.value) >= 10 ? 1 : 3)) : esc(m.value ?? "–")}</td><td>${esc(m.unit)}</td><td class="note">${esc(m.bar)}</td><td>${esc(m.kind)}</td><td><span class="chip c-${m.status}">${m.status}</span></td><td class="note">${esc(m.note)}</td></tr>`).join("")}
+    </tbody></table></div></section>`;
+
+  h += `<footer>Made by <code>path_b/run.py visualize</code> from Path B run ${esc(P.commit)}${P.gpu ? " on " + esc(P.gpu) : ""}. Ground truth and scans are public data, used for scoring only.</footer>`;
+  document.getElementById("page").innerHTML = h;
+  document.getElementById("only").addEventListener("change", e => {
+    document.querySelectorAll("#m tbody tr").forEach(tr => {
+      tr.style.display = e.target.checked && !["WARN", "FAIL"].includes(tr.dataset.s) ? "none" : "";
+    });
+  });
+}
+render();
+</script>
+</body>
+</html>
