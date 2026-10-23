@@ -251,7 +251,9 @@ def attribution(scores: dict) -> list[dict]:
 
 
 def flaws(eps: list[dict]) -> list[tuple[str, str]]:
-    """The three biggest flaws: (one sentence with one number, the evidence behind it)."""
+    """The three biggest flaws: (one sentence with one number, the evidence behind it), in order: the
+    position loss, a moving candidate that does not beat still, a two-object scene's relative
+    placement, the camera's drift at rest (the first three that apply)."""
     out = []
     first = {e["number"]: next(r for r in e["attribution"] if r["stage"].startswith("P1c")) for e in eps}
     loss = np.mean([r["loss"] for r in first.values() if r["loss"] is not None])
@@ -262,17 +264,28 @@ def flaws(eps: list[dict]) -> list[tuple[str, str]]:
                 + "; the track's depth sits " + " / ".join(f"{fmt(e['s3b_residual_cm'], 1)} cm" for e in eps)
                 + " (median) from the stereo depth; S0.2's true positions alone would score "
                 + " / ".join(fmt(e["oracle"].get("place_pos_gt", {}).get("AUC")) for e in eps)
-                + "; a perfect mesh at the same poses gains only "
-                + " / ".join(fmt(mesh[e["number"]]["b"]["AUC"] - mesh[e["number"]]["a"]["AUC"]) for e in eps
-                             if mesh[e["number"]]["a"] and mesh[e["number"]]["b"]) + " AUC."))
-    worse = [e for e in eps if e["best"] and e["still"] is not None and e["scores"][e["best"]]["AUC"] < e["still"]]
-    if worse:
-        e = worse[0]
+                + "; the scan at the same poses gains " + " / ".join(
+                    fmt(mesh[e["number"]]["b"]["AUC"] - mesh[e["number"]]["a"]["AUC"]) for e in eps
+                    if mesh[e["number"]]["a"] and mesh[e["number"]]["b"]) + " AUC."))
+    stuck = [e for e in eps if e["best"] and e["still"] is not None and e["scores"][e["best"]]["AUC"] <= e["still"] + 1e-9]
+    if stuck:
+        e = stuck[0]
         gap = e["still"] - e["scores"][e["best"]]["AUC"]
-        out.append((f"On ep{e['number']} the motion lands on the wrong object, so the best moving candidate scores "
-                    f"{gap:.2f} AUC below standing still.",
-                    f"best {e['best']} {fmt(e['scores'][e['best']]['AUC'])} vs still {fmt(e['still'])}; " + e["s4a_note"]
+        line = (f"On ep{e['number']} the best moving candidate only ties standing still ({e['still']:.3f} AUC)."
+                if gap < 1e-9 else
+                f"On ep{e['number']} the best moving candidate scores {gap:.2f} AUC below standing still.")
+        out.append((line, f"best {e['best']} {fmt(e['scores'][e['best']]['AUC'])} vs still {fmt(e['still'])}"
+                    + ("; " + e["s4a_note"] if e["s4a_note"] != "no flag" else "")
                     + (f"; S5's frame-0 seating gap {fmt(e['seating_cm'], 1)} cm" if e["seating_cm"] else "") + "."))
+    pairs = [(e, e["scores"][e["best"]]) for e in eps if len(e["names"]) > 1 and e["best"]]
+    pairs = [(e, s) for e, s in pairs if s.get("RPE cm") is not None and s["RPE cm"] > 5]
+    if pairs:
+        e, sc = pairs[0]
+        out.append((f"On ep{e['number']} the second object sits {sc['RPE cm']:.0f} cm (RPE) from where it belongs "
+                    f"relative to the first.",
+                    f"best {e['best']}: RPE {fmt(sc['RPE cm'], 1)} cm, MPPE {fmt(sc['MPPE cm'], 1)} cm; "
+                    + ("phase 2's anchoring: p2_best RPE " + fmt(e["scores"]["p2_best"].get("RPE cm"), 1) + " cm"
+                       if "p2_best" in e["scores"] else "phase 2 not run") + "."))
     cams = [(e["number"], e["camera"]) for e in eps if e["camera"]["plane_height_spread_cm"] is not None]
     if cams:
         n, worst = max(cams, key=lambda c: c[1]["plane_height_spread_cm"])
@@ -285,7 +298,7 @@ def flaws(eps: list[dict]) -> list[tuple[str, str]]:
                               f"objects' own {fmt(c['rest_diff_rms_cm'], 1)} cm" for k, c in cams if c["rest_common_rms_cm"])
                     + "; part of the first flaw" + ("; the stand-in camera is the team's DROID path, which v3's "
                                                      "stereo-anchored P1c replaces" if stand else "") + "."))
-    return out
+    return out[:3]
 
 
 def episode_section(run: Path, number: int, read: list) -> dict:
@@ -298,8 +311,13 @@ def episode_section(run: Path, number: int, read: list) -> dict:
     best = best_candidate(scores)
     still = scores.get("ref_still", {}).get("AUC")
     errs = frame_errors(root, e, [c for c in ("raw", "fused", best) if c], read)
-    s3b = json.loads((root / "s3b_track/report.json").read_text())
-    residual = [m["value"] for m in s3b["metrics"] if "depth residual" in m["name"] and isinstance(m["value"], (int, float))]
+    residual = []  # median depth residual per object, from S3b's own per-frame records (cm)
+    for n in names:
+        meta = root / f"s3b_track/{n}/track_meta.json"
+        if meta.is_file():
+            r = [f["depth_residual_m"] for f in json.loads(meta.read_text())["frames"] if f.get("depth_residual_m") is not None]
+            if r:
+                residual.append(float(np.median(r)) * 100)
     s4a = json.loads((root / "s4a_phases/report.json").read_text())
     flagged = [m for m in s4a["metrics"] if m["status"] in ("WARN", "FAIL")]
     phases = {n: json.loads((root / f"s4a_phases/{n}/phases.json").read_text()) for n in names}
@@ -359,7 +377,11 @@ def extra_sections(eps: list[dict], run: Path, base: dict | None) -> list[str]:
         md += ["", f"**Decision (spec A2.5 rank rule):** `{dec['choice']}` — mean rank "
                + ", ".join(f"{v} {m:.2f}" for v, m in dec["mean_rank"].items())
                + ("; A2 lost on both AUC and CD-O" if dec["a2_lost_on_both"] else "")
-               + (f". {d['stand_ins']}: the decision is provisional until the dev cache." if d.get("stand_ins") else "."), ""]
+               + (f". {d['stand_ins']}: the decision is provisional until the dev cache." if d.get("stand_ins") else "."), "",
+               "Why the AUC rises while CD-O worsens: the kit registers the submitted mesh to the scan scale-free and "
+               "follows the scan's anchor through our poses. The canonical mesh is fused where the object was seen and "
+               "registered to the track's rest pose, so that anchor sits on the real object; the team mesh sits off the "
+               "track, so its anchor swings with every rotation (same poses: raw 0.460 → 0.687 on ep40).", ""]
     p2 = [(e["number"], {c: e["scores"][c] for c in e["scores"] if c.startswith("p2_")}) for e in eps]
     p2 = [(n, cols) for n, cols in p2 if cols]
     if p2:
@@ -379,10 +401,13 @@ def extra_sections(eps: list[dict], run: Path, base: dict | None) -> list[str]:
             a = now.get(ep)
             if not a:
                 continue
-            md.append(f"- **ep{ep}:** best candidate {b['best']} {fmt(b['best_auc'])} → {a['best']} {fmt(a['best_auc'])}; "
-                      + "; ".join(f"{c} {fmt(a['columns'][c])}" for c in a["columns"] if c not in b["columns"] and SCAN not in c)
-                      + (f"; largest loss now {max((r for r in a['losses'].items() if r[1] is not None), key=lambda r: r[1])[0]}"
-                         if any(v is not None for v in a["losses"].values()) else ""))
+            parts = [f"best candidate {b['best']} {fmt(b['best_auc'])} → {a['best']} {fmt(a['best_auc'])}"]
+            new_cols = [f"{c} {fmt(a['columns'][c])}" for c in a["columns"] if c not in b["columns"] and SCAN not in c]
+            if new_cols:
+                parts.append("new columns: " + ", ".join(new_cols))
+            parts += [f"mesh {n} CD-O {fmt(b['cdo'].get(n), 2)} → {fmt(c, 2)} cm" for n, c in a["cdo"].items()
+                      if b["cdo"].get(n) is not None and abs(c - b["cdo"][n]) > 1e-6]
+            md.append(f"- **ep{ep}:** " + "; ".join(parts))
         md.append("")
     return md
 
