@@ -150,28 +150,16 @@ def world_fit(observed: list[tuple[np.ndarray, np.ndarray, np.ndarray]], iterati
 
 
 def observed_points(root: Path, e: dict, k: int, frames: list[int], seed: int = 0) -> tuple[np.ndarray, list[int]]:
-    """Object k's masked stereo points in our world (P1b mask eroded as s3a2_fuse_scan, P2 depth_a_half,
-    P4 camera), FIT_POINTS per frame on the frames that have at least that many."""
-    from .geometry import read_depth, read_transforms
+    """Object k's masked stereo points in our world (pathb/observe.py), FIT_POINTS per frame on the
+    frames that have at least that many."""
+    from .observe import View
     from .runner import Context
-    from .stages.s3a2_fuse_scan import frame_masks
-    intr = json.loads((root / "p2_depth/depth_a_half/intrinsics.json").read_text())
-    K, shape = np.asarray(intr["K"], dtype=np.float64), (intr["size"][1], intr["size"][0])
-    c2w, have = read_transforms(root / "p4_export/camera_to_world", int(e["num_frames"]))
-    ctx, rng, pts, used = Context(e, root, {}), np.random.default_rng(seed), [], []
+    view, rng, pts, used = View(Context(e, root, {})), np.random.default_rng(seed), [], []
     for t in frames:
-        path = root / f"p2_depth/depth_a_half/{t:06d}.png"
-        mask = frame_masks(ctx, k, t, shape)[0] if path.is_file() and have[t] else None
-        if mask is None:
+        p = view.points(k, t)
+        if p is None or len(p) < FIT_POINTS:
             continue
-        depth = read_depth(path)
-        ys, xs = np.nonzero(mask & (depth > 0) & np.isfinite(depth))
-        if len(ys) < FIT_POINTS:
-            continue
-        i = rng.choice(len(ys), FIT_POINTS, replace=False)
-        z = depth[ys[i], xs[i]]
-        cam = np.stack([(xs[i] - K[0, 2]) * z / K[0, 0], (ys[i] - K[1, 2]) * z / K[1, 1], z], axis=1)
-        pts.append(cam @ c2w[t, :3, :3].T + c2w[t, :3, 3])
+        pts.append(p[rng.choice(len(p), FIT_POINTS, replace=False)])
         used.append(t)
     return (np.stack(pts) if pts else np.zeros((0, FIT_POINTS, 3))), used
 

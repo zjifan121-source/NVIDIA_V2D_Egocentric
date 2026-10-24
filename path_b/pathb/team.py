@@ -1,5 +1,5 @@
 """Team tooling Path B reuses in-process (tools/track3 is shared by both paths): bundle I/O and the
-stage 2 repairs (run_load_retarget), and the local scorer (score_local)."""
+stage 2 repairs (run_load_retarget), the local scorer (score_local) and the S0.2 oracle study."""
 from __future__ import annotations
 
 import sys
@@ -18,6 +18,13 @@ def retarget_tools():
 def scorer():
     import score_local
     return score_local
+
+
+def playback_oracle():
+    """Edmond's S0.2 study (tools/track3/playback_oracle.py): its moving_mask is the ground truth's
+    moving / resting split every S0.2 variant uses."""
+    import playback_oracle
+    return playback_oracle
 
 
 def lr_command(ctx_public: bool, args: list) -> tuple[list[str], dict]:
