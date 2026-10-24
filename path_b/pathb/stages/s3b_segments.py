@@ -4,8 +4,9 @@ static, grasp and unstable segments, and what each static segment rests on.
 In: the object's observed points per frame (pathb/observe.py: P1b mask x P2 depth_a_half x P4
 camera), P1d's world exports (p4_export/hands/: fingertips, wrists, valid flags, long gaps). Out per
 object: segments.json, phases.json (S4a's layout: rest-before / carry / rest-after from the first and
-last grasp), segments_report.json (thresholds used, votes, segment table, support evidence) and
-coverage.json (hands.coverage: the share of grasp frames with the grasping hand's wrist; S0.3).
+last grasp), segments_report.json (thresholds used, votes, segment table, support evidence),
+coverage.json (hands.coverage: the share of grasp frames with the grasping hand's wrist; S0.3) and
+per_frame.npz (motion, d_tip, centroid: S0.3's wrist check reads them).
 Support is the points rule of pathb/segments.py; the team's support_stacked rule (pathb/support.py)
 checks it when $RETARGET_VENV is set (a disagreement is a WARN, a check not run a WARN).
 Public only: grasp + unstable frames against the ground truth's moving frames (S0.2's moving_mask)
@@ -58,8 +59,10 @@ def run(ctx) -> StageResult:
     clouds = {name: [view.points(k, t, LIMIT, rng) for t in range(n)] for k, name in enumerate(ctx.objects)}
     metrics, outputs, found = [], {}, {}
     for k, name in enumerate(ctx.objects):
-        segs, report = G.segment(clouds[name], tips["tips"], wrist, tips["valid"], gaps)
+        segs, report, arrays = G.segment(clouds[name], tips["tips"], wrist, tips["valid"], gaps)
         found[name] = (segs, report)
+        (d / name).mkdir(parents=True, exist_ok=True)
+        np.savez(d / name / "per_frame.npz", **arrays)
     for k, name in enumerate(ctx.objects):  # support needs every object's segments
         segs, report = found[name]
         evidence = []

@@ -209,8 +209,9 @@ def fingertip_set(d_tip: np.ndarray, hand: int, a: int, b: int, near: float) -> 
 
 
 def segment(clouds: list, tips: np.ndarray, wrist: np.ndarray, valid: np.ndarray,
-            long_gaps: dict[str, list[tuple[int, int]]]) -> tuple[list[dict], dict]:
-    """segments.json content (support filled by `support` later) and the report."""
+            long_gaps: dict[str, list[tuple[int, int]]]) -> tuple[list[dict], dict, dict]:
+    """segments.json content (support filled by `support` later), the report, and the per-frame
+    arrays (motion, d_tip, centroid: S3b saves them for S0.3)."""
     n = len(clouds)
     cent = centroids(clouds)
     mot = motion(clouds)
@@ -234,7 +235,7 @@ def segment(clouds: list, tips: np.ndarray, wrist: np.ndarray, valid: np.ndarray
               "frames_without_points": int(sum(1 for c in clouds if c is None or not len(c))),
               "motion_mm_median": float(np.nanmedian(mot) * 1000) if np.isfinite(mot).any() else None,
               "segments": [[s["kind"], s["start"], s["end"], s["hand"]] for s in segs]}
-    return segs, report
+    return segs, report, {"motion": mot, "d_tip": d_tip, "centroid": cent}
 
 
 def pooled(clouds: list, a: int, b: int, limit: int = 20000, seed: int = 0) -> np.ndarray | None:

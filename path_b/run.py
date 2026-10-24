@@ -30,7 +30,7 @@ from pathb.runner import STAGES, run_episode  # noqa: E402
 
 
 # commands of V4_BUILD_SPEC.md §1 whose code comes with a later task (§5)
-NOT_BUILT: dict[str, str] = {"wristcheck": "S0.3, V4 task 4"}
+NOT_BUILT: dict[str, str] = {}
 # commands that default to the dev episodes when neither --episodes nor --split is given
 DEV_DEFAULT = ("analysis", "wristcheck")
 
@@ -99,6 +99,16 @@ def main() -> int:
         from pathb import analysis
         md, page = analysis.main(out, episodes(args), args.tag)
         print(f"analysis: {page}\n          {md}")
+        return 0
+
+    if args.command == "wristcheck":
+        from pathb import wristcheck
+        path = wristcheck.main(out, episodes(args))
+        report = json.loads(path.read_text())
+        for e in report["episodes"]:
+            print(f"   ep{e['episode']}: sigma {e['sigma_cm']} cm (contact {e['sigma_contact_cm']}, jitter {e['jitter_cm']}) "
+                  f"over {e['window_frames']} frames; coverage_carry {e['coverage_carry']}")
+        print(f"S0.3: {report['decision']}; hand-gap rule {report['hand_gap_rule']} -> {path}")
         return 0
 
     if args.command == "canonical":

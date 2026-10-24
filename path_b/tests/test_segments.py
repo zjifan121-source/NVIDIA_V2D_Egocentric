@@ -56,7 +56,7 @@ def clip(gap=None):
 
 def test_rest_grasp_rest():
     clouds, tips, wrist, valid = clip()
-    segs, report = G.segment(clouds, tips, wrist, valid, {})
+    segs, report, _ = G.segment(clouds, tips, wrist, valid, {})
     kinds = [s["kind"] for s in segs]
     grasps = [s for s in segs if s["kind"] == "grasp"]
     assert kinds[0] == "static" and kinds[-1] == "static" and len(grasps) == 1, report["segments"]
@@ -73,7 +73,7 @@ def test_rest_grasp_rest():
 
 def test_long_hand_gap_splits_the_grasp():
     clouds, tips, wrist, valid = clip(gap=(45, 62))
-    segs, _ = G.segment(clouds, tips, wrist, valid, {"R": [(45, 62)]})
+    segs, _, _ = G.segment(clouds, tips, wrist, valid, {"R": [(45, 62)]})
     grasps = [(s["start"], s["end"]) for s in segs if s["kind"] == "grasp"]
     assert len(grasps) == 2 and grasps[0][1] < 45 and grasps[1][0] > 62
     assert any(s["kind"] == "unstable" and s["start"] <= 45 and s["end"] >= 62 for s in segs)
@@ -83,7 +83,7 @@ def test_never_grasped_is_one_static_segment():
     rng = np.random.default_rng(1)
     clouds = [box_points(np.zeros(3), rng) for _ in range(40)]
     tips = np.full((40, 2, 5, 3), np.nan)
-    segs, report = G.segment(clouds, tips, np.tile(np.eye(4), (40, 2, 1, 1)), np.zeros((40, 2), bool), {})
+    segs, report, _ = G.segment(clouds, tips, np.tile(np.eye(4), (40, 2, 1, 1)), np.zeros((40, 2), bool), {})
     assert segs == [{"kind": "static", "start": 0, "end": 39, "hand": None, "fingertips": [], "support": None}]
     assert report["static"] and report["thresholds"]["near_m"] == G.NEAR_DEFAULT
 
@@ -172,3 +172,33 @@ def test_stage_on_a_synthetic_episode(tmp_path, monkeypatch):
     assert cov["coverage_carry"] == 1.0
     status = {m.name: m.status for m in result.metrics}
     assert status["box: every frame in one segment"] == "PASS" and status["box: grasp found"] == "PASS"
+
+
+def test_wristcheck_measures_the_wrist_against_a_still_object(tmp_path):
+    """S0.3: a hand rests on a still box for 30 frames with 1 cm of wrist noise per axis; the pooled
+    distance sigma reads ~1 cm (its radial part) and the gate builds S3c; with 4 cm it does not."""
+    import json
+    from pathb import wristcheck as W
+    rng = np.random.default_rng(0)
+    n = 60
+    for noise, decision in ((0.01, "build S3c as specified"), (0.04, "do not build S3c")):
+        root = tmp_path / f"n{noise}" / "episode_000041"
+        seg, hd = root / "s3b_segments/white_pot", root / "p4_export/hands"
+        seg.mkdir(parents=True)
+        hd.mkdir(parents=True)
+        motion = np.full(n, 0.001)
+        motion[40:] = 0.02  # carried after 40
+        d_tip = np.full((n, 2, 5), np.nan)
+        d_tip[10:40, 1] = 0.006  # the right hand resting on it 10-39
+        cent = np.zeros((n, 3))
+        wrist = np.tile(np.eye(4), (n, 2, 1, 1))
+        wrist[:, 1, :3, 3] = [0.1, 0.0, 0.05] + rng.normal(0, noise, (n, 3))
+        np.savez(seg / "per_frame.npz", motion=motion, d_tip=d_tip, centroid=cent)
+        (seg / "segments_report.json").write_text(json.dumps({"thresholds": {"near_m": 0.012}}))
+        (seg / "coverage.json").write_text(json.dumps({"coverage_carry": 0.95, "grasps": [{"start": 40, "end": 59}]}))
+        np.savez(hd / "wrist_world.npz", wrist=wrist, valid=np.ones((n, 2), bool))
+        report = json.loads(W.main(root.parent, [41]).read_text())
+        e = report["episodes"][0]
+        assert e["window_frames"] == 30 and abs(e["sigma_cm"] - noise * 100) < noise * 100 * 0.35
+        assert abs(e["sigma_vec_cm"] - noise * 100 * np.sqrt(3)) < noise * 100 * 0.5
+        assert report["decision"].startswith(decision) and report["hand_gap_rule"] == "optional"
