@@ -2,12 +2,16 @@
 `run.py oracle --variants` (S0.2's new variants, CPU, public only; variants() below).
 
 Per episode (public only, through pathb/gt.py), on a GPU machine:
-  1. bundle  the team bundle (hub; merged for several objects, as run_load_retarget --merge does)
-             moved into the ground-truth world by one similarity (scale, yaw, translation: both
-             worlds have gravity up) fitted from its object tracks to the ground truth; the hands and
-             camera move with it, and each object is replaced by its ground-truth track with the
-             public scan as mesh (this test only). One bundle per object, all sharing that camera and
-             those hands, so the merge rebuilds the scene exactly
+  1. bundle  V4 (--hands-from <run>): our P4 bundle (P1c camera, P1d hands, the table world) moved
+             into the ground-truth world by one rigid move about z (scale 1: P3 measured our world
+             metric), fitted from each object's rest-before partial scan (s3a2_fuse_scan) with the
+             public scan registered onto it and the object's ground-truth frame-0 pose (world_fit).
+             v3 (no --hands-from): the team bundle (hub; merged for several objects, as
+             run_load_retarget --merge does) moved by one similarity (scale, yaw, translation: both
+             worlds have gravity up) fitted from its object tracks to the ground truth.
+             The hands and camera move with it, and each object is replaced by its ground-truth
+             track with the public scan as mesh (this test only). One bundle per object, all sharing
+             that camera and those hands, so the merge rebuilds the scene exactly
   2. task    run_load_retarget.py (with --merge for two objects; --no-rest-hold --no-object-clean
              --no-level keep the ground truth as it is; hand cleaning stays)
   3. train   FlashSAC with the still submission's settings (jobs/still_submit.sh: STEPS and EXTRA),
@@ -34,7 +38,13 @@ from .paths import PATH_B, REPO, TRACK3_FPS, episode_info
 from .policy import run_logged, still_settings  # noqa: F401 (still_settings: tests, summary)
 from .team import retarget_tools
 
-STILL_SCORES = {40: 0.40, 26: 0.50}  # spec S0.1: the episode's still score (S0.2 oracle file)
+S02_FILE = PATH_B / "oracles/oracle_2026-10-17.json"  # Edmond's S0.2 regime split (tools/track3/playback_oracle.py)
+
+
+def still_score(number: int) -> float | None:
+    """Spec S0.1's bar: the episode's still score, S0.2's `still` (ep41 0.356, ep13 0.416)."""
+    return next((r["AUC"] for r in json.loads(S02_FILE.read_text())["variants"]
+                 if r["ep"] == number and r["v"] == "still"), None)
 LR_FLAGS = ["--no-rest-hold", "--no-object-clean", "--no-level", "--skip-video"]
 
 
@@ -71,26 +81,158 @@ def to_world(data: dict, s: float, A: np.ndarray) -> dict:
     return data
 
 
-def gt_bundles(e: dict, work: Path, read: list) -> tuple[Path, dict]:
-    """The per-object ground-truth bundles in work/ns/episode_XXXXXX/<object>/ and the fit."""
+FIT_STEP = 3  # default: every 3rd frame's observed object points
+FIT_POINTS = 300  # default: per frame and object
+FIT_KEEP = 0.8  # default: the trimmed share of correspondences (mask edges, hand pixels, occlusion)
+
+
+def yaw_of(R: np.ndarray) -> float:
+    """Heading of a rotation about z (its x axis projected on the table)."""
+    return float(np.arctan2(R[1, 0], R[0, 0]))
+
+
+def Rz(yaw: float) -> np.ndarray:
+    return np.array([[np.cos(yaw), -np.sin(yaw), 0], [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]])
+
+
+def icp4(P: list, Gs: list, trees: list, yaw: float, t: np.ndarray, iterations: int) -> dict:
+    """Trimmed point-to-point ICP over heading and translation (see world_fit)."""
+    for _ in range(iterations):
+        src, dst, dist = [], [], []
+        for p, G, tree in zip(P, Gs, trees):
+            q = p @ Rz(yaw).T + t  # in the ground-truth world
+            local = np.einsum("nji,nj->ni", G[:, :3, :3], q - G[:, :3, 3])  # inv(G) q
+            d, i = tree.query(local)
+            src.append(p)
+            dst.append(np.einsum("nij,nj->ni", G[:, :3, :3], tree.data[i]) + G[:, :3, 3])
+            dist.append(d)
+        src, dst, dist = np.concatenate(src), np.concatenate(dst), np.concatenate(dist)
+        keep = dist <= np.quantile(dist, FIT_KEEP)
+        a, b = src[keep] - src[keep].mean(axis=0), dst[keep] - dst[keep].mean(axis=0)
+        yaw = float(np.arctan2((a[:, 0] * b[:, 1] - a[:, 1] * b[:, 0]).sum(), (a[:, :2] * b[:, :2]).sum()))
+        t = dst[keep].mean(axis=0) - Rz(yaw) @ src[keep].mean(axis=0)
+    rms = float(np.sqrt(np.mean(np.sort(dist)[:int(FIT_KEEP * len(dist))] ** 2)))
+    return {"yaw": yaw, "t": t, "rms": rms, "median": float(np.median(dist))}
+
+
+def world_fit(observed: list[tuple[np.ndarray, np.ndarray, np.ndarray]], iterations: int = 150,
+              starts: int = 24, coarse_points: int = 5000) -> tuple[np.ndarray, dict]:
+    """A (4x4): our world -> the ground-truth world, a rotation about z and a translation (both worlds
+    are gravity up; scale 1, P3 measured ours metric). observed: per object (points (F, P, 3) in our
+    world on F frames, the ground-truth poses (F, 4, 4) on those frames (scan frame -> ground truth),
+    the scan's surface points (S, 3) in its own frame). Trimmed ICP over the 4 parameters: each observed
+    point is carried into its frame's scan frame (inv(G_t) A p), matched to the nearest scan point, and
+    A is re-solved in closed form (heading by 2-D Procrustes, then the translation) on the FIT_KEEP
+    closest matches. Coarse to fine: `starts` headings (translation from the means), 30 iterations on
+    `coarse_points` points; the 3 best refined on every point for `iterations` (point-to-point ICP
+    turns slowly: on a synthetic carried box 30 iterations stopped 4 degrees short). The lowest trimmed
+    RMS wins. The object's motion fixes the heading even for a symmetric object; one that never moves
+    fixes it only up to its symmetry (which then changes nothing it touches)."""
+    from scipy.spatial import cKDTree
+    trees = [cKDTree(scan) for _, _, scan in observed]
+    P = [pts.reshape(-1, 3) for pts, _, _ in observed]
+    Gs = [np.repeat(G, pts.shape[1], axis=0) for pts, G, _ in observed]  # each point's frame pose
+    target_mean = np.concatenate([np.einsum("nij,j->ni", G[:, :3, :3], scan.mean(axis=0)) + G[:, :3, 3]
+                                  for (_, G, scan) in observed]).mean(axis=0)
+    source_mean = np.concatenate(P).mean(axis=0)
+    rng = np.random.default_rng(0)
+    share = min(1.0, coarse_points / sum(len(p) for p in P))
+    pick = [rng.random(len(p)) < share for p in P]
+    Pc, Gc = [p[m] for p, m in zip(P, pick)], [G[m] for G, m in zip(Gs, pick)]
+    coarse = [icp4(Pc, Gc, trees, y, target_mean - Rz(y) @ source_mean, 30)
+              for y in np.linspace(-np.pi, np.pi, starts, endpoint=False)]
+    best = min((icp4(P, Gs, trees, c["yaw"], c["t"], iterations) for c in sorted(coarse, key=lambda c: c["rms"])[:3]),
+               key=lambda r: r["rms"])
+    A = np.eye(4)
+    A[:3, :3], A[:3, 3] = Rz(best["yaw"]), best["t"]
+    return A, {"yaw_deg": float(np.degrees(best["yaw"])), "trimmed_rms_cm": best["rms"] * 100,
+               "median_cm": best["median"] * 100, "points": int(sum(len(p) for p in P)), "kept": FIT_KEEP}
+
+
+def observed_points(root: Path, e: dict, k: int, frames: list[int], seed: int = 0) -> tuple[np.ndarray, list[int]]:
+    """Object k's masked stereo points in our world (P1b mask eroded as s3a2_fuse_scan, P2 depth_a_half,
+    P4 camera), FIT_POINTS per frame on the frames that have at least that many."""
+    from .geometry import read_depth, read_transforms
+    from .runner import Context
+    from .stages.s3a2_fuse_scan import frame_masks
+    intr = json.loads((root / "p2_depth/depth_a_half/intrinsics.json").read_text())
+    K, shape = np.asarray(intr["K"], dtype=np.float64), (intr["size"][1], intr["size"][0])
+    c2w, have = read_transforms(root / "p4_export/camera_to_world", int(e["num_frames"]))
+    ctx, rng, pts, used = Context(e, root, {}), np.random.default_rng(seed), [], []
+    for t in frames:
+        path = root / f"p2_depth/depth_a_half/{t:06d}.png"
+        mask = frame_masks(ctx, k, t, shape)[0] if path.is_file() and have[t] else None
+        if mask is None:
+            continue
+        depth = read_depth(path)
+        ys, xs = np.nonzero(mask & (depth > 0) & np.isfinite(depth))
+        if len(ys) < FIT_POINTS:
+            continue
+        i = rng.choice(len(ys), FIT_POINTS, replace=False)
+        z = depth[ys[i], xs[i]]
+        cam = np.stack([(xs[i] - K[0, 2]) * z / K[0, 0], (ys[i] - K[1, 2]) * z / K[1, 1], z], axis=1)
+        pts.append(cam @ c2w[t, :3, :3].T + c2w[t, :3, 3])
+        used.append(t)
+    return (np.stack(pts) if pts else np.zeros((0, FIT_POINTS, 3))), used
+
+
+def source_world(e: dict, run: Path, read: list) -> tuple[Path, dict, dict]:
+    """V4: our P4 bundle (the roster-first object's: the hands and camera are the same in each) moved
+    into the ground-truth world by world_fit over every object's observed points."""
+    import trimesh
+    from .bundle import bundle_at
+    number, names = e["episode"], [o["name"] for o in e["objects"]]
+    root = run / f"episode_{number:06d}"
+    src = bundle_at(root, number, names[0])
+    truth = gt.ground_truth(e, read)
+    frames = list(range(0, min(len(truth), int(e["num_frames"])), FIT_STEP))
+    observed, per = [], {}
+    for k, name in enumerate(names):
+        pts, used = observed_points(root, e, k, frames)
+        if not used:
+            per[name] = {"frames": 0}
+            continue
+        mesh = trimesh.load(gt.scan(name), force="mesh", process=False)
+        read.append(gt.scan(name))
+        scan = np.asarray(trimesh.sample.sample_surface(mesh, 20000, seed=0)[0])
+        observed.append((pts, T_of(truth[used, k]), scan))
+        per[name] = {"frames": len(used)}
+    if not observed:
+        raise RuntimeError(f"episode {number}: no object points to fit the world from")
+    A, fit = world_fit(observed)
+    world = to_world(dict(np.load(src / "result.npz")), 1.0, A)
+    fit.update(scale=1.0, translation=A[:3, 3], objects=per, source_bundle=str(src), hands="P1d (our run)", merge=None)
+    return src, world, fit
+
+
+def gt_bundles(e: dict, work: Path, read: list, run: Path | None = None) -> tuple[Path, dict]:
+    """The per-object ground-truth bundles in work/ns/episode_XXXXXX/<object>/ and the fit; with `run`,
+    our P1d hands and camera (V4), else the team's hub bundle (v3)."""
     L = retarget_tools()
     number, names = e["episode"], [o["name"] for o in e["objects"]]
-    if len(names) > 1:
-        src, merge = L.merged_bundle(number, work / "hub_merged")
-    else:
-        src, merge = L.bundle_dir_for(number, names[0]), None
-    data = dict(np.load(src / "result.npz"))
     truth = gt.ground_truth(e, read)  # (frames, objects, 7)
-    n = min(len(truth), len(data["camera_to_world_transform"]))
-    slots = L.object_slots(data)
-    ours = np.concatenate([data[k][:n, :3, 3].astype(np.float64) for k, _, _ in slots])
-    theirs = np.concatenate([truth[:n, i, :3] for i in range(len(slots))])
-    spread = float(np.linalg.norm(theirs - theirs.mean(axis=0), axis=1).max())
-    if spread < 0.05:
-        raise RuntimeError(f"episode {number}: ground-truth positions span {spread * 100:.1f} cm; yaw is undetermined")
-    s, A = yaw_similarity(ours, theirs)
-    world = to_world(data, s, A)
-    resid = np.linalg.norm(np.concatenate([world[k][:n, :3, 3] for k, _, _ in slots]) - theirs, axis=1)
+    if run is not None:
+        src, world, fit = source_world(e, run, read)
+    else:
+        if len(names) > 1:
+            src, merge = L.merged_bundle(number, work / "hub_merged")
+        else:
+            src, merge = L.bundle_dir_for(number, names[0]), None
+        data = dict(np.load(src / "result.npz"))
+        n = min(len(truth), len(data["camera_to_world_transform"]))
+        slots = L.object_slots(data)
+        ours = np.concatenate([data[k][:n, :3, 3].astype(np.float64) for k, _, _ in slots])
+        theirs = np.concatenate([truth[:n, i, :3] for i in range(len(slots))])
+        spread = float(np.linalg.norm(theirs - theirs.mean(axis=0), axis=1).max())
+        if spread < 0.05:
+            raise RuntimeError(f"episode {number}: ground-truth positions span {spread * 100:.1f} cm; yaw is undetermined")
+        s, A = yaw_similarity(ours, theirs)
+        world = to_world(data, s, A)
+        resid = np.linalg.norm(np.concatenate([world[k][:n, :3, 3] for k, _, _ in slots]) - theirs, axis=1)
+        fit = {"scale": s, "yaw_deg": float(np.degrees(np.arctan2(A[1, 0], A[0, 0]))), "translation": A[:3, 3],
+               "residual_cm_median": float(np.median(resid) * 100),
+               "residual_cm_p90": float(np.percentile(resid, 90) * 100),
+               "source_bundle": str(src), "hands": "team hub bundle (v3)", "merge": merge}
     c2w = world["camera_to_world_transform"].astype(np.float64)
     ns = work / "ns" / f"episode_{number:06d}"
     keep = [k for k in world if not (k.startswith("object_") and k[7:8].isdigit()) and k != "object_names"]
@@ -112,14 +254,12 @@ def gt_bundles(e: dict, work: Path, read: list) -> tuple[Path, dict]:
         scan.export(dest / "mesh.obj")  # writes material.mtl and its texture beside it
         if not (dest / "material.mtl").is_file():
             (dest / "material.mtl").write_text("newmtl material_0\n")
-        shutil.copy(src / "manifest.json", dest / "manifest.json")
-    fit = {"scale": s, "yaw_deg": float(np.degrees(np.arctan2(A[1, 0], A[0, 0]))), "translation": A[:3, 3],
-           "residual_cm_median": float(np.median(resid) * 100), "residual_cm_p90": float(np.percentile(resid, 90) * 100),
-           "source_bundle": str(src), "merge": merge}
+        if (src / "manifest.json").is_file():
+            shutil.copy(src / "manifest.json", dest / "manifest.json")
     return ns, fit
 
 
-def episode(number: int, out: Path) -> dict:
+def episode(number: int, out: Path, run: Path | None = None) -> dict:
     e = episode_info(number)
     gt.allowed(e)
     work = out / f"episode_{number:06d}"
@@ -137,7 +277,7 @@ def episode(number: int, out: Path) -> dict:
         state_file.write_text(json.dumps(state, indent=1, default=str) + "\n")
 
     if "fit" not in state:
-        ns, state["fit"] = gt_bundles(e, work, read)
+        ns, state["fit"] = gt_bundles(e, work, read, run)
         state["ns"] = str(ns)
         save()
     if "partition" not in state:
@@ -165,7 +305,7 @@ def episode(number: int, out: Path) -> dict:
     poses = scorer().evaluator_poses(run / "results" / f"episode_{number:06d}.parquet", e)  # parses the rollout
     meshes = {name: lr / f"score_input/meshes/episode_{number:06d}/{name}.obj" for name in names}
     state["scores"] = gt.score(e, poses, meshes, read)
-    state["still"] = STILL_SCORES.get(number)
+    state["still"] = still_score(number)
     auc = state["scores"]["AUC"]
     state["decision"] = ("S6 recipe first (rollout(GT) < still)" if state["still"] is not None and auc < state["still"]
                          else "reference is the whole problem (>= 0.7)" if auc >= 0.7 else "proceed as planned")
@@ -173,7 +313,6 @@ def episode(number: int, out: Path) -> dict:
     return state
 
 
-S02_FILE = PATH_B / "oracles/oracle_2026-10-17.json"  # Edmond's S0.2 regime split (tools/track3/playback_oracle.py)
 VARIANTS = ("place_pos_rot_gt",)
 
 
@@ -224,12 +363,12 @@ def variants(numbers: list[int], names: list[str]) -> Path:
     return path
 
 
-def main(numbers: list[int], out: Path | None = None) -> int:
+def main(numbers: list[int], out: Path | None = None, run: Path | None = None) -> int:
     out = out or PATH_B / "data/oracles_s01"
     rows = []
     for number in numbers:
-        print(f"== S0.1 episode {number}", flush=True)
-        rows.append(episode(number, out))
+        print(f"== S0.1 episode {number}" + (f" (our hands: {run})" if run else " (team hub bundle)"), flush=True)
+        rows.append(episode(number, out, run))
         r = rows[-1]
         print(f"   AUC {r['scores']['AUC']:.3f} (still {r['still']}), MPPE {r['scores']['MPPE cm']:.2f} cm: "
               f"{r['decision']}", flush=True)

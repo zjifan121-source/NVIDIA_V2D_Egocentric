@@ -125,3 +125,37 @@ def test_s01_settings_and_world_fit():
     dst = 0.6 * src @ Rz.T + [0.1, -0.2, 0.9]
     s, A = oracle.yaw_similarity(src, dst)
     assert np.isclose(s, 0.6) and np.allclose(A[:3, :3], Rz) and np.allclose(s * src @ A[:3, :3].T + A[:3, 3], dst)
+
+
+def test_s01_world_fit_from_observed_points():
+    """V4 S0.1: our world -> ground truth from what a head camera sees of a box that looks the same
+    turned 180 degrees, carried 30 cm and turned 60 degrees: the motion fixes the heading."""
+    import trimesh
+    from pathb import oracle
+    M = np.eye(4)  # ground-truth world -> ours (what the fit must undo)
+    M[:3, :3], M[:3, 3] = oracle.Rz(np.radians(137.0)), [0.4, -0.2, 0.03]
+    box = trimesh.creation.box((0.12, 0.08, 0.05))
+    box.apply_translation([0, 0, 0.025])  # bottom on z = 0
+    scan, faces = trimesh.sample.sample_surface(box, 20000, seed=0)
+    normals = box.face_normals[faces]
+    rng = np.random.default_rng(1)
+    F, eye = 30, np.array([0.15, -0.45, 0.5])  # the head, ground-truth world
+    G = np.tile(np.eye(4), (F, 1, 1))
+    s = np.linspace(0, 1, F)
+    G[:, :3, :3] = Rotation.from_rotvec(np.outer(np.radians(60) * s, [0, 0, 1])).as_matrix()
+    G[:, :3, 3] = np.stack([0.3 * s, 0.1 * s ** 2, np.zeros(F)], axis=1)
+    pts = []
+    for t in range(F):  # the faces turned towards the camera, 2 mm noise
+        world = scan @ G[t, :3, :3].T + G[t, :3, 3]
+        seen = world[((normals @ G[t, :3, :3].T) * (eye - world)).sum(axis=1) > 0]
+        p = seen[rng.choice(len(seen), 300, replace=False)] + rng.normal(0, 0.002, (300, 3))
+        pts.append(p @ M[:3, :3].T + M[:3, 3])
+    A, fit = oracle.world_fit([(np.stack(pts), G, np.asarray(scan))], iterations=100, starts=12)
+    err = A @ M  # identity when A undoes M
+    assert abs(np.degrees(oracle.yaw_of(err[:3, :3]))) < 1 and np.linalg.norm(err[:3, 3]) < 0.01, fit
+    assert fit["trimmed_rms_cm"] < 0.5
+
+
+def test_s01_still_bar_from_s02():
+    from pathb import oracle
+    assert round(oracle.still_score(41), 3) == 0.356 and round(oracle.still_score(13), 3) == 0.416
