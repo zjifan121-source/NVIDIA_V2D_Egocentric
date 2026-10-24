@@ -201,3 +201,24 @@ v4 replaces v3 (James, 2026-10-24): contact-segmented inversion, dev episodes **
 | 2026-10-24 | S4b's base bundle is S3d's (else S3c's) bundle, which carries the canonical mesh and the solved track | In v4 P4's bundle has no mesh (v3's S3c wrote one into it); S5's runner and the waterfall's scorer need it in every candidate bundle |
 | 2026-10-24 | S6's 250M step runs as a second pass of the same three stages (`PATHB_S6_LONG=<seeds>` with `--force` on s6_train / s6_eval / s6_select), not as a new stage | V4 §1's stage list has no slot after s6_select; the 250M run trains the candidate s6_select picked at 60M, so it has to come after a first selection, and the second select then compares all rollouts. A 250M run is named `<candidate>_250m_s<seed>`; `selection.json` gains `task` (the S5 task it trained on) for the packer |
 | 2026-10-24 | The `residual_hand_pose` check is at every run, from Hydra's own record (`hydra.run.dir` = `<run>/hydra`, `.hydra/hydra.yaml` → `runtime.choices`), plus a refusal of any override naming the action or termination group | Spec S6: "Verify at the first run that no override removed `residual_hand_pose`". Checking every run costs nothing and catches a later override too |
+
+### v4 runbook (2026-10-24; every step's numbers go in the tables above)
+
+```bash
+# 1. VM (James gives the IP; --replace-host-key only if James confirms an IP used before)
+path_b/vm/new_instance.sh <ip>                                    # ~2 h: setup.sh, run 4c2eac31 with frames
+ssh -t l40s "tmux new -d -s v4 'bash /root/v2d/NVIDIA_V2D_Egocentric/path_b/vm/dev_cache.sh'"   # S1 on ep41, ep13 (~30 min), each to HF
+# 2. Mac: the dev cache, the CPU chain, the checks (MANO_DIR, RETARGET_VENV and the sim venv as in the decisions)
+export RETARGET_VENV=~/V2D/venvs/retarget RETARGET_DEVICE=cpu MANO_DIR=~/V2D/mano_v1_2 COACD_PY=~/V2D/venvs/sim/bin/python SETTLE_PY=~/V2D/venvs/sim/bin/python
+uv run --project tools python path_b/vm/hf_outputs.py download --run v4 --frames --episodes 41 13
+for o in white_pot blue_cup plastic_dish_rack; do uv run --project path_b python path_b/run.py canonical --object $o --episodes 41 13 --out path_b/data/outputs/v4; done
+uv run --project path_b python path_b/run.py run --episodes 41 13 --out path_b/data/outputs/v4 \
+  --stages s3a2_register s3b_segments s3c_invert s3d_settle s4a_phases s4b_reference s5_task   # S4c is off
+uv run --project path_b python path_b/run.py wristcheck --out path_b/data/outputs/v4     # task 4: the S3c gate
+uv run --project path_b python path_b/run.py waterfall --episodes 41 13 --out path_b/data/outputs/v4   # task 8: go/no-go
+# 3. VM, in the same turn as a passing smoke test: S1 on the other 38 episodes, each uploaded as it finishes
+ssh -t l40s "tmux new -d -s v4 'bash /root/v2d/NVIDIA_V2D_Egocentric/path_b/vm/phase_b.sh'"
+# then S0.1 on the dev episodes (GPU; our hands): run.py oracle --episodes 41 13 --hands-from path_b/data/outputs/v4
+# 4. Mac: canonical meshes pooled over every clip (V4 S3a: before the evaluation episodes run)
+for o in $(jq -r '.episodes[].objects[].name' tools/track3/episodes.json | sort -u); do uv run --project path_b python path_b/run.py canonical --object $o --split all --out path_b/data/outputs/v4; done
+```
