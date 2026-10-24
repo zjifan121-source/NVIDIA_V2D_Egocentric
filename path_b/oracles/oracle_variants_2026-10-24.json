@@ -1,0 +1,460 @@
+{
+ "created_utc": "2026-10-24T21:35:55+00:00",
+ "source_s02": "oracle_2026-10-17.json",
+ "variants": [
+  "place_pos_rot_gt"
+ ],
+ "episodes": [
+  {
+   "episode": 0,
+   "objects": [
+    "white_pot",
+    "white_pot_lid"
+   ],
+   "place_pos_gt": 0.4992459785522788,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.08874648789859066,
+    "MPPE cm": 0.045867626934612916,
+    "CD-O cm": 5.012505554606979e-15
+   },
+   "rotation_loss_auc": 0.5007540214477212,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000000.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/white_pot/white_pot.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/white_pot_lid/white_pot_lid.glb"
+   ]
+  },
+  {
+   "episode": 2,
+   "objects": [
+    "white_pot",
+    "white_pot_lid"
+   ],
+   "place_pos_gt": 0.4753097667638484,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.05389866055244995,
+    "MPPE cm": 0.04267557623176564,
+    "CD-O cm": 3.0816189160803122e-15
+   },
+   "rotation_loss_auc": 0.5246902332361516,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000002.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/white_pot/white_pot.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/white_pot_lid/white_pot_lid.glb"
+   ]
+  },
+  {
+   "episode": 11,
+   "objects": [
+    "blue_cup",
+    "beige_cup"
+   ],
+   "place_pos_gt": 0.9872262773722629,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0402213324221463,
+    "MPPE cm": 0.036041333471272884,
+    "CD-O cm": 3.1035543068751387e-15
+   },
+   "rotation_loss_auc": 0.012773722627737127,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000011.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/beige_cup/beige_cup.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/blue_cup/blue_cup.glb"
+   ]
+  },
+  {
+   "episode": 12,
+   "objects": [
+    "blue_cup",
+    "plastic_dish_rack"
+   ],
+   "place_pos_gt": 0.8594613259668509,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.07576046704497204,
+    "MPPE cm": 0.07152256950222899,
+    "CD-O cm": 6.209651569212225e-15
+   },
+   "rotation_loss_auc": 0.14053867403314912,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000012.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/blue_cup/blue_cup.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/plastic_dish_rack/plastic_dish_rack.glb"
+   ]
+  },
+  {
+   "episode": 13,
+   "objects": [
+    "blue_cup",
+    "plastic_dish_rack"
+   ],
+   "place_pos_gt": 0.8771381578947368,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.033183086606334726,
+    "MPPE cm": 0.06048849660119199,
+    "CD-O cm": 4.683187425373117e-15
+   },
+   "rotation_loss_auc": 0.12286184210526319,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000013.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/blue_cup/blue_cup.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/plastic_dish_rack/plastic_dish_rack.glb"
+   ]
+  },
+  {
+   "episode": 18,
+   "objects": [
+    "mini_sweeper",
+    "mini_dust_pan"
+   ],
+   "place_pos_gt": 0.9213881019830028,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.03223828368086622,
+    "MPPE cm": 0.02194395775345544,
+    "CD-O cm": 1.2299855970087525e-15
+   },
+   "rotation_loss_auc": 0.0786118980169972,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000018.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/mini_dust_pan/mini_dust_pan.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/mini_sweeper/mini_sweeper_visual.glb"
+   ]
+  },
+  {
+   "episode": 21,
+   "objects": [
+    "blue_cup",
+    "water_pitcher"
+   ],
+   "place_pos_gt": 0.9583333333333334,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.07877690615296935,
+    "MPPE cm": 0.1053093123297923,
+    "CD-O cm": 4.086976890498781e-15
+   },
+   "rotation_loss_auc": 0.04166666666666663,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000021.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/blue_cup/blue_cup.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/water_pitcher/water_pitcher.glb"
+   ]
+  },
+  {
+   "episode": 22,
+   "objects": [
+    "blue_cup",
+    "water_pitcher"
+   ],
+   "place_pos_gt": 0.974371693121693,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.11010991313090514,
+    "MPPE cm": 0.08267261504367805,
+    "CD-O cm": 4.291256112864077e-15
+   },
+   "rotation_loss_auc": 0.025628306878306972,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000022.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/blue_cup/blue_cup.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/water_pitcher/water_pitcher.glb"
+   ]
+  },
+  {
+   "episode": 23,
+   "objects": [
+    "wooden_piece_1",
+    "wooden_piece_2"
+   ],
+   "place_pos_gt": 0.39605769230769233,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.08900959843789913,
+    "MPPE cm": 0.05735396667649278,
+    "CD-O cm": 5.04661808294382e-15
+   },
+   "rotation_loss_auc": 0.6039423076923076,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000023.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/wooden_piece_1/wooden_piece_1_visual.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/wooden_piece_2/wooden_piece_2_visual.glb"
+   ]
+  },
+  {
+   "episode": 24,
+   "objects": [
+    "wooden_piece_1",
+    "wooden_piece_2"
+   ],
+   "place_pos_gt": 0.18965909090909092,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.03456398445108934,
+    "MPPE cm": 0.038958274310071594,
+    "CD-O cm": 2.1262566650418512e-15
+   },
+   "rotation_loss_auc": 0.8103409090909091,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000024.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/wooden_piece_1/wooden_piece_1_visual.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/wooden_piece_2/wooden_piece_2_visual.glb"
+   ]
+  },
+  {
+   "episode": 26,
+   "objects": [
+    "plastic_dish_rack",
+    "white_pot"
+   ],
+   "place_pos_gt": 0.6554588607594937,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.05405364879682765,
+    "MPPE cm": 0.027811334481055383,
+    "CD-O cm": 6.4892094529061025e-15
+   },
+   "rotation_loss_auc": 0.34454113924050633,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000026.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/plastic_dish_rack/plastic_dish_rack.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/white_pot/white_pot.glb"
+   ]
+  },
+  {
+   "episode": 27,
+   "objects": [
+    "plastic_dish_rack",
+    "white_pot"
+   ],
+   "place_pos_gt": 0.6949949186991871,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.06270902300703746,
+    "MPPE cm": 0.03301661631090145,
+    "CD-O cm": 4.752966442545467e-15
+   },
+   "rotation_loss_auc": 0.30500508130081294,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000027.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/plastic_dish_rack/plastic_dish_rack.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/white_pot/white_pot.glb"
+   ]
+  },
+  {
+   "episode": 31,
+   "objects": [
+    "mini_sweeper",
+    "plastic_dish_rack"
+   ],
+   "place_pos_gt": 0.8526939655172414,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.054313547173996266,
+    "MPPE cm": 0.03126029467405582,
+    "CD-O cm": 5.781301960454326e-15
+   },
+   "rotation_loss_auc": 0.14730603448275859,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000031.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/mini_sweeper/mini_sweeper_visual.glb",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/plastic_dish_rack/plastic_dish_rack.glb"
+   ]
+  },
+  {
+   "episode": 39,
+   "objects": [
+    "mini_dust_pan"
+   ],
+   "place_pos_gt": 0.6396943573667712,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 0.0731825970896508,
+    "CD-O cm": 1.754438092330382e-15
+   },
+   "rotation_loss_auc": 0.36030564263322884,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000039.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/mini_dust_pan/mini_dust_pan.glb"
+   ]
+  },
+  {
+   "episode": 40,
+   "objects": [
+    "mini_dust_pan"
+   ],
+   "place_pos_gt": 0.9742788461538461,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 0.025164591461943584,
+    "CD-O cm": 4.332226154695353e-15
+   },
+   "rotation_loss_auc": 0.02572115384615392,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000040.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/mini_dust_pan/mini_dust_pan.glb"
+   ]
+  },
+  {
+   "episode": 41,
+   "objects": [
+    "white_pot"
+   ],
+   "place_pos_gt": 0.908653846153846,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 0.03694698303166234,
+    "CD-O cm": 2.5874881891846244e-15
+   },
+   "rotation_loss_auc": 0.09134615384615397,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000041.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/white_pot/white_pot.glb"
+   ]
+  },
+  {
+   "episode": 42,
+   "objects": [
+    "white_pot"
+   ],
+   "place_pos_gt": 0.9345817120622568,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 0.04529679875848174,
+    "CD-O cm": 6.125227447471942e-15
+   },
+   "rotation_loss_auc": 0.06541828793774318,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000042.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/white_pot/white_pot.glb"
+   ]
+  },
+  {
+   "episode": 43,
+   "objects": [
+    "white_pot"
+   ],
+   "place_pos_gt": 0.401840490797546,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 0.05645776061437308,
+    "CD-O cm": 3.5580517301039873e-14
+   },
+   "rotation_loss_auc": 0.598159509202454,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000043.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/white_pot/white_pot.glb"
+   ]
+  },
+  {
+   "episode": 44,
+   "objects": [
+    "white_pot"
+   ],
+   "place_pos_gt": 0.9992469879518072,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 0.02017127263067961,
+    "CD-O cm": 2.254416875245673e-15
+   },
+   "rotation_loss_auc": 0.0007530120481927804,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000044.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/white_pot/white_pot.glb"
+   ]
+  },
+  {
+   "episode": 45,
+   "objects": [
+    "white_pot"
+   ],
+   "place_pos_gt": 0.6234913793103448,
+   "gt_scan_s02": 1.0,
+   "place_pos_rot_gt": {
+    "AUC": 1.0,
+    "SP-SR": 1.0,
+    "MP-SR": 1.0,
+    "RPE cm": 0.0,
+    "MPPE cm": 0.027899498974153083,
+    "CD-O cm": 1.0545494342146824e-14
+   },
+   "rotation_loss_auc": 0.3765086206896552,
+   "files_read": [
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/data/data/chunk-000/episode_000045.parquet",
+    "/Users/jzzzzz79/V2D/NVIDIA_V2D_Egocentric/assets/data/track_3/public/mesh/white_pot/white_pot.glb"
+   ]
+  }
+ ],
+ "mean": {
+  "place_pos_rot_gt": 1.0,
+  "place_pos_gt": 0.7411563391488565,
+  "rotation_loss_auc": 0.2588436608511435
+ }
+}

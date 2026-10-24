@@ -1,4 +1,5 @@
-"""S0.1: a FlashCHORD policy trained on the ground-truth reference (V3_BUILD_SPEC.md S0.1).
+"""S0.1: a FlashCHORD policy trained on the ground-truth reference (V4_BUILD_SPEC.md S0.1), and
+`run.py oracle --variants` (S0.2's new variants, CPU, public only; variants() below).
 
 Per episode (public only, through pathb/gt.py), on a GPU machine:
   1. bundle  the team bundle (hub; merged for several objects, as run_load_retarget --merge does)
@@ -170,6 +171,57 @@ def episode(number: int, out: Path) -> dict:
                          else "reference is the whole problem (>= 0.7)" if auc >= 0.7 else "proceed as planned")
     save()
     return state
+
+
+S02_FILE = PATH_B / "oracles/oracle_2026-10-17.json"  # Edmond's S0.2 regime split (tools/track3/playback_oracle.py)
+VARIANTS = ("place_pos_rot_gt",)
+
+
+def place_pos_rot_gt(e: dict, read: list) -> dict:
+    """True positions and rotations (V4 S0.2, James 2026-10-24), the public scans as meshes, through the
+    official metric code. S0.2 scores every variant but *_ourmesh with the scan mesh and converts poses
+    through the scan's anchor and back (playback_oracle.to_anchor / to_native), so this is its `gt`
+    variant, scored there as `gt_scan`; computed here, not copied."""
+    meshes = {o["name"]: gt.scan(o["name"]) for o in e["objects"]}
+    return gt.score(e, gt.ground_truth(e, read), meshes, read)
+
+
+def variants(numbers: list[int], names: list[str]) -> Path:
+    """`run.py oracle --variants`: each named variant per public episode, next to S0.2's place_pos_gt
+    (true positions, our rotations); the gap is the rotation loss once position is fixed. Writes
+    oracles/oracle_variants_<date>.json (per episode, and means)."""
+    unknown = sorted(set(names) - set(VARIANTS))
+    if unknown:
+        raise SystemExit(f"unknown variant(s) {unknown}; known: {VARIANTS}")
+    s02 = {}
+    for r in json.loads(S02_FILE.read_text())["variants"]:
+        s02.setdefault(r["ep"], {})[r["v"]] = r
+    rows = []
+    for number in numbers:
+        e = episode_info(number)
+        gt.allowed(e)  # public only: raises on an evaluation episode (GT firewall)
+        read: list = []
+        row = {"episode": number, "objects": [o["name"] for o in e["objects"]],
+               "place_pos_gt": s02.get(number, {}).get("place_pos_gt", {}).get("AUC"),
+               "gt_scan_s02": s02.get(number, {}).get("gt_scan", {}).get("AUC")}
+        for name in names:
+            row[name] = {"place_pos_rot_gt": place_pos_rot_gt}[name](e, read)
+        auc = row["place_pos_rot_gt"]["AUC"] if "place_pos_rot_gt" in row else None
+        row["rotation_loss_auc"] = auc - row["place_pos_gt"] if auc is not None and row["place_pos_gt"] is not None else None
+        row["files_read"] = sorted({str(p) for p in read})
+        rows.append(row)
+        print(f"   ep{number}: " + ", ".join(f"{n} AUC {row[n]['AUC']:.3f}" for n in names)
+              + f"; place_pos_gt {row['place_pos_gt']}; rotation loss {row['rotation_loss_auc']}", flush=True)
+
+    def mean(key):
+        vals = [r[key] if not isinstance(r[key], dict) else r[key]["AUC"] for r in rows if r.get(key) is not None]
+        return float(np.mean(vals)) if vals else None
+    summary = {"created_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"), "source_s02": S02_FILE.name,
+               "variants": list(names), "episodes": rows,
+               "mean": {k: mean(k) for k in (*names, "place_pos_gt", "rotation_loss_auc")}}
+    path = PATH_B / f"oracles/oracle_variants_{datetime.now(timezone.utc):%Y-%m-%d}.json"
+    path.write_text(json.dumps(summary, indent=1, default=str) + "\n")
+    return path
 
 
 def main(numbers: list[int], out: Path | None = None) -> int:

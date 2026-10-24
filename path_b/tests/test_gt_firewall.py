@@ -69,3 +69,12 @@ def test_runner_records_reads_and_stops_evaluation_reads(tmp_path, monkeypatch):
     report, _ = runner.run_stage("_reads_gt", evaluation, force=True)
     assert report["status"] == "ERROR" and "GroundTruthFirewall" in report["error"]
     assert report["files_read"] == []
+
+
+def test_oracle_variants_refuse_evaluation_and_unknown_names():
+    import pytest
+    from pathb import oracle
+    with pytest.raises(SystemExit):
+        oracle.variants([41], ["place_everything_gt"])
+    with pytest.raises(Exception):  # GT firewall: evaluation episodes have no ground truth to read
+        oracle.variants([35], ["place_pos_rot_gt"])

@@ -6,6 +6,7 @@ Run from the repo root (README in path_b/):
     uv run --project path_b python path_b/run.py waterfall --split public
     uv run --project path_b python path_b/run.py visualize --episodes 13     # after run and waterfall
     uv run --project path_b python path_b/run.py oracle --episodes 41 13     # S0.1, on a GPU machine
+    uv run --project path_b python path_b/run.py oracle --variants place_pos_rot_gt --split public  # S0.2 variants (CPU)
     uv run --project path_b python path_b/run.py wristcheck --out <run>      # S0.3 on the dev episodes (CPU)
     uv run --project path_b python path_b/run.py pack --split evaluation --out <run>  # S7: preflight + pack, no upload (public: dry pack)
     uv run --project path_b python path_b/run.py analysis --out <run> [--tag v2]  # after waterfall; dev episodes by default
@@ -55,6 +56,7 @@ def main() -> int:
     parser.add_argument("--force", action="store_true", help="rerun stages whose reports exist")
     parser.add_argument("--object", help="canonical: the roster object to build")
     parser.add_argument("--tag", default="", help="analysis: suffix of the page's name, e.g. v2")
+    parser.add_argument("--variants", nargs="+", help="oracle: S0.2 variants to score (public only) instead of S0.1")
     args = parser.parse_args()
     if args.command == "canonical" and not args.object:
         parser.error("canonical needs --object")
@@ -104,6 +106,9 @@ def main() -> int:
 
     if args.command == "oracle":
         from pathb import oracle
+        if args.variants:
+            print(f"S0.2 variants: {oracle.variants(episodes(args), args.variants)}")
+            return 0
         return oracle.main(episodes(args), args.out)
 
     if args.command in NOT_BUILT:
