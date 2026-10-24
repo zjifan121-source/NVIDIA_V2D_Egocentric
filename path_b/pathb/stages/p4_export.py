@@ -5,6 +5,9 @@ it (camera_to_world/); then per object a bundle in the BUNDLES.md layout written
 own result writer, with that camera and P1d's hands, plus table_plane, gravity and world_from_p1c.
 No object track yet (S3c completes each bundle) and no mesh.obj until S3a. Next to each bundle:
 run.json, numeric_qa.json (P0-P3 measurements) and status.json.
+V4 (P1d's exports, pathb/hands.py): hands/{fingertips_world,hand_verts_world,wrist_world}.npz and
+hand_gaps.json, the hands in this world with the hand-gap rule applied, from the first object's
+bundle through the baseline loader's re-posing ($RETARGET_VENV, $MANO_DIR).
 """
 from __future__ import annotations
 
@@ -13,8 +16,9 @@ import sys
 
 import numpy as np
 
+from .. import hands as Hd
 from .. import world as V
-from ..bundle import p4_bundle, write_v3_bundle
+from ..bundle import hand_dirs, p4_bundle, write_v3_bundle
 from ..geometry import read_transforms, write_transform
 from ..paths import TRACK3_FPS, git_commit
 from ..report import Metric, StageResult, worst
@@ -73,4 +77,20 @@ def run(ctx) -> StageResult:
                                          "notes": "camera P1c, hands P1d; object and mesh come from S3a-S3c"})
         write_json(folder / "numeric_qa.json", qa)
         write_json(folder / "status.json", status)
-    return StageResult(metrics, {"bundles": d / f"episode_{ctx.number:06d}", "world": d / "world.json"})
+    hands = Hd.export(p4_bundle(ctx, ctx.objects[0]), hand_dirs(ctx.root), d / "hands", log)
+    for h, share in zip(Hd.HANDS, hands["valid_share"]):
+        g = hands["gaps"][h]
+        filled = [x for x in g if x["kind"] == "filled"]
+        long = [x for x in g if x["kind"] == "long"]
+        metrics += [
+            Metric(f"hand_{h}: frames with a wrist (world exports)", share, "share",
+                   note="pathb/hands.py: fingertips, vertices, wrist in p4_export/hands/"),
+            Metric(f"hand_{h}: gaps filled (<= {Hd.MAX_GAP} frames, Hermite/slerp in the world)", len(filled), "gaps",
+                   note=f"{sum(x['frames'] for x in filled)} frames; largest wrist move by the re-interpolation "
+                        f"{hands['hermite_shift_cm'][h]:.1f} cm"),
+            Metric(f"hand_{h}: gaps left empty (longer, or at the clip's ends)", len(long), "gaps",
+                   note=("longest " + str(max(x["frames"] for x in long)) + " frames; S3b splits a grasp there")
+                        if long else "none"),
+        ]
+    return StageResult(metrics, {"bundles": d / f"episode_{ctx.number:06d}", "world": d / "world.json",
+                                 "hands": d / "hands"})
