@@ -176,3 +176,43 @@ def test_stage_s3b_then_s3c_on_a_rendered_episode(tmp_path, monkeypatch):
     assert status["box: static residual (worst segment median)"] == "PASS"
     b = np.load(root / "s3c_invert/box/bundle/result.npz")
     assert np.allclose(b["object_to_world_transform"], P, atol=1e-6) and (root / "s3c_invert/box/bundle/mesh.obj").is_file()
+
+
+SIM = __import__("pathlib").Path.home() / "V2D/venvs/sim/bin/python"
+
+
+@pytest.mark.skipif(not SIM.exists(), reason="needs a venv with mujoco (~/V2D/venvs/sim)")
+def test_stage_s3d_settles_the_rests_and_resolves_the_carry(tmp_path, monkeypatch):
+    """s3b_segments, s3c_invert, then s3d_settle on the rendered episode (the box as one convex piece):
+    both rests end on the table and the carry is solved again against them."""
+    import json
+    import test_a2 as A
+    from test_segments import synthetic_episode
+    from pathb import runner
+    from pathb.stages import s3b_segments, s3c_invert, s3d_settle
+    monkeypatch.delenv("RETARGET_VENV", raising=False)
+    monkeypatch.setenv("SETTLE_PY", str(SIM))
+    root, e, truth = synthetic_episode(tmp_path)
+    ctx = runner.Context(e, root, {})
+    s3b_segments.run(ctx)
+    m = A.box()
+    tm = trimesh.Trimesh(np.asarray(m.vertices), np.asarray(m.triangles), process=False)
+    (root / "s3a_mesh/box/coacd").mkdir(parents=True)
+    tm.export(root / "s3a_mesh/box/mesh.obj")
+    tm.export(root / "s3a_mesh/box/coacd/piece_000.obj")
+    (root / "s3a_mesh/box/coacd/pieces.json").write_text(json.dumps({"pieces": [{"file": "piece_000.obj"}]}))
+    (root / "s3a_mesh/box/mass.json").write_text(json.dumps({"mass_kg": 0.2}))
+    (root / "s3a2_register/box").mkdir(parents=True)
+    (root / "s3a2_register/box/registration.json").write_text(json.dumps({"canonical_to_world": truth[0].tolist(),
+                                                                         "window": "rest_before"}))
+    s3c_invert.run(ctx)
+    r = s3d_settle.run(ctx)
+    P = np.load(root / "s3d_settle/box/object_to_world.npz")["object_to_world"]
+    rep = json.loads((root / "s3d_settle/box/settle_report.json").read_text())
+    assert all(s["settled"] for s in rep["statics"]) and rep["resolved"], rep["statics"]
+    assert abs(P[0, 2, 3]) < 0.003 and abs(P[-1, 2, 3]) < 0.003  # both rests on the table (bottom at z = 0)
+    err = add_mm(P, truth, np.asarray(tm.vertices))
+    # the p90 is the unstable bridges around this fixture's 2.3 cm/frame carry (S3c alone: just under 15 mm)
+    assert np.median(err) < 3 and np.percentile(err, 90) < 25
+    status = {x.name: x.status for x in r.metrics}
+    assert status["box: penetration into the support after settling (worst)"] == "PASS"

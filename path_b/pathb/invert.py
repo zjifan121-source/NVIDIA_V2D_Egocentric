@@ -382,9 +382,11 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
 
 
 # ---------------------------------------------------------------- the clip
-def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float) -> tuple[np.ndarray, list[dict]]:
+def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
+          fixed: dict[int, np.ndarray] | None = None) -> tuple[np.ndarray, list[dict]]:
     """(object_to_world (N, 4, 4), per-segment report). start_pose: s3a2_register's canonical_to_world
-    (the first static segment's start)."""
+    (the first static segment's start). fixed: static segment start -> its pose, used as it is (S3d's
+    settled poses: the grasps and bridges are solved again against them)."""
     n = clip.n
     P = np.full((n, 4, 4), np.nan)
     HANDS = ("L", "R")
@@ -407,7 +409,10 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float) 
     solved: dict[int, list[dict]] = {}
     for i, s in enumerate(work):  # sweep 1: statics and grasps in clip order
         a, b = s["start"], s["end"]
-        if s["kind"] == "static":
+        if s["kind"] == "static" and fixed and a in fixed:
+            P[a:b + 1] = fixed[a]
+            solved[i] = [{"kind": "static", "start": a, "end": b, "residual_m": None, "start_from": "fixed (S3d)"}]
+        elif s["kind"] == "static":
             last = next((t for t in range(a - 1, -1, -1) if known(t)), None)
             init = P[a - 1] if known(a - 1) else P[last] if last is not None else start_pose
             r = solve_static(clip, a, b, init)
