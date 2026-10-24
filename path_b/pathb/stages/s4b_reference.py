@@ -1,12 +1,20 @@
-"""S4b reference: the kinematic references inverted, keyframe and still, per object (pathb/reference.py).
+"""S4b reference: the kinematic references inverted, keyframe and still, per object (V4_BUILD_SPEC.md
+S4b; pathb/reference.py).
 
-Inputs per object: S4a's phases.json; the object track and its rest anchors from S3c
-(s3c_fuse/<object>/object_to_world.npz, anchors.json) and S3b's track_meta.json (trusted frames).
-Until S3c exists, the P4 bundle's track stands in, with anchors from fuse.rest_anchor over the
-rest windows and no trusted frame (the carry is then one interpolation); the report says which.
-Hands: the P4 bundle's, cleaned with run_load_retarget's hand repairs (cleaned_bundle, hands only).
-`inverted` (V4 S3c + S3d) is built once those stages write their solution (task 8); until then the
-candidates are keyframe and still. v3's input path (s3c_fuse, cached) is read only if an old run has it.
+Inputs per object (V4): S3d's settled track (s3d_settle/<object>/object_to_world.npz; S3c's when S3d
+has not run) and its bundle (the canonical mesh), S3b's segments, the grasp segments S3c (or S3d's
+re-solve) marked `failed`, S4a's phases.
+  inverted  that track; static segments held exactly; a failed grasp segment replaced by the keyframe
+            interpolation between the poses around it
+  keyframe  v3's rule: the first static pose held until the first grasp, the last one from the last
+            release, one interpolation between them (no tracker, so no trusted frame): the baseline the
+            go/no-go compares `inverted` with, and the fallback
+  still     the first static pose on every frame
+The moving candidate an episode trains (s4b_reference/moving.json, S5 reads it): `inverted`, or
+`keyframe` when any object has a failed grasp segment or no solved track; $PATHB_MOVING (inverted or
+keyframe) sets it for a whole run (the go/no-go's verdict).
+v3 runs (s3c_fuse/, cached) keep their old inputs: the fused track, its anchors, S3b's trusted frames.
+Hands: the bundle's, cleaned with run_load_retarget's hand repairs (cleaned_bundle, hands only).
 Each candidate is a complete bundle (BUNDLES.md layout) in s4b_reference/<object>/<candidate>/; the
 still candidate also holds the hands at frame 0 (run_load_retarget.still_scene, as --still-object).
 Public, one object: each candidate's playback score (official metrics) is reported; scenes of
@@ -15,10 +23,12 @@ several objects are scored in the waterfall (ref_* columns).
 from __future__ import annotations
 
 import json
+import os
 import shutil
 from pathlib import Path
 
 import numpy as np
+from scipy.spatial.transform import Rotation, Slerp
 
 from .. import fuse, gt
 from .. import reference as R
@@ -64,6 +74,68 @@ def inputs(ctx, name: str, data: dict) -> tuple[np.ndarray, np.ndarray, np.ndarr
     return T, before, after, None, "p4 bundle (stand-in until S3c)"
 
 
+def solved(ctx, name: str) -> dict | None:
+    """V4's solved track: S3d's (else S3c's), its bundle, S3b's segments and the failed grasps."""
+    for stage in ("s3d_settle", "s3c_invert"):
+        f = ctx.root / f"{stage}/{name}/object_to_world.npz"
+        if not f.is_file():
+            continue
+        rows = []
+        settle = ctx.root / f"s3d_settle/{name}/settle_report.json"
+        if stage == "s3d_settle" and settle.is_file():
+            rows = json.loads(settle.read_text()).get("resolved") or []
+        if not rows:
+            rows = json.loads((ctx.root / f"s3c_invert/{name}/invert_report.json").read_text())["segments"]
+        return {"track": np.load(f)["object_to_world"].astype(np.float64), "bundle": ctx.root / f"{stage}/{name}/bundle",
+                "segments": json.loads((ctx.root / f"s3b_segments/{name}/segments.json").read_text()),
+                "failed": [(r["start"], r["end"]) for r in rows if r["kind"] == "grasp" and r.get("failed")],
+                "source": stage}
+    return None
+
+
+def inverted(v4: dict) -> tuple[np.ndarray, list[str]]:
+    """The solved track, statics held; failed grasps interpolated between the poses around them."""
+    T = v4["track"].copy()
+    n = len(T)
+    how = ["inverted"] * n
+    for s in v4["segments"]:
+        if s["kind"] == "static":
+            T[s["start"]:s["end"] + 1] = T[s["start"]]
+            how[s["start"]:s["end"] + 1] = ["held"] * (s["end"] - s["start"] + 1)
+    for a, b in v4["failed"]:
+        lo, hi = max(a - 1, 0), min(b + 1, n - 1)
+        if hi - lo < 2:
+            continue
+        s = np.arange(1, hi - lo) / (hi - lo)
+        T[lo + 1:hi, :3, 3] = R.hermite(T[lo, :3, 3], T[hi, :3, 3], s)
+        T[lo + 1:hi, :3, :3] = Slerp([0, 1], Rotation.from_matrix([T[lo, :3, :3], T[hi, :3, :3]]))(s).as_matrix()
+        how[lo + 1:hi] = ["interpolated"] * (hi - lo - 1)
+    return T, how
+
+
+def rest_anchors(v4: dict) -> tuple[np.ndarray, np.ndarray | None]:
+    """The first static segment's pose; the last one's when it reaches the clip's end."""
+    T, statics = v4["track"], [s for s in v4["segments"] if s["kind"] == "static"]
+    if not statics:
+        return T[0], None
+    last = statics[-1]
+    return T[statics[0]["start"]], (T[last["start"]] if last["end"] == len(T) - 1 else None)
+
+
+def moving_candidate(ctx, found: dict) -> dict:
+    """Which moving candidate S5/S6 train (V4 S6: inverted, or keyframe if it fell back)."""
+    forced = os.environ.get("PATHB_MOVING")
+    if forced in ("inverted", "keyframe"):
+        return {"candidate": forced, "why": "PATHB_MOVING (run-wide: the go/no-go's verdict)"}
+    missing = [n for n, v in found.items() if v is None]
+    failed = {n: v["failed"] for n, v in found.items() if v and v["failed"]}
+    if missing:
+        return {"candidate": "keyframe", "why": f"no solved track for {missing}"}
+    if failed:
+        return {"candidate": "keyframe", "why": f"failed grasp segments: {failed}"}
+    return {"candidate": "inverted", "why": "every grasp segment solved"}
+
+
 def write_bundle(src: Path, dest: Path, data: dict) -> Path:
     """dest = src's files (linked) with this result.npz."""
     if dest.exists():
@@ -80,18 +152,25 @@ def run(ctx) -> StageResult:
     L = retarget_tools()
     d = ctx.dir("s4b_reference")
     metrics, outputs, read = [], {}, []
-    prepared = {}
+    prepared, found = {}, {}
     for name in ctx.objects:
-        src = p4_bundle(ctx, name)
+        found[name] = v4 = solved(ctx, name)
+        src = v4["bundle"] if v4 else p4_bundle(ctx, name)
         read += [src / "result.npz"]
         hands, cleaning = L.cleaned_bundle(src, d / name / "hands_cleaned", TRACK3_FPS, rest_hold=False,
                                            hand_clean=True, object_clean=False)
         base = dict(np.load(hands / "result.npz"))
-        prepared[name] = (hands, cleaning, base, inputs(ctx, name, base))
+        if v4:
+            before, after = rest_anchors(v4)
+            prepared[name] = (hands, cleaning, base, (v4["track"], before, after, None, v4["source"]))
+        else:
+            prepared[name] = (hands, cleaning, base, inputs(ctx, name, base))
+    moving = moving_candidate(ctx, found)
+    write_json(d / "moving.json", moving)
     for name in ctx.objects:
         hands, cleaning, base, (T, before, after, trusted, source) = prepared[name]
         phases = json.loads((ctx.root / f"s4a_phases/{name}/phases.json").read_text())
-        built = R.build(T, phases, before, after, trusted)
+        built = R.build(T, phases, before, after, trusted, inverted=inverted(found[name]) if found[name] else None)
         report = {"object": name, "input_track": source, "hand_cleaning": cleaning, "candidates": {}}
         c2w = base["camera_to_world_transform"].astype(np.float64)
         for cand, (track, how) in built.items():
@@ -109,6 +188,7 @@ def run(ctx) -> StageResult:
                                   " / ".join(str(counts[k]) for k in R.KINDS), "frames"))
         metrics.append(Metric(f"{name}: input track", source, ""))
         write_json(d / name / "reference_report.json", report)
+    metrics.append(Metric("moving candidate S5 and S6 train", moving["candidate"], "", note=moving["why"]))
     if ctx.public and len(ctx.objects) == 1:
         name = ctx.objects[0]
         for cand in [c for c in R.CANDIDATES if (d / name / c / "result.npz").is_file()]:

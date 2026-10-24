@@ -23,6 +23,8 @@ Checks: the runner's on the partition S6 trains on (frames, no robot link > 2 cm
 frame-0 seating gap < 1 cm, a support disk); mode B also the hand-over: every DaiD contact's robot-side
 point, carried by the task file's robot (fk.py), within 1 cm of the object surface on >= 90 % of
 contact frames. FlashCHORD's kinematic replay (scripts/debug/replay.py) is the GPU check (VM).
+Candidates: S4b's moving one (s4b_reference/moving.json: inverted, or keyframe when it fell back) and
+still (V4 S6: two policies); every candidate with a bundle when S4b wrote no choice (v3 runs).
 Out: s5_task/<candidate>/run/ (runner), task.json {mode, partition, sequence_id, support_usd, ...}.
 """
 from __future__ import annotations
@@ -282,7 +284,9 @@ def mode_b(ctx, d: Path, choice: dict, report: dict, seq: str) -> dict:
 def run(ctx) -> StageResult:
     d = ctx.dir("s5_task")
     metrics, outputs = [], {}
-    for cand in CANDIDATES:
+    chosen = ctx.root / "s4b_reference/moving.json"
+    train = ([json.loads(chosen.read_text())["candidate"], "still"] if chosen.is_file() else list(CANDIDATES))
+    for cand in [c for c in CANDIDATES if c in train]:  # V4 S6: the moving candidate S4b chose, and still
         if not all((ctx.root / f"s4b_reference/{o}/{cand}/result.npz").is_file() for o in ctx.objects):
             metrics.append(Metric(f"{cand}: task", "none", "", note="no S4b reference for this candidate"))
             continue

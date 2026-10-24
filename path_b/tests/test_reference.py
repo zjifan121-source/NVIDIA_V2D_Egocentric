@@ -159,3 +159,26 @@ def test_s01_world_fit_from_observed_points():
 def test_s01_still_bar_from_s02():
     from pathb import oracle
     assert round(oracle.still_score(41), 3) == 0.356 and round(oracle.still_score(13), 3) == 0.416
+
+
+def test_s4b_inverted_holds_statics_and_interpolates_failed_grasps(monkeypatch):
+    from pathb.stages import s4b_reference as B
+    T, _ = carried()
+    noisy = T.copy()
+    noisy[:, 1, 3] += np.random.default_rng(0).normal(0, 0.002, len(T))
+    segs = [{"kind": "static", "start": 0, "end": 29}, {"kind": "grasp", "start": 30, "end": 70},
+            {"kind": "static", "start": 71, "end": 99}]
+    v4 = {"track": noisy, "segments": segs, "failed": []}
+    out, how = B.inverted(v4)
+    assert np.allclose(out[:30], noisy[0]) and np.allclose(out[71:], noisy[71]) and how[40] == "inverted"
+    assert np.allclose(out[30:71], noisy[30:71])
+    out, how = B.inverted(v4 | {"failed": [(30, 70)]})
+    assert how[30:71] == ["interpolated"] * 41 and np.allclose(out[29], noisy[0]) and abs(out[50, 0, 3] - 0.15) < 0.03
+    before, after = B.rest_anchors(v4)
+    assert np.allclose(before, noisy[0]) and np.allclose(after, noisy[71])
+    monkeypatch.delenv("PATHB_MOVING", raising=False)
+    assert B.moving_candidate(None, {"a": v4})["candidate"] == "inverted"
+    assert B.moving_candidate(None, {"a": v4 | {"failed": [(30, 70)]}})["candidate"] == "keyframe"
+    assert B.moving_candidate(None, {"a": None})["candidate"] == "keyframe"
+    monkeypatch.setenv("PATHB_MOVING", "keyframe")
+    assert B.moving_candidate(None, {"a": v4})["candidate"] == "keyframe"
