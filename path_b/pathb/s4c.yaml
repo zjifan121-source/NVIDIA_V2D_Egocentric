@@ -1,7 +1,10 @@
 # S4c (Do as I Do) settings: names as in do-as-i-do retargeting/config/default.yaml and
 # config/override/do_as_i_do.yaml. Values are DaiD's own do_as_i_do override unless marked
-# "default:" (V3_BUILD_SPEC.md S4c knobs). Read by pathb/drivers/daid_run.py in the daid venv;
+# "default:" (V4_BUILD_SPEC.md S4c). Read by pathb/drivers/daid_run.py in the daid venv;
 # the stage adds per-episode values (warmup_duration from S4a's rest-before window).
+# V4 S4c: gated off until the ep40 failures (the object never moved; read-back vs replay 43 mm,
+# bar 5 mm) are fixed on ep41 (time-box one day, Task Queue #13).
+enabled: false
 optimizer:
   # default: the override's 1024 samples x 3.0 s horizon x up to 32 iterations per 0.5 s control step
   # took 8.5 min per control step on ep40 (L40S, 2026-10-23 smoke test): ~2.7 h per candidate, > 5 h

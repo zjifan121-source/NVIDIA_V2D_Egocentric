@@ -25,21 +25,20 @@ from . import loss
 from .paths import STEREO_WEIGHTS, episode_info, git_commit
 from .report import StageResult, worst
 
-# Execution order; names are module names in pathb/stages/ (V3_BUILD_SPEC.md §1). A stage whose
+# Execution order; names are module names in pathb/stages/ (V4_BUILD_SPEC.md §1). A stage whose
 # module is not built yet reports SKIP.
 STAGES = ("p0_ingest", "p1_calibrate", "p2_depth",  # S1
           "p1b_masks", "p1c_camera", "p1d_hands",
           "p3_scale_bridge", "p4_export",  # S2
-          "s3a_mesh", "s3b_track", "s3c_fuse",  # S3
-          "s4a_phases", "s4b_reference", "s4c_retarget",  # S4
+          "s3a2_fuse_scan", "s3a2_register",  # S3a: canonical meshes via run.py canonical
+          "s3b_segments",  # S3b
+          "s3b_track",  # FoundationPose: seed only, when s3a2_register is WARN/FAIL
+          "s3c_invert", "s3d_settle",  # S3c/S3d
+          "s4a_phases", "s4b_reference", "s4c_retarget",  # S4 (s4c gated, off by default)
           "s5_task",  # S5
           "s6_train", "s6_eval", "s6_select",  # S6
           "s7_pack",  # S7 (run.py pack runs it over all episodes)
-          "s23_load_retarget")  # kept for the still fallback (S6) and S5 mode A
-# Phase A2 (spec §11): the S3 observation variant, run only when asked for (--stages); in ORDER after
-# the stages it reads (S4a's rest windows, S3c's anchors).
-A2_STAGES = ("s3a2_fuse_scan", "s3a2_register", "s3b2_track_points")
-ORDER = STAGES[:STAGES.index("s4b_reference")] + A2_STAGES + STAGES[STAGES.index("s4b_reference"):]
+          "s23_load_retarget")  # kept: mode A runner for the still fallback
 
 
 @dataclass
@@ -162,7 +161,7 @@ def run_episode(number: int, out: Path, stages: tuple[str, ...] = STAGES, force:
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
     print(f"== episode {number} ({ctx.split}, {' + '.join(ctx.objects)})", flush=True)
     rerun = force
-    for name in ORDER:
+    for name in STAGES:
         if name not in stages:
             existing = ctx.root / name / "report.json"
             if existing.is_file():

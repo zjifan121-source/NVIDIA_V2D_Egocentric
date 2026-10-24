@@ -24,6 +24,7 @@ import numpy as np
 from . import analysis
 from .analysis import esc, fmt
 from .paths import REPO, episode_info
+from .reference import CANDIDATES
 
 REPORTS = analysis.REPORTS
 METRICS = ("AUC", "SP-SR", "MP-SR", "MPPE cm", "RPE cm", "CD-O cm")
@@ -32,24 +33,23 @@ LEADERBOARD_TOP = {"AUC": 0.848, "MPPE cm": 2.1, "CD-O cm": 0.065}  # (James, 20
 # S0.2 oracle variants (team bundles, Oct 17) that make one thing true, and the spec step that would get there
 FIXES = {
     "place_scale": ("true object scale", "P3 scale bridge / S3a mesh size"),
-    "place_gt_when_resting": ("true poses while the object rests", "S3c rest anchors + P1c camera at rest"),
-    "place_gt_when_moving": ("true poses while the object moves", "S3b carry tracking (A2.4 points) / S4b tracking candidate"),
+    "place_gt_when_resting": ("true poses while the object rests", "S3c static-segment ICP + S3d settle"),
+    "place_gt_when_moving": ("true poses while the object moves", "S3c grasp inversion (hand track carries the object)"),
 }
 # what to fix next: attribution stage -> (kind, action)
 ACTIONS = {
-    "P1c camera + S3b track": ("A2", "A2.4 mesh-free points through the carry and A2.1 scan anchors at rest "
-                                     "(built; phase B ran without them); P1c's stereo anchoring is the existing step"),
-    "S3a mesh": ("A2", "A2.1–A2.2 canonical mesh (A2.5 picked `a2_mesh_fp`, provisional)"),
-    "S3c fuse": ("existing step", "S3c: rest anchors and the ESKF/RTS noise settings"),
-    "S4b reference": ("existing step", "S4b: keyframe / tracking reference"),
+    "P1c camera + S3b track": ("v4", "S3b contact segments + S3c segment solving replace the per-frame track"),
+    "S3a mesh": ("existing step", "S3a canonical mesh, pooled over every clip of the object"),
+    "S3c fuse": ("v4", "S3c segment solving (static ICP, grasp inversion) replaces S3c fuse"),
+    "S4b reference": ("existing step", "S4b: inverted / keyframe reference"),
     "S4c physics": ("existing step", "S4c: Do as I Do settings and its gate"),
     "S6 rollout": ("existing step", "S6: FlashCHORD training (steps, `njmax`)"),
 }
 EXTRA_CSS = """
 .dot { fill:var(--fg) } .dot.still { fill:var(--still) } .dot.gt { fill:none; stroke:var(--truth); stroke-width:1.6 }
-.bar.keyframe { fill:var(--ours) } .bar.tracking { fill:var(--fused) } .bar.still { fill:var(--still) }
+.bar.inverted { fill:var(--ours) } .bar.keyframe { fill:var(--fused) } .bar.still { fill:var(--still) }
 .bar.gain { fill:var(--truth) } .bar.loss { fill:var(--ref) } .bar.other { fill:var(--base) }
-.key.keyframe { color:var(--ours) } .key.tracking { color:var(--fused) } .key.still { color:var(--still) }
+.key.inverted { color:var(--ours) } .key.keyframe { color:var(--fused) } .key.still { color:var(--still) }
 .diag { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:4px 16px 10px; margin:16px 0 }
 """
 
@@ -191,8 +191,8 @@ def episode_bars(rows: list[tuple[str, float | None, float | None, float | None,
             out.append(f'<circle cx="{x(gt0):.1f}" cy="{y + bh / 2:.1f}" r="4.6" class="dot gt"><title>S0.2 still at the true '
                        f'frame-0 placement {gt0:.3f}</title></circle>')
     out.append("</svg>")
-    return ("\n".join(out) + '\n<p class="legend"><span class="key keyframe">━ keyframe</span> · <span class="key tracking">'
-            '━ tracking</span> · <span class="key still">━ still</span> (bar: selected candidate) · ● our still rollout · '
+    return ("\n".join(out) + '\n<p class="legend"><span class="key inverted">━ inverted</span> · <span class="key keyframe">'
+            '━ keyframe</span> · <span class="key still">━ still</span> (bar: selected candidate) · ● our still rollout · '
             '○ S0.2 still at the true frame-0 placement</p>')
 
 
@@ -265,7 +265,7 @@ def diagnosis(ep: dict) -> list[str]:
     # timeline per object: position error with S4a's phases and S3b's recovered frames
     for j, n in enumerate(sec["names"]):
         series = [(v, sec["errors"][v]["position_m"][:, j] * 100, cls)
-                  for v, cls in (("raw", "raw"), ("fused", "fused"), (c["column"], "ours")) if v in sec["errors"]]
+                  for v, cls in (("raw", "raw"), (c["column"], "ours")) if v in sec["errors"]]
         if series:
             md += [f"**{n}: position error per frame** (official registration and alignment)", "",
                    analysis.timeline(series, sec["phases"][n], analysis.recovered_frames(sec["root"], n), "position error (cm)"), ""]
@@ -411,8 +411,8 @@ def markdown(run: Path, pub: list[dict], evl: list[dict], ranking: list[dict], r
         md += [value_bars([(f"ep{ep['number']}", (ep["cost"]["cost_m"] or 0) * 100, ep["candidate"],
                             f"{ep['cost']['termination_frames']}/{ep['cost']['frames']} term.") for ep in rows],
                           "observation cost (cm)"), "",
-               '<p class="legend">Bar colour: selected candidate (<span class="key keyframe">keyframe</span>, '
-               '<span class="key tracking">tracking</span>, <span class="key still">still</span>); right: '
+               '<p class="legend">Bar colour: selected candidate (<span class="key inverted">inverted</span>, '
+               '<span class="key keyframe">keyframe</span>, <span class="key still">still</span>); right: '
                'termination-equivalent frames / observed frames.</p>', "",
                "| Episode | Candidate | Observation cost cm | Termination-equivalent frames | First at frame | Own-reference "
                "position error cm | Own-reference ADD-AUC | First failing / warning stage |", "|---|---|---|---|---|---|---|---|"]
@@ -436,11 +436,12 @@ def markdown(run: Path, pub: list[dict], evl: list[dict], ranking: list[dict], r
     else:
         md += ["No evaluation episode has an S6 selection yet.", ""]
     # (e)
-    md += ["## e. Candidate selection", "", "| Split | keyframe | tracking | still | not selected |", "|---|---|---|---|---|"]
+    md += ["## e. Candidate selection", "", "| Split | " + " | ".join(CANDIDATES) + " | not selected |",
+           "|---|" + "---|" * (len(CANDIDATES) + 1)]
     for split, eps, get in (("public", pub, lambda ep: ep["choice"]["candidate"] if ep["choice"]["rollout"] else None),
                             ("evaluation", evl, lambda ep: ep.get("candidate"))):
         picks = [get(ep) for ep in eps]
-        md.append(f"| {split} | " + " | ".join(str(picks.count(c)) for c in ("keyframe", "tracking", "still"))
+        md.append(f"| {split} | " + " | ".join(str(picks.count(c)) for c in CANDIDATES)
                   + f" | {picks.count(None)} |")
     md.append("")
     gaps = [(ep, ep["choice"]["scores"]["AUC"] - ep["choice"]["still"]["AUC"]) for ep in scored if ep["choice"]["still"]]

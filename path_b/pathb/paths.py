@@ -18,6 +18,7 @@ HOST_PY = RECON / ".venv/bin/python"  # baseline host wrappers (README §5.2) th
 STEREO_WEIGHTS = RECON / "data/weights/foundation_stereo"
 OUTPUTS = PATH_B / "data/outputs"
 TRACK3_FPS = 20.25411910142744  # assets/data/track_3/public/meta/info.json
+DEV_EPISODES = (41, 13)  # V4_BUILD_SPEC.md: ep41 (white_pot) and ep13 (blue_cup in the dish rack)
 
 
 def video(split: str, episode: int, camera: str) -> Path:

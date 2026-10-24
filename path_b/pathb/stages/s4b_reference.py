@@ -1,12 +1,12 @@
-"""S4b reference: the kinematic references keyframe, tracking and still, per object (pathb/reference.py).
+"""S4b reference: the kinematic references inverted, keyframe and still, per object (pathb/reference.py).
 
 Inputs per object: S4a's phases.json; the object track and its rest anchors from S3c
 (s3c_fuse/<object>/object_to_world.npz, anchors.json) and S3b's track_meta.json (trusted frames).
 Until S3c exists, the P4 bundle's track stands in, with anchors from fuse.rest_anchor over the
 rest windows and no trusted frame (the carry is then one interpolation); the report says which.
 Hands: the P4 bundle's, cleaned with run_load_retarget's hand repairs (cleaned_bundle, hands only).
-Phase 2 (pathb/phase2.py, two objects): the roster-first object anchors the scene; the others' rest
-anchors are its anchors times their camera-frame relative pose over the frames both rest.
+`inverted` (V4 S3c + S3d) is built once those stages write their solution (task 8); until then the
+candidates are keyframe and still. v3's input path (s3c_fuse, cached) is read only if an old run has it.
 Each candidate is a complete bundle (BUNDLES.md layout) in s4b_reference/<object>/<candidate>/; the
 still candidate also holds the hands at frame 0 (run_load_retarget.still_scene, as --still-object).
 Public, one object: each candidate's playback score (official metrics) is reported; scenes of
@@ -20,7 +20,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .. import fuse, gt, phase2
+from .. import fuse, gt
 from .. import reference as R
 from ..bundle import p4_bundle
 from ..paths import TRACK3_FPS
@@ -64,32 +64,6 @@ def inputs(ctx, name: str, data: dict) -> tuple[np.ndarray, np.ndarray, np.ndarr
     return T, before, after, None, "p4 bundle (stand-in until S3c)"
 
 
-def anchored(ctx, inputs_by_object: dict) -> dict:
-    """Phase 2: every object after the roster-first one gets its rest anchors as the anchor object's
-    times their relative pose (median over the frames both rest, from S3b's camera-frame poses)."""
-    from ..geometry import read_transforms
-    n = int(ctx.episode["num_frames"])
-    first = ctx.objects[0]
-    phases = {o: json.loads((ctx.root / f"s4a_phases/{o}/phases.json").read_text()) for o in ctx.objects}
-    cam = {o: read_transforms(ctx.root / f"s3b_track/{o}/poses", n) for o in ctx.objects}
-    T_a, before_a, after_a = inputs_by_object[first][:3]
-    for o in ctx.objects[1:]:
-        T, before, after, trusted, source = inputs_by_object[o]
-        have = cam[first][1] & cam[o][1]
-        notes = []
-        for key, anchor_a in (("rest_before", before_a), ("rest_after", after_a)):
-            frames = phase2.common_rest(phases, first, o, key, have)
-            rel = phase2.relative_anchor(cam[first][0], cam[o][0], frames)
-            if rel is not None and anchor_a is not None:
-                if key == "rest_before":
-                    before = anchor_a @ rel
-                else:
-                    after = anchor_a @ rel
-                notes.append(f"{key} from {first} x their relative pose over {len(frames)} frames")
-        inputs_by_object[o] = (T, before, after, trusted, source + ("; phase 2: " + "; ".join(notes) if notes else ""))
-    return inputs_by_object
-
-
 def write_bundle(src: Path, dest: Path, data: dict) -> Path:
     """dest = src's files (linked) with this result.npz."""
     if dest.exists():
@@ -114,17 +88,13 @@ def run(ctx) -> StageResult:
                                            hand_clean=True, object_clean=False)
         base = dict(np.load(hands / "result.npz"))
         prepared[name] = (hands, cleaning, base, inputs(ctx, name, base))
-    if phase2.enabled(ctx):
-        found = anchored(ctx, {n: v[3] for n, v in prepared.items()})
-        prepared = {n: (*v[:3], found[n]) for n, v in prepared.items()}
     for name in ctx.objects:
         hands, cleaning, base, (T, before, after, trusted, source) = prepared[name]
         phases = json.loads((ctx.root / f"s4a_phases/{name}/phases.json").read_text())
         built = R.build(T, phases, before, after, trusted)
         report = {"object": name, "input_track": source, "hand_cleaning": cleaning, "candidates": {}}
         c2w = base["camera_to_world_transform"].astype(np.float64)
-        for cand in R.CANDIDATES:
-            track, how = built[cand]
+        for cand, (track, how) in built.items():
             data = dict(base)
             data["object_to_world_transform"] = track.astype(base["object_to_world_transform"].dtype)
             data["object_to_camera_transform"] = (np.linalg.inv(c2w) @ track).astype(
@@ -135,14 +105,13 @@ def run(ctx) -> StageResult:
             counts = R.provenance(how)
             report["candidates"][cand] = {"bundle": bundle, "frames": counts, "how": how}  # how: per frame (S6 select)
             outputs[f"{name}/{cand}"] = bundle
-            metrics.append(Metric(f"{name}: {cand} frames held / trusted / interpolated / tracked / blended",
-                                  " / ".join(str(counts[k]) for k in ("held", "trusted", "interpolated", "tracked",
-                                                                      "blended")), "frames"))
+            metrics.append(Metric(f"{name}: {cand} frames " + " / ".join(R.KINDS),
+                                  " / ".join(str(counts[k]) for k in R.KINDS), "frames"))
         metrics.append(Metric(f"{name}: input track", source, ""))
         write_json(d / name / "reference_report.json", report)
     if ctx.public and len(ctx.objects) == 1:
         name = ctx.objects[0]
-        for cand in R.CANDIDATES:
+        for cand in [c for c in R.CANDIDATES if (d / name / c / "result.npz").is_file()]:
             poses, meshes = playback(d / name / cand, [name], int(ctx.episode["num_frames"]), d / name, cand)
             scores = gt.score(ctx.episode, poses, meshes, ctx.files_read)
             metrics.append(Metric(f"{name}: {cand} playback AUC", scores["AUC"], "", kind="gt",

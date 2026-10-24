@@ -1,7 +1,7 @@
-"""S6 train: one FlashSAC policy per S5 task (V3_BUILD_SPEC.md S6), by pathb/policy.py: the still
+"""S6 train: one FlashSAC policy per S5 task (V4_BUILD_SPEC.md S6), by pathb/policy.py: the still
 submission's recipe (tools/track3/jobs/still_submit.sh STEPS and EXTRA: 60,006,400 steps, Edmond's
-overrides) with sim.njmax / sim.nconmax 512 for the L40S. Candidates in S5's order (keyframe,
-tracking, still); a finished candidate is kept (train.json) and an interrupted one resumes from its
+overrides) with sim.njmax / sim.nconmax 512 for the L40S. Candidates in S4b's order (inverted,
+keyframe, still); a finished candidate is kept (train.json) and an interrupted one resumes from its
 newest checkpoint. Out per candidate: s6_train/<candidate>/train/ (FlashCHORD's run), train.json
 {checkpoint, partition, steps, overrides, seconds, nefc_overflow_lines}.
 """
@@ -13,7 +13,7 @@ import numpy as np
 
 from .. import policy
 from ..report import Metric, StageResult
-from .s5_task import CANDIDATES
+from ..reference import CANDIDATES
 
 
 def tasks(ctx) -> dict[str, dict]:

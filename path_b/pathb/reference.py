@@ -1,26 +1,26 @@
-"""Kinematic references of one object (V3_BUILD_SPEC.md S4b), as (N, 4, 4) object_to_world tracks.
+"""Kinematic references of one object (V4_BUILD_SPEC.md S4b), as (N, 4, 4) object_to_world tracks.
 
-  still     the rest-before anchor on every frame (the fallback; the object of --still-object)
+  inverted  S3c's segment solution after S3d's settle (static segments held exactly), passed in as
+            it is; absent until S3c has run
   keyframe  the rest-before anchor held until first_reach; over the carry, the track on trusted
             frames (IoU >= 0.5 and not recovered, from S3b's track_meta) and an interpolation
             between the nearest trusted frames elsewhere (position: cubic Hermite with zero end
             velocity; rotation: slerp); the rest-after anchor held from last_release. With no
-            trusted frame the carry is one interpolation from anchor to anchor
-  tracking  the track, with each rest window replaced by its anchor and a 5-frame ease into and
-            out of the track (run_load_retarget.hold_until, applied at both ends)
-Built in that order (keyframe first, S0.2); the per-frame provenance (held, trusted, interpolated,
-tracked, blended) goes to reference_report.json.
+            trusted frame the carry is one interpolation from anchor to anchor. The fallback when
+            a grasp segment of S3c failed
+  still     the rest-before anchor on every frame (the object of --still-object)
+Built in that order; the per-frame provenance (held, trusted, interpolated, tracked, inverted) goes to
+reference_report.json. v3's `tracking` candidate is gone (identical to keyframe on every v3 run).
 """
 from __future__ import annotations
 
 import numpy as np
 from scipy.spatial.transform import Rotation, Slerp
 
-from .team import retarget_tools
-
 TRUST_IOU = 0.5  # default
-BLEND = 5  # default: frames of ease-in/out (hold_until's blend)
-CANDIDATES = ("keyframe", "tracking", "still")  # build order
+CANDIDATES = ("inverted", "keyframe", "still")  # build order
+RETARGETED = ("inverted",)  # the candidates S4c retargets (V4 S4c: one)
+KINDS = ("held", "trusted", "interpolated", "tracked", "inverted")  # per-frame provenance
 
 
 def still(n: int, anchor_before: np.ndarray) -> tuple[np.ndarray, list[str]]:
@@ -72,39 +72,15 @@ def keyframe(T: np.ndarray, phases: dict, anchor_before: np.ndarray, anchor_afte
     return out, how
 
 
-def tracking(T: np.ndarray, phases: dict, anchor_before: np.ndarray,
-             anchor_after: np.ndarray | None) -> tuple[np.ndarray, list[str]]:
-    L = retarget_tools()
-    T = np.asarray(T, dtype=np.float64)
-    n = len(T)
-    if phases["first_reach"] is None:
-        return still(n, anchor_before)
-    out, how = T.copy(), ["tracked"] * n
-    if phases["rest_before"] is not None:
-        end = phases["rest_before"][1] + 1
-        out[:end] = anchor_before  # hold_until's rest pose then is exactly the anchor
-        out = L.hold_until(out, end, blend=BLEND)
-        how[:end] = ["held"] * end
-        how[end:end + BLEND] = ["blended"] * len(how[end:end + BLEND])
-    if phases["rest_after"] is not None and anchor_after is not None:
-        start = phases["rest_after"][0]
-        rev = out[::-1].copy()
-        rev[:n - start] = anchor_after
-        out = L.hold_until(rev, n - start, blend=BLEND)[::-1].copy()
-        how[start:] = ["held"] * (n - start)
-        lo = max(start - BLEND, 0)
-        how[lo:start] = ["blended"] * (start - lo)
-    return out, how
-
-
 def build(T: np.ndarray, phases: dict, anchor_before: np.ndarray, anchor_after: np.ndarray | None,
-          trusted: np.ndarray | None = None) -> dict[str, tuple[np.ndarray, list[str]]]:
-    """All three candidates, keyframe first."""
-    return {"keyframe": keyframe(T, phases, anchor_before, anchor_after, trusted),
-            "tracking": tracking(T, phases, anchor_before, anchor_after),
-            "still": still(len(T), anchor_before)}
+          trusted: np.ndarray | None = None,
+          inverted: tuple[np.ndarray, list[str]] | None = None) -> dict[str, tuple[np.ndarray, list[str]]]:
+    """The candidates in CANDIDATES order; `inverted` only when S3c's solution is given."""
+    out = {"inverted": inverted} if inverted is not None else {}
+    return out | {"keyframe": keyframe(T, phases, anchor_before, anchor_after, trusted),
+                  "still": still(len(T), anchor_before)}
 
 
 def provenance(how: list[str]) -> dict:
-    """Frames per kind: held (anchor), trusted, interpolated, tracked, blended."""
-    return {k: how.count(k) for k in ("held", "trusted", "interpolated", "tracked", "blended")}
+    """Frames per kind: held (anchor), trusted, interpolated, tracked, inverted."""
+    return {k: how.count(k) for k in KINDS}

@@ -1,9 +1,9 @@
-"""S5 task file: FlashCHORD's ManoSharpa parquet per candidate (V3_BUILD_SPEC.md S5).
+"""S5 task file: FlashCHORD's ManoSharpa parquet per candidate (V4_BUILD_SPEC.md S5).
 
 Each candidate's scene comes from the team's runner (tools/track3/run_load_retarget.py in $RETARGET_VENV,
 through pathb/drivers/run_lr.py: no public scan on evaluation episodes, $RETARGET_DEVICE, $MANO_DIR):
 object URDF and mesh, support USD, the MANO fields and an IK robot.
-- Mode B (keyframe and tracking, when S4c's gate takes the realised trajectory): the runner on S4c's
+- Mode B (a candidate S4c ran on, when its gate takes the realised trajectory): the runner on S4c's
   realised bundle with --no-rest-hold --no-object-clean --no-level (the object stays where the physics
   left it, next to DaiD's hands); then the parquet's robot and contacts become DaiD's: wrists, the 22
   finger joints per hand, robot_{side}_frames by pathb/fk.py, contacts in the 16 MANO-link slots
@@ -16,10 +16,9 @@ object URDF and mesh, support USD, the MANO fields and an IK robot.
   frames to the IK robot's (how far physics moved the hands from the kinematic retarget).
 - Mode A (fallback): the runner on S4b's kinematic bundle with --no-rest-hold (v3 holds already);
   still: S4b's still bundle with --still-object.
-- Two-object episodes (phase 1): mode A on the merged scene (--merge over each object's bundle: S4c's
-  realised one where its gate says so, else S4b's); each object's DaiD run has hands of its own, so
-  one task needs phase 2's joint retarget (spec §8). Phase 2 (pathb/phase2.py) adds --seat when S4a's
-  support.json has an object resting on another (the runner's support_stacked surfaces).
+- Two-object episodes: mode A on the merged scene (--merge over each object's bundle: S4c's realised
+  one where its gate says so, else S4b's); each object's DaiD run has hands of its own, so one task
+  cannot take both (v3's phase-2 joint retarget is cached, V4 §8).
 Checks: the runner's on the partition S6 trains on (frames, no robot link > 2 cm inside an object,
 frame-0 seating gap < 1 cm, a support disk); mode B also the hand-over: every DaiD contact's robot-side
 point, carried by the task file's robot (fk.py), within 1 cm of the object surface on >= 90 % of
@@ -40,14 +39,14 @@ import pyarrow.parquet as pq
 import trimesh
 from scipy.spatial.transform import Rotation
 
-from .. import fk, gt, phase2
+from .. import fk, gt
+from ..reference import CANDIDATES
 from ..paths import PATH_B, REPO, TRACK3_FPS
 from ..team import lr_command
 from ..report import Metric, StageResult
 from ..runner import write_json
 from .s23_load_retarget import worst_seating
 
-CANDIDATES = ("keyframe", "tracking", "still")
 FLAGS = {"A": ["--no-rest-hold"], "B": ["--no-rest-hold", "--no-object-clean", "--no-level"],
          "still": ["--no-rest-hold", "--still-object"]}
 CONTACT_M = 0.01  # hand-over bar: robot-side contact point to the object surface
@@ -82,26 +81,15 @@ def choose(ctx, cand: str) -> dict:
         elif json.loads(gate.read_text())["use_realised"]:
             bundles[name] = ctx.root / f"s4c_retarget/{name}/{cand}/bundle"
             realised.append(name)
-    seat = []
-    support = ctx.root / "s4a_phases/support.json"
-    if phase2.enabled(ctx) and support.is_file():
-        stacked = {o: on for rel in json.loads(support.read_text()).values() for o, on in rel.items() if on != "table"}
-        seat = ["--seat"] if stacked else []
     if cand == "still":
-        return {"mode": "still", "bundles": bundles, "reason": "S4b still bundle with --still-object", "extra_flags": seat}
+        return {"mode": "still", "bundles": bundles, "reason": "S4b still bundle with --still-object"}
     if len(ctx.objects) == 1 and realised:
         return {"mode": "B", "bundles": bundles, "reason": "S4c gate: realised trajectory (Do as I Do)"}
-    if len(ctx.objects) > 1 and phase2.enabled(ctx) and len(realised) == len(ctx.objects):
-        return {"mode": "B", "bundles": bundles, "extra_flags": seat,
-                "reason": "phase 2: S4c gate took the realised two-object scene (Do as I Do)"}
     if len(ctx.objects) > 1:
-        why = (f"two objects, phase 2: merged scene, realised for {realised or 'none'}"
-               + (", --seat (an object rests on another, S4a support.json)" if seat else "")
-               if phase2.enabled(ctx) else
-               f"two objects: merged scene, realised for {realised or 'none'} (phase 2 retargets them together)")
-        return {"mode": "A", "bundles": bundles, "reason": why, "extra_flags": seat}
+        return {"mode": "A", "bundles": bundles,
+                "reason": f"two objects: merged scene, realised for {realised or 'none'}"}
     elif missing_gate:
-        why = "S4c did not run (Do as I Do not installed): kinematic reference"
+        why = "S4c did not run on this candidate (off, or Do as I Do not installed): kinematic reference"
     else:
         why = "S4c gate kept the kinematic reference"
     return {"mode": "A", "bundles": bundles, "reason": why}

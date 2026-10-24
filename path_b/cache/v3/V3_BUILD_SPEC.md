@@ -1,8 +1,10 @@
 # Path B v3 build spec (single-object chain; dev episodes ep40 + ep26)
 
-Written 2026-10-21 for a coding session. Companion overview: artifact "V2D ep41 Pipeline"; background: Project doc `claude/v2d-e2e-research-2026-10-21.md`. Decisions from James (2026-10-21): rerun everything from the video (no bundle reuse); keep the Path B layout (`path_b/run.py`, `pathb/stages/*.py`, one `report.json` per stage, `loss_report.md` per episode); keep only the v2 code v3 uses, park the rest in `path_b/cache/`; one Verda L40S (48 GB). **Dev episodes: ep40** (public, `mini_dust_pan`, the median single-object episode) **and ep26** (public, `plastic_dish_rack` + `white_pot`, the median two-object episode); ep41 is not rerun. **Build phase 1 = the single-object chain only**, run on ep40 and, per object, on ep26 (each object of ep26 goes through S1–S6 independently with the shared camera; the scene is assembled for scoring with the existing merge in `run_load_retarget.py --merge`, mode A). Then all episodes. **Phase 2** (after all episodes have run): the two-object scope (§8) is built and the two-object episodes are rerun and compared. SAM 3.1 access is granted (`facebook/sam3.1`, user `JzJz7779`). Workflow (§9, 2026-10-22): local-first; cloud only for dev-episode GPU smoke tests and all-episode runs; GitHub pushes batched per phase with James's confirmation.
+Written 2026-10-21 for a coding session. Companion overview: artifact "V2D ep41 Pipeline"; background: Project doc `claude/v2d-e2e-research-2026-10-21.md`. Decisions from James (2026-10-21): rerun everything from the video (no bundle reuse); keep the Path B layout (`path_b/run.py`, `pathb/stages/*.py`, one `report.json` per stage, `loss_report.md` per episode); keep only the v2 code v3 uses, park the rest in `path_b/cache/`; one Verda L40S (48 GB). **Dev episodes: ep40** (public, `mini_dust_pan`, the median single-object episode) **and ep26** (public, `plastic_dish_rack` + `white_pot`, the median two-object episode); ep41 is not rerun. **Build phase 1 = the single-object chain only**, run on ep40 and, per object, on ep26 (each object of ep26 goes through S1–S6 independently with the shared camera; the scene is assembled for scoring with the existing merge in `run_load_retarget.py --merge`, mode A). Then all episodes. **Phase 2** (after all episodes have run): the two-object scope (§8) is built and the two-object episodes are rerun and compared. SAM 3.1 access is granted (`facebook/sam3.1`, user `JzJz7779`). Workflow (§9, 2026-10-22, GitHub rule changed 2026-10-24): local-first; cloud only for dev-episode GPU smoke tests and all-episode runs; every passing smoke test is pushed to `zjifan121_pathb_v3` at once, no merge to `main_buffer` without James.
 
 Every interface below was read from the code on 2026-10-21 (`main_buffer` @ `e61fc18`; local `zjifan121`; baseline `8c778f9`; kit in `assets/data/v2d_submission_kit`). Where a parameter is a proposal, it says "default:" and the acceptance test decides.
+
+**Revision 2026-10-24 (James, after the phase-A/A2/ep40 review; artifacts "Path B v3 Review", "Path B v4 Design", "Path B Task Queue").** (1) Items that did not improve the score are removed from this spec: MV-SAM3D and SAM 3D as the mesh source (S3a is now the A2 canonical mesh), the `tracking` candidate, the full-MPC S4c settings, the A2.4 mesh-free tracker, the §8 two-object scene code. (2) §9 GitHub rule changed: push to `zjifan121_pathb_v3` immediately after every passing smoke test, before any single- or all-episode run; no PR/merge to `main_buffer` without James. (3) §12 adds v4 (contact-segmented inversion + policy-side changes), built on the Mac while phase B runs. (4) Hands stay HaMeR; EgoFound3R is not used (§7). (5) §6 run plan rebuilt around the Nov 1 stop with the cuts: one S4c candidate, two policies, S4c off until it carries the object.
 
 ## 0. Rules
 
@@ -24,8 +26,9 @@ New `runner.STAGES` (order is execution order; names are module names in `pathb/
 p0_ingest  p1_calibrate  p2_depth                       (exist)
 p1b_masks  p1c_camera  p1d_hands                        (S1 new/changed)
 p3_scale_bridge  p4_export                              (exist; P3 reads p1c camera, not the bundle)
-s3a_mesh  s3b_track  s3c_fuse                           (S3)
-s4a_phases  s4b_reference  s4c_retarget                 (S4)
+s3a2_fuse_scan  s3a2_register  s3b_track  s3c_fuse      (S3; s3a_mesh removed 2026-10-24, see §4 S3a and §11)
+s4a_phases  s4b_reference  s4c_retarget                 (S4; candidates keyframe + still)
+s3b_segments  s3c_invert  s3d_settle                    (§12 v4; inserted after s3a2_register when built)
 s5_task                                                 (S5)
 s6_train  s6_eval  s6_select                            (S6)
 s7_pack                                                 (S7, all episodes; runs from run.py pack)
@@ -40,9 +43,8 @@ s23_load_retarget                                       (kept for the still fall
 |---|---|---|---|
 | `path_b/.venv` (uv) | 3.11 | all `pathb` code, P0–P4, S3c, S4a/b, S5, S6-select, S7 | `uv sync --project path_b` |
 | baseline host venv `baseline/reconstruction/.venv` + GHCR images (`tools/verda/images.lock`) | 3.11 | FoundationStereo, DROID-SLAM, SAM2, WiLoR/HaMeR, SAM3D, FoundationPose (TensorRT), EKF | exists on the VM (`setup.sh`) |
-| `sam3` venv (new) | 3.12 | S1b SAM 3.1 (`facebook/sam3.1`, gated) | fallback: SAM2 container with Grounding DINO box, as the baseline |
-| `mvsam3d` (inside the SAM3D container or its own venv) | per repo | S3a MV-SAM3D | github.com/devinli123/MV-SAM3D; needs SAM3D weights + Depth Anything 3 (we pass our own stereo pointmaps instead) |
-| `daid` venv (new) | 3.12 | S4c Do as I Do retargeting | github.com/malik-group/do-as-i-do `retargeting/` (`pip install -e .`; MuJoCo Warp, mink, viser, coacd); ≥32 GB GPU |
+| `sam3` venv (new) | 3.12 | S1b SAM 3.1 (`facebook/sam3.1`, gated) | fallback: SAM2 container with Grounding DINO box, as the baseline. **2026-10-23: the fallback fired silently once (API mismatch); P1b must FAIL, not fall back, when SAM 3.1 does not load.** |
+| `daid` venv (new) | 3.12 | S4c Do as I Do retargeting; **§12 S3d MuJoCo settle** | github.com/malik-group/do-as-i-do `retargeting/` (`pip install -e .`; MuJoCo Warp, mink, viser, coacd); ≥32 GB GPU for S4c; S3d is CPU MuJoCo |
 | `flash_chord` venv | 3.11 | S6 train/eval, S5 replay | exists (`/root/v2d/venvs/`); MuJoCo 3.8.1 / mujoco-warp 3.8.1 / warp 1.14 |
 | `tools/.venv` | 3.11 | `score_local`, `run_load_retarget`, kit packer/uploader | exists |
 
@@ -108,17 +110,14 @@ Per object (33): mean `gt_moving_frac` 0.445 (55 % of frames at rest); our posit
 
 ### S3 — Object model and track
 
-**S3a mesh** (`stages/s3a_mesh.py`, new)
-- View selection: among frames with object mask area ≥ 2 % of the image and hand-mask overlap with the object mask ≤ 5 %, pick up to 5 frames maximising the angular spread of the camera-to-object direction (from P1c + mask centroid depth); always include one rest-before and, if present, one rest-after frame (phases from S4a run early as a helper: `pathb/phases.py` is a pure function used by both).
-- SAM 3D Objects per view: call `v2d_sam3d/lib/image_to_mesh.py` with `pointmap_path` = stereo pointmap of that frame (unproject `depth_a_half` with its K, PyTorch3D axes as `_depth_to_pointmap` does), `seed=0`, `depth_mask_path` = object mask. Keep `mesh_transform.json` (rotation, translation, **scale**).
-- MV-SAM3D: run its fusion on the per-view SAM3D outputs with our masks and poses (P1c camera, object pose from the view's `mesh_transform`); if the fusion fails or the repo cannot be installed in time, fall back to "best single view by stereo-depth fit" (lowest median |rendered depth − stereo depth| inside the mask, as `fit_shape.py` measures).
-- Metric size: vertices × per-axis `scale` from SAM3D, then one uniform correction from the stereo-depth fit over the 5 views (`fit_shape.py` logic, 3 axes allowed only within 0.8–1.25).
-- Out: `s3a_mesh/mesh.glb` (visual, metres, object frame = SAM3D canonical frame), `mesh_views.json`, `coacd/` (convex pieces via `coacd`, threshold 0.05), `mass.json` (volume × density table in `pathb/density.py`, fixed before any evaluation run), `sha256.txt`.
-- Acceptance: watertight (trimesh) PASS; extents 0.05–0.6 m; stereo-fit residual < 1 cm median (PASS) / 2 cm (WARN); public only: CD-O vs scan via `tools/track3/eval_mesh.py` < 0.3 cm (PASS) / 0.5 (WARN), size ratio 0.8–1.25.
+**S3a mesh = the A2 canonical mesh (§11 A2.1–A2.3). Decided 2026-10-24.** The SAM 3D / MV-SAM3D stage (`stages/s3a_mesh.py`) is removed: on the ep40 real run it FAILed (not watertight, 0.78× the scan, CD-O 0.36 cm, 17 min), MV-SAM3D was never installed, and teammates found both view- and seed-dependent. The A2 variant `a2_mesh_fp` won the §11 A2.5 rule on the dev episodes (AUC 0.540 → 0.726 on ep40; CD-O 0.53 vs 0.24 → tie on ranks → deterministic variant). Keep `s3a_mesh.py` under `path_b/cache/` for reference only.
+- The per-episode output keeps the `s3a_mesh/` name downstream expects: `s3a_mesh/mesh.glb` is the canonical mesh of the object (metres, canonical frame), `coacd/`, `mass.json` (volume × density table in `pathb/density.py`), `sha256.txt`; `s3a2_register` writes the frame-0 pose in the canonical frame.
+- Canonical meshes are pooled over **every clip of the object in both splits (videos only)** before phase B's evaluation episodes run; one clip gave coverage 0.58 and CD-O 0.53 cm on ep40.
+- Acceptance: watertight; extents within 0.8–1.25× of the fused partial; public only: CD-O vs scan via `tools/track3/eval_mesh.py` < 0.3 cm (PASS) / 0.5 (WARN).
 
 **S3b track** (`stages/s3b_track.py`, changed)
-- Wraps: `v2d_foundation_pose/lib/foundation_pose_tracker.py` (`register`, `track_one`, `track_one_with_recovery`, `track_one_particles`, `reset_to_pose`) run inside the FoundationPose container through a small driver script `path_b/pathb/drivers/fp_track.py` mounted with `--dev`. Inputs: `s3a_mesh/mesh.glb` (no scale search: `--skip_object_scale_estimation` equivalent), `cam_a/`, stereo depth upsampled, `obj_0` masks, cam_a K.
-- Registration frame: the S3a view with the largest unoccluded mask. Track forward then backward as the baseline.
+- Wraps: `v2d_foundation_pose/lib/foundation_pose_tracker.py` (`register`, `track_one`, `track_one_with_recovery`, `track_one_particles`, `reset_to_pose`) run inside the FoundationPose container through a small driver script `path_b/pathb/drivers/fp_track.py` mounted with `--dev`. Inputs: `s3a_mesh/mesh.glb` (the canonical mesh; no scale search: `--skip_object_scale_estimation` equivalent), `cam_a/`, stereo depth upsampled, `obj_0` masks, cam_a K.
+- Registration frame: the rest-before frame with the largest unoccluded mask, initialised from `s3a2_register`'s frame-0 pose. Track forward then backward as the baseline. ep40 real run 2026-10-23: WARN (one rotation step), 80–90 s. Under §12, S3b becomes the seed of the first static ICP only.
 - **Recovery rule (replaces blind re-registration):** on IoU < 0.3, (a) build the candidate set = previous pose × symmetry group (from `pathb/symmetry.py`: cups → 36 rotations about the axis; `white_pot_lid` → {I, 180°}; others → {I}) plus `register()`'s top-5 hypotheses; (b) refine each with 2 `track_one` iterations; (c) score = FoundationPose scorer logit + 1.0·log(mask IoU) − λ·(rotation distance to the last good pose, rad) − μ·(median |rendered − stereo depth| in the mask, m); defaults λ = 2.0, μ = 50; (d) accept the best; mark the frame `recovered`. `track_one_particles` (n = 20, mask IoU weight 1.0) is used on frames whose hand-mask overlap with the object mask > 40 % (default), i.e. the carry.
 - Out: `s3b_track/poses/%06d.json` (object_to_camera), `track_meta.json` (per frame: iou, recovered, particles, depth residual).
 - Acceptance: frames with IoU ≥ 0.5: ≥ 80 % (PASS) / 60 % (WARN); max rotation change between consecutive frames < 30° (PASS) / 90° (WARN) outside recovered frames; no frame with > 60° change in the camera frame at all (FAIL if any).
@@ -138,31 +137,32 @@ Per object (33): mean `gt_moving_frac` 0.445 (55 % of frames at rest); our posit
 - Acceptance: carry length ≥ 10 frames unless the object never moves (object displacement < 2 cm → `static: true`).
 
 **S4b reference** (`stages/s4b_reference.py`, new)
-- Order of work: `keyframe` first (S0.2), then `tracking`; `still` is free. Writes the kinematic references as v3 bundles (`result.npz` + mesh), each a complete input for S4c/S5:
-  - `tracking`: S3c poses; rest windows replaced by the anchors with a 5-frame ease-in/out (`run_load_retarget.hold_until` logic, both ends).
+- Candidates (2026-10-24): **`keyframe` and `still` only.** `tracking` is removed: it scored identically to `keyframe` on every run (0.540 / 0.726 / 0.381 on ep40) and cost a third of S4c and S6. Under §12 a third candidate `inverted` is added and `keyframe` becomes its fallback. Writes the kinematic references as v3 bundles (`result.npz` + mesh), each a complete input for S4c/S5:
   - `keyframe`: rest-before anchor held until `first_reach`; carry = S3c poses on frames whose `track_meta` shows IoU ≥ 0.5 and not recovered, else interpolation between the nearest trusted frames (position: cubic Hermite with zero end velocity; rotation: slerp); rest-after anchor held from `last_release`. Minimum: the whole carry may be one interpolation from anchor to anchor over the carry window.
   - `still`: rest-before anchor for all frames (the fallback; equals `--still-object`).
 - Hands: P1d MANO in the world, cleaned with `run_load_retarget` hand cleaning (import its functions; do not copy).
 - Out: `s4b_reference/<candidate>/` bundles; `reference_report.json` (per candidate: frames trusted, interpolated, held).
-- Acceptance (public): `score_local` playback per candidate → waterfall columns `ref_tracking`, `ref_keyframe`, `ref_still`.
+- Acceptance (public): `score_local` playback per candidate → waterfall columns `ref_keyframe`, `ref_still` (and `ref_inverted` under §12).
 
 **S4c retarget** (`stages/s4c_retarget.py`, new; Do as I Do)
 - Adapter `pathb/daid.py`: writes the `trajectory_keypoints.npz` layout that `retargeting/` stage 1 produces (read its writer once in-session: wrist pose convention, fingertip keypoints, object pose per frame, mesh path) from a v3 bundle; copies `coacd/` pieces; the table is the MuJoCo floor at z = 0.
-- Run: DaiD stages 2–5 (`decompose` → scene MJCF with `--robot-type sharpa` → IK (mink) → sampling MPC in MuJoCo Warp) in the `daid` venv, per candidate (`tracking`, `keyframe`); `--max-sim-steps 0` (full trajectory). Config knobs to expose in `s4c.yaml` (read DaiD `config/default.yaml` for names): horizon, samples, warm-up weld frames (default = rest-before length), failure penalty weight, control rate (resample reference to 50 Hz? DaiD commands at 50 Hz; FlashCHORD runs at 20.254 Hz — resample DaiD output back to video frames).
+- Run: DaiD stages 2–5 (`decompose` → scene MJCF with `--robot-type sharpa` → IK (mink) → sampling MPC in MuJoCo Warp) in the `daid` venv, **for one candidate only** (`keyframe`; `inverted` under §12); `--max-sim-steps 0` (full trajectory). Settings (2026-10-24): the **cut** settings are the only ones allowed — 256 samples, 1.6 s horizon, ≤ 16 iterations, ≈ 42 min per object; the full DaiD defaults (8.5 min per control step, ≈ 370 GPU-h for all episodes) are removed. Resample DaiD's 50 Hz output back to video frames (FlashCHORD 20.254 Hz).
+- **Status 2026-10-23 (ep40 real run): FAIL** — the object never moved (max speed 6e-7 m/s, contacts on 7–10 frames) and the read-back trajectory differed from its own replay by 43 mm (bar 5 mm). **Until both are fixed on ep40, S4c is skipped in all-episode runs (`s4c.enabled: false` in the run config) and S5 uses mode A.** Fixing it is time-boxed to one day (Task Queue #13).
 - Out: `s4c_retarget/<candidate>/trajectory_mjwp.npz` (robot joints, realised object pose per frame, contacts), `scene.xml`, `metrics.json` (DaiD's per-step tracking error), and a **realised bundle** `s4c_retarget/<candidate>/bundle/` (object_to_world = realised trajectory).
-- Gate (public): `score_local` on the realised bundle ≥ the kinematic one − 0.01 AUC → `use_realised: true`; else the kinematic reference goes to S5 (mode A fallback below). Checks: penetration depth ≤ 5 mm; object displacement before `first_reach` ≤ 1 cm; max object speed ≤ 1.5 m/s.
+- Gate (public): `score_local` on the realised bundle ≥ the kinematic one − 0.01 AUC → `use_realised: true`; else the kinematic reference goes to S5 (mode A fallback below). Checks: penetration depth ≤ 5 mm; object displacement before `first_reach` ≤ 1 cm; max object speed ≤ 1.5 m/s; **read-back vs replay ≤ 5 mm; the object must move ≥ 5 cm when the kinematic reference moves it**.
 - Day-1 task: diff DaiD's `robots/sharpa` MJCF against FlashCHORD `assets/urdfs/sharpawave/` (joint names, order, limits, 22 per hand); write `pathb/sharpa_map.json`; stop on any unmatched joint.
 
 ### S5 — Task file (`stages/s5_task.py`, new)
 
-- **Mode B (default):** write FlashCHORD's ManoSharpa parquet from S4c output. Columns (from `flash_chord/data/loader.py`): `object_body_names`, `object_body_position`, `object_body_wxyz`, `robot_{left,right}_wrist_position`, `robot_{left,right}_wrist_wxyz`, `robot_{left,right}_finger_joints`, `{left,right}_robot_finger_joint_names`, `robot_{left,right}_frames`, `{left,right}_robot_frame_names`, `mano_{left,right}_object_contact_positions/_normals/_part_ids`, plus the fps and metadata the loader expects (read the loader's required set and the existing `tools/track3` parquet for the exact dtypes/shapes). `robot_*_frames` by forward kinematics with FlashCHORD's URDF (`pathb/fk.py`, pure numpy from the URDF chain). Contacts from DaiD's contact output; part ids by nearest MANO part of the matched fingertip.
+- **Mode A is the default while S4c is disabled (2026-10-24); Mode B becomes the default again only when S4c passes its gate on ep40.**
+- **Mode B:** write FlashCHORD's ManoSharpa parquet from S4c output. Columns (from `flash_chord/data/loader.py`): `object_body_names`, `object_body_position`, `object_body_wxyz`, `robot_{left,right}_wrist_position`, `robot_{left,right}_wrist_wxyz`, `robot_{left,right}_finger_joints`, `{left,right}_robot_finger_joint_names`, `robot_{left,right}_frames`, `{left,right}_robot_frame_names`, `mano_{left,right}_object_contact_positions/_normals/_part_ids`, plus the fps and metadata the loader expects (read the loader's required set and the existing `tools/track3` parquet for the exact dtypes/shapes). `robot_*_frames` by forward kinematics with FlashCHORD's URDF (`pathb/fk.py`, pure numpy from the URDF chain). Contacts from DaiD's contact output; part ids by nearest MANO part of the matched fingertip.
 - **Mode A (fallback, exists):** `s23_load_retarget` on the chosen kinematic bundle (`run_load_retarget.py` with `--no-rest-hold` since v3 holds already; `--still-object` for the still candidate).
 - Scene files: URDF + support USD built from `s3a_mesh/mesh.glb` through the baseline `mesh_to_usd` (as `run_load_retarget` does).
 - Acceptance: FlashCHORD kinematic replay (`scripts/debug/replay.py`, kinematic config) runs to the end; fingertip-to-object distance in the replay matches S4c contacts within 1 cm on 90 % of contact frames; the runner's checks (no link > 2 cm inside the object, seating gap < 1 cm).
 
 ### S6 — Policy
 
-- **s6_train** (`stages/s6_train.py`): per candidate present in S5, FlashSAC `sharpa_flash_sac` with Edmond's overrides (`tools/track3/jobs/still_submit.sh` EXTRA: `task.motion_speed=1.0 sim.fps=20.254119873046875 termination.wrist_position.threshold=0.3 curriculum.thresholds=[…60006400]`), `sim.njmax=512 sim.nconmax=512` (L40S), 60,006,400 steps, run in `tmux`, checkpoint path recorded. ~0.8 h each (A6000 figure; measure on the first run).
+- **s6_train** (`stages/s6_train.py`): per candidate present in S5, FlashSAC `sharpa_flash_sac` with Edmond's overrides (`tools/track3/jobs/still_submit.sh` EXTRA: `task.motion_speed=1.0 sim.fps=20.254119873046875 termination.wrist_position.threshold=0.3 curriculum.thresholds=[…60006400]`), `sim.njmax=512 sim.nconmax=512` (L40S), 60,006,400 steps, run in `tmux`, checkpoint path recorded. **Measured 2026-10-23: 50,000 env-steps/s on the L40S → ≈ 20 min per candidate.** Two candidates per episode (`keyframe`, `still`; plus `inverted` under §12) — the third was cut with `tracking`. Policy-side changes are in §12 S6.
 - **s6_eval**: kit `examples/run_policy_evaluation.py` semantics (`evaluation.world_count=1`, `reset_mode=explicit`, `object_trajectories_output`), one parquet + JSON per candidate.
 - **s6_select**: public: `score_local` on each rollout (`tools/track3/score_rollout.py` reads the evaluator parquet) → best AUC, ties → lower MPPE. Evaluation: lowest mean rollout-vs-reference object error over the clip from the evaluator JSON, with termination-equivalent frames counted (error > 10 cm / 0.5 rad) as a penalty; never ground truth. Writes `selection.json` {candidate, reason, scores}.
 - Acceptance: on each dev episode the selected rollout must beat that episode's still rollout (first measured in S0; oracle reference: ep40 0.40, ep26 0.50); otherwise S6 reports FAIL and S0.1's decision rule applies.
@@ -186,40 +186,43 @@ CPU tests run on the Mac with `uv run --project path_b pytest path_b/tests`; GPU
 7. `p1c_camera` (masked depth prior into DROID). VM smoke: plane-height spread bar.
 8. `p1d_hands` (stereo-aligned, late hands). VM smoke: coverage bars.
 9. P3/P4 v3 changes. Test: factor within 0.97–1.03 on ep40 and ep26.
-10. `s3a_mesh` (SAM3D + pointmap; MV-SAM3D if installed; fit). VM: CD-O vs scan on ep40's dust pan and ep26's pot and dish rack.
-11. `s3b_track` driver with the recovery rule. VM: no > 60° camera-frame jumps on ep40/ep26; ep26's pot (oracle: rotation error 75° at rest, 106° moving) is the flip test.
+10. ~~`s3a_mesh` (SAM3D + MV-SAM3D)~~ **superseded 2026-10-24 by §11 A2.1–A2.3 (canonical mesh)**; the SAM 3D stage FAILed on ep40 and is removed.
+11. `s3b_track` driver with the recovery rule. VM: no > 60° camera-frame jumps on ep40/ep26; ep26's pot (oracle: rotation error 75° at rest, 106° moving) is the flip test. (ep40 real run: WARN.)
 12. `s3c_fuse`. VM: waterfall `fused` ≥ the episode's `stage2_stereo` column (from HF run `0fa525bc`) on ep40 and ep26.
-13. `pathb/daid.py`, `sharpa_map.json`, `s4c_retarget`. VM: ep40 and ep26 (per object) keyframe and tracking realised; gate result.
-14. `s5_task` mode B + `pathb/fk.py`. VM: kinematic replay passes.
-15. `s6_*` on ep40 and ep26 (mode A merge for ep26), three candidates; selection. VM: best rollout vs that episode's still.
-16. `pack` preflight + dry pack on the public split (no upload).
+13. `pathb/daid.py`, `sharpa_map.json`, `s4c_retarget`. VM: ep40 and ep26 (per object) **keyframe only** realised; gate result. (ep40 real run: FAIL — object never moves, 43 mm read-back gap; disabled in all-episode runs until fixed.)
+14. `s5_task` mode A default, mode B + `pathb/fk.py` behind the S4c gate. VM: kinematic replay passes.
+15. `s6_*` on ep40 and ep26 (mode A merge for ep26), **two candidates**; selection. VM: best rollout vs that episode's still.
+16. `pack` preflight + dry pack on the public split (no upload). (Coded.)
 17. Evaluation split: P0–P2 + the full chain on the 20 episodes; submission.
+18. **§12 v4** (Mac, while 17 runs): tasks 18.1–18.6 in §12; dev-episode go/no-go before any v4 GPU hour.
 
-## 6. Run plan (one L40S)
+## 6. Run plan (one L40S; rebuilt 2026-10-24 for the Nov 1 stop)
 
-| When | Job | Hours |
+Phase-A build and the ep40 smoke test are done (BUILD_LOG 2026-10-23). The first VM was lost on 2026-10-23 with run `phaseb` (≈ 2.5 GPU-h; code intact). Budget below uses the measured timings: S6 20 min per candidate, S4c 42 min per object (disabled), ≈ 1.5 GPU-h per single-object episode without S4c.
+
+| When | Job | GPU-h |
 |---|---|---|
-| VM day 0 | `setup.sh` (BRANCH=zjifan121, RESTORE_RUN=4c2eac31 RESTORE_FRAMES=1); new venvs `sam3`, `daid`; weights | 2 |
-| day 1 | S0.1 on ep40 and ep26 (2 × 0.8 h + eval); P0–P2 on the 20 evaluation episodes | 5 |
-| day 1 | Quick win: still candidates on stereo-scaled bundles for 20 evaluation episodes → submission #2 (uses existing `s23_load_retarget` + S6 settings) | 16 (overnight) |
-| days 2–4 | tasks 6–12 on ep40 and ep26, then on the other public episodes | 12 |
-| days 4–5 | tasks 13–15 on ep40 and ep26; gate | 7 |
-| day 6 (Oct 27) | references frozen; chain on the 20 evaluation episodes | 8 |
-| days 7–9 | S6 three candidates × 20 episodes (≤ 48 h), selection, pack, submission #3 (Oct 30) | 48 |
-| Oct 31 | resubmission for verified fixes only; Nov 1 stop | |
+| Oct 24 | James: new L40S, rotate HF write token, delete old deploy key. Session: push the Mac-only commits (§9), `phase_b.sh` per-episode HF upload, then `new_instance.sh` + dev-cache restore | 2 |
+| Oct 24–25 | ep40 real run (S4c off, two candidates, A2 mesh) + front-end comparison (team bundle vs v3 S1, same downstream) → choose S1 for phase B; S0.1 on ep40 and ep26 | 2 |
+| Oct 25–27 | **Phase B**: v3 on 20 public then 20 evaluation episodes (≈ 60 h with the cuts: one S4c candidate → S4c off, two policies); waterfall; pack + preflight; **submission #3 needs James's go** | 60 |
+| Oct 24–28 (Mac) | §12 v4 S3a pooling, S3b, S3c, S3d, tests; v4 on ep40/ep26 from the dev cache; go/no-go | 0 |
+| Oct 28–30 | if v4 passes on both dev episodes: v4 references for 40 episodes (CPU), S6 two candidates × 60M on all 40, then 250M on the chosen reference for the 20 evaluation episodes | ≈ 55 |
+| Oct 31 | pack + preflight → **submission #4 (James's go)**; review page; BUILD_LOG summary. If phase B overran, v4's S6 runs on the 20 evaluation episodes only (≈ 27 h) | |
+| Nov 1 | stop | |
 
-After each milestone: `hf_outputs.py upload --run <run>`; delete nothing on the VM before the upload is listed.
+Removed: the "quick win" still submission #2 (16 GPU-h; optional, James decides), phase 2 run D (55 GPU-h; §8), S4c on three candidates. After each finished episode: `hf_outputs.py upload --run <run> --episode <n>`; delete nothing on the VM before the upload is listed.
 
 ## 7. Compliance
 
 - GT firewall: `pathb/paths.py` gains `gt_allowed(ctx)`; every reader of `public/data/*.parquet` or `public/mesh/` goes through it; with `split == "evaluation"` it raises; each stage appends the files it read to `report.json: files_read`.
 - Mesh hash S3a → S5 → S7 (`sha256.txt` compared in preflight).
 - `manual_inputs.json` per episode lists any hand-chosen parameter (none expected; prompts come from the roster).
-- `THIRD_PARTY.md`: Do as I Do (MIT), MV-SAM3D (check license on clone), SAM 3.1 (SAM license), Point2Pose (BSD-3, optional), FoundationStereo/FoundationPose (NVIDIA licenses via the baseline).
+- `THIRD_PARTY.md`: Do as I Do (MIT), SAM 3.1 (SAM license), Open3D (MIT), FoundationStereo/FoundationPose/WiLoR/HaMeR/MANO (via the baseline, as the organiser ships them), MuJoCo (Apache-2.0). MV-SAM3D and Point2Pose removed (not used).
+- **Hands (decided 2026-10-24): HaMeR via the baseline; EgoFound3R is not used in anything built, submitted or released.** Its README (github.com/BAp3r/EgoFound3R, read 2026-10-24) releases code and weights under CC BY-NC-SA 4.0, "academic research and educational use only, commercial use is not permitted". The challenge pays prizes and requires winners to release code (FAQ: Apache 2.0); the ShareAlike clause conflicts with that release and the NC clause is a risk for a prize-winning entry. The baseline's own WiLoR (CC BY-NC-ND) and MANO (non-commercial) are the organiser's choice and stay.
 
-## 8. Phase 2: two-object scope (built after all episodes have run through phase 1)
+## 8. Phase 2: two-object scope — reduced 2026-10-24
 
-Trigger: every public and evaluation episode has a phase-1 result and submission #3's inputs are frozen. Then, on ep26 first: S4a phases per object + support relation (`support_stacked.py`); S4b keyframe per object with the roster-first object's frame-0 pose as the scene anchor; S4c Do as I Do scene extended to two free bodies + both hands (released code is one hand, one object; `cache/v2/spider_scene.py` slot logic is the reference; 1–2 days); S5 parquet with two `object_body_*` entries; S6 selection adds RPE. Rerun the two-object episodes, compare the waterfall and rollout scores against phase 1 (mode-A merge), keep the better per episode. Also later: EgoFound3R hands, Point2Pose, generalist FlashSAC.
+Built and tested on ep26 with stand-in inputs (2026-10-23): support relation, per-object keyframes anchored on the roster-first object, Do as I Do two-body scene. Result 0.500 either way (RPE 28.3 vs 28.1 cm), because the stand-in called the moving pot "at rest". **The two-object scene code and run D (≈ 55 GPU-h) are dropped from the plan**: §12 v4 handles two objects per segment (a static segment "on another object" is registered in that object's frame), and the Do as I Do two-body scene only matters if S4c works. What stays: S4a phases per object, S5 parquet with two `object_body_*` entries, S6 selection with RPE, the mode-A merge. Rerun phase 2's existing code on ep26 only once v3's own perception has run on it; keep it only if it beats the merge.
 
 ## 9. Workflow (James, 2026-10-22; supersedes the 2026-10-21 version)
 
@@ -227,22 +230,24 @@ Trigger: every public and evaluation episode has a phase-1 result and submission
 
 **Dev cache.** First cloud job: P0–P2, P1b, P1c, P1d, S3a, S3b outputs for ep40 and ep26 (~15 GPU-min), uploaded with `hf_outputs.py` and restored into `path_b/data/` on the Mac, so every CPU stage develops against real intermediate data. S0.1 runs in the same job.
 
-**Per task.** (1) Local: code, `uv run --project path_b pytest path_b/tests`, run the stage on ep40/ep26 if CPU, commit locally (message starts with the task number). (2) Cloud, GPU stages only: push through the bare repo (`git push --no-verify l40s:/root/v2d/repo.git <branch>`), pull on the VM, run on ep40 and ep26, record numbers and report statuses in `BUILD_LOG.md`, `hf_outputs.py upload`, restore to the Mac if a later CPU stage needs it. Never edit code on the VM. A failing smoke test returns to (1). Task N+1 may be coded while task N's cloud job runs.
+**Per task.** (1) Local: code, `uv run --project path_b pytest path_b/tests`, run the stage on ep40/ep26 if CPU, commit locally (message starts with the task number); **when the tests pass, `git push origin zjifan121_pathb_v3`**. (2) Cloud, GPU stages only: push to GitHub (the VM pulls `zjifan121_pathb_v3` from GitHub; the bare-repo route is the fallback when GitHub is unreachable), run on ep40 and ep26, record numbers and report statuses in `BUILD_LOG.md`, `hf_outputs.py upload`, restore to the Mac if a later CPU stage needs it. **When the smoke test passes: commit the BUILD_LOG line and push to `zjifan121_pathb_v3` immediately — before any single-episode or all-episode run starts.** Never edit code on the VM. A failing smoke test returns to (1). Task N+1 may be coded while task N's cloud job runs.
 
-**Phases.** A: phase-1 build (tasks 1–15). **A2: S3 observation variant (§11), built and compared on the dev episodes before any all-episode run.** B: phase-1 run on all 20 public then 20 evaluation episodes (tasks 16–17 to the packed parquet). C: phase-2 build (§8) on ep26. D: phase-2 run on every two-object episode; keep the better of phase 1/2 per episode by the S6 rule; repack. E: preflight, final summary, **HOLD before `v2d_submit.py`**. Phases B and D start automatically once their inputs exist; they need a VM (below). During B and D the next phase is coded locally while the run proceeds; the run is checked between tasks and fixed-and-resumed on failure (a stage with a non-ERROR `report.json` is kept).
+**Phases.** A: phase-1 build (tasks 1–15). **A2: S3 observation variant (§11), built and compared on the dev episodes before any all-episode run.** B: phase-1 run on all 20 public then 20 evaluation episodes (tasks 16–17 to the packed parquet). **C (2026-10-24): v4 build (§12) on the Mac during B; D: v4 run (references on CPU, S6 on the L40S) if the dev go/no-go passes.** The former phase-2 scene build and run are dropped (§8). E: preflight, final summary, **HOLD before `v2d_submit.py`**. Phases B and D start automatically once their inputs exist; they need a VM (below). During B and D the next phase is coded locally while the run proceeds; the run is checked between tasks and fixed-and-resumed on failure (a stage with a non-ERROR `report.json` is kept).
 
 **VM lifecycle.** Verda bills a stopped instance at full price, so the VM is deleted after each cloud use. After the dev cache and a phase's last smoke test are on HF: tell James the VM can be deleted. Before B and D: write the run's needs and GPU-hour estimate to `BUILD_LOG.md`, tell James "need an L40S", wait for the IP, rebuild with `setup.sh` (`BRANCH=zjifan121_pathb_v3` once on GitHub, else push through the bare repo), restore from HF, start the run in tmux.
 
-**GitHub.** Pushes are batched at phase boundaries (end of A, B, C, D) only: write the phase summary to `BUILD_LOG.md`, ask James once ("push `zjifan121_pathb_v3` and open the PR to `main_buffer`?"), push nothing without that yes, keep working locally meanwhile. `git pull --rebase origin main_buffer` before pushing; PR into `main_buffer`; never force-push.
+**GitHub (James, 2026-10-24; replaces the phase-boundary rule).** All future work is pushed to GitHub **immediately after its smoke test passes** (GPU stages) or its tests pass (CPU tasks), and always before a single-episode or all-episode run uses it. Push to the personal branch **`zjifan121_pathb_v3` only**. **No PR and no merge into `main_buffer`** until James says so in chat; do not rebase onto `main_buffer` on your own (sync is Task Queue #14, with his yes). Never force-push. First action under this rule: push the 29 commits that exist only on the Mac (`ba9b051f` and ancestors; GitHub is at `89f44903`).
 
-**Waits.** Exactly three: VM provisioning, GitHub push at a phase boundary, Kaggle upload (HOLD). Everything else is decided by the rules in the session prompt and recorded under "Decisions" in `BUILD_LOG.md`.
+**Episode runs.** `phase_b.sh` uploads each finished episode to HF before starting the next, and the full run is started in the same turn as the passing smoke test (a VM idled for a day once).
 
-## 10. Session facts (2026-10-21)
+**Waits.** Exactly two: VM provisioning, Kaggle upload (HOLD). The GitHub push no longer waits. Everything else is decided by the rules in the session prompt and recorded under "Decisions" in `BUILD_LOG.md`.
 
-- Branch: `zjifan121_pathb_v3`, created from local `zjifan121` (which holds the v2 files that task 1 moves to `cache/v2/`). PRs go to `main_buffer`.
-- VM: Verda L40S, `ssh root@31.56.109.90`. Add to `~/.ssh/config`: `Host l40s` / `HostName 31.56.109.90` / `User root` / `IdentityFile ~/.ssh/id_ed25519`. First VM step: `path_b/vm/setup.sh` per `path_b/vm/README.md` with `BRANCH=zjifan121 RESTORE_RUN=4c2eac31 RESTORE_FRAMES=1` (the new branch reaches GitHub only at the first phase boundary), then push `zjifan121_pathb_v3` through the bare repo and check it out on the VM. This VM is deleted after the dev cache and phase A's smoke tests are on HF (§9). New venvs on the VM: `sam3` (SAM 3.1) and `daid` (Do as I Do, cloned under `/root/v2d/third_party/`).
-- Secrets: `path_b/.env` on the Mac, written by James (git-ignored by the root `.gitignore` `.env` rule; copy to the VM with `scp`; never commit, never print): `HF_TOKEN=<read-only token of HF user JzJz7779, the account granted SAM 3D Objects and SAM 3.1; the same token is in CLAUDE.local.md §6>` and `KAGGLE_API_TOKEN=<James's Kaggle access token, given in chat on 2026-10-21; the kit's uploader reads this variable>`. Uploads to the HF bundle repo need James's write token via `hf auth login` on the VM, as before. Source the file (`set -a; . path_b/.env; set +a`) in every shell that runs P1b (SAM 3.1 download), S3a (SAM 3D), `hf_outputs.py` or `v2d_submit.py`.
-- Kaggle uploads: none without James's explicit go-ahead in chat (submission #2 is on hold).
+## 10. Session facts (2026-10-21; updated 2026-10-24)
+
+- Branch: `zjifan121_pathb_v3` (Mac at `ba9b051f`, GitHub at `89f44903` as of 2026-10-24 — push first). PRs to `main_buffer` only on James's word (§9).
+- VM: the 2026-10-21 instance (`31.56.109.90`, later `86.38.238.153`) is gone; its SSH host key changed on 2026-10-24 — **do not accept the new key**. James provides the next L40S IP; update `~/.ssh/config` `Host l40s` with it. First VM step: `path_b/vm/new_instance.sh` (`BRANCH=zjifan121_pathb_v3`, now on GitHub; `RESTORE_RUN=4c2eac31 RESTORE_FRAMES=1`), ≈ 2 h. New venvs on the VM: `sam3` (SAM 3.1) and `daid` (Do as I Do, cloned under `/root/v2d/third_party/`).
+- Secrets: `path_b/.env` on the Mac, written by James (git-ignored; copy to the VM with `scp`; never commit, never print): `HF_TOKEN=<read-only token of HF user JzJz7779>`, `KAGGLE_API_TOKEN=<James's Kaggle access token>`; HF uploads need James's write token via `hf auth login` on the VM. **The old VM's disk held `path_b/.env` and a read-only deploy key: James rotates the HF write token and deletes the deploy key (repo Settings → Deploy keys) before the next instance.** Source the file (`set -a; . path_b/.env; set +a`) in every shell that runs P1b, `hf_outputs.py` or `v2d_submit.py`.
+- Kaggle uploads: none without James's explicit go-ahead in chat.
 
 ## 11. Phase A2 — S3 observation variant (after phase A, before phase B; local)
 
@@ -265,16 +270,57 @@ Trigger: every public and evaluation episode has a phase-1 result and submission
 ### A2.3 Object frame and registration (`stages/s3a2_register.py`, new; CPU)
 - Per episode and object: ICP of the rest-before partial scan onto the canonical mesh (scale fixed) → `object_frame_T_world0` (frame-0 pose in the canonical frame). All poses the episode submits are expressed in the canonical mesh's frame, so mesh and poses stay consistent as the kit requires (`tracks/track_3/README.md`, "meshes in the same body coordinates as their rollout poses").
 
-### A2.4 Mesh-free tracking (`stages/s3b2_track_points.py`, new; GPU smoke only)
-- Primary: Point2Pose (BSD-3; RGB-D + SAM masks → per-frame SE(3) + online TSDF; multi-object; recovers after occlusion). Time-box one day; its code is young.
-- Backup: TAPIP3D (Apache-2.0) with known depth/intrinsics/extrinsics → 3D tracks of masked object points → per-frame RANSAC-Kabsch rigid fit to the frame-0 point set; symmetric-equivalent fits resolved by depth residual and continuity (same rule as S3b).
-- Output in the same `poses/` layout as S3b so S3c fuses either or both; `track_meta.json` records the source.
+### A2.4 Mesh-free tracking — removed 2026-10-24
+Coded as `stages/s3b2_track_points.py` (TAPIP3D backup); the tracker's CUDA extension did not build on the VM and it never ran. Point2Pose was not attempted. Per-frame tracking is what §12 replaces, so A2.4 is not pursued; the file moves to `path_b/cache/`.
 
-### A2.5 Comparison and decision (CPU)
-- Rerun S3c → S4 → S5 → S6-select on ep40 and ep26 with: (1) phase-A mesh + FP track; (2) canonical mesh + FP track (FP re-registered to the new mesh); (3) canonical mesh + mesh-free track (if A2.4 ran). Score each with `score_local`; waterfall columns `a2_mesh_fp`, `a2_mesh_points`; CD-O per object via `eval_mesh.py`.
-- Decision rule (record under "Decisions"): the variant with the higher mean of (AUC rank, CD-O rank) over the dev episodes becomes S3 for phase B; ties → the deterministic variant. If A2 loses on both AUC and CD-O, keep phase A's S3 and log why.
-- Collision body for S4/S6 comes from the chosen mesh (CoACD as before).
+### A2.5 Comparison and decision — done 2026-10-23
+- Measured on the stand-in inputs: ep40 `ref_keyframe` 0.540 → `a2_mesh_fp` **0.726** (MPPE 3.3 cm); CD-O 0.24 (team mesh) vs 0.53 cm (canonical from one clip, coverage 0.58). ep26 0.349 → 0.500 (= still). Ranks: AUC 1 vs 2, CD-O 2 vs 1 → tie → the deterministic variant. **Decision: `a2_mesh_fp` is S3 for phase B** (recorded under "Decisions"). The gain is from mesh placement (the mesh sits on the tracked object), not shape; the shape improves with cross-clip pooling (§4 S3a).
+- Owed: the same comparison on v3's own perception for ep40 (Task Queue #3).
+- Collision body for S4/S6 comes from the canonical mesh (CoACD as before).
 
-**Spec consequences if A2 wins (apply then, not before):** §2 drop `mvsam3d`; §4 S3a/S3b replaced by A2.1–A2.4; §7 `THIRD_PARTY.md` adds Point2Pose / TAPIP3D / Open3D (and any fallback that fired); §5 tasks 10–11 marked superseded. Phase 2 (§8) is unaffected.
+**Spec consequences applied 2026-10-24:** §2 `mvsam3d` dropped; §4 S3a = A2.1–A2.3; §7 `THIRD_PARTY.md` adds Open3D; §5 task 10 superseded.
+
+## 12. Path B v4 — contact-segmented inversion + policy-side changes (design 2026-10-24; build on the Mac while phase B runs)
+
+**Why.** The oracle (§S0.2) puts the loss in object *position* (true positions alone → 0.741; true positions on moving frames alone → 0.762), and v3's per-frame tracker has not shown centimetre accuracy on any real episode (ep40 real run: best reference 0.381–0.400 = still). v4 keeps S1–S2 and the canonical mesh and replaces per-frame tracking with per-segment solving: the clip is split into **static**, **stable-grasp** and **unstable** segments; a static segment has one pose, a grasp segment has one fixed hand→object offset (the stereo-aligned hand track supplies the motion), and unstable segments are short bridges. Unknowns fall from 6 per frame to ≈ 30 per clip, each constrained by hundreds of depth, mask and fingertip observations. Rest poses are settled in MuJoCo so they lie on the table. Evidence from the 2026-10-23 research round: rigid-in-hand inversion is the principle behind the egocentric hand-object methods that report centimetre-level object error (ROHIT arXiv 2512.07394, VICON arXiv 2610.05180, ComPose; mocap-level results in DexMimic / OATH). Companion artifact: "Path B v4 Design".
+
+**Scope.** New code is CPU-only (`pathb/segments.py`, `pathb/invert.py`, `stages/s3b_segments.py`, `stages/s3c_invert.py`, `stages/s3d_settle.py`) plus a P1d export and S6 config changes. No new environment: Open3D (already in A2), scipy, MuJoCo from the `daid` venv (CPU). Two objects are native: segments are per object; a static segment resting on another object is registered in that object's frame.
+
+### 12.1 P1d export (change)
+`p1d_hands` additionally writes `fingertips_world.npz` (N, 2, 5, 3) and `hand_verts_world.npz` (N, 2, 778, 3) from the aligned MANO (through `tools/track3/read_mano.py`). Hands remain HaMeR (§7).
+
+### 12.2 S3b segments (`stages/s3b_segments.py`, new; `pathb/segments.py` pure function)
+- In: `p2_depth/depth_a_half`, `p1b_masks/obj_<k>`, `p1c_camera`, `fingertips_world.npz`, `s3a2_register` frame-0 pose, canonical mesh.
+- Per frame, masked object points in world. **static**: median displacement of the object points over a 10-frame window < 5 mm and no fingertip within 2 cm of them. **grasp**: ≥ 2 fingertips within 1 cm of the object points and the same fingertip set (by hand × finger) for ≥ 5 frames. Else **unstable**. Dilate grasp by 2 frames; merge static runs shorter than 5 frames into their neighbours.
+- Out: `segments.json` [{kind, start, end, fingertips}], `phases.json` as S4a writes it (S4a becomes a view of this; `pathb/phases.py` stays for the fallback).
+- Acceptance: on ep40 the first grasp starts within ±5 frames of S4a's `first_reach` (19) and the last ends within ±5 of `last_release` (230); ep26 dish rack is one static segment; ep26 pot has ≥ 1 grasp segment (the stand-in never found one — that is the test).
+
+### 12.3 S3c invert (`stages/s3c_invert.py`, new; `pathb/invert.py`)
+- **Static segment**: TSDF of the segment's masked depth (A2.1 code), ICP of the canonical mesh onto it with scale fixed, initialised from `s3a2_register` (first segment) or the previous segment's end pose; symmetric objects: candidates = pose × symmetry group (`pathb/symmetry.py`), keep the lowest point-to-mesh residual → one pose for the segment. Bar: residual median ≤ 5 mm.
+- **Grasp segment**: unknown `T_hand→object` (6 DoF, `wrist` of the grasping hand; two-handed grasps use the hand with more fingertips in contact). `object(t) = wrist(t) · T`. Residual over all frames of the segment, scipy `least_squares` with a soft-L1 loss: (a) rendered canonical-mesh depth vs stereo depth inside the object mask (trimesh ray cast or Open3D raycasting scene, every 2nd frame if slow); (b) contact fingertips to the mesh surface (signed distance → 0); (c) end poses equal the neighbouring static poses (weight 10). Initialise `T` from the preceding static pose and the wrist at the segment's first frame. **Slip guard**: if the per-frame residual (a) exceeds 1.5 cm for 10 consecutive frames, split the segment there and re-solve the parts (the split becomes an unstable bridge). Bar: residual (a) median ≤ 1 cm on ≥ 50 % of frames, else the segment is marked `failed` and S4b uses `keyframe` interpolation for it.
+- **Unstable segment**: cubic Hermite (position, zero end velocity) + slerp between the neighbouring segment end poses, then ≤ 5 Gauss-Newton steps of per-frame refinement on residual (a) where the mask covers ≥ 1 % of the image; motion limited to 1.5 m/s.
+- Out: `s3c_invert/object_to_world.npz` (N,4,4), `invert_report.json` (per segment: kind, residuals, iterations, failed), and the bundle `result.npz` completed as S3c did. S3b FoundationPose (§4) is only used to seed the first static ICP's orientation when `s3a2_register` fails.
+- Acceptance (public): waterfall column `inverted` ≥ `ref_keyframe` on ep40 and ep26 — the v4 go/no-go (Task Queue #9).
+
+### 12.4 S3d settle (`stages/s3d_settle.py`, new; `daid` venv, CPU MuJoCo)
+For each static segment: load the CoACD pieces, place the object at the ICP pose on the table plane (z = 0) or on the supporting object (from the segment's registration frame), simulate 0.5 s with gravity, read the resting pose. Accept if it moved < 1.5 cm and rotated < 10°, else keep the ICP pose and flag `unsettled`. Replace the static pose; shift the adjoining grasp/unstable end constraints accordingly and re-run 12.3's end-pose terms (one pass). Bar: penetration of mesh into table ≤ 2 mm after settle.
+
+### 12.5 S4–S5 under v4
+S4b gains candidate **`inverted`** (12.3 + 12.4 poses, rests held exactly); `keyframe` becomes the fallback for episodes where any grasp segment `failed`; `still` stays. S4c (if enabled by its gate) runs on `inverted` only. S5 mode A unless S4c passes. Waterfall adds `ref_inverted`, `rollout_inverted`.
+
+### 12.6 S6 policy-side changes
+1. **Residual on prior**: the actor's output is a correction added to the reference joint targets (the kinematic replay) rather than an absolute target, so step 0 replays the reference and learning repairs contacts. Check FlashCHORD's config for an existing residual/`action_mode` option first; if a code change is needed it goes into our fork under `path_b/third_party/flash_chord_patch/` (never under `baseline/`), as a patch applied in the `flash_chord` venv.
+2. **Object-error termination during training**: terminate when the object is > 5 cm from the reference (in addition to the wrist bar), so position tracking is what is rewarded; evaluation runs with the kit's own settings as before.
+3. **Steps**: two candidates × 60M for selection; then **250M on the selected reference, 2 seeds when GPU time allows (1 otherwise)**; the oracle's 500M-on-a-bad-reference result (0.142) is why steps go only to the chosen one.
+4. **Selection**: checkpoint and seed by **MPPE of the rollout against our own reference** (lower wins; ties → AUC against the reference), never GT; public episodes additionally report `score_local` for the waterfall.
+Acceptance: on ep40 and ep26 the selected rollout beats the still rollout and loses ≤ 0.1 AUC to its own reference's playback; S0.1 (GT reference) bounds the policy tax first.
+
+### 12.7 Tasks (§5 numbering continues)
+18.1 P1d export + unit test (fixture hands → fingertips). 18.2 `segments.py` + `s3b_segments` (synthetic + ep40/ep26 dev cache). 18.3 `invert.py` static + grasp + unstable, `s3c_invert`; test: GT trajectory with synthetic depth → ≤ 3 mm; ep40 dev cache → `inverted` column. 18.4 `s3d_settle`. 18.5 S4b/S5 wiring, waterfall columns, go/no-go on both dev episodes. 18.6 S6 changes (config first, patch if needed), smoke on one GPU hour. Then the §6 Oct 28–31 run. Every task follows §9: tests pass → push `zjifan121_pathb_v3`.
+
+### 12.8 Risks and guards
+Slip inside a grasp (split rule); heavy hand occlusion (fingertip + end-pose terms carry the fit; 50 % bar; fallback keyframe per segment); symmetric objects (candidate rule; rotation is secondary in the oracle); unknown policy tax (S0.1 first); schedule (8 days; v4 code is CPU and ≈ 5 files).
+
+Sources (2026-10-24): `path_b/oracles/oracle_2026-10-17.json`; `path_b/BUILD_LOG.md`; EgoFound3R README (CC BY-NC-SA 4.0); the 2026-10-23 research round (artifact "Path B v4 Design" lists the papers); Kaggle Track 3 boards 2026-10-23 (leader 0.922 AUC / 1.30 cm MPPE; team 0.425, rank 13/27).
 
 Sources (checked 2026-10-22): SAM 3D Objects repo and paper (arXiv 2511.16624); MV-SAM3D (arXiv 2603.11633); Point2Pose (arXiv 2604.10415, github.com/TheWisp/point-to-pose); TAPIP3D (github.com/zbw001/TAPIP3D); Open3D RGBD integration docs; SymmCompletion (github.com/hongyuyann/symmcompletion); AdaPoinTr (github.com/yuxumin/PoinTr); ForeHOI (arXiv 2602.06226); Uni3D (github.com/baaivision/Uni3D); `tools/track3/episodes.json`.

@@ -1,8 +1,8 @@
-"""pathb/reference.py (V3_BUILD_SPEC.md S4b, task 4).
+"""pathb/reference.py (V4_BUILD_SPEC.md S4b).
 
-Synthetic tests always run. The task's data test (ground truth in -> playback AUC 1.0 for tracking;
+Synthetic tests always run. The data test (ground truth in as `inverted` -> playback AUC 1.0;
 keyframe from ground-truth anchors + interpolation >= still) needs the public dataset and a few
-CPU minutes of official scoring: it runs with PATHB_DATA_TESTS=1 (e.g. on ep40 and ep26).
+CPU minutes of official scoring: it runs with PATHB_DATA_TESTS=1 (on the dev episodes ep41 and ep13).
 """
 import os
 
@@ -57,16 +57,13 @@ def test_keyframe_holds_anchors_keeps_trusted_and_interpolates():
     assert how.count("interpolated") == 41 and np.isclose(out[50, 0, 3], 0.15, atol=0.02)
 
 
-def test_tracking_replaces_rest_windows_with_anchors_and_blends():
+def test_candidates_in_build_order_and_inverted_passed_through():
     T, ph = carried()
-    noisy = T.copy()
-    noisy[:, 1, 3] += np.random.default_rng(0).normal(0, 0.01, len(T))
-    anchor_b, anchor_a = fuse.rest_anchor(noisy[:25]), fuse.rest_anchor(noisy[76:])
-    out, how = R.tracking(noisy, ph, anchor_b, anchor_a)
-    rb, ra = ph["rest_before"], ph["rest_after"]
-    assert np.allclose(out[:rb[1] + 1], anchor_b) and np.allclose(out[ra[0]:], anchor_a)
-    assert how[rb[1] + 1:rb[1] + 1 + R.BLEND] == ["blended"] * R.BLEND
-    assert np.allclose(out[40:60], noisy[40:60])  # the carry is the track
+    assert list(R.build(T, ph, T[0], T[-1])) == ["keyframe", "still"]  # no S3c solution yet
+    solved = (T.copy(), ["inverted"] * len(T))
+    built = R.build(T, ph, T[0], T[-1], inverted=solved)
+    assert list(built) == list(R.CANDIDATES) == ["inverted", "keyframe", "still"]
+    assert built["inverted"][0] is solved[0] and R.provenance(built["inverted"][1])["inverted"] == len(T)
 
 
 def test_never_touched_object_is_still_for_every_candidate():
@@ -88,9 +85,9 @@ def gt_track(episode: dict, slot: int, read: list) -> np.ndarray:
 
 
 @pytest.mark.skipif(not DATA, reason="set PATHB_DATA_TESTS=1 (needs the public dataset; minutes of CPU)")
-@pytest.mark.parametrize("number", [40, 26])
+@pytest.mark.parametrize("number", [41, 13])
 def test_ground_truth_reference_scores(number, tmp_path):
-    """GT in -> tracking playback AUC 1.0; keyframe from GT anchors + interpolation >= still."""
+    """GT in as the inverted solution -> playback AUC 1.0; keyframe from GT anchors + interpolation >= still."""
     e = episode_info(number)
     read = []
     tracks = {o["name"]: gt_track(e, i, read) for i, o in enumerate(e["objects"])}
@@ -104,7 +101,7 @@ def test_ground_truth_reference_scores(number, tmp_path):
         rb, ra = ph["rest_before"], ph["rest_after"]
         before = fuse.rest_anchor(T[rb[0]:rb[1] + 1]) if rb else T[0]
         after = fuse.rest_anchor(T[ra[0]:ra[1] + 1]) if ra else None
-        built[name] = R.build(T, ph, before, after)
+        built[name] = R.build(T, ph, before, after, inverted=(T, ["inverted"] * len(T)))
     scores = {}
     for cand in R.CANDIDATES:
         stack = np.stack([np.concatenate([built[n][cand][0][:, :3, 3],
@@ -112,7 +109,7 @@ def test_ground_truth_reference_scores(number, tmp_path):
                           for n in tracks], axis=1)
         scores[cand] = gt.score(e, stack, meshes, read)["AUC"]
     print(number, scores)
-    assert scores["tracking"] > 0.99
+    assert scores["inverted"] > 0.99
     assert scores["keyframe"] >= scores["still"]
 
 

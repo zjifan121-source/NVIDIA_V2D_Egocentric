@@ -2,8 +2,9 @@
 from pathb import runner
 
 SPEC_STAGES = ("p0_ingest p1_calibrate p2_depth p1b_masks p1c_camera p1d_hands p3_scale_bridge p4_export "
-               "s3a_mesh s3b_track s3c_fuse s4a_phases s4b_reference s4c_retarget s5_task "
-               "s6_train s6_eval s6_select s7_pack s23_load_retarget").split()  # V3_BUILD_SPEC.md §1
+               "s3a2_fuse_scan s3a2_register s3b_segments s3b_track s3c_invert s3d_settle "
+               "s4a_phases s4b_reference s4c_retarget s5_task "
+               "s6_train s6_eval s6_select s7_pack s23_load_retarget").split()  # V4_BUILD_SPEC.md §1
 
 
 def test_stage_order_is_the_spec():

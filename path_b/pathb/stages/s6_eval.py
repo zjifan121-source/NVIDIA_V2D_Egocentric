@@ -1,4 +1,4 @@
-"""S6 eval: each trained policy through the kit's evaluator (V3_BUILD_SPEC.md S6;
+"""S6 eval: each trained policy through the kit's evaluator (V4_BUILD_SPEC.md S6;
 examples/run_policy_evaluation.py by pathb/policy.py: evaluation.world_count=1, reset_mode=explicit,
 object_trajectories_output). Out per candidate: s6_eval/<candidate>/results/episode_XXXXXX.parquet
 (the rollout the packer takes) and .json (FlashCHORD's metrics against the candidate's own reference).
@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 
 from .. import policy
+from ..reference import CANDIDATES
 from ..report import Metric, StageResult
 from ..team import scorer
 
@@ -15,7 +16,7 @@ from ..team import scorer
 def run(ctx) -> StageResult:
     d = ctx.dir("s6_eval")
     metrics, outputs = [], {}
-    for cand in ("keyframe", "tracking", "still"):
+    for cand in CANDIDATES:
         trained = ctx.root / f"s6_train/{cand}/train.json"
         if not trained.is_file():
             continue

@@ -144,3 +144,17 @@ uv run --project path_b python path_b/run.py analysis --episodes 40 26 --out <ru
 | **Total** | **~4.2 h** | **40 episodes ≈ 170 GPU-hours ≈ 7 days on one L40S** |
 
 The S6 share (~100 h) dominates; at this estimate the run ends around Oct 30, close to the Nov 1 stop, with little room for reruns. The ep40 smoke test measures every stage; the estimate is redone from it and, if it still overruns, the options go to James as proposals (not applied): train two candidates instead of three (keyframe + still, −32 h), or fewer S6 steps for the still candidate.
+
+## v4 build (V4_BUILD_SPEC.md, 2026-10-24)
+
+v4 replaces v3 (James, 2026-10-24): contact-segmented inversion, dev episodes **ep41** and **ep13**, no v3 run on the 40 episodes, Nov 1 stop. v3's spec and audit and the v3-only code are in `cache/v3/` (README there). Workflow (V4 §9): push `zjifan121_pathb_v3` after every passing test or smoke test; no PR or merge into `main_buffer` without James; no Kaggle upload without James. Waits: VM provisioning and the Kaggle upload only.
+
+### v4 tasks
+
+| Date | Task | Step | Commit | Test | Result and numbers |
+|---|---|---|---|---|---|
+
+### v4 decisions
+
+| Date | Decision | Reason |
+|---|---|---|

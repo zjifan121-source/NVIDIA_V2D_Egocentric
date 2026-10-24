@@ -1,11 +1,12 @@
-"""S6 select: the rollout an episode submits (V3_BUILD_SPEC.md S6; rules in pathb/selection.py).
+"""S6 select: the rollout an episode submits (V4_BUILD_SPEC.md S6; rules in pathb/selection.py).
 
 Public: official metrics per rollout against ground truth (pathb/gt.py), meshes as S5's runner wrote
 them for scoring; best AUC, ties to the lower MPPE. Acceptance (public): the selected rollout beats
 the still rollout's AUC, else FAIL (S0.1's decision rule applies). The evaluation rule also runs on
 public episodes, so its choice can be checked against the score. Evaluation: the observation cost
 (selection.py) only; never ground truth. Out: s6_select/selection.json {candidate, reason, rollout,
-scores, costs, rule}.
+scores, costs, rule}. Two objects (V4 §8): RPE breaks public ties before MPPE, and the objects'
+relative-position error joins the observation cost.
 """
 from __future__ import annotations
 
@@ -14,7 +15,8 @@ import json
 import numpy as np
 import trimesh
 
-from .. import gt, phase2, selection, symmetry
+from .. import gt, selection, symmetry
+from ..reference import CANDIDATES
 from ..report import Metric, StageResult
 from ..runner import write_json
 from ..team import scorer
@@ -37,14 +39,14 @@ def observation(ctx) -> tuple[np.ndarray, np.ndarray, list]:
 def run(ctx) -> StageResult:
     d = ctx.dir("s6_select")
     rollouts = {}
-    for cand in ("keyframe", "tracking", "still"):
+    for cand in CANDIDATES:
         f = ctx.root / f"s6_eval/{cand}/results/episode_{ctx.number:06d}.parquet"
         if f.is_file():
             rollouts[cand] = (f, scorer().evaluator_poses(f, ctx.episode))
     if not rollouts:
         raise RuntimeError("no rollout (s6_eval/<candidate>/results)")
     reference, observed, groups = observation(ctx)
-    two = phase2.enabled(ctx)
+    two = len(ctx.objects) > 1
     costs = {c: selection.observation_cost(selection.matrices(p), reference, observed, groups, relative=two)
              for c, (_, p) in rollouts.items()}
     by_observation = selection.pick_evaluation(costs)

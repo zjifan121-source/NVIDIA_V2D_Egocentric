@@ -48,29 +48,29 @@ def test_symmetric_equivalents_cost_nothing():
     assert selection.observation_cost(roll, ref, np.ones(ref.shape[:2], bool), [G])["cost_m"] < 1e-6
 
 
-def test_still_loses_to_a_tracking_rollout_without_ground_truth():
+def test_still_loses_to_a_moving_rollout_without_ground_truth():
     ref = moving()
     observed = np.ones(ref.shape[:2], bool)
     still = np.repeat(ref[:1], len(ref), axis=0)
     noisy = ref.copy()
     noisy[:, 0, :3, 3] += np.random.default_rng(1).normal(0, 0.01, (len(ref), 3))
     G = [symmetry.group("mini_dust_pan")]
-    costs = {"tracking": selection.observation_cost(noisy, ref, observed, G),
+    costs = {"inverted": selection.observation_cost(noisy, ref, observed, G),
              "still": selection.observation_cost(still, ref, observed, G)}
-    assert selection.pick_evaluation(costs)[0] == "tracking"
+    assert selection.pick_evaluation(costs)[0] == "inverted"
 
 
 def test_public_pick_breaks_ties_by_mppe():
-    scores = {"keyframe": {"AUC": 0.5004, "MPPE cm": 6.0}, "tracking": {"AUC": 0.5, "MPPE cm": 5.0},
+    scores = {"keyframe": {"AUC": 0.5004, "MPPE cm": 6.0}, "inverted": {"AUC": 0.5, "MPPE cm": 5.0},
               "still": {"AUC": 0.40, "MPPE cm": 9.0}}
-    assert selection.pick_public(scores)[0] == "tracking"
+    assert selection.pick_public(scores)[0] == "inverted"
     scores["keyframe"]["AUC"] = 0.52
     assert selection.pick_public(scores)[0] == "keyframe"
 
 
 def test_two_objects_add_rpe():
-    scores = {"keyframe": {"AUC": 0.5, "MPPE cm": 5.0, "RPE cm": 9.0}, "tracking": {"AUC": 0.5005, "MPPE cm": 6.0, "RPE cm": 3.0}}
-    assert selection.pick_public(scores)[0] == "keyframe" and selection.pick_public(scores, rpe=True)[0] == "tracking"
+    scores = {"keyframe": {"AUC": 0.5, "MPPE cm": 5.0, "RPE cm": 9.0}, "inverted": {"AUC": 0.5005, "MPPE cm": 6.0, "RPE cm": 3.0}}
+    assert selection.pick_public(scores)[0] == "keyframe" and selection.pick_public(scores, rpe=True)[0] == "inverted"
     ref = np.concatenate([moving(), moving()], axis=1)
     ref[:, 1, 0, 3] += 0.2  # the second object 20 cm beside the first
     roll = ref.copy()

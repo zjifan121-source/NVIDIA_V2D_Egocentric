@@ -1,6 +1,7 @@
-"""Dev-episode analysis page (James, 2026-10-22, step 2): where the score goes on ep40 and ep26.
+"""Dev-episode analysis page (James, 2026-10-22, step 2): where the score goes on the dev episodes
+(V4: ep41 and ep13, paths.DEV_EPISODES, the default when no episode is named).
 
-    uv run --project path_b python path_b/run.py analysis --episodes 40 26 --out <run> [--tag v2]
+    uv run --project path_b python path_b/run.py analysis --out <run> [--episodes 41 13] [--tag v2]
 
 Writes path_b/reports/dev_analysis_<date>[_<tag>].md and the self-contained .html made from it
 (inline SVG charts, light and dark). Sections, in James's order: (a) headline AUC per episode against
@@ -23,7 +24,8 @@ import numpy as np
 import trimesh
 
 from . import gt
-from .paths import PATH_B, episode_info
+from .paths import DEV_EPISODES, PATH_B, episode_info
+from .reference import CANDIDATES, RETARGETED
 from .runner import Context
 from .team import scorer
 from .waterfall import SCAN, merged, raw_scene, scene
@@ -31,8 +33,8 @@ from .waterfall import SCAN, merged, raw_scene, scene
 ORACLE = PATH_B / "oracles/oracle_2026-10-17.json"
 REPORTS = PATH_B / "reports"
 ORACLE_LINES = ("still_gt0", "place_pos_gt", "place_gt_when_resting", "place_gt_when_moving")
-CANDIDATE_COLUMNS = ("rollout_keyframe", "rollout_tracking", "rollout_still", "realised_keyframe", "realised_tracking",
-                     "ref_keyframe", "ref_tracking")
+CANDIDATE_COLUMNS = (*[f"rollout_{c}" for c in CANDIDATES], *[f"realised_{c}" for c in RETARGETED],
+                     *[f"ref_{c}" for c in CANDIDATES if c != "still"])
 STAGES_IN = ("p1b_masks", "p1c_camera", "p1d_hands", "s3a_mesh", "s3b_track")
 
 
@@ -229,20 +231,20 @@ def fmt(v, d=3):
 def attribution(scores: dict) -> list[dict]:
     """Stage by stage: the column before and after it, from the waterfall."""
     s = lambda k: scores.get(k)  # noqa: E731
-    best_ref = max((c for c in ("ref_keyframe", "ref_tracking") if c in scores), key=lambda c: scores[c]["AUC"], default=None)
-    best_real = max((c for c in ("realised_keyframe", "realised_tracking") if c in scores),
+    best_ref = max((f"ref_{c}" for c in CANDIDATES if c != "still" and f"ref_{c}" in scores),
+                   key=lambda c: scores[c]["AUC"], default=None)
+    best_real = max((f"realised_{c}" for c in RETARGETED if f"realised_{c}" in scores),
                     key=lambda c: scores[c]["AUC"], default=None)
-    best_roll = max((c for c in ("rollout_keyframe", "rollout_tracking", "rollout_still") if c in scores),
+    best_roll = max((f"rollout_{c}" for c in CANDIDATES if f"rollout_{c}" in scores),
                     key=lambda c: scores[c]["AUC"], default=None)
     truth = {"AUC": 1.0, "MPPE cm": 0.0, "CD-O cm": 0.0}
     rows = [
         ("P1c camera + S3b track", "ground truth", truth, "raw", s("raw"),
          "the camera and the camera-frame track together; no ground-truth camera separates them (camera panel)"),
         ("S3a mesh", "raw@scan", s("raw" + SCAN), "raw", s("raw"), "same poses, the scan as mesh (ceiling, not submittable)"),
-        ("S3c fuse", "raw", s("raw"), "fused", s("fused"), "anchors + ESKF/RTS"),
-        ("stage-2 clean (Edmond, reference)", "fused", s("fused"), "stage2_clean", s("stage2_clean"),
-         "run_load_retarget's default repairs on our fused bundle"),
-        ("S4b reference", "fused", s("fused"), best_ref or "ref_*", s(best_ref) if best_ref else None, "best of keyframe / tracking"),
+        ("S3c invert + S3d settle", "ref_keyframe", s("ref_keyframe"), "ref_inverted", s("ref_inverted"),
+         "segment solving against v3's keyframe rule (the v4 go/no-go)"),
+        ("S4b reference", "raw", s("raw"), best_ref or "ref_*", s(best_ref) if best_ref else None, "best of inverted / keyframe"),
         ("S4c physics", best_ref or "ref", s(best_ref) if best_ref else None, best_real or "realised_*",
          s(best_real) if best_real else None, "Do as I Do (not run without the VM)" if not best_real else ""),
         ("S6 rollout", best_real or best_ref or "ref", s(best_real or best_ref) if (best_real or best_ref) else None,
@@ -318,7 +320,7 @@ def episode_section(run: Path, number: int, read: list, best: str | None = None)
     orc, extra = oracle(number)
     best = best or best_candidate(scores)
     still = scores.get("ref_still", {}).get("AUC")
-    errs = frame_errors(root, e, [c for c in ("raw", "fused", best) if c], read)
+    errs = frame_errors(root, e, [c for c in ("raw", "ref_keyframe", best) if c], read)
     residual = []  # median depth residual per object, from S3b's own per-frame records (cm)
     for n in names:
         meta = root / f"s3b_track/{n}/track_meta.json"
@@ -422,7 +424,8 @@ def extra_sections(eps: list[dict], run: Path, base: dict | None) -> list[str]:
 
 def markdown(eps: list[dict], run: Path, tag: str, base: dict | None = None) -> str:
     today = date.today().isoformat()
-    md = [f"# Dev-episode analysis: ep40 and ep26 ({today}{', ' + tag if tag else ''})", "",
+    which = " and ".join(f"ep{e['number']}" for e in eps)
+    md = [f"# Dev-episode analysis: {which} ({today}{', ' + tag if tag else ''})", "",
           f"Run `{run.name}`; scored with the official Track 3 metric code (`pathb/gt.py`), public ground truth.",
           ""]
     si = sorted({s for e in eps for s in e["stand_ins"]})
@@ -442,7 +445,7 @@ def markdown(eps: list[dict], run: Path, tag: str, base: dict | None = None) -> 
                 (f"S0.2 {recon} (team bundle)", orc.get(recon, {}).get("AUC"), "base"),
                 ("S0.2 still", orc.get("still", {}).get("AUC"), "base"),
                 ("raw (S3b + camera)", sc.get("raw", {}).get("AUC"), "stage"),
-                ("fused (S3c)", sc.get("fused", {}).get("AUC"), "stage")]
+                ("ref_keyframe (v3 rule)", sc.get("ref_keyframe", {}).get("AUC"), "stage")]
         refs = [(k, orc.get(k, {}).get("AUC")) for k in ORACLE_LINES]
         md += [f"### ep{e['number']} ({' + '.join(e['names'])})", "", bar_chart(bars, refs), ""]
     # (b)
@@ -454,7 +457,7 @@ def markdown(eps: list[dict], run: Path, tag: str, base: dict | None = None) -> 
         for j, n in enumerate(e["names"]):
             ph, rec = e["phases"][n], recovered_frames(e["root"], n)
             series_p, series_r = [], []
-            for v, cls in (("raw", "raw"), ("fused", "fused"), (e["best"], "ours")):
+            for v, cls in (("raw", "raw"), ("ref_keyframe", "fused"), (e["best"], "ours")):
                 if v in e["errors"]:
                     err = e["errors"][v]
                     series_p.append((v, err["position_m"][:, j] * 100, cls))
@@ -591,7 +594,8 @@ def to_html(md: str, title: str, css: str = "") -> str:
             f'<body><main>{"".join(out)}</main></body></html>')
 
 
-def main(run: Path, numbers: list[int], tag: str = "") -> tuple[Path, Path]:
+def main(run: Path, numbers: list[int] | None = None, tag: str = "") -> tuple[Path, Path]:
+    numbers = list(numbers or DEV_EPISODES)
     read: list = []
     eps = [episode_section(run, n, read) for n in numbers if episode_info(n)["split"] == "public"]
     REPORTS.mkdir(exist_ok=True)

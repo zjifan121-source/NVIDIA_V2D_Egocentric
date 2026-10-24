@@ -1,6 +1,8 @@
-"""S4c retarget: Do as I Do physics retargeting of the kinematic references (V3_BUILD_SPEC.md S4c).
+"""S4c retarget: Do as I Do physics retargeting of the kinematic reference (V4_BUILD_SPEC.md S4c).
 
-Per object, keyframe first, then tracking: the candidate's hands in the world (drivers/mano_world.py,
+Gated: off unless pathb/s4c.yaml sets `enabled: true` (V4: enabled only after the ep40 failures, the
+object never moving and the 43 mm read-back gap, are fixed on ep41). One candidate, `inverted`.
+Per object: the candidate's hands in the world (drivers/mano_world.py,
 $RETARGET_VENV), the reference at 50 Hz in DaiD's world (pathb/daid.py), then DaiD's stages 2-5
 with the Sharpa hands in MuJoCo Warp (drivers/daid_run.py, $DAID_PY, DaiD in $DAID_DIR), settings in
 pathb/s4c.yaml; the warm-up weld lasts S4a's rest-before window. The Sharpa joints match FlashCHORD's
@@ -8,9 +10,7 @@ sharpawave URDF one to one (pathb/sharpa_map.json).
 Out per object and candidate: trajectory_mjwp.npz (at the video frames, v3 world: robot joints, realised
 object, wrists, contacts in ManoSharpa's 16 MANO-link slots), scene.xml (DaiD's), metrics.json,
 bundle/ (the candidate's bundle with object_to_world = realised), gate.json.
-Phase 2 (pathb/phase2.py, two objects): one DaiD scene per candidate with both objects (the roster-first
-is DaiD's right_object, the other its left_object; one density, their mean), in s4c_retarget/scene/<cand>/;
-each object's folder links its trajectory and holds its bundle and gate; the gate scores the scene. Gate: realised used if its playback AUC >= the kinematic one - 0.01 (public; evaluation
+Gate: realised used if its playback AUC >= the kinematic one - 0.01 (public; evaluation
 takes the public decision of its task type, oracles/s4c_gate.json) and it passes the checks:
 penetration <= 5 mm, object moved <= 1 cm before the first reach, object speed <= 1.5 m/s.
 """
@@ -24,15 +24,16 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-from .. import daid, gt, phase2
+from .. import daid, gt
 from .. import phases as P
+from ..reference import RETARGETED
 from ..paths import PATH_B, TRACK3_FPS
 from ..report import Metric, StageResult
 from ..runner import write_json
 from ..waterfall import merged, scene
 from .s4b_reference import write_bundle
 
-CANDIDATES = ("keyframe", "tracking")  # keyframe first (spec S4b/S4c)
+CANDIDATES = RETARGETED  # V4 S4c: one candidate
 GATE_AUC = 0.01
 MAX_PENETRATION = 0.005  # m
 MAX_PRE_REACH = 0.01  # m
@@ -74,8 +75,8 @@ def playback_auc(ctx, name: str, bundle, work, tag: str) -> float:
 
 
 def job(ctx, out: Path, objs: list[str], cand: str) -> dict:
-    """One Do as I Do run on candidate `cand` of one object, or (phase 2) of two objects in one scene
-    (the first is DaiD's right_object, the second its left_object). Writes out/trajectory_mjwp.npz and
+    """One Do as I Do run on candidate `cand` of one object (V4 calls it per object; the adapter also
+    takes DaiD's own two-object scene, which v3's phase 2 used). Writes out/trajectory_mjwp.npz and
     every object's realised bundle at s4c_retarget/<object>/<cand>/bundle."""
     mano_py, daid_py, daid_dir = env_paths()
     first = objs[0]
@@ -140,13 +141,6 @@ def job(ctx, out: Path, objs: list[str], cand: str) -> dict:
             "trajectory": out / "trajectory_mjwp.npz"}
 
 
-def scene_auc(ctx, bundles: dict[str, Path], work: Path, tag: str) -> float:
-    """Public playback AUC of a two-object scene from per-object bundles (the waterfall's merge)."""
-    frames = int(ctx.episode["num_frames"])
-    poses, meshes = scene(merged(ctx.number, bundles, work / tag), ctx.objects, frames, work, tag)
-    return gt.score(ctx.episode, poses, meshes, ctx.files_read)["AUC"]
-
-
 def object_metrics(name: str, cand: str, chk: dict, info: dict, gate: dict, public: bool) -> list[Metric]:
     summary = info["summary"]
     return [
@@ -170,11 +164,13 @@ def object_metrics(name: str, cand: str, chk: dict, info: dict, gate: dict, publ
 
 def run(ctx) -> StageResult:
     d = ctx.dir("s4c_retarget")
+    settings = yaml.safe_load((PATH_B / "pathb/s4c.yaml").read_text())
+    if not settings.get("enabled", False):
+        return StageResult([], skip="S4c is off (pathb/s4c.yaml enabled: false, V4 S4c): kinematic references go to S5")
     mano_py, daid_py, daid_dir = env_paths()
     if not (os.path.exists(daid_py) and os.path.isdir(daid_dir)):
         return StageResult([], skip=f"Do as I Do not installed ({daid_py}, {daid_dir}): kinematic references go to S5")
     decisions = json.loads(GATE_FILE.read_text()) if GATE_FILE.is_file() else {}
-    settings = yaml.safe_load((PATH_B / "pathb/s4c.yaml").read_text())
     sim, opt = settings["sim"], settings["optimizer"]
     metrics, outputs = [
         Metric("MuJoCo Warp buffers per world (contacts / constraint rows)",
@@ -187,11 +183,12 @@ def run(ctx) -> StageResult:
                     "(L40S, 2026-10-23), > 5 h per object; horizon and control step are DaiD's default.yaml"),
     ], {}
     phases = {o: json.loads((ctx.root / f"s4a_phases/{o}/phases.json").read_text()) for o in ctx.objects}
-    two = phase2.enabled(ctx)
-    groups = [list(ctx.objects)] if two else [[o] for o in ctx.objects]  # phase 2: one scene, both objects
-    for objs in groups:
+    for objs in [[o] for o in ctx.objects]:
         for cand in CANDIDATES:
-            out = d / ("scene" if two else objs[0]) / cand
+            if not (ctx.root / f"s4b_reference/{objs[0]}/{cand}/result.npz").is_file():
+                metrics.append(Metric(f"{objs[0]}/{cand}: Do as I Do", "not run", "", note="no S4b reference"))
+                continue
+            out = d / objs[0] / cand
             info = job(ctx, out, objs, cand)
             chks = {o: checks(info["tracks"][o], phases[o], info["summary"].get("penetration_max_m")) for o in objs}
             ok = all(c["pass"] for c in chks.values())
@@ -199,25 +196,17 @@ def run(ctx) -> StageResult:
                     "contact_frames": info["contact_frames"], "replay_object_gap_m": info["replay_gap"],
                     "objects": objs}
             if ctx.public:
-                if len(objs) == 1:
-                    k_auc = playback_auc(ctx, objs[0], info["src"][objs[0]], out, f"kinematic_{cand}")
-                    r_auc = playback_auc(ctx, objs[0], info["bundles"][objs[0]], out, f"realised_{cand}")
-                else:
-                    k_auc = scene_auc(ctx, info["src"], out, f"kinematic_{cand}")
-                    r_auc = scene_auc(ctx, info["bundles"], out, f"realised_{cand}")
+                k_auc = playback_auc(ctx, objs[0], info["src"][objs[0]], out, f"kinematic_{cand}")
+                r_auc = playback_auc(ctx, objs[0], info["bundles"][objs[0]], out, f"realised_{cand}")
                 gate.update(kinematic_auc=k_auc, realised_auc=r_auc, use_realised=bool(ok and r_auc >= k_auc - GATE_AUC),
-                            rule="public score" + (" (two-object scene)" if two else ""))
+                            rule="public score")
             else:
-                key = f"{ctx.episode['task']}/{cand}" + ("/scene" if two else "")
+                key = f"{ctx.episode['task']}/{cand}"
                 gate.update(use_realised=bool(ok and decisions.get(key, False)),
                             rule=f"public decision for {key}: {decisions.get(key, 'none (kinematic)')}")
-            for o in objs:  # each object's folder holds its gate (and, in a scene, links to the scene's files)
+            for o in objs:
                 od = d / o / cand
                 od.mkdir(parents=True, exist_ok=True)
-                if two:
-                    for f in ("trajectory_mjwp.npz", "scene.xml"):
-                        if not (od / f).exists():
-                            (od / f).symlink_to((out / f).resolve())
                 write_json(od / "metrics.json", {"daid": info["summary"], "checks": chks[o]})
                 write_json(od / "gate.json", gate | {"checks": chks[o]})
                 outputs[f"{o}/{cand}"] = info["bundles"][o]
