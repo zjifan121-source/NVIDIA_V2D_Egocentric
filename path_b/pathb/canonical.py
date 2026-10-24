@@ -275,9 +275,31 @@ def poisson(points: np.ndarray, normals: np.ndarray) -> o3d.geometry.TriangleMes
     return mesh
 
 
+SOLID_SHARE = 0.5  # default: Poisson's volume over the voxel solid's below this is hollow
+ENCLOSED_SHARE = 0.2  # default: an interior this large (vs the dilated shell) makes a closed object
+
+
+def enclosed(occ: np.ndarray) -> np.ndarray:
+    """Voxels with occupied voxels on all six axis directions: the inside of a closed shell, even one
+    with holes (a voxel in line with a hole is missed, the rest are not); never the open side of a
+    sheet, cup, pot or rack."""
+    inside = ~occ
+    for axis in range(3):
+        before = np.maximum.accumulate(occ, axis=axis)
+        after = np.flip(np.maximum.accumulate(np.flip(occ, axis), axis=axis), axis)
+        inside &= before & after
+    return inside
+
+
 def voxel_solid(points: np.ndarray, close: int = 2) -> o3d.geometry.TriangleMesh:
     """A watertight surface around the points: occupancy, morphological closing, interior filled, the
-    field smoothed (Gaussian, 0.75 voxel), marching cubes at 0.5. Smoothing the field, not the mesh:
+    field smoothed (Gaussian, 0.75 voxel), marching cubes at 0.5. Filling: the occupancy dilated by
+    `close`, its holes and the voxels it encloses along all six axis directions (`enclosed`) filled,
+    then eroded back by `close`, when that interior is >= ENCLOSED_SHARE of the dilated shell (a closed
+    object); else (open: a sheet, a cup, a rack) the plain closing, then fill_holes. A closing seals
+    gaps in solids, not in a sparse surface (its erosion thins the dilated sheet back, holes and all):
+    on a sparse cloud fill_holes then filled nothing and marching cubes made a hollow solid (a synthetic
+    box enclosed 13 % of its hull). Smoothing the field, not the mesh:
     a smoothed mesh folds thin parts into themselves. Not decimated (quadric decimation opens it):
     the voxel grows from 4 mm until the mesh has <= MAX_FACES faces."""
     from scipy import ndimage
@@ -286,9 +308,14 @@ def voxel_solid(points: np.ndarray, close: int = 2) -> o3d.geometry.TriangleMesh
     for _ in range(6):
         lo = points.min(axis=0) - (close + 2) * voxel
         idx = np.floor((points - lo) / voxel).astype(int)
-        occ = np.zeros(idx.max(axis=0) + close + 3, bool)
-        occ[tuple(idx.T)] = True
-        occ = ndimage.binary_fill_holes(ndimage.binary_closing(occ, iterations=close))
+        raw = np.zeros(idx.max(axis=0) + close + 3, bool)
+        raw[tuple(idx.T)] = True
+        grown = ndimage.binary_dilation(raw, iterations=close)
+        interior = (ndimage.binary_fill_holes(grown) | enclosed(grown)) & ~grown
+        if interior.sum() >= ENCLOSED_SHARE * grown.sum():  # a closed object: fill, then erode back
+            occ = ndimage.binary_erosion(grown | interior, iterations=close) | raw
+        else:  # open (a sheet, a cup, a rack): the plain closing
+            occ = ndimage.binary_fill_holes(ndimage.binary_closing(raw, iterations=close))
         field = ndimage.gaussian_filter(np.pad(occ, 2).astype(np.float32), 0.75)
         verts, faces, _, _ = marching_cubes(field, level=0.5)
         if len(faces) <= MAX_FACES:
@@ -300,17 +327,28 @@ def voxel_solid(points: np.ndarray, close: int = 2) -> o3d.geometry.TriangleMesh
     return mesh
 
 
+def volume(mesh: o3d.geometry.TriangleMesh) -> float:
+    import trimesh
+    return float(abs(trimesh.Trimesh(np.asarray(mesh.vertices), np.asarray(mesh.triangles), process=False).volume))
+
+
 def close_surface(points: np.ndarray, normals: np.ndarray) -> tuple[o3d.geometry.TriangleMesh, dict]:
-    """Poisson, unless it leaks or balloons (world-axis extents vs the cloud outside 0.8-1.25): then
-    the voxel solid. Which one and why go into canonical.json."""
+    """Poisson, unless it leaks, balloons (world-axis extents vs the cloud outside 0.8-1.25) or is
+    hollow (it encloses less than SOLID_SHARE of the voxel solid's volume: Poisson can wrap the
+    partials' surface twice, a closed shell a few mm thick, watertight and of the right size but a
+    fraction of the mass; a synthetic box's came out at 0.13): then the voxel solid. Which one and why
+    go into canonical.json."""
     mesh = poisson(points, normals)
     ratio = np.ptp(np.asarray(mesh.vertices), axis=0) / np.ptp(points, axis=0)
-    if watertight(mesh) and np.all((ratio >= 0.8) & (ratio <= 1.25)):
-        return mesh, {"closing": "screened Poisson"}
-    why = ("not watertight" if not watertight(mesh) else "") + \
-          (f"{' and ' if not watertight(mesh) else ''}ballooned (extents x{ratio.round(2).tolist()})"
-           if not np.all((ratio >= 0.8) & (ratio <= 1.25)) else "")
-    return voxel_solid(points), {"closing": "voxel solid", "poisson": why}
+    solid = voxel_solid(points)
+    share = volume(mesh) / max(volume(solid), 1e-12) if watertight(mesh) else 0.0
+    why = [w for w, bad in (("not watertight", not watertight(mesh)),
+                            (f"ballooned (extents x{ratio.round(2).tolist()})", not np.all((ratio >= 0.8) & (ratio <= 1.25))),
+                            (f"hollow (volume x{share:.2f} of the voxel solid's)", watertight(mesh) and share < SOLID_SHARE))
+           if bad]
+    if not why:
+        return mesh, {"closing": "screened Poisson", "volume_vs_voxel_solid": share}
+    return solid, {"closing": "voxel solid", "poisson": " and ".join(why)}
 
 
 def build(name: str, partials: list[o3d.geometry.TriangleMesh]) -> tuple[o3d.geometry.TriangleMesh, dict]:

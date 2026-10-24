@@ -1,6 +1,7 @@
 """Phase A2 (spec §11) on a synthetic episode: a box rests, is moved, rests again, seen by a sweeping
 camera; stereo depth = the box rendered (pathb/scan.py), masks = where it renders."""
 import json
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -181,23 +182,47 @@ def test_canonical_registers_clips_from_two_placements():
     assert np.abs(T[:3, 3]).max() < 0.004 and Rotation.from_matrix(T[:3, :3]).magnitude() < np.radians(2)
 
 
+def test_voxel_solid_fills_a_sparse_closed_shell_and_not_an_open_plate():
+    """The closing grows until a sparse shell encloses an interior; an open plate keeps the first one."""
+    rng = np.random.default_rng(4)
+    pts = rng.uniform([-0.06, -0.04, 0.0], [0.06, 0.04, 0.05], (20000, 3))
+    axis = rng.integers(0, 3, len(pts))
+    lo, hi = np.array([-0.06, -0.04, 0.0]), np.array([0.06, 0.04, 0.05])
+    pts[np.arange(len(pts)), axis] = np.where(rng.random(len(pts)) < 0.5, lo[axis], hi[axis])  # on a face
+    keep = rng.random(len(pts)) < 0.06  # ~1 200 points: 6-8 mm apart, gaps a 2-step closing leaves
+    box = C.voxel_solid(pts[keep])
+    vol = abs(trimesh.Trimesh(np.asarray(box.vertices), np.asarray(box.triangles), process=False).volume)
+    assert 0.6 * 0.12 * 0.08 * 0.05 < vol < 1.4 * 0.12 * 0.08 * 0.05  # was 0.13 x before the fill (marching cubes loses ~half a voxel a side)
+    plate = rng.uniform([-0.1, -0.08, 0.0], [0.1, 0.08, 0.0], (4000, 3))  # a dust pan's flat sheet
+    sheet = C.voxel_solid(plate)
+    assert np.ptp(np.asarray(sheet.vertices)[:, 2]) < 0.03  # not grown into a slab
+
+
 # ---------------------------------------------------------------- A2.3 register + re-expressed track
 from pathb.stages import s3a2_register as A23  # noqa: E402
 
 
-def test_register_carries_the_track_to_the_canonical_mesh(episode):
+SIM = Path.home() / "V2D/venvs/sim/bin/python"  # a venv with coacd (FlashCHORD's 1.0.11) on the Mac
+
+
+def test_register_places_the_canonical_mesh_and_writes_its_files(episode, monkeypatch):
+    if SIM.exists():
+        monkeypatch.setenv("COACD_PY", str(SIM))
     A21.run(episode)
-    np.savez(episode.root / "s3c_fuse/box/object_to_world.npz",
-             object_to_world=np.stack([pose(t) for t in range(N)]))  # phase A's track (its mesh frame = the box's)
     C.main("box", episode.root.parent)
     result = A23.run(episode)
     reg = json.loads((episode.root / "s3a2_register/box/registration.json").read_text())
-    assert reg["start"] == "canonical.json" and reg["partial_explained"] > 0.8
+    assert reg["start"] == "canonical.json" and reg["partial_explained"] > 0.8 and reg["window"] == "rest_before"
     canon = trimesh.load(episode.root.parent / "canonical/box/mesh.obj", force="mesh", process=False)
-    track = np.load(episode.root / "s3a2_register/box/object_to_world.npz")["object_to_world"]
-    truth = box()
-    for t in (0, N - 1):  # at rest before, and after the move
-        world = canon.vertices @ track[t, :3, :3].T + track[t, :3, 3]
-        placed = o3d.geometry.TriangleMesh(truth).transform(pose(t))
-        assert S.one_sided_cm(world, np.asarray(placed.vertices), np.asarray(placed.triangles)) < 0.5
-    assert {m.name: m.status for m in result.metrics}["box: share of the partial the canonical mesh explains"] == "PASS"
+    T0 = np.asarray(reg["canonical_to_world"])
+    world = canon.vertices @ T0[:3, :3].T + T0[:3, 3]
+    placed = o3d.geometry.TriangleMesh(box()).transform(pose(0))  # the frame-0 placement
+    assert S.one_sided_cm(world, np.asarray(placed.vertices), np.asarray(placed.triangles)) < 0.5
+    files = episode.root / "s3a_mesh/box"
+    assert (files / "mesh.glb").is_file() and (files / "mesh.obj").is_file() and (files / "sha256.txt").is_file()
+    mass = json.loads((files / "mass.json").read_text())  # one clip never sees the +y side: not the box's volume
+    assert mass["volume_m3"] > 0 and mass["density_kg_m3"] > 0 and "volume_from" in mass
+    status = {m.name: m.status for m in result.metrics}
+    assert status["box: share of the partial the canonical mesh explains"] == "PASS"
+    if SIM.exists():
+        assert status["box: convex pieces (CoACD 0.05)"] == "PASS" and (files / "coacd/pieces.json").is_file()
