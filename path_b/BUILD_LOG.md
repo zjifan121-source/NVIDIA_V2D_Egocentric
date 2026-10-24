@@ -153,8 +153,14 @@ v4 replaces v3 (James, 2026-10-24): contact-segmented inversion, dev episodes **
 
 | Date | Task | Step | Commit | Test | Result and numbers |
 |---|---|---|---|---|---|
+| 2026-10-24 | 1 | local | `633fadaa` | `pytest path_b/tests`: 72 passed, 3 skipped (the tests of the moved code went with it); `PATHB_DATA_TESTS=1` reference test on ep41/ep13: passes | §1 moves (`git mv`, history kept) to `cache/v3/`: `s3a_mesh` + test, `s3b2_track_points`, `s3c_fuse`, `phase2` + test, `standin`, `a2`, A2.4/A2.5 tests; spec and audit (James's staged move). `runner.STAGES` = V4 §1; `reference.CANDIDATES` = inverted, keyframe, still (`tracking` gone); S4c off by default, one candidate; `run.py` without `standin`/`a2`/`p2`, with a `wristcheck` stub (task 4); analysis defaults to ep41/ep13. Data test, ground truth as `inverted`: ep41 1.000 (keyframe 0.399, still 0.356), ep13 1.000 (keyframe 0.763, still 0.573) |
 
 ### v4 decisions
 
 | Date | Decision | Reason |
 |---|---|---|
+| 2026-10-24 | `s3c_fuse.py` also moves to `cache/v3/` | §1's new STAGES drops `s3c_fuse` but its move list does not name the file; a stage outside STAGES never runs. Its readers are rewired by the tasks that replace them: `s3a2_fuse_scan` / `s3a2_register` (rest-after anchors) before the dev cache's partial scans, S4b's input in task 8; until then they read `s3c_fuse/` only if an old run has it |
+| 2026-10-24 | The support relation (`disk`, `supports`) leaves `phase2.py` for `pathb/support.py`, with its test | V4 keeps `drivers/support_relation.py` for S3b's `support` and S3d; its host side lived in the cached `phase2.py` |
+| 2026-10-24 | Phase-2 branches cut from S4a/S4b/S4c/S5; S6 select uses RPE on every two-object episode | They ran only with `PATHB_PHASE2=1` (cached). V4 §8: "S6 selection adds RPE" (v3 did so only in phase 2). The Do as I Do adapter keeps DaiD's own two-object support (unused while S4c runs per object) |
+| 2026-10-24 | `inverted` is in `CANDIDATES` but built only when S3c's solution is passed in; until task 8 S4b writes keyframe and still, and S5/S6 follow what S4b wrote | V4 S4b; S3c/S3d are tasks 6–7. The S6 candidate set (`inverted` or its keyframe fallback, plus `still`) is wired in tasks 8–9 |
+| 2026-10-24 | Waterfall `stage2_clean` dropped with `fused` | V4 §1 lists the columns without it; it was Edmond's repairs on S3c's fused bundle, which no longer exists |
