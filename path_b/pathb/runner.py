@@ -8,6 +8,7 @@ from __future__ import annotations
 import importlib
 import importlib.util
 import json
+import os
 import platform
 import shutil
 import subprocess
@@ -24,6 +25,8 @@ import numpy as np
 from . import loss
 from .paths import STEREO_WEIGHTS, episode_info, git_commit
 from .report import StageResult, worst
+
+RUN_SETTINGS = ("PATHB_MOVING", "PATHB_OBJECT_STOP", "PATHB_S6_LONG")  # run-wide choices, in manual_inputs.json
 
 # Execution order; names are module names in pathb/stages/ (V4_BUILD_SPEC.md §1). A stage whose
 # module is not built yet reports SKIP.
@@ -176,6 +179,10 @@ def run_episode(number: int, out: Path, stages: tuple[str, ...] = STAGES, force:
         if report["status"] == "ERROR":
             print("\n".join(report["error"].splitlines()[-6:]), flush=True)
             break
+    write_json(ctx.root / "manual_inputs.json", {  # V4 §7: hand-chosen inputs (none expected)
+        "hand_chosen": [], "prompts": "tools/track3/episodes.json (the roster's prompt per object)",
+        "thresholds": "S3b's near / far are data-derived (s3b_segments/<object>/segments_report.json)",
+        "run_settings": {k: os.environ[k] for k in RUN_SETTINGS if k in os.environ}})
     write_json(ctx.root / "run.json", {
         "command": sys.argv, "commit": git_commit(), "host": platform.node(), "gpu": gpu_name(),
         "python": sys.version.split()[0], "stereo_engines": sorted(p.name for p in STEREO_WEIGHTS.glob("*.engine")),
