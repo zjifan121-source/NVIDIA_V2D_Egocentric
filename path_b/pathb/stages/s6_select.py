@@ -22,24 +22,35 @@ from ..runner import write_json
 from ..team import scorer
 
 
+PINNED_POSITION_M = 0.10  # V4 S6: failure frames at pinned thresholds, never the checkpoint's
+PINNED_ROTATION_RAD = 0.5
+
+
 def observation(ctx) -> tuple[np.ndarray, np.ndarray, list]:
-    """S4b keyframe reference (n, k, 4, 4), its observed frames (n, k), symmetry groups per object."""
+    """Our own reference (n, k, 4, 4): S4b's `inverted` (keyframe in a v3 run), its observed frames
+    (held or solved from the observations: selection.OBSERVED), symmetry groups per object."""
     refs, observed, groups = [], [], []
     for name in ctx.objects:
-        refs.append(np.load(ctx.root / f"s4b_reference/{name}/keyframe/result.npz")["object_to_world_transform"]
+        report = json.loads((ctx.root / f"s4b_reference/{name}/reference_report.json").read_text())["candidates"]
+        ref = "inverted" if "inverted" in report else "keyframe"
+        refs.append(np.load(ctx.root / f"s4b_reference/{name}/{ref}/result.npz")["object_to_world_transform"]
                     .astype(np.float64))
-        how = json.loads((ctx.root / f"s4b_reference/{name}/reference_report.json").read_text())["candidates"][
-            "keyframe"]["how"]
-        observed.append(np.isin(how, selection.OBSERVED))
+        observed.append(np.isin(report[ref]["how"], selection.OBSERVED))
         mesh = trimesh.load(ctx.root / f"s3a_mesh/{name}/mesh.obj", force="mesh", process=False)
         groups.append(symmetry.group(name, np.asarray(mesh.vertices)))
     return np.stack(refs, axis=1), np.stack(observed, axis=1), groups
 
 
+def task_of(run_name: str) -> str:
+    """The S5 task a rollout's policy trained on (inverted_250m_s42 -> inverted)."""
+    return run_name.split("_250m")[0]
+
+
 def run(ctx) -> StageResult:
     d = ctx.dir("s6_select")
+    from .s6_eval import trained_runs
     rollouts = {}
-    for cand in CANDIDATES:
+    for cand in trained_runs(ctx):
         f = ctx.root / f"s6_eval/{cand}/results/episode_{ctx.number:06d}.parquet"
         if f.is_file():
             rollouts[cand] = (f, scorer().evaluator_poses(f, ctx.episode))
@@ -47,7 +58,8 @@ def run(ctx) -> StageResult:
         raise RuntimeError("no rollout (s6_eval/<candidate>/results)")
     reference, observed, groups = observation(ctx)
     two = len(ctx.objects) > 1
-    costs = {c: selection.observation_cost(selection.matrices(p), reference, observed, groups, relative=two)
+    costs = {c: selection.observation_cost(selection.matrices(p), reference, observed, groups, relative=two,
+                                           max_position=PINNED_POSITION_M, max_rotation=PINNED_ROTATION_RAD)
              for c, (_, p) in rollouts.items()}
     by_observation = selection.pick_evaluation(costs)
     out = {"costs": costs, "evaluation_rule_pick": by_observation[0]}
@@ -57,7 +69,7 @@ def run(ctx) -> StageResult:
     if ctx.public:
         scores = {}
         for cand, (_, poses) in rollouts.items():
-            meshes = {name: ctx.root / f"s5_task/{cand}/run/score_input/meshes/episode_{ctx.number:06d}/{name}.obj"
+            meshes = {name: ctx.root / f"s5_task/{task_of(cand)}/run/score_input/meshes/episode_{ctx.number:06d}/{name}.obj"
                       for name in ctx.objects}
             scores[cand] = gt.score(ctx.episode, poses, meshes, ctx.files_read)
         choice, reason = selection.pick_public(scores, rpe=two)
@@ -73,8 +85,10 @@ def run(ctx) -> StageResult:
                               note="same as the score's" if by_observation[0] == choice else f"score picks {choice}"))
     else:
         choice, reason = by_observation
-        out["rule"] = "evaluation: observation cost (S4b keyframe reference on held and trusted frames)"
-    out.update(candidate=choice, reason=reason, rollout=rollouts[choice][0])
+        out["rule"] = ("evaluation: mean position error against our own reference (S4b inverted) on its observed "
+                       f"frames, failure frames at the pinned {PINNED_POSITION_M} m / {PINNED_ROTATION_RAD} rad")
+    out.update(candidate=choice, task=task_of(choice), reason=reason, rollout=rollouts[choice][0],
+               pinned={"position_m": PINNED_POSITION_M, "rotation_rad": PINNED_ROTATION_RAD})
     write_json(d / "selection.json", out)
     metrics.insert(0, Metric("selected", choice, "", note=reason))
     return StageResult(metrics, {"selection": d / "selection.json", "rollout": rollouts[choice][0]})

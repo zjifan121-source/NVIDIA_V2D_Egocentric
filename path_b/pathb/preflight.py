@@ -46,7 +46,7 @@ def selected(root: Path) -> tuple[str | None, list[str]]:
     sel = root / "s6_select/selection.json"
     if not sel.is_file():
         return None, [f"{root.name}: no s6_select/selection.json"]
-    cand = json.loads(sel.read_text())["candidate"]
+    cand = json.loads(sel.read_text())["candidate"]  # the rollout's run (s6_eval/<candidate>/)
     problems = [f"{root.name}: no {p.relative_to(root)}" for p in
                 (root / f"s6_eval/{cand}/results/{root.name}.parquet", root / f"s6_eval/{cand}/results/{root.name}.json")
                 if not p.is_file()]
@@ -54,6 +54,7 @@ def selected(root: Path) -> tuple[str | None, list[str]]:
 
 
 def mesh_checks(root: Path, names: list[str], cand: str) -> tuple[dict, list[str]]:
+    cand = cand.split("_250m")[0]  # a 250M run trained on its candidate's S5 task
     task = json.loads((root / f"s5_task/{cand}/task.json").read_text())
     seq = task["sequence_id"].removesuffix("_daid")
     processed = Path(task["partition"]).parent.parent
@@ -107,7 +108,7 @@ def main(out: Path, numbers: list[int]) -> Path:
             continue
         hashes, p = mesh_checks(root, names, cand)
         problems += p + (firewall(root) if manifest()[n]["split"] == "evaluation" else [])
-        plan[str(n)] = {"run": str(root / f"s6_eval/{cand}"), "scene": str(root / f"s5_task/{cand}/run")}
+        plan[str(n)] = {"run": str(root / f"s6_eval/{cand}"), "scene": str(root / f"s5_task/{cand.split('_250m')[0]}/run")}
         details[str(n)] = {"candidate": cand, "mesh_geometry_sha256": hashes}
     if len(plan) < len(numbers):
         problems.append(f"{len(plan)} of {len(numbers)} episodes are ready")

@@ -1,8 +1,14 @@
-"""FlashCHORD policies (V3_BUILD_SPEC.md S0.1 and S6), shared by run.py oracle and the s6_* stages.
+"""FlashCHORD policies (V4_BUILD_SPEC.md S0.1 and S6), shared by run.py oracle and the s6_* stages.
 
 Training: scripts/train_flash_sac.py experiment=sharpa_flash_sac with the still submission's settings
 (tools/track3/jobs/still_submit.sh: STEPS and EXTRA, Edmond's overrides), contact buffers as spec S6
-sets them for the L40S; a rerun resumes from the newest state_*.safetensors. Evaluation: the kit's
+sets them for the L40S; a rerun resumes from the newest state_*.safetensors. long=True: FlashCHORD's
+own 250M schedule (curriculum tracking_250m_mixed_reset: its thresholds, Edmond's 60M compression of
+them left out; 250,003,456 steps). $PATHB_OBJECT_STOP (metres, e.g. 0.05) sets
+termination.object_position.threshold (V4 S6's optional stop, adopted only after S0.1). Every run
+keeps the experiment's action and termination groups: the overrides may not name them, and the run's
+own Hydra record (hydra.run.dir = <run>/hydra) must show action=residual_hand_pose and
+termination=tracking (V4 S6: the actor outputs a correction to the reference wrist pose). Evaluation: the kit's
 examples/run_policy_evaluation.py (one world, explicit reset), which writes episode_XXXXXX.parquet
 (the rollout: achieved and reference object poses per step) and episode_XXXXXX.json (FlashCHORD's
 metrics). Runs on the GPU machine, in the flash_chord venv ($FLASH_CHORD_VENV).
@@ -23,6 +29,8 @@ FLASH_CHORD = REPO / "baseline/robotic_grounding/flash_chord"
 KIT = REPO / "assets/data/v2d_submission_kit"
 STILL_JOB = REPO / "tools/track3/jobs/still_submit.sh"
 L40S_BUFFERS = ["sim.njmax=512", "sim.nconmax=512"]  # spec S6 (James 2026-10-20: njmax 512 on the L40S)
+LONG_STEPS = 250_003_456  # the last threshold of configs/curriculum/tracking_250m_mixed_reset.yaml
+GROUPS = {"action": "residual_hand_pose", "termination": "tracking"}  # what V4 S6 relies on
 
 
 def flash_venv() -> str:
@@ -36,6 +44,36 @@ def still_settings() -> tuple[int, list[str]]:
     steps = int(re.search(r"^STEPS=(\d+)", text, re.M).group(1))
     extra = re.search(r'^export EXTRA="([^"]+)"', text, re.M).group(1).split()
     return steps, [o for o in extra if not o.startswith(("sim.njmax=", "sim.nconmax="))] + L40S_BUFFERS
+
+
+def settings(long: bool = False) -> tuple[int, list[str]]:
+    """(steps, overrides): the still submission's (60M), or FlashCHORD's own 250M schedule."""
+    steps, overrides = still_settings()
+    if long:
+        steps, overrides = LONG_STEPS, [o for o in overrides if not o.startswith("curriculum.thresholds=")]
+    stop = os.environ.get("PATHB_OBJECT_STOP")
+    if stop:
+        overrides = overrides + [f"termination.object_position.threshold={float(stop)}"]
+    check_overrides(overrides)
+    return steps, overrides
+
+
+def check_overrides(overrides: list[str]) -> None:
+    """None of them may replace the experiment's action or termination group."""
+    for o in overrides:
+        key = o.lstrip("+~").split("=")[0].removeprefix("override ").strip("/")
+        if key in GROUPS:
+            raise ValueError(f"override {o!r} replaces the {key} group (V4 S6 needs {GROUPS[key]})")
+
+
+def chosen_groups(hydra_dir: Path) -> dict[str, str]:
+    """The config groups a run composed (Hydra's .hydra/hydra.yaml, runtime.choices)."""
+    import yaml
+    f = hydra_dir / ".hydra/hydra.yaml"
+    if not f.is_file():
+        return {}
+    choices = yaml.safe_load(f.read_text()).get("hydra", {}).get("runtime", {}).get("choices", {})
+    return {k: choices.get(k) for k in GROUPS}
 
 
 def run_logged(cmd: list, log: Path, cwd: Path, env: dict | None = None) -> None:
@@ -52,20 +90,20 @@ def numbered(folder: Path, pattern: str) -> list[Path]:
     return sorted(folder.glob(pattern), key=lambda p: int(re.sub(r"\D", "", p.stem) or 0))
 
 
-def train(partition, run: Path, name: str) -> dict:
+def train(partition, run: Path, name: str, long: bool = False, seed: int = 42) -> dict:
     """Train on one task partition into run/train; resumable; run/train.json when done."""
     done = run / "train.json"
     if done.is_file():
         return json.loads(done.read_text())
     run.mkdir(parents=True, exist_ok=True)
-    steps, overrides = still_settings()
+    steps, overrides = settings(long)
     resume = numbered(run / "train", "state_*.safetensors")
     env = dict(os.environ, XLA_PYTHON_CLIENT_PREALLOCATE="false", WANDB_MODE="offline", WANDB_DIR=str(run),
                WANDB_SILENT="true")
     cmd = [f"{flash_venv()}/bin/python", "scripts/train_flash_sac.py", "experiment=sharpa_flash_sac",
-           f"task.parquet='{partition}'", "reset.seed=42", "logging.mode=offline", "logging.upload_checkpoints=false",
+           f"task.parquet='{partition}'", f"reset.seed={seed}", "logging.mode=offline", "logging.upload_checkpoints=false",
            f"logging.run_name={name}", f"training.total_environment_steps={steps}", f"output_dir={run / 'train'}",
-           *overrides]
+           f"hydra.run.dir={run / 'hydra'}", *overrides]
     if resume:
         cmd += ["training.resume=true", f"training.checkpoint_path='{resume[-1]}'"]
     t0 = datetime.now(timezone.utc)
@@ -73,7 +111,11 @@ def train(partition, run: Path, name: str) -> dict:
     policies = numbered(run / "train", "policy_*.safetensors")
     if not policies:
         raise RuntimeError(f"training wrote no policy_*.safetensors under {run / 'train'}")
+    groups = chosen_groups(run / "hydra")
+    if groups != GROUPS:
+        raise RuntimeError(f"the run composed {groups}, not {GROUPS} ({run / 'hydra/.hydra/hydra.yaml'})")
     info = {"checkpoint": str(policies[-1]), "partition": str(partition), "steps": steps, "overrides": overrides,
+            "seed": seed, "long": long, "groups": groups,
             "seconds": (datetime.now(timezone.utc) - t0).total_seconds(), "resumed_from": str(resume[-1]) if resume else None,
             "nefc_overflow_lines": (run / "train.log").read_text().count("nefc overflow")}
     done.write_text(json.dumps(info, indent=1) + "\n")

@@ -1,6 +1,6 @@
 """S6 eval: each trained policy through the kit's evaluator (V4_BUILD_SPEC.md S6;
 examples/run_policy_evaluation.py by pathb/policy.py: evaluation.world_count=1, reset_mode=explicit,
-object_trajectories_output). Out per candidate: s6_eval/<candidate>/results/episode_XXXXXX.parquet
+object_trajectories_output), every finished s6_train run (the 60M candidates and the 250M runs). Out per run: s6_eval/<candidate>/results/episode_XXXXXX.parquet
 (the rollout the packer takes) and .json (FlashCHORD's metrics against the candidate's own reference).
 """
 from __future__ import annotations
@@ -13,13 +13,17 @@ from ..report import Metric, StageResult
 from ..team import scorer
 
 
+def trained_runs(ctx) -> list[str]:
+    """s6_train's finished runs: the candidates in S4b's order, then the long runs."""
+    have = sorted(p.parent.name for p in ctx.root.glob("s6_train/*/train.json"))
+    return [c for c in CANDIDATES if c in have] + [c for c in have if c not in CANDIDATES]
+
+
 def run(ctx) -> StageResult:
     d = ctx.dir("s6_eval")
     metrics, outputs = [], {}
-    for cand in CANDIDATES:
+    for cand in trained_runs(ctx):
         trained = ctx.root / f"s6_train/{cand}/train.json"
-        if not trained.is_file():
-            continue
         results = policy.evaluate(json.loads(trained.read_text())["checkpoint"], ctx.number, d / cand)
         rollout = results / f"episode_{ctx.number:06d}.parquet"
         scorer().evaluator_poses(rollout, ctx.episode)  # raises unless every video frame has a pose

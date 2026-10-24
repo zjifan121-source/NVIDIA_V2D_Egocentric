@@ -23,7 +23,7 @@ from . import symmetry
 TIE_AUC = 0.001
 PENALTY_M = 0.10  # termination-equivalent position error
 MAX_ROT = 0.5  # rad
-OBSERVED = ("held", "trusted")
+OBSERVED = ("held", "trusted", "inverted")  # S4b provenance with an observation behind it
 
 
 def matrices(poses: np.ndarray) -> np.ndarray:
@@ -35,7 +35,7 @@ def matrices(poses: np.ndarray) -> np.ndarray:
 
 
 def observation_cost(rollout: np.ndarray, reference: np.ndarray, observed: np.ndarray, groups: list,
-                     relative: bool = False) -> dict:
+                     relative: bool = False, max_position: float = PENALTY_M, max_rotation: float = MAX_ROT) -> dict:
     """rollout, reference: (n, k, 4, 4) object poses; observed: (n, k) frames to score; groups: per
     object its (K, 4, 4) symmetry transforms; relative: add the objects' relative-position error."""
     A = reference[0, 0] @ np.linalg.inv(rollout[0, 0])  # anchor object's frame 0
@@ -47,15 +47,15 @@ def observation_cost(rollout: np.ndarray, reference: np.ndarray, observed: np.nd
         T, _ = symmetry.closest(reference[t, j], aligned[t, j], groups[j])
         pos = float(np.linalg.norm(T[:3, 3] - reference[t, j, :3, 3]))
         rot = symmetry.angle(reference[t, j, :3, :3], T[:3, :3])
-        terminated[t, j] = pos > PENALTY_M or rot > MAX_ROT
-        cost[t, j] = PENALTY_M if terminated[t, j] else pos
+        terminated[t, j] = pos > max_position or rot > max_rotation
+        cost[t, j] = max_position if terminated[t, j] else pos
     terms = cost
     if relative and k > 1:
         rel = np.full((n, 1), np.nan)
         for t in np.flatnonzero(observed.all(axis=1)):
             d = np.linalg.norm((aligned[t, 1:, :3, 3] - aligned[t, :1, :3, 3]) - (reference[t, 1:, :3, 3] - reference[t, :1, :3, 3]),
                                axis=1).mean()
-            rel[t, 0] = min(float(d), PENALTY_M)
+            rel[t, 0] = min(float(d), max_position)
         terms = np.concatenate([cost, rel], axis=1)
     frames = observed.any(axis=1)
     per_frame = np.nanmean(terms[frames], axis=1) if frames.any() else np.array([])

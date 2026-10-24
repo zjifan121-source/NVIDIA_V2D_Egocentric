@@ -80,3 +80,57 @@ def test_two_objects_add_rpe():
     plain = selection.observation_cost(roll, ref, observed, G)["cost_m"]
     rel = selection.observation_cost(roll, ref, observed, G, relative=True)["cost_m"]
     assert rel > plain > 0
+
+
+def test_v4_s6_settings_long_schedule_and_groups(tmp_path, monkeypatch):
+    """V4 S6: the 250M schedule drops the 60M compression only; no override may replace the action or
+    termination group; a run's Hydra record must show residual_hand_pose and tracking."""
+    import pytest
+    from pathb import policy
+    monkeypatch.delenv("PATHB_OBJECT_STOP", raising=False)
+    steps, short = policy.settings()
+    long_steps, long = policy.settings(long=True)
+    assert steps == 60_006_400 and long_steps == policy.LONG_STEPS == 250_003_456
+    assert any(o.startswith("curriculum.thresholds=") for o in short) and not any(o.startswith("curriculum.") for o in long)
+    assert "termination.wrist_position.threshold=0.3" in long and "sim.njmax=512" in long
+    monkeypatch.setenv("PATHB_OBJECT_STOP", "0.05")
+    assert "termination.object_position.threshold=0.05" in policy.settings()[1]
+    for bad in ("action=hand_pose", "override /action=hand_pose", "+termination=none"):
+        with pytest.raises(ValueError):
+            policy.check_overrides([bad])
+    policy.check_overrides(["termination.wrist_position.threshold=0.3"])  # a value inside the group is fine
+    (tmp_path / ".hydra").mkdir()
+    (tmp_path / ".hydra/hydra.yaml").write_text("hydra:\n  runtime:\n    choices:\n      action: residual_hand_pose\n"
+                                                "      termination: tracking\n      sim: rl\n")
+    assert policy.chosen_groups(tmp_path) == policy.GROUPS
+
+
+def test_v4_s6_long_pass_trains_the_selected_candidate(tmp_path, monkeypatch):
+    import json
+    from pathb import runner
+    from pathb.stages import s6_select, s6_train
+    root = tmp_path / "episode_000041"
+    for cand in ("inverted", "still"):
+        (root / f"s5_task/{cand}").mkdir(parents=True)
+        (root / f"s5_task/{cand}/task.json").write_text(json.dumps({"partition": f"/p/{cand}", "mode": "A"}))
+    ctx = runner.Context({"episode": 41, "split": "public", "objects": [{"name": "white_pot"}]}, root, {})
+    monkeypatch.delenv("PATHB_S6_LONG", raising=False)
+    assert [j[0] for j in s6_train.jobs(ctx)] == ["inverted", "still"]
+    (root / "s6_select").mkdir()
+    (root / "s6_select/selection.json").write_text(json.dumps({"candidate": "inverted", "task": "inverted"}))
+    monkeypatch.setenv("PATHB_S6_LONG", "2")
+    jobs = s6_train.jobs(ctx)
+    assert [(j[0], j[2], j[3]) for j in jobs[2:]] == [("inverted_250m_s42", True, 42), ("inverted_250m_s43", True, 43)]
+    assert s6_select.task_of("inverted_250m_s43") == "inverted" and s6_select.task_of("still") == "still"
+
+
+def test_pinned_thresholds_count_failure_frames():
+    ref = moving()
+    observed = np.ones(ref.shape[:2], bool)
+    off = ref.copy()
+    off[:, 0, 0, 3] += np.linspace(0, 0.14, len(ref))  # drifting away: frame 0 aligns, the rest does not
+    G = [symmetry.group("mini_dust_pan")]
+    loose = selection.observation_cost(off, ref, observed, G, max_position=0.10)
+    tight = selection.observation_cost(off, ref, observed, G, max_position=0.05)
+    assert tight["termination_frames"] > loose["termination_frames"] > 0
+    assert tight["first_termination_frame"] < loose["first_termination_frame"]
