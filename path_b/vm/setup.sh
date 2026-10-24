@@ -36,7 +36,8 @@ RETARGET=$V2D/venvs/retarget
 THIRD=$V2D/third_party
 GHCR=ghcr.io/ryanzhou123232
 # the team's published images (built at afe7dad; FoundationPose with the TensorRT runtime fix)
-RECON_IMAGES=(foundation_pose grounding_dino sam2 sam3d wilor hamer geocalib droid_slam gsplat_refinement mediapipe moge anycalib)
+# V4 (V4_BUILD_SPEC.md §2): no sam3d (S3a is the canonical mesh, not SAM 3D)
+RECON_IMAGES=(foundation_pose grounding_dino sam2 wilor hamer geocalib droid_slam gsplat_refinement mediapipe moge anycalib)
 # third-party code for Path B v3, never in the repo (V3_BUILD_SPEC.md §2); commits pinned on first clone
 SAM3_URL=https://github.com/facebookresearch/sam3.git
 SAM3_COMMIT=${SAM3_COMMIT:-}
@@ -264,18 +265,10 @@ recon_images() {
 recon_weights() {
   say "reconstruction weights (data/weights/<module>)"
   local py=$RECON/.venv/bin/python w=$RECON/data/weights
-  # The sam2 / sam3d images' own hf CLI fails on today's Hub ("TypeError: process() takes no keyword
+  # The sam2 image's own hf CLI fails on today's Hub ("TypeError: process() takes no keyword
   # arguments", 2026-10-23): if a module's download fails and host_<module> exists, the same files come
   # from the host's hf, in the layout the module's lib/download_weights.py writes.
   host_sam2() { hf download facebook/sam2.1-hiera-large --local-dir "$w/sam2"; }
-  host_sam3d() {
-    local ck=$w/sam3d/torch_home/hub/checkpoints f
-    hf download facebook/sam-3d-objects --local-dir "$w/sam3d/hf-download" \
-      && HF_HOME=$w/sam3d/hf_home hf download Ruicheng/moge-vitl && mkdir -p "$ck" || return 1
-    for f in dinov2_vitl14_reg4_pretrain.pth dinov2_vitb14_reg4_pretrain.pth; do
-      [ -s "$ck/$f" ] || curl -fsSL -o "$ck/$f" "https://dl.fbaipublicfiles.com/dinov2/${f%%_reg4*}/$f" || return 1
-    done
-  }
   fetch() {  # name, then the download command; a .done marker makes reruns skip it
     local name=$1; shift
     [ -e "$w/$name/.done" ] && return 0
@@ -292,7 +285,6 @@ recon_weights() {
   fetch sam2 $py -m v2d.sam2.docker.run_download_weights --output_dir data/weights/sam2
   fetch anycalib $py -m v2d.anycalib.docker.run_download_weights --output_dir data/weights/anycalib
   fetch grounding_dino $py -m v2d.grounding_dino.docker.run_download_weights --output_dir data/weights/grounding_dino
-  fetch sam3d $py -m v2d.sam3d.docker.run_download_weights --output_dir data/weights/sam3d  # gated: HF login
   fetch wilor $py -m v2d.wilor.docker.run_download_weights --weights_dir data/weights/wilor
   fetch hamer $py -m v2d.hamer.docker.run_download_weights --weights_dir data/weights/hamer
   # HaMeR reads _DATA/data/mano/MANO_RIGHT.pkl (its download_weights.py: placed by hand) and align_hands
@@ -438,7 +430,7 @@ if hf auth whoami >/dev/null 2>&1; then outputs; fi
 if [ "${V3_ENVS:-1}" != 0 ]; then
   recon_images && recon_weights || true
   v3_envs || true
-  a2_envs || true
+  if [ "${A2_ENVS:-0}" = 1 ]; then a2_envs || true; fi  # TAPIP3D: v3's A2.4 only (cached in v4)
 fi
 smoke
 

@@ -12,11 +12,14 @@ folders, so this folder does not affect it):
                                                    masks, depth priors, hand stages, poses), one
                                                    archive per episode instead of thousands of files
 <run> is a folder name under path_b/data/outputs/ (the commit a run was made with). Restoring puts
-everything back there, so `run.py run --out` keeps the stages whose reports exist.
+everything back there, so `run.py run --out` keeps the stages whose reports exist. An upload with
+--episodes sends those episodes (and the run-level files) only and merges MANIFEST.json with the one
+on Hugging Face, so a run can go up one episode at a time as each finishes (vm/phase_b.sh).
 
 Usage (repo root; needs `hf auth login`, with a Write token to upload):
     uv run --project tools python path_b/vm/hf_outputs.py upload --run 4c2eac31 --frames
     uv run --project tools python path_b/vm/hf_outputs.py upload --run 0fa525bc
+    uv run --project tools python path_b/vm/hf_outputs.py upload --run v4 --frames --episodes 41  # one episode
     uv run --project tools python path_b/vm/hf_outputs.py list
     uv run --project tools python path_b/vm/hf_outputs.py download --run 4c2eac31 [--frames] [--episodes 40 26]
     uv run --project tools python path_b/vm/hf_outputs.py pending --run t1_f238fec   # not on HF yet
@@ -72,8 +75,9 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
-def stage(run: str, frames: bool) -> tuple[Path, dict]:
-    """Build STAGING/<run>/path_b/runs/<run>/ (hard links for results, one tar per episode)."""
+def stage(run: str, frames: bool, episodes: list[int] | None = None) -> tuple[Path, dict]:
+    """Build STAGING/<run>/path_b/runs/<run>/ (hard links for results, one tar per episode); with
+    `episodes`, those episodes only (and the run-level files)."""
     src = OUTPUTS / run
     if not src.is_dir():
         raise SystemExit(f"no run folder {src}")
@@ -84,9 +88,12 @@ def stage(run: str, frames: bool) -> tuple[Path, dict]:
     manifest = {"run": run, "repo": REPO_ID, "created_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 "host": socket.gethostname(), "commits": set(), "episodes": [], "results": {"files": 0, "bytes": 0},
                 "frames": {}, "left_out": ["symlinks", *sorted("/".join(p) for p in SCRATCH)],
-                "frames_included": frames}
+                "frames_included": frames, "results_by_episode": {}}
     for episode in sorted(src.glob("episode_*")):
+        if episodes is not None and int(episode.name[len("episode_"):]) not in episodes:
+            continue
         manifest["episodes"].append(episode.name)
+        before = dict(manifest["results"])
         frame_files = []
         per_frame = crowded(episode)
         for path in sorted(p for p in episode.rglob("*") if p.is_file() and not p.is_symlink()):
@@ -116,6 +123,7 @@ def stage(run: str, frames: bool) -> tuple[Path, dict]:
                     tar.add(path, arcname=str(path.relative_to(episode)))
             manifest["frames"][episode.name] = {"files": len(frame_files), "bytes": tar_path.stat().st_size,
                                                 "sha256": sha256(tar_path)}
+        manifest["results_by_episode"][episode.name] = {k: manifest["results"][k] - before[k] for k in before}
     # run-level files and folders, e.g. the waterfall summary, A2's canonical/<object>/ meshes
     for path in sorted(p for p in src.rglob("*") if p.is_file() and not p.is_symlink()
                        and not p.relative_to(src).parts[0].startswith("episode_")):
@@ -128,15 +136,47 @@ def stage(run: str, frames: bool) -> tuple[Path, dict]:
     return root, manifest
 
 
-def upload(run: str, frames: bool) -> None:
+def merged_manifest(remote: dict | None, new: dict) -> dict:
+    """The run's MANIFEST.json after uploading `new`'s episodes on top of `remote` (None: no run there
+    yet): episodes, frame archives, per-episode results and commits combined, totals recomputed."""
+    if not remote:
+        return new
+    by = {**remote.get("results_by_episode", {}), **new["results_by_episode"]}
+    run_level = {k: new["results"][k] - sum(v[k] for v in new["results_by_episode"].values()) for k in ("files", "bytes")}
+    if "results_by_episode" not in remote:  # an older whole-run manifest: its totals stand for its episodes
+        by = {**{e: {"files": 0, "bytes": 0} for e in remote["episodes"]}, **by}
+        run_level = {k: run_level[k] + remote["results"][k] for k in run_level}
+    out = dict(new)
+    out.update(episodes=sorted(set(remote["episodes"]) | set(new["episodes"])),
+               frames={**remote.get("frames", {}), **new["frames"]},
+               commits=sorted(set(remote["commits"]) | set(new["commits"])), results_by_episode=by,
+               results={k: run_level[k] + sum(v[k] for v in by.values()) for k in ("files", "bytes")},
+               frames_included=bool(remote.get("frames_included")) or new["frames_included"])
+    return out
+
+
+def remote_manifest(run: str) -> dict | None:
+    from huggingface_hub import hf_hub_download
+    from huggingface_hub.errors import EntryNotFoundError, RepositoryNotFoundError
+    try:
+        return json.loads(Path(hf_hub_download(REPO_ID, f"{PREFIX}/{run}/MANIFEST.json", repo_type="dataset")).read_text())
+    except (EntryNotFoundError, RepositoryNotFoundError):
+        return None
+
+
+def upload(run: str, frames: bool, episodes: list[int] | None = None) -> None:
     from huggingface_hub import HfApi
     api = HfApi()
-    root, manifest = stage(run, frames)
+    root, manifest = stage(run, frames, episodes)
     size = manifest["results"]["bytes"] + sum(f["bytes"] for f in manifest["frames"].values())
     print(f"staged {run}: {len(manifest['episodes'])} episodes, {manifest['results']['files']} result files, "
           f"{len(manifest['frames'])} frame archives, {size / 1e9:.2f} GB", flush=True)
-    message = (f"Path B outputs: run {run} ({len(manifest['episodes'])} episodes"
-               + (", results + per-frame archives" if frames else ", results") + ")")
+    sent = f"{len(manifest['episodes'])} episodes"
+    if episodes is not None:  # one episode at a time: keep what the run already has there
+        manifest = merged_manifest(remote_manifest(run), manifest)
+        (root / PREFIX / run / "MANIFEST.json").write_text(json.dumps(manifest, indent=1) + "\n")
+        sent = f"episodes {', '.join(str(e) for e in episodes)}; {len(manifest['episodes'])} in the run"
+    message = f"Path B outputs: run {run} ({sent}" + (", results + per-frame archives" if frames else ", results") + ")"
     # upload_folder skips files whose content is already in the repo, so a rerun resumes
     commit = api.upload_folder(repo_id=REPO_ID, repo_type="dataset", folder_path=str(root),
                                commit_message=message, allow_patterns=[f"{PREFIX}/{run}/**"])
@@ -229,7 +269,8 @@ def main() -> None:
     parser.add_argument("command", choices=("upload", "download", "list", "pending"))
     parser.add_argument("--run", help="folder under path_b/data/outputs/, e.g. 4c2eac31")
     parser.add_argument("--frames", action="store_true", help="include the per-frame intermediates (frames.tar)")
-    parser.add_argument("--episodes", type=int, nargs="+", help="download: only these episodes of the run")
+    parser.add_argument("--episodes", type=int, nargs="+",
+                        help="upload / download: only these episodes of the run (an upload merges MANIFEST.json)")
     parser.add_argument("--outputs", type=Path, help=f"the runs' folder (default {OUTPUTS}); lets "
                         "save_instance.sh run the Mac's copy of this script against an instance's checkout")
     args = parser.parse_args()
@@ -237,7 +278,7 @@ def main() -> None:
         OUTPUTS = args.outputs.resolve()
     if args.command != "list" and not args.run:
         parser.error("--run is required")
-    {"upload": lambda: upload(args.run, args.frames), "download": lambda: download(args.run, args.frames, args.episodes),
+    {"upload": lambda: upload(args.run, args.frames, args.episodes), "download": lambda: download(args.run, args.frames, args.episodes),
      "list": list_runs, "pending": lambda: pending(args.run)}[args.command]()
 
 

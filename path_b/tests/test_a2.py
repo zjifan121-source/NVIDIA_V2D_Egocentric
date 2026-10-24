@@ -63,7 +63,7 @@ def episode(tmp_path):
                          interpolation=cv2.INTER_NEAREST)
         cv2.imwrite(str(root / f"p1b_masks/obj_0/{t:06d}.png"), big)
         hand = np.zeros_like(big)
-        if t == 5:  # a hand over the object on one rest frame
+        if REST_B[1] < t < REST_A[0]:  # the hand on the object while it carries it
             hand = cv2.dilate(big, np.ones((9, 9), np.uint8))
         cv2.imwrite(str(root / f"p1b_masks/hand_L/{t:06d}.png"), hand)
         cv2.imwrite(str(root / f"p1b_masks/hand_R/{t:06d}.png"), np.zeros_like(big))
@@ -77,22 +77,29 @@ def episode(tmp_path):
     return runner.Context(e, root, {})
 
 
+def test_touch_windows():
+    touched = [False] * 3 + [True] * 4 + [False] * 13
+    assert A21.touch_windows(touched) == {"rest_before": [0, 2], "rest_after": [7 + A21.SETTLE, 19]}
+    assert A21.touch_windows([False] * 8) == {"rest_before": [0, 7], "rest_after": None}  # never touched
+    assert A21.touch_windows([True] + [False] * 3) == {"rest_before": None, "rest_after": None}  # no frame left after settling
+
+
 def test_fuse_scan_on_a_moved_box(episode):
     result = A21.run(episode)
     report = json.loads((episode.root / "s3a2_fuse_scan/box/fuse_report.json").read_text())
-    rows = {r["frame"]: r for r in report["frames"]}
-    assert rows[5]["used"] is False and rows[5]["why"] == "hand touches the object"
-    assert len(report["fused"]) == (15 - 1) + 14  # both windows, less the touched frame
-    move = report["rest_after_move"]
-    assert move["icp"]["fitness"] > 0.5 and abs(move["icp"]["correction_mm"] - 6) < 2
-    assert report["held_out_rms"]["rms_m"] < 0.003
-    partial = o3d.io.read_triangle_mesh(str(episode.root / "s3a2_fuse_scan/box/partial_scan.ply"))
-    truth = o3d.geometry.TriangleMesh(box()).transform(pose(0))  # the frame-0 placement
-    pts = np.asarray(S.mesh_points(partial, 5000).points)
-    assert S.one_sided_cm(pts, np.asarray(truth.vertices), np.asarray(truth.triangles)) < 0.2
+    after = REST_A[0] + A21.SETTLE  # the hand leaves at REST_A[0] - 1
+    assert report["windows"] == {"rest_before": list(REST_B), "rest_after": [after, N - 1]}
+    parts = report["partials"]
+    assert len(parts["rest_before"]["fused"]) == 15 and len(parts["rest_after"]["fused"]) == N - after
+    assert parts["rest_before"]["held_out_rms"]["rms_m"] < 0.003
+    for key, file, t in (("rest_before", "partial_scan.ply", 0), ("rest_after", "partial_scan_after.ply", N - 1)):
+        partial = o3d.io.read_triangle_mesh(str(episode.root / f"s3a2_fuse_scan/box/{file}"))
+        truth = o3d.geometry.TriangleMesh(box()).transform(pose(t))  # each window's own placement
+        pts = np.asarray(S.mesh_points(partial, 5000).points)
+        assert S.one_sided_cm(pts, np.asarray(truth.vertices), np.asarray(truth.triangles)) < 0.2, key
     status = {m.name: m.status for m in result.metrics}
-    assert status["box: frames fused"] == "WARN"  # 28 < 30
-    assert status["box: surface vs held-out stereo depth (RMS)"] == "PASS"
+    assert status["box: frames fused"] == "WARN"  # 15 + 9 < 30
+    assert status["box: rest_before surface vs held-out stereo depth (RMS)"] == "PASS"
 
 
 def test_scan_registered_onto_the_partial(episode):

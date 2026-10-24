@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # On the Mac: turn a new Verda GPU instance into a ready Path B machine with one command.
 #
-#     path_b/vm/new_instance.sh <ip> [--restore RUN | --no-restore] [--no-frames] [--branch BRANCH]
+#     path_b/vm/new_instance.sh <ip> [--restore RUN | --no-restore] [--no-frames] [--branch BRANCH] [--replace-host-key]
 #
-# 1. points the ssh alias l40s at <ip> (~/.ssh/config; a stale host key for that IP is replaced)
+# 1. points the ssh alias l40s at <ip> (~/.ssh/config). A stored host key for that IP that no longer
+#    matches stops the script unless --replace-host-key is given (only after James confirms that the
+#    IP is his new instance: the old instance's IP may now be someone else's machine)
 # 2. waits for SSH, copies setup.sh, and puts the MANO files and path_b/.env in /root/v2d/inbox/
 # 3. gives the instance a Hugging Face token: HF_WRITE_TOKEN from path_b/.env if set (uploads work),
 #    else its read-only HF_TOKEN (downloads only; `hf auth login` with a write token before uploads)
@@ -12,7 +14,7 @@
 #    follows its log until it ends
 # 6. pushes BRANCH (default: this checkout's branch) through the instance's bare repo, checks it
 #    out there and runs the unit tests
-# Default restore: run 4c2eac31 with frames (V3_BUILD_SPEC.md §10). Nothing secret is printed.
+# Default restore: run 4c2eac31 with frames (V4_BUILD_SPEC.md §10). Nothing secret is printed.
 # Takes about an hour on a fresh instance; rerunning it on a ready one takes about a minute.
 set -euo pipefail
 
@@ -26,15 +28,16 @@ VM_REPO=/root/v2d/NVIDIA_V2D_Egocentric
 die() { printf 'new_instance: %s\n' "$*" >&2; exit 1; }
 step() { printf '\n== %s\n' "$*"; }
 
-[ $# -ge 1 ] || die "usage: $0 <ip> [--restore RUN | --no-restore] [--no-frames] [--branch BRANCH]"
+[ $# -ge 1 ] || die "usage: $0 <ip> [--restore RUN | --no-restore] [--no-frames] [--branch BRANCH] [--replace-host-key]"
 IP=$1; shift
-RESTORE=4c2eac31 FRAMES=1 BRANCH=$(git -C "$REPO" branch --show-current)
+RESTORE=4c2eac31 FRAMES=1 BRANCH=$(git -C "$REPO" branch --show-current) REPLACE_KEY=""
 while [ $# -gt 0 ]; do
   case $1 in
     --restore) RESTORE=$2; shift 2 ;;
     --no-restore) RESTORE=""; shift ;;
     --no-frames) FRAMES=""; shift ;;
     --branch) BRANCH=$2; shift 2 ;;
+    --replace-host-key) REPLACE_KEY=1; shift ;;
     *) die "unknown option $1" ;;
   esac
 done
@@ -69,7 +72,8 @@ EOF
 for i in $(seq 60); do
   out=$(ssh -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=accept-new "$HOST" true 2>&1) && break
   if echo "$out" | grep -q "REMOTE HOST IDENTIFICATION HAS CHANGED"; then
-    # a new instance on an IP used before: its host key is new, so the stored one is replaced
+    # an IP used before answers with another host key: replaced only when James confirmed the instance
+    [ -n "$REPLACE_KEY" ] || die "the host key for $IP changed; rerun with --replace-host-key once James confirms $IP is the new instance"
     ssh-keygen -R "$IP" >/dev/null 2>&1
     echo "   host key for $IP changed (new instance): replaced"
     continue

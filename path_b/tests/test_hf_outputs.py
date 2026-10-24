@@ -58,3 +58,30 @@ def test_run_level_folders_are_uploaded(tmp_path, monkeypatch):
     write(run, "canonical/white_pot/mesh.glb", b"g")
     root, manifest = H.stage("r", frames=False)
     assert (root / H.PREFIX / "r/canonical/white_pot/mesh.glb").is_file() and manifest["results"]["files"] == 3
+
+
+def test_one_episode_at_a_time_merges_the_manifest(tmp_path, monkeypatch):
+    monkeypatch.setattr(H, "OUTPUTS", tmp_path / "outputs")
+    monkeypatch.setattr(H, "STAGING", tmp_path / "staging")
+    run = tmp_path / "outputs/r"
+    for e, data in ((41, b"{}"), (13, b'{"x": 1}')):
+        write(run, f"episode_{e:06d}/p0_ingest/report.json", data)
+        for k in range(H.CROWDED + 1):
+            write(run, f"episode_{e:06d}/p1b_masks/obj_0/{k:06d}.png")
+    write(run, "waterfall.md", b"w")
+    root, first = H.stage("r", frames=True, episodes=[41])
+    assert first["episodes"] == ["episode_000041"] and not (root / H.PREFIX / "r/episode_000013").exists()
+    assert first["results_by_episode"] == {"episode_000041": {"files": 1, "bytes": 2}}
+    assert first["results"] == {"files": 2, "bytes": 3}  # + the run-level waterfall.md
+    _, second = H.stage("r", frames=True, episodes=[13])
+    both = H.merged_manifest(first, second)
+    assert both["episodes"] == ["episode_000013", "episode_000041"]
+    assert set(both["frames"]) == {"episode_000013", "episode_000041"}
+    assert both["results"] == {"files": 3, "bytes": 11}  # 2 + 8 episode bytes, waterfall.md once
+    again = H.merged_manifest(both, second)  # a rerun of the same episode counts it once
+    assert again["results"] == both["results"] and again["episodes"] == both["episodes"]
+    assert H.merged_manifest(None, first) is first
+    old = {"episodes": ["episode_000040"], "frames": {}, "commits": ["abc"], "results": {"files": 10, "bytes": 100},
+           "frames_included": False}  # a whole-run manifest from before per-episode uploads
+    merged = H.merged_manifest(old, first)
+    assert merged["episodes"] == ["episode_000040", "episode_000041"] and merged["results"]["files"] == 12

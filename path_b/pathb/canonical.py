@@ -375,7 +375,7 @@ def to_json(x):
 
 def main(name: str, out: Path, episodes: list[int] | None = None) -> Path:
     import trimesh
-    found = sorted(p for p in out.glob(f"episode_*/s3a2_fuse_scan/{name}/partial_scan.ply")
+    found = sorted(p for p in out.glob(f"episode_*/s3a2_fuse_scan/{name}/partial_scan*.ply")  # rest before, after
                    if episodes is None or int(p.parts[-4][len("episode_"):]) in episodes)
     partials, used = [], []
     for p in found:

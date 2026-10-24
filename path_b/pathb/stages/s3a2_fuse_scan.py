@@ -1,20 +1,22 @@
-"""S3a2 fuse scan (V3_BUILD_SPEC.md §11 A2.1): per object, the surface the head camera saw at rest, fused
-from stereo depth alone (no generative model). Phase A2 variant: not in the default stage chain.
+"""S3a fuse scan (V4_BUILD_SPEC.md S3a, "per-clip partial scan"; v3 A2.1): per object, the surface the
+head camera saw at rest, fused from stereo depth alone (no generative model). Runs right after P4 (S1),
+so its rest windows come from the 2-D masks, not from S3b's segments: rest-before = the frames before a
+hand mask (dilated 5 px at half resolution, as P1c) first touches the object's P1b mask; rest-after =
+the frames from SETTLE frames after it last touches it. Never touched: the whole clip is rest-before.
+Frames used: inside a window, the object's mask covers >= 1 % of the image and no hand touches it. Each
+frame's P2 depth (depth_a_half, ego_cam_a) is kept inside the object's mask only, the mask eroded by
+MASK_ERODE_PX so the mixed depth at its edge stays out. Fused in the world (P4's camera_to_world) with
+pathb/scan.py's TSDF (voxel 4 mm, sdf_trunc 16 mm). The object moved between the windows, so each is
+its own partial: partial_scan.ply (rest-before: the object at its frame-0 placement, which
+s3a2_register registers) and partial_scan_after.ply (rest-after); run.py canonical pools both, as
+clips. Out per object: the two .ply (metres, world, visible surfaces only), fuse_report.json (per frame:
+window, mask share, used or why not).
 
-Frames: S4a's rest_before and rest_after windows, where the object's P1b mask covers >= 1 % of the
-image and no hand mask (dilated 5 px at half resolution, as P1c) touches it. Each frame's P2 depth
-(depth_a_half, ego_cam_a) is kept inside the object's mask only, the mask eroded by MASK_ERODE_PX so
-the mixed depth at its edge stays out. Fused in the v3 world (P4's camera_to_world: P1c's camera in
-the world every later stage uses) with pathb/scan.py's TSDF (voxel 4 mm, sdf_trunc 16 mm). The object
-moved between the two windows, so the rest-after frames are fused where the object rested before: S3c's
-anchors give the move (A_before A_after^-1), point-to-plane ICP of the rest-after patch onto the
-rest-before one refines it. Out per object: partial_scan.ply (metres, world, the object at its frame-0
-placement, visible surfaces only), fuse_report.json (per frame: window, mask share, used or why not).
-
-Bars: frames fused >= 30 (PASS) / 10 (WARN); surface RMS against the stereo depth of 10 held-out rest
-frames <= 5 mm (PASS) / 10 mm (WARN), from a second fusion without them (the scan itself fuses every
-usable frame); public only: one-sided Chamfer partial -> scan <= 0.3 cm, the scan registered onto the
-partial (scale fixed, best of a global start and 24 orientation starts).
+Bars: frames fused, both windows, >= 30 (PASS) / 10 (WARN); surface RMS against the stereo depth of 10
+held-out frames <= 5 mm (PASS) / 10 mm (WARN), from a second fusion without them (the scan itself fuses
+every usable frame), on partial_scan.ply (on the rest-after one when rest-before has no frame);
+public only: one-sided Chamfer partial -> scan <= 0.3 cm, the scan registered onto the partial (scale
+fixed, best of a global start and 24 orientation starts).
 """
 from __future__ import annotations
 
@@ -36,7 +38,8 @@ MIN_AREA = 0.01  # share of the image (spec)
 HAND_DILATE_PX = 5  # half resolution, as P1c
 MASK_ERODE_PX = 2  # default: half resolution; stereo depth at mask edges mixes object and background
 HOLD_OUT = 10  # spec
-ICP_MIN_FITNESS = 0.3  # rest-after onto rest-before: below this the anchors' move is kept
+SETTLE = 5  # default: frames after the last touch before rest-after starts (S4a's reach dilation)
+WINDOWS = {"rest_before": "partial_scan.ply", "rest_after": "partial_scan_after.ply"}
 BARS = {"frames": ((30, np.inf), (10, np.inf)), "rms_mm": ((0, 5), (0, 10)), "chamfer_cm": (0, 0.3)}
 
 
@@ -59,17 +62,29 @@ def frame_masks(ctx, k: int, t: int, shape: tuple[int, int]) -> tuple[np.ndarray
     return eroded, touched, float(m.mean())
 
 
-def rest_frames(ctx, k: int, ph: dict, K: np.ndarray, shape, c2w: np.ndarray) -> tuple[dict, list]:
-    """Usable frames per window and the per-frame log."""
+def touch_windows(touched: list[bool]) -> dict[str, list[int] | None]:
+    """Inclusive rest windows from the per-frame 2-D touch: before the first touch, and from SETTLE
+    frames after the last one."""
+    n = len(touched)
+    hits = [t for t, x in enumerate(touched) if x]
+    if not hits:
+        return {"rest_before": [0, n - 1], "rest_after": None}
+    a, b = hits[0], hits[-1] + 1 + SETTLE
+    return {"rest_before": [0, a - 1] if a > 0 else None, "rest_after": [b, n - 1] if b < n else None}
+
+
+def rest_frames(ctx, k: int, K: np.ndarray, shape, c2w: np.ndarray, n: int) -> tuple[dict, dict, list]:
+    """The windows, the usable frames per window and the per-frame log."""
     half = ctx.root / "p2_depth/depth_a_half"
-    usable, log = {"rest_before": [], "rest_after": []}, []
-    for key in usable:
-        if not ph.get(key):
+    masks = [frame_masks(ctx, k, t, shape) for t in range(n)]
+    windows = touch_windows([touched for _, touched, _ in masks])
+    usable, log = {key: [] for key in WINDOWS}, []
+    for key, w in windows.items():
+        if not w:
             continue
-        a, b = ph[key]
-        for t in range(a, b + 1):
+        for t in range(w[0], w[1] + 1):
             row = {"frame": t, "window": key}
-            mask, touched, share = frame_masks(ctx, k, t, shape)
+            mask, touched, share = masks[t]
             path = half / f"{t:06d}.png"
             if mask is None or not path.is_file():
                 log.append(row | {"used": False, "why": "no mask" if mask is None else "no depth"})
@@ -83,26 +98,15 @@ def rest_frames(ctx, k: int, ph: dict, K: np.ndarray, shape, c2w: np.ndarray) ->
             row["depth_share_in_mask"] = round(float((depth[mask] > 0).mean()), 3)
             usable[key].append(S.Frame(t, depth, K, c2w[t]))
             log.append(row | {"used": True})
-    return usable, log
+    return windows, usable, log
 
 
-def rest_after_move(ctx, name: str, before: list, after: list) -> tuple[np.ndarray | None, dict]:
-    """World -> world move taking the rest-after placement to the rest-before one."""
-    f = ctx.root / f"s3c_fuse/{name}/anchors.json"
-    anchors = json.loads(f.read_text()) if f.is_file() else {}
-    if not (before and after and anchors.get("rest_before") and anchors.get("rest_after")):
-        return None, {"used": False, "why": "no S3c anchor for both windows" if before and after else "one window"}
-    M0 = np.asarray(anchors["rest_before"]["pose"]) @ np.linalg.inv(np.asarray(anchors["rest_after"]["pose"]))
-    patch_b = S.largest_part(S.integrate(before))
-    patch_a = S.largest_part(S.integrate([S.Frame(f.index, f.depth, f.K, M0 @ f.camera_to_world) for f in after]))
-    if len(patch_a.triangles) == 0 or len(patch_b.triangles) == 0:
-        return M0, {"used": True, "icp": None, "why": "a window fused nothing: anchors' move kept"}
-    r = S.icp(S.mesh_points(patch_a, 10000), S.mesh_points(patch_b, 10000), max_dist=0.01)
-    if r["fitness"] < ICP_MIN_FITNESS:
-        return M0, {"used": True, "icp": {"fitness": r["fitness"], "rmse_m": r["rmse_m"]},
-                    "why": "ICP overlap too small: anchors' move kept"}
-    return r["T"] @ M0, {"used": True, "icp": {"fitness": r["fitness"], "rmse_m": r["rmse_m"],
-                                                "correction_mm": float(np.linalg.norm(r["T"][:3, 3]) * 1000)}}
+def held_out_rms(frames: list) -> tuple[list, dict]:
+    """RMS of a fusion without HOLD_OUT spread frames against those frames' stereo depth."""
+    step = max(1, len(frames) // HOLD_OUT)
+    held = frames[::step][:HOLD_OUT] if len(frames) >= 2 * HOLD_OUT else frames[::4]
+    kept = [f for f in frames if f not in held]
+    return held, (S.depth_rms(S.largest_part(S.integrate(kept)), held) if kept and held else {"rms_m": None})
 
 
 def chamfer_to_scan(partial: o3d.geometry.TriangleMesh, vertices: np.ndarray, faces: np.ndarray) -> dict:
@@ -141,41 +145,35 @@ def run(ctx) -> StageResult:
     for k, name in enumerate(ctx.objects):
         out = d / name
         out.mkdir(parents=True, exist_ok=True)
-        ph = json.loads((ctx.root / f"s4a_phases/{name}/phases.json").read_text())
-        usable, log = rest_frames(ctx, k, ph, K, shape, c2w)
-        M, move = rest_after_move(ctx, name, usable["rest_before"], usable["rest_after"])
-        frames = usable["rest_before"] + ([S.Frame(f.index, f.depth, f.K, M @ f.camera_to_world)
-                                           for f in usable["rest_after"]] if M is not None else [])
-        if not usable["rest_before"] and M is None:
-            frames = usable["rest_after"]  # never at rest before: the rest-after placement
-        partial = S.largest_part(S.integrate(frames))
-        o3d.io.write_triangle_mesh(str(out / "partial_scan.ply"), partial)
-        step = max(1, len(frames) // HOLD_OUT)
-        held = frames[::step][:HOLD_OUT] if len(frames) >= 2 * HOLD_OUT else frames[::4]
-        kept = [f for f in frames if f not in held]
-        rms = S.depth_rms(S.largest_part(S.integrate(kept)), held) if kept and held else {"rms_m": None}
-        v = np.asarray(partial.vertices)
-        report = {"object": name, "frames": log, "fused": [f.index for f in frames], "rest_after_move": move,
-                  "held_out": [f.index for f in held], "held_out_rms": rms, "vertices": len(v),
-                  "extents_cm": (np.ptp(v, axis=0) * 100).round(1).tolist() if len(v) else None}
-        metrics += [
-            Metric(f"{name}: frames fused", len(frames), "", ok=BARS["frames"][0], warn=BARS["frames"][1],
-                   note=f"rest before {len(usable['rest_before'])}, after {len(usable['rest_after'])}"
-                        + ("" if M is not None or not usable["rest_after"] else " (rest after left out: "
-                           + move["why"] + ")")),
-            Metric(f"{name}: surface vs held-out stereo depth (RMS)",
-                   rms["rms_m"] * 1000 if rms.get("rms_m") is not None else None, "mm",
-                   ok=BARS["rms_mm"][0], warn=BARS["rms_mm"][1], note=f"{len(held)} held-out frames"),
-            Metric(f"{name}: rest-after patch onto rest-before (ICP fitness)",
-                   (move.get("icp") or {}).get("fitness"), "", note=move.get("why", "")),
-        ]
-        if ctx.public and len(v):
-            ref = gt.scan_mesh(ctx.episode, name, ctx.files_read)
-            if ref is not None:
-                best = chamfer_to_scan(partial, *ref)
-                report["chamfer_to_scan_cm"] = best["cm"]
-                metrics.append(Metric(f"{name}: one-sided Chamfer partial -> scan", best["cm"], "cm", kind="gt",
-                                      ok=BARS["chamfer_cm"], note="the partial should lie on the true surface"))
+        windows, usable, log = rest_frames(ctx, k, K, shape, c2w, n)
+        report = {"object": name, "windows": windows, "settle_frames": SETTLE, "frames": log, "partials": {}}
+        main = "rest_before" if usable["rest_before"] else "rest_after"
+        fused = len(usable["rest_before"]) + len(usable["rest_after"])
+        metrics.append(Metric(f"{name}: frames fused", fused, "", ok=BARS["frames"][0], warn=BARS["frames"][1],
+                              note=f"rest before {len(usable['rest_before'])} (window {windows['rest_before']}), "
+                                   f"after {len(usable['rest_after'])} (window {windows['rest_after']})"))
+        for key, file in WINDOWS.items():
+            frames = usable[key]
+            partial = S.largest_part(S.integrate(frames)) if frames else o3d.geometry.TriangleMesh()
+            o3d.io.write_triangle_mesh(str(out / file), partial)
+            held, rms = held_out_rms(frames)
+            v = np.asarray(partial.vertices)
+            row = {"file": file, "fused": [f.index for f in frames], "held_out": [f.index for f in held],
+                   "held_out_rms": rms, "vertices": len(v),
+                   "extents_cm": (np.ptp(v, axis=0) * 100).round(1).tolist() if len(v) else None}
+            bar = key == main
+            metrics.append(Metric(f"{name}: {key} surface vs held-out stereo depth (RMS)",
+                                  rms["rms_m"] * 1000 if rms.get("rms_m") is not None else None, "mm",
+                                  ok=BARS["rms_mm"][0] if bar else None, warn=BARS["rms_mm"][1] if bar else None,
+                                  note=f"{len(held)} held-out frames; {file}"))
+            if ctx.public and len(v):
+                ref = gt.scan_mesh(ctx.episode, name, ctx.files_read)
+                if ref is not None:
+                    row["chamfer_to_scan_cm"] = chamfer_to_scan(partial, *ref)["cm"]
+                    metrics.append(Metric(f"{name}: {key} one-sided Chamfer partial -> scan", row["chamfer_to_scan_cm"],
+                                          "cm", kind="gt", ok=BARS["chamfer_cm"] if bar else None,
+                                          note="the partial should lie on the true surface"))
+            report["partials"][key] = row
+            outputs[f"{name}/{key}"] = out / file
         write_json(out / "fuse_report.json", report)
-        outputs[name] = out / "partial_scan.ply"
     return StageResult(metrics, outputs)
