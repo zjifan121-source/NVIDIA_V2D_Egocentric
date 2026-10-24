@@ -153,8 +153,8 @@ def run(ctx) -> StageResult:
     writer.release()
 
     metrics = [Metric("segmenter", meta["model"], "", note=fallback or ""),
-               Metric("SAM 3.1 ran (1) or the SAM2 fallback (0)", 0 if fallback else 1, "", ok=(1, 1), warn=(0, 1),
-                      note="spec P1b: SAM 3.1 primary, SAM2 fallback")]
+               Metric("SAM 3.1 ran (1) or the SAM2 fallback (0)", 0 if fallback else 1, "", ok=(1, 1),
+                      note="V4 §0 rule 6: a stage whose primary model does not load FAILs (the masks stay, flagged)")]
     for t in req["tracks"]:
         share = len(present[t["track"]]) / n
         is_object = "object" in t
