@@ -114,21 +114,19 @@ def test_motion_is_small_at_rest_and_large_in_the_carry(gap):
     assert np.nanmax(m[:25]) < G.STATIC_M and np.nanmin(m[40:60]) > 0.02
 
 
-def test_stage_on_a_synthetic_episode(tmp_path, monkeypatch):
-    """s3b_segments end to end: test_a2's box (rest 0-14, moved 15-25, rest 26-39) seen through masks,
-    stereo depth and cameras, with a right hand whose thumb and index hold its sides over 15-25."""
+def synthetic_episode(tmp_path):
+    """test_a2's box (rest 0-14, moved 15-25, rest 26-39) seen through masks, stereo depth and cameras,
+    with a right hand whose thumb and index hold its sides over 15-25; P1d-style hand exports and a
+    P4-style bundle. Returns (root, episode entry, true poses (N, 4, 4))."""
     import json
     import cv2
     import test_a2 as A
-    from scipy.spatial.transform import Rotation  # noqa: F401
-    from pathb import runner
     from pathb import scan as S
     from pathb.geometry import write_depth, write_transform
-    from pathb.stages import s3b_segments
-    monkeypatch.delenv("RETARGET_VENV", raising=False)
     root = tmp_path / "episode_000999"
     half, cams, hd = root / "p2_depth/depth_a_half", root / "p4_export/camera_to_world", root / "p4_export/hands"
-    for d in (half, cams, hd, root / "p1b_masks/obj_0", root / "p1b_masks/hand_L", root / "p1b_masks/hand_R"):
+    bundle = root / "p4_export/episode_000999/box/result_slam_gravity_aligned"
+    for d in (half, cams, hd, bundle, root / "p1b_masks/obj_0", root / "p1b_masks/hand_L", root / "p1b_masks/hand_R"):
         d.mkdir(parents=True)
     (half / "intrinsics.json").write_text(json.dumps({"K": A.K.tolist(), "size": [A.SHAPE[1], A.SHAPE[0]]}))
     n = A.N
@@ -156,7 +154,22 @@ def test_stage_on_a_synthetic_episode(tmp_path, monkeypatch):
     np.savez(hd / "wrist_world.npz", wrist=wrist, valid=valid, filled=np.zeros_like(valid))
     (hd / "hand_gaps.json").write_text(json.dumps({"gaps": {"L": [{"start": 0, "end": n - 1, "frames": n, "kind": "long"}],
                                                             "R": []}}))
+    c2w = np.stack([A.camera(t) for t in range(n)])
+    np.savez(bundle / "result.npz", camera_to_world_transform=c2w.astype(np.float32),
+             object_to_world_transform=np.tile(np.eye(4, dtype=np.float32), (n, 1, 1)),
+             object_to_camera_transform=np.tile(np.eye(4, dtype=np.float32), (n, 1, 1)), object_scale=np.float32(1))
     e = {"episode": 999, "split": "evaluation", "num_frames": n, "objects": [{"name": "box"}]}
+    return root, e, np.stack([A.pose(t) for t in range(n)])
+
+
+def test_stage_on_a_synthetic_episode(tmp_path, monkeypatch):
+    """s3b_segments end to end on the synthetic episode."""
+    import json
+    import test_a2 as A
+    from pathb import runner
+    from pathb.stages import s3b_segments
+    monkeypatch.delenv("RETARGET_VENV", raising=False)
+    root, e, _ = synthetic_episode(tmp_path)
     result = s3b_segments.run(runner.Context(e, root, {}))
     segs = json.loads((root / "s3b_segments/box/segments.json").read_text())
     kinds = [s["kind"] for s in segs]
