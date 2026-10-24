@@ -15,6 +15,8 @@
 # 6. pushes BRANCH (default: this checkout's branch) through the instance's bare repo, checks it
 #    out there and runs the unit tests
 # Default restore: run 4c2eac31 with frames (V4_BUILD_SPEC.md §10). Nothing secret is printed.
+# --accept-eula: setup.sh also downloads TAO FoundationPose (NVIDIA Open Model License); only with James's yes
+# for this instance (v4 needs FoundationPose only for S3b_track's seed, not for S1).
 # Takes about an hour on a fresh instance; rerunning it on a ready one takes about a minute.
 set -euo pipefail
 
@@ -28,9 +30,9 @@ VM_REPO=/root/v2d/NVIDIA_V2D_Egocentric
 die() { printf 'new_instance: %s\n' "$*" >&2; exit 1; }
 step() { printf '\n== %s\n' "$*"; }
 
-[ $# -ge 1 ] || die "usage: $0 <ip> [--restore RUN | --no-restore] [--no-frames] [--branch BRANCH] [--replace-host-key]"
+[ $# -ge 1 ] || die "usage: $0 <ip> [--restore RUN | --no-restore] [--no-frames] [--branch BRANCH] [--replace-host-key] [--accept-eula]"
 IP=$1; shift
-RESTORE=4c2eac31 FRAMES=1 BRANCH=$(git -C "$REPO" branch --show-current) REPLACE_KEY=""
+RESTORE=4c2eac31 FRAMES=1 BRANCH=$(git -C "$REPO" branch --show-current) REPLACE_KEY="" EULA=""
 while [ $# -gt 0 ]; do
   case $1 in
     --restore) RESTORE=$2; shift 2 ;;
@@ -38,6 +40,7 @@ while [ $# -gt 0 ]; do
     --no-frames) FRAMES=""; shift ;;
     --branch) BRANCH=$2; shift 2 ;;
     --replace-host-key) REPLACE_KEY=1; shift ;;
+    --accept-eula) EULA=1; shift ;;
     *) die "unknown option $1" ;;
   esac
 done
@@ -127,13 +130,13 @@ else
   rm -f "$keyfile"
 fi
 
-# ACCEPT_NVIDIA_MODEL_EULA=1: James accepted the NVIDIA Open Model License for TAO FoundationPose (2026-10-22, 2026-10-23)
+# ACCEPT_NVIDIA_MODEL_EULA=1 only with --accept-eula (James accepted for the 2026-10-22 and 2026-10-23 instances)
 step "setup.sh in tmux (session 'setup'; about two hours on a fresh instance, mostly downloads)"
 LOG=/root/v2d/logs/setup_$(date -u +%Y%m%d_%H%M%S).log
 ssh "$HOST" "command -v tmux >/dev/null || (apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq tmux >/dev/null)
   loginctl enable-linger root 2>/dev/null || true
   tmux kill-session -t setup 2>/dev/null || true
-  tmux new -d -s setup 'ACCEPT_NVIDIA_MODEL_EULA=1 BRANCH=$CLONE_BRANCH RESTORE_RUN=$RESTORE ${FRAMES:+RESTORE_FRAMES=1} bash /root/setup.sh > $LOG 2>&1; echo SETUP_EXIT \$? >> $LOG'"
+  tmux new -d -s setup '${EULA:+ACCEPT_NVIDIA_MODEL_EULA=1 }BRANCH=$CLONE_BRANCH RESTORE_RUN=$RESTORE ${FRAMES:+RESTORE_FRAMES=1} bash /root/setup.sh > $LOG 2>&1; echo SETUP_EXIT \$? >> $LOG'"
 echo "   log: $HOST:$LOG  (watch: ssh -t $HOST tmux attach -t setup)"
 seen=0
 while :; do
