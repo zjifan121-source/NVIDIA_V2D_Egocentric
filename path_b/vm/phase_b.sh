@@ -12,7 +12,8 @@
 #           4c2eac31 (restored by setup.sh with frames)
 # STAGES    default S1 (V4 task 10): p0_ingest ... p4_export (P4 writes the hands' world exports) and
 #           s3a2_fuse_scan; a stage with a non-ERROR report is kept (FROM forces that stage onward)
-# EPISODES  default: the dev episodes (41, 13), then the other public ones, then the evaluation ones
+# EPISODES  default: the dev episodes (41, 13), then FIRST (James's priority list, e.g. "0 18 43 31 23"), then
+#           the other public ones, then the evaluation ones
 # FRAMES    1 (default): the upload includes each episode's per-frame archive (masks, depth, hand stages),
 #           which the CPU stages on the Mac and the next instance restore; 0: results only
 # After each episode: hf_outputs.py upload --episodes <n> (3 tries); a failed episode or upload is
@@ -41,11 +42,13 @@ set -a; . path_b/.env; set +a  # HF_TOKEN: the gated model downloads; HF_WRITE_T
 export RETARGET_VENV=${RETARGET_VENV:-/root/v2d/venvs/retarget}
 RUNPY=(uv run --project path_b python path_b/run.py)
 if [ -z "${EPISODES:-}" ]; then
-  EPISODES=$(uv run --project path_b python -c 'import sys; sys.path.insert(0, "path_b")
+  EPISODES=$(FIRST="${FIRST:-}" uv run --project path_b python -c 'import os, sys; sys.path.insert(0, "path_b")
 from pathb.paths import DEV_EPISODES, manifest
 m = manifest()
-rest = [n for n in sorted(m) if n not in DEV_EPISODES]
-print(*DEV_EPISODES, *[n for n in rest if m[n]["split"] == "public"], *[n for n in rest if m[n]["split"] == "evaluation"])')
+first = [int(x) for x in os.environ["FIRST"].split()]
+head = [*DEV_EPISODES, *[n for n in first if n not in DEV_EPISODES]]
+rest = [n for n in sorted(m) if n not in head]
+print(*head, *[n for n in rest if m[n]["split"] == "public"], *[n for n in rest if m[n]["split"] == "evaluation"])')
 fi
 stages=("${STAGES[@]}") force=()
 if [ -n "${FROM:-}" ]; then
