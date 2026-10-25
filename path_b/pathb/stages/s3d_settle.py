@@ -119,6 +119,8 @@ def run(ctx) -> StageResult:
         bundle = write_bundle(src, out / "bundle", base)
         (bundle / "mesh.obj").unlink(missing_ok=True)
         shutil.copy2(ctx.root / f"s3a_mesh/{name}/mesh.obj", bundle / "mesh.obj")
+        if not (bundle / "material.mtl").exists():  # run_load_retarget.merged_bundle reads each object's
+            (bundle / "material.mtl").write_text("newmtl material_0\n")
         outputs[name] = out / "object_to_world.npz"
         done = [r for r in rows if "penetration_mm" in r]
         metrics += [

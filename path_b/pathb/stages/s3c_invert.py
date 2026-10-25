@@ -95,6 +95,8 @@ def run(ctx) -> StageResult:
         for f in ("mesh.obj",):  # the canonical mesh (P4's bundle has none)
             (bundle / f).unlink(missing_ok=True)
             shutil.copy2(ctx.root / f"s3a_mesh/{name}/{f}", bundle / f)
+        if not (bundle / "material.mtl").exists():  # run_load_retarget.merged_bundle reads each object's
+            (bundle / "material.mtl").write_text("newmtl material_0\n")
         outputs[name] = out / "object_to_world.npz"
         statics = [r for r in report if r["kind"] == "static" and r.get("residual_m") is not None]
         grasps = [r for r in report if r["kind"] == "grasp"]

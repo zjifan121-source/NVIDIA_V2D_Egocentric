@@ -215,3 +215,25 @@ def test_wristcheck_measures_the_wrist_against_a_still_object(tmp_path):
         assert e["window_frames"] == 30 and abs(e["sigma_cm"] - noise * 100) < noise * 100 * 0.35
         assert abs(e["sigma_vec_cm"] - noise * 100 * np.sqrt(3)) < noise * 100 * 0.5
         assert report["decision"].startswith(decision) and report["hand_gap_rule"] == "optional"
+
+
+def test_the_carrying_hand_wins_and_a_touch_on_a_still_object_is_static():
+    """Both hands' thumb and index near the box during the carry; only the right wrist moves with it
+    (the left wanders 5 cm around it): the grasp is the right hand's. A hand resting on the box before
+    the carry, the box still: static, not a grasp."""
+    clouds, tips, wrist, valid = clip()
+    rng = np.random.default_rng(5)
+    for t in range(N):
+        c = path(t)
+        if 20 <= t < RELEASE:  # the left hand near the box's +y side from frame 20 (before it moves at 35)
+            side = c + [0, SIZE[1] / 2 + 0.004, SIZE[2] / 2]
+            tips[t, 0, 0], tips[t, 0, 1] = side + [-0.03, 0, 0], side + [0.03, 0, 0]
+            tips[t, 0, 2:] = side + [0, 0.05, 0.02]
+            wrist[t, 0, :3, 3] = side + [0, 0.08, 0.02] + rng.normal(0, 0.05, 3)  # not moving with the box
+            valid[t, 0] = True
+    segs, report, _ = G.segment(clouds, tips, wrist, valid, {})
+    grasps = [s for s in segs if s["kind"] == "grasp"]
+    assert grasps and all(g["hand"] == "R" for g in grasps), report["segments"]
+    moving = [g for g in grasps if g["end"] >= MOVE[0] + 5]
+    assert moving and moving[0]["start"] <= MOVE[0] + 2
+    assert all(s["kind"] == "static" for s in segs if s["end"] < MOVE[0] - 6)  # touched but still: static

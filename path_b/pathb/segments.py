@@ -12,7 +12,8 @@ grasping hand's second-closest fingertip (grasp needs two); certain contact = th
 moves >= CARRY_M per frame in the direction its wrist moves (cosine >= CARRY_COS), the hand carrying
 it. Fewer than MIN_CERTAIN such frames: near = NEAR_DEFAULT. far = 2 x near.
 Votes per frame: static = motion < STATIC_M and no fingertip of either hand within far; grasp (one
-hand) = >= 2 of its fingertips within near (both hands: the one with more, then the closer);
+hand) = >= 2 of its fingertips within near (both hands: the one with more, then the closer); per grasp
+run (carrying): static if the object stays still, else the hand the object moves most rigidly with;
 unstable otherwise; a frame without object points keeps the previous vote. Hysteresis: the label
 changes only where HYSTERESIS consecutive votes agree on the new one. Then grasp runs shorter than
 MIN_GRASP become unstable, static runs shorter than MIN_STATIC join their neighbours, and a grasp is
@@ -36,6 +37,8 @@ CARRY_M = 0.01  # m per frame (spec)
 CARRY_COS = 0.8  # default: "in the same direction as the wrist"
 MIN_CERTAIN = 10  # spec
 MIN_GRASP = 5  # frames (spec)
+STILL_SHARE = 0.8  # default: a grasp run whose object is still on this share of its frames is static
+ELIGIBLE_SHARE = 0.3  # default: a hand counts for a grasp run with two fingertips near on this share
 MIN_STATIC = 5  # frames (spec)
 HYSTERESIS = 3  # frames (spec)
 SUPPORT_M = 0.015  # spec: 1.5 cm
@@ -200,6 +203,42 @@ def split_at_gaps(rs: list[list], long_gaps: dict[str, list[tuple[int, int]]]) -
     return merge(out)
 
 
+def spread(cent: np.ndarray, wrist: np.ndarray, valid: np.ndarray, h: int, a: int, b: int) -> float | None:
+    """RMS scatter (m) of the object's centroid in hand h's wrist frame over [a, b]: ~0 when the object
+    moves rigidly with that wrist."""
+    fr = [t for t in range(a, b + 1) if valid[t, h] and np.isfinite(cent[t]).all()]
+    if len(fr) < 3:
+        return None
+    local = np.array([wrist[t, h, :3, :3].T @ (cent[t] - wrist[t, h, :3, 3]) for t in fr])
+    return float(np.sqrt(((local - local.mean(axis=0)) ** 2).sum(axis=1).mean()))
+
+
+def carrying(rs: list[list], d_tip: np.ndarray, near: float, cent: np.ndarray, wrist: np.ndarray,
+             valid: np.ndarray, mot: np.ndarray) -> list[list]:
+    """Per grasp run: a run whose object stays still (motion < STATIC_M on >= STILL_SHARE of its frames)
+    is static (a hand resting on it does not carry it); else its hand is the one, among the hands with
+    two fingertips within near on >= ELIGIBLE_SHARE of its frames, the object moves most rigidly with
+    (spread). Neighbouring runs that end up the same merge. ep41's pot, held by both hands in turn,
+    came out as 11 short grasps whose hand often moved while the pot did not (a wrist moving 8.7 cm,
+    the pot 2.1 cm)."""
+    out = []
+    for x, a, b in rs:
+        if not x.startswith("grasp"):
+            out.append([x, a, b])
+            continue
+        m = mot[a:b + 1]
+        if np.mean(np.nan_to_num(m, nan=np.inf) < STATIC_M) >= STILL_SHARE:
+            out.append(["static", a, b])
+            continue
+        near_tips = np.nan_to_num(d_tip[a:b + 1], nan=np.inf) < near  # (frames, 2, 5)
+        eligible = [h for h in range(2) if np.mean(near_tips[:, h].sum(axis=1) >= 2) >= ELIGIBLE_SHARE]
+        scored = {h: spread(cent, wrist, valid, h, a, b) for h in (eligible or [HANDS.index(x.split(":")[1])])}
+        scored = {h: v for h, v in scored.items() if v is not None}
+        hand = min(scored, key=scored.get) if scored else HANDS.index(x.split(":")[1])
+        out.append([f"grasp:{HANDS[hand]}", a, b])
+    return merge(out)
+
+
 def fingertip_set(d_tip: np.ndarray, hand: int, a: int, b: int, near: float) -> list[list[str]]:
     share = np.nanmean(np.nan_to_num(d_tip[a:b + 1, hand], nan=np.inf) < near, axis=0)
     fingers = [f for f in range(5) if share[f] >= 0.5]
@@ -220,6 +259,7 @@ def segment(clouds: list, tips: np.ndarray, wrist: np.ndarray, valid: np.ndarray
     v = votes(mot, d_tip, th["near_m"], th["far_m"])
     labels = hysteresis(v)
     rs = split_at_gaps(tidy(labels), long_gaps)
+    rs = carrying(rs, d_tip, th["near_m"], cent, wrist, valid, mot)
     never = not any(x.startswith("grasp") for x, _, _ in rs)
     if never:
         rs = [["static", 0, n - 1]]
