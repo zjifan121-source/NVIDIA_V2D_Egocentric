@@ -48,7 +48,10 @@ def scan_obj(name: str, out: Path) -> Path:
     dst = out / "scan_mesh" / f"{name}.obj"
     if not dst.is_file():
         dst.parent.mkdir(parents=True, exist_ok=True)
-        trimesh.load(SCANS / name / f"{name}.glb", force="mesh").export(dst)
+        src = SCANS / name / f"{name}.glb"
+        if not src.is_file():  # the wooden pieces ship as <name>_visual.glb (+ _collision.glb)
+            src = SCANS / name / f"{name}_visual.glb"
+        trimesh.load(src, force="mesh").export(dst)
     return dst
 
 
@@ -72,6 +75,14 @@ def main() -> int:
     parser.add_argument("--object-segmenter", choices=("dino_sam2", "sam3"), default="dino_sam2",
                         help="object masks: Grounding DINO + SAM2 (default) or SAM 3 from the prompt alone; needs "
                              "V2D_SAM3_PYTHON (baseline/reconstruction/modules/v2d_t3_sam3/README.md)")
+    parser.add_argument("--sam3-weights", type=Path, help="folder with sam3.pt (default: data/weights/sam3)")
+    parser.add_argument("--object-mesh", type=Path,
+                        help="track this mesh instead of generating one (one --object; size is still estimated)")
+    parser.add_argument("--keep-mesh-size", action="store_true",
+                        help="with --object-mesh: track the mesh at its own size (skip the size estimate)")
+    parser.add_argument("--no-refinement", action="store_true",
+                        help="skip the joint gsplat refinement: the bundle keeps the SLAM camera, the "
+                             "FoundationPose track and the depth-aligned hands")
     parser.add_argument("--dev", action="store_true", help="mount local module code over the images (as the Hyperstack runs do)")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
@@ -105,7 +116,14 @@ def main() -> int:
         out = RECON / "data/outputs" / branch / f"episode_{args.episode:06d}" / obj["name"]
         cmd = [sys.executable, "modules/v2d_pipelines/run_ego_reconstruction.py",
                "--video", str(video), "--object_prompt", obj["prompt"], "--output_dir", str(out),
-               "--reference_frame", str(args.reference_frame), *BASELINE_FLAGS]
+               "--reference_frame", str(args.reference_frame),
+               *[f for f in BASELINE_FLAGS if not (args.no_refinement and f == "--run_gsplat_refinement")]]
+        if args.object_mesh:
+            if len(objects) != 1:
+                parser.error("--object-mesh needs exactly one --object")
+            cmd += ["--object_mesh", str(args.object_mesh.resolve())]
+            if args.keep_mesh_size:
+                cmd.append("--skip_object_scale_estimation")
         if args.scan_mesh:
             cmd += ["--object_mesh", str(scan_obj(obj["name"], out)), "--skip_object_scale_estimation"]
         if args.reregister_iou is not None:
@@ -114,6 +132,8 @@ def main() -> int:
             cmd.append("--late_hand_prompts")
         if args.object_segmenter != "dino_sam2":
             cmd += ["--object_segmenter", args.object_segmenter]
+            if args.sam3_weights:
+                cmd += ["--sam3_weights", str(args.sam3_weights.resolve())]
         if args.dev:
             cmd.append("--dev")
         print(f"\n== episode {args.episode} / {obj['name']} (prompt {obj['prompt']!r}) -> {out}", flush=True)
