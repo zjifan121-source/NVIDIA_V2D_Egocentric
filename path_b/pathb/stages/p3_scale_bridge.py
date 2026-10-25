@@ -2,7 +2,8 @@
 
 v3 measures everything from the episode's own videos, so the bridge to the team's bundle is gone.
 P1c is already metric (DROID with the stereo depth as its prior), so its camera height above the
-table should match the stereo one: over the rest window (pathb.phases.rest_window_2d), per frame,
+table should match the stereo one: over the rest window (pathb.phases.rest_window_2d; the opening
+REST_CAP frames when it has fewer than MIN_FRAMES with a plane, the table being still), per frame,
   stereo  the camera's distance to the support plane in ego_cam_a coordinates (P2's planes): the
           largest plane at most 35 cm under the objects' stereo surface points (P1b mask centres;
           the rule P3 has used since 4c2eac31), normals turned toward the camera
@@ -130,22 +131,29 @@ def run(ctx) -> StageResult:
     rest = rest_window_2d([[B.read_mask(p, k) for k in opening] for t, p in tracks.items() if t.startswith("obj_")],
                           [[B.read_mask(p, k) for k in opening] for t, p in tracks.items() if t.startswith("hand_")],
                           cap=REST_CAP)
-    rows = []
-    for t in range(rest[0], rest[1] + 1):
-        if not have[t]:
-            continue
-        depth = read_depth(p2 / f"depth_a_half/{t:06d}.png")
-        points = object_points(ctx, t, K_full, K_half, depth)
-        frame_planes = planes.get(stereo_frame(t, alignment, len(planes)), [])
-        in_a = planes_in_cam_a(frame_planes, alignment)
-        table = table_in_camera([(nn, dd, p["inlier_fraction"]) for (nn, dd), p in zip(in_a, frame_planes)], points)
-        if table is None:
-            continue
-        nc, dc, share = table
-        R, c = c2w[t, :3, :3], c2w[t, :3, 3]
-        nw = R @ nc
-        rows.append({"frame": t, "stereo_height": float(dc), "share": share, "normal_world": nw,
-                     "d_world": float(dc - nw @ c), "objects_seen": len(points)})
+
+    def measure(window):
+        rows = []
+        for t in range(window[0], window[1] + 1):
+            if not have[t]:
+                continue
+            depth = read_depth(p2 / f"depth_a_half/{t:06d}.png")
+            points = object_points(ctx, t, K_full, K_half, depth)
+            frame_planes = planes.get(stereo_frame(t, alignment, len(planes)), [])
+            in_a = planes_in_cam_a(frame_planes, alignment)
+            table = table_in_camera([(nn, dd, p["inlier_fraction"]) for (nn, dd), p in zip(in_a, frame_planes)], points)
+            if table is None:
+                continue
+            nc, dc, share = table
+            R, c = c2w[t, :3, :3], c2w[t, :3, 3]
+            nw = R @ nc
+            rows.append({"frame": t, "stereo_height": float(dc), "share": share, "normal_world": nw,
+                         "d_world": float(dc - nw @ c), "objects_seen": len(points)})
+        return rows
+    rows, rule = measure(rest), "2-D: before a hand touches an object"
+    if len(rows) < MIN_FRAMES and rest[1] + 1 < len(opening):  # ep2: a hand beside an object from frame 1; the
+        rest, rule = [0, len(opening) - 1], "opening frames: the 2-D window was too short"  # table does not move
+        rows = measure(rest)
     if len(rows) < MIN_FRAMES:
         raise RuntimeError(f"only {len(rows)} rest frames {rest} have a support plane under the objects")
     normals = np.array([r["normal_world"] for r in rows])
@@ -161,12 +169,13 @@ def run(ctx) -> StageResult:
     factor = float(np.median(ratios))
     tilt = np.degrees(np.arccos(np.clip(normals @ nw, -1, 1)))
     scale = {"factor": factor, "method": "stereo support plane vs P1c camera height (v3)", "rest_window": rest,
+             "rest_rule": rule,
              "table_plane": {"normal": nw, "d": dw, "frame": "P1c world (camera_to_world)"},
              "gravity": -nw, "frames": rows}
     write_json(d / "scale.json", scale)
     metrics = [
         Metric("rest frames with a support plane", len(rows), "frames", ok=(10, np.inf), warn=(MIN_FRAMES, np.inf),
-               note=f"rest window {rest} (2-D: before a hand touches an object)"),
+               note=f"rest window {rest} ({rule})"),
         Metric("camera height above the table, stereo (median)", float(np.median([r["stereo_height"] for r in rows])), "m"),
         Metric("camera height above the table, P1c (median)", float(np.median([r["p1c_height"] for r in rows])), "m"),
         Metric("scale factor (stereo / P1c)", factor, "x", ok=(0.97, 1.03), warn=(0.9, 1.1),
