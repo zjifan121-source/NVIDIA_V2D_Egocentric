@@ -5,8 +5,8 @@
 request.json: {"frames": <dir of %06d.jpg>, "out": <dir>, "tracks": [{"track": "obj_0", "text": "white pot"},
 ...], "min_prob": 0.35, "min_area": 0.005}. For each track: the seed frame is the first frame where
 some instance of the text has probability >= min_prob and a mask covering >= min_area of the image
-(V3_BUILD_SPEC.md P1b); that instance alone is kept and propagated over the whole clip in both
-directions; a hand's instance must differ from the other hand's (mask IoU <= 0.5 on the seed
+(V3_BUILD_SPEC.md P1b); every instance is propagated over the whole clip in both directions and
+that one alone is kept; a hand's instance must differ from the other hand's (mask IoU <= 0.5 on the seed
 frame). Writes <out>/<track>/%06d.png (255 = the object, every frame) and <out>/sam3_meta.json.
 Imports only the sam3 package, numpy and PIL (no pathb).
 """
@@ -67,8 +67,8 @@ def main(request_path: str) -> int:
     meta = {"model": "sam3.1 (build_sam3_multiplex_video_predictor)", "use_fa3": fa3, "frames": n, "size": [w, h],
             "load_seconds": round(time.time() - t0, 1), "tracks": {}}
     def fresh(old=None):
-        """A new session: the pinned SAM 3 keeps propagation state across reset_session (ep18: the next
-        track's forward pass "fetched existing predictions" and raised KeyError), so every pass gets one."""
+        """A new session for every pass: each starts with an empty action history, which SAM 3.1 reads
+        to choose between a full propagation and a fetch of cached frames."""
         if old is not None:
             predictor.handle_request(dict(type="close_session", session_id=old))
         return predictor.handle_request(dict(type="start_session", resource_path=str(frames),
@@ -97,12 +97,6 @@ def main(request_path: str) -> int:
             f, obj, prob, _, box = seed
             masks, backward_error = {}, None
 
-            def keep_only(outputs, chosen):
-                for other in np.asarray(outputs["out_obj_ids"]).tolist():  # keep the chosen instance only
-                    if other != chosen:
-                        predictor.handle_request(dict(type="remove_object", session_id=session, obj_id=other,
-                                                      frame_index=f))
-
             def collect(direction, chosen):
                 for response in predictor.handle_stream_request(dict(type="propagate_in_video", session_id=session,
                                                                       propagation_direction=direction,
@@ -113,7 +107,9 @@ def main(request_path: str) -> int:
                         m = np.asarray(o["out_binary_masks"])[ids.index(chosen)].astype(bool)
                         if m.any():
                             masks.setdefault(response["frame_index"], m)
-            keep_only(got, obj)
+            # every instance is propagated and only the chosen one kept: in the pinned SAM 3.1 a remove_object
+            # before the first propagation makes it a "fetch" of the cached frames, of which only the prompt
+            # frame exists (ep18's second track: KeyError 1)
             collect("forward", obj)
             if f > 0:  # backward from a fresh prompt: after a forward pass the pinned SAM 3's multiplex
                 # tracker raised "No points are provided" going back (ep0, a hand seeded at frame 25)
@@ -127,7 +123,6 @@ def main(request_path: str) -> int:
                         same = [np.asarray(again["out_binary_masks"])[i].astype(bool) for i in range(len(ids))]
                         overlap = [((x & ref).sum() / max((x | ref).sum(), 1)) if ref is not None else 0 for x in same]
                         back_obj = ids[int(np.argmax(overlap))]
-                        keep_only(again, back_obj)
                         collect("backward", back_obj)
                 except RuntimeError as err:
                     backward_error = str(err)[:200]
