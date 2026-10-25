@@ -553,7 +553,72 @@ def lifted_segments(z: np.ndarray, lift: float) -> list[tuple[int, int]]:
     return list(zip(edges[::2], edges[1::2]))
 
 
-def attach_hands(data: dict, bundle: Path, lift: float = 0.02, reach: float = 0.12, blend: int = 5) -> dict:
+def hold_owner(D: np.ndarray, switch: float, gap: int, min_len: int, ratio: float = 1.0) -> np.ndarray:
+    """Per frame, the object a hand holds (-1: none) from a cost per object (lower is better, inf: not
+    holdable).
+
+    Keeps the current object until another costs `switch` less and under 1/`ratio` of it, bridges gaps
+    of up to `gap` frames inside a hold of the same object, and drops holds shorter than `min_len`."""
+    owner = np.full(D.shape[1], -1)
+    cur = -1
+    for t in range(D.shape[1]):
+        best = int(np.argmin(D[:, t]))
+        if not np.isfinite(D[best, t]):
+            cur = -1
+        elif cur < 0 or not np.isfinite(D[cur, t]) or (D[best, t] < D[cur, t] - switch and D[best, t] * ratio < D[cur, t]):
+            cur = best
+        owner[t] = cur
+    for o, a, b in holds(owner):  # bridge short gaps between two holds of the same object
+        nxt = np.flatnonzero(owner[b:b + gap + 1] >= 0)
+        if len(nxt) and owner[b + nxt[0]] == o:
+            owner[b:b + nxt[0]] = o
+    for o, a, b in holds(owner):
+        if b - a < min_len:
+            owner[a:b] = -1
+    return owner
+
+
+def holds(owner: np.ndarray) -> list[tuple[int, int, int]]:
+    """(object, start, end) runs of frames with the same held object."""
+    edges = np.flatnonzero(np.diff(np.concatenate([[-1], owner, [-1]])))
+    return [(int(owner[a]), int(a), int(b)) for a, b in zip(edges[:-1], edges[1:]) if owner[a] >= 0]
+
+
+def mask_contact(bundle: Path, data: dict, n: int, dilate: int = 15, step: int = 4) -> dict | None:
+    """Per hand, per object slot and frame: pixels where the hand's SAM2 mask (dilated by `dilate` px)
+    overlaps the object's mask, at 1/`step` resolution. Hand masks come from the run that supplied the
+    world and hands, each object's mask from its own run (sources.source_run in the bundle manifest and
+    its sibling object runs). None when the masks cannot be found."""
+    import cv2
+    try:
+        src = json.loads((bundle / "manifest.json").read_text())["sources"]
+        run = Path(src["source_run"])
+        hand_ids = {side: Path(src[f"{side}_hand_dir"]).name for side in ("left", "right")}
+    except (OSError, KeyError, ValueError):
+        return None
+    names = [str(x) for x in data["object_names"]] if "object_names" in data else [run.name]
+    kernel = np.ones((2 * dilate // step + 1,) * 2, np.uint8)
+
+    def read(path):
+        m = cv2.imread(str(path), cv2.IMREAD_GRAYSCALE)
+        return None if m is None else m[::step, ::step] > 0
+
+    out = {side: np.zeros((len(names), n)) for side in hand_ids}
+    for t in range(n):
+        objs = [read(run.parent / name / "masks/1" / f"{t:06d}.png") for name in names]
+        for side, hid in hand_ids.items():
+            h = read(run / "masks" / hid / f"{t:06d}.png")
+            if h is None or not h.any():
+                continue
+            h = cv2.dilate(h.astype(np.uint8), kernel) > 0
+            for k, o in enumerate(objs):
+                if o is not None:
+                    out[side][k, t] = float((h & o).sum())
+    return out if any(v.any() for v in out.values()) else None
+
+
+def attach_hands(data: dict, bundle: Path, lift: float = 0.02, reach: float = 0.12, blend: int = 5,
+                 min_contact: float = 10.0) -> dict:
     """Make the reference hands hold what they carry.
 
     Hands and object are fitted separately, so while an object is lifted the reference hands are
@@ -561,9 +626,10 @@ def attach_hands(data: dict, bundle: Path, lift: float = 0.02, reach: float = 0.
     object (NVIDIA's tissue sample: 0%). Without the training-time helper force, which the
     evaluator turns off, the policy cannot carry an object its reference does not hold.
     The object tracks score better than the hand tracks (locking the object to the hand instead
-    lowers reconstruction-only AUC 0.291 -> 0.265), so the hands are moved, not the object: in
-    each lifted run, every hand whose wrist comes within `reach` of the surface rides rigidly
-    with the object at its offset from the closest frame, easing in and out over `blend` frames.
+    lowers reconstruction-only AUC 0.291 -> 0.265), so the hands are moved, not the object: while
+    a hand's mask touches a lifted object's mask in the image (at least `min_contact` pixels at
+    1/4 resolution) it holds that object (one object per hand at a time), riding rigidly at its
+    offset from the closest frame of that hold and easing in and out over `blend` frames.
     Hands are rewritten through the camera-frame MANO parameters the loader reads."""
     from scipy.spatial.transform import Rotation
     c2w = data["camera_to_world_transform"].astype(np.float64)
@@ -579,27 +645,53 @@ def attach_hands(data: dict, bundle: Path, lift: float = 0.02, reach: float = 0.
         H[:, :3, :3] = Rc @ R
         H[:, :3, 3] = np.einsum("nij,nj->ni", Rc, data[f"hand_{side}_wrist_trans_in_camera"] + j0) + tc
         hands[side] = (H, j0)
-    info, moved = {}, {side: np.zeros(len(c2w), bool) for side in hands}
+    n = len(c2w)
+    objects = []  # (slot, poses, wrist-to-surface distance per hand while lifted and within reach)
     for i, (pose_key, scale_key, mesh_file) in enumerate(object_slots(data)):
         T = data[pose_key].astype(np.float64)
         v = object_vertices(bundle, data, scale_key, mesh_file)
         v = v[:: max(1, len(v) // 500)]
         surface = np.einsum("tij,vj->tvi", T[:, :3, :3], v) + T[:, None, :3, 3]
+        lifted = np.zeros(n, bool)
         for a, b in lifted_segments(T[:, 2, 3], lift):
-            for side, (H, _) in hands.items():
-                dist = np.linalg.norm(surface[a:b] - H[a:b, None, :3, 3], axis=-1).min(axis=1)
-                if dist.min() > reach:
-                    continue
-                k = a + int(np.argmin(dist))
-                grip = np.linalg.inv(T[k]) @ H[k]
-                for t in range(a, b):
-                    w = min(1.0, (t - a + 1) / (blend + 1), (b - t) / (blend + 1))
-                    target = T[t] @ grip
-                    q = Rotation.from_matrix([H[t, :3, :3], target[:3, :3]])
-                    H[t, :3, :3] = (q[0] * Rotation.from_rotvec(w * (q[0].inv() * q[1]).as_rotvec())).as_matrix()
-                    H[t, :3, 3] = (1 - w) * H[t, :3, 3] + w * target[:3, 3]
-                moved[side][a:b] = True
-                info.setdefault(f"attached_{i}", []).append([side, int(a), int(b), round(float(dist.min()) * 100, 1)])
+            lifted[a:b] = True
+        near, dist = {}, {}
+        for side, (H, _) in hands.items():
+            d = np.linalg.norm(surface - H[:, None, :3, 3], axis=-1).min(axis=1)
+            near[side] = np.where(lifted & (d <= reach), d, np.inf)
+            dist[side] = d
+        objects.append((i, T, near, dist, lifted))
+    # One object per hand at a time. Which object a hand holds is read from the image: the lifted object
+    # whose mask its mask touches (most overlap wins, switching only on twice the overlap), because the
+    # 3D wrist-to-surface distances are too noisy to tell two nearby objects apart (public ep11: the
+    # nearest-object rule picked the still cup over the carried one). Without masks: the nearest lifted
+    # object within `reach`. Each hold gets its own grip from the unmoved hand at its closest frame.
+    # (Attaching per object let a hand near two lifted objects ride both, the later one overwriting the
+    # first, which was then carried by no hand.)
+    contact = mask_contact(bundle, data, n)
+    info, moved = {"attach_rule": "mask contact" if contact else "nearest within reach"}, {side: np.zeros(n, bool) for side in hands}
+    for side, (H, _) in hands.items():
+        H0 = H.copy()
+        if contact is not None:
+            C = contact[side]
+            D = np.stack([np.where(lifted & (C[o] >= min_contact), 1.0 / (1.0 + C[o]), np.inf)
+                          for o, (_, _, _, _, lifted) in enumerate(objects)])
+            owner = hold_owner(D, switch=0.0, gap=10, min_len=2 * blend + 1, ratio=2.0)
+        else:
+            D = np.stack([near[side] for _, _, near, _, _ in objects])
+            owner = hold_owner(D, switch=0.02, gap=10, min_len=2 * blend + 1)
+        for o, a, b in holds(owner):
+            i, T, _, dist, _ = objects[o]
+            k = a + int(np.argmin(dist[side][a:b]))
+            grip = np.linalg.inv(T[k]) @ H0[k]
+            for t in range(a, b):
+                w = min(1.0, (t - a + 1) / (blend + 1), (b - t) / (blend + 1))
+                target = T[t] @ grip
+                q = Rotation.from_matrix([H0[t, :3, :3], target[:3, :3]])
+                H[t, :3, :3] = (q[0] * Rotation.from_rotvec(w * (q[0].inv() * q[1]).as_rotvec())).as_matrix()
+                H[t, :3, 3] = (1 - w) * H0[t, :3, 3] + w * target[:3, 3]
+            moved[side][a:b] = True
+            info.setdefault(f"attached_{i}", []).append([side, int(a), int(b), round(float(dist[side][k]) * 100, 1)])
     for side, (H, j0) in hands.items():
         if not moved[side].any():
             continue

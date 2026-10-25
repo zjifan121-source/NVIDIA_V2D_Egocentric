@@ -40,6 +40,8 @@ def relabel(src: Path, dst: Path, names: list[str]) -> list[str]:
     if sorted(set(ids)) != list(range(len(names))):
         return [f"{src.name}: object ids {sorted(set(ids))} for roster {names}"]
     wrong = {b for i, b in zip(ids, bodies) if not (b.endswith("_" + names[i]) or ("_" + names[i] + "_") in b)}
+    if wrong and len(names) == 1 and len(set(bodies)) == 1:
+        wrong = set()  # one object: single-object scenes name the body after the run, the slot is unambiguous
     if wrong:
         return [f"{src.name}: bodies {sorted(wrong)} do not match roster {names} by slot"]
     column = table.schema.get_field_index("object_body_name")

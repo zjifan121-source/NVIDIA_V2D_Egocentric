@@ -1,17 +1,20 @@
 #!/bin/bash
 # One episode: build the tracking scene from bundles in namespace $NS (load+retarget, attach hands,
-# --merge for two-object clips, extra load flags $LR_EXTRA), then a full-recipe 250M-step run
-# named ep<EP>_$TAG (one self-requeuing 1 h preempt job). SCORE=1 scores public episodes.
+# --merge for two-object clips, extra load flags $LR_EXTRA, default --smooth-hands 2), then one training run
+# named ep<EP>_$TAG (one self-requeuing 1 h preempt job) with train_diag.sbatch's default recipe (100M steps,
+# object keypoint reward x2; CURRICULUM/STEPS override it). SCORE=1 scores public episodes.
 # LR_CPU=1 builds the scene on maxlab-cpu (--device cpu; the GPU queue is the bottleneck);
 # SKIP_LR=1 trains on an existing scene. SCENE_SUFFIX=_x writes the scene to <ns>_attach_x (keeps the old one).
 # MOTION_SPEED=0.5 trains at half reference speed; TRAIN_EXTRA adds training overrides (e.g. termination settings);
-# STEPS changes the run length (default 250M); SEED the training seed (default 42).
+# STEPS changes the run length (default 100M); SEED the training seed (default 42). Seeds differ a lot on
+# some clips: train 2-4 seeds per episode and keep the best by own-reference score (select_policies.py).
 # CONTACTS=big: 2048-contact buffer on 80 GB cards, for scenes that overflow the default (train.log: 'nefc overflow').
-# Usage: NS=fs_noref TAG=noref250M LR_EXTRA="--smooth-hands 2" scene_train.sh EP [EP ...]
+# Usage: NS=fs_noref TAG=obj2x_s42 scene_train.sh EP [EP ...]   (LR_EXTRA="" builds without hand smoothing)
 J=/home/$USER/NVIDIA_V2D_Egocentric/tools/track3/jobs
 O=/data/user_data/$USER/v2d/recon_data/outputs
 : "${NS:?set NS}" "${TAG:?set TAG}"
 EXTRA="task.motion_speed=${MOTION_SPEED:-1.0} sim.fps=20.254119873046875 termination.wrist_position.threshold=0.3 training.checkpoint.save_interval_environment_steps=5000192 ${TRAIN_EXTRA:-}"
+LR_EXTRA=${LR_EXTRA---smooth-hands 2}
 export V2D_BUNDLE_NS=$NS
 for EP in "$@"; do
   E6=$(printf %06d "$EP"); OBJS=($(ls "$O/$NS/episode_$E6"))
@@ -34,6 +37,6 @@ for EP in "$@"; do
   BIG=(); X=""
   [ "${CONTACTS:-}" = big ] && BIG=(--constraint='VRAM_80GB|VRAM_141GB') && X=" sim.njmax=2048 sim.nconmax=1024"
   T=$(sbatch --parsable -J t-ep${EP}_$TAG --qos=preempt_qos "${DEP[@]}" "${BIG[@]}" \
-      --export=ALL,NAME=ep${EP}_$TAG,EP=$EP,STEPS=${STEPS:-250003456},SCORE=${SCORE:-0},PARQUET="$P",EXTRA="$EXTRA$X" "$J/train_diag.sbatch")
+      --export=ALL,NAME=ep${EP}_$TAG,EP=$EP,STEPS=${STEPS:-100003840},SCORE=${SCORE:-0},PARQUET="$P",EXTRA="$EXTRA$X" "$J/train_diag.sbatch")
   echo "ep$EP (${OBJS[*]}) $NS: lr $LR train $T"
 done

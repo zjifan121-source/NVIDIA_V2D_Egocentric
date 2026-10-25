@@ -1,6 +1,9 @@
 #!/bin/bash
 # Diagnostic FlashCHORD run: train + official evaluator, keeping training curves (W&B offline).
-# Usage: sbatch --export=ALL,NAME=ep41_contacts,PARQUET=<partition>,EXTRA="sim.njmax=2048 ..."[,EP=41][,STEPS=...] train_diag.sbatch
+# Usage: sbatch --export=ALL,NAME=ep41_contacts,PARQUET=<partition>,EXTRA="sim.njmax=2048 ..."[,EP=41][,STEPS=...][,CURRICULUM=...] train_diag.sbatch
+# Default recipe: the 100M schedule with the object keypoint reward x2 (curriculum tracking_100m_object2x,
+# 100,003,840 steps, ~40 min on an L40S); best on public clips (ep27 0.56 -> 0.81, no loss on ep12/13).
+# A curriculum= in EXTRA wins. The old 250M baseline: STEPS=250003456 CURRICULUM=tracking_250m_mixed_reset.
 # Preemption-safe (--requeue): training resumes from the newest state_*.safetensors (written
 # atomically) with NVIDIA's compact resume (no replay buffer; it refills); logs append; each
 # stage leaves a .done marker. A resume starts a new W&B offline run; read_curves.py merges them.
@@ -25,8 +28,9 @@
 set -uo pipefail
 source /home/$USER/NVIDIA_V2D_Egocentric/tools/track3/jobs/disk_guard.sh  # hold the job when the quota is nearly full
 : "${NAME:?set NAME}" "${PARQUET:?set PARQUET}"
-STEPS=${STEPS:-250003456}
+STEPS=${STEPS:-100003840}
 EXTRA=${EXTRA:-}
+[[ "$EXTRA" != *curriculum=* ]] && EXTRA="curriculum=${CURRICULUM:-tracking_100m_object2x} $EXTRA"
 REPO=/home/$USER/NVIDIA_V2D_Egocentric
 FC=$REPO/baseline/robotic_grounding/flash_chord
 KIT=$REPO/assets/data/v2d_submission_kit

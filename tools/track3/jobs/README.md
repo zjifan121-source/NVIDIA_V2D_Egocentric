@@ -54,7 +54,7 @@ TERM; it checks for a cancel first, but if a cancelled run still comes back, sto
 | R3–R13 | `run.sbatch <ep> <object> fs_sam3d` | Reconstruction on the FoundationStereo depth, one object per job (~1 h) |
 | R4 fix | `hands.sbatch <ep> <object>` | Rerun with `--late-hands` when a hand enters after frame 0 (namespace `fs_hands`) |
 | R11 fix | `../write_unrefined_bundle.py <src_ns> <dst_ns> <ep>:<object> ...` (CPU, minutes) | Bundle without the joint refinement; use when the refined camera path is >6x the SLAM path |
-| L–T | `scene_train.sh` (`LR_CPU=1` builds the scene on CPU) | Load + retarget, then a 250M-step training run (`train_diag.sbatch`, self-requeuing, L40S allowed) |
+| L–T | `scene_train.sh` (`LR_CPU=1` builds the scene on CPU) | Load + retarget, then a training run with the default recipe: 100M steps, object keypoint reward x2 (`train_diag.sbatch`, self-requeuing, L40S allowed) |
 | R4 follow-up | `hands_next.sh <ep> ...` | After `hands.sbatch` finishes both objects: camera rule, bundle, scene and training |
 | Score | `score_playback.sh <out.json> <ns,...> <ep,...>` | Official-metric playback scores for public episodes (no simulation) |
 | Score a policy | `../score_rollout.py <run_dir> <ep> [scene_variant]` | Official scores of a training run's rollout, full or half speed |
@@ -62,8 +62,11 @@ TERM; it checks for a cancel first, but if a cancelled run still comes back, sto
 | Check | `scan.sbatch <ep> <object>` | Public episodes only: track with the released scan, to measure what a perfect mesh is worth |
 | Safety net | `still_submit.sh` | Hold-still scenes and policies for the scored episodes |
 
-Example for one two-object episode, no refinement:
+Example for one two-object episode, no refinement, two seeds (the second reuses the scene):
 
-    NS=fs_noref TAG=v2_250M LR_CPU=1 LR_EXTRA="--smooth-hands 2" SCORE=1 tools/track3/jobs/scene_train.sh 12
+    NS=fs_noref TAG=obj2x_s42 LR_CPU=1 SCORE=1 tools/track3/jobs/scene_train.sh 12
+    NS=fs_noref TAG=obj2x_s43 SEED=43 SKIP_LR=1 SCORE=1 tools/track3/jobs/scene_train.sh 12
+
+Keep each episode's best seed by own-reference score with `../select_policies.py`.
 
 `l40s_probe.sbatch` is the memory check behind the L40S contact-buffer setting in `train_diag.sbatch`.
