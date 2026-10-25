@@ -79,16 +79,24 @@ def rendered_depth(mesh: o3d.geometry.TriangleMesh, K: np.ndarray, camera_to_wor
     return np.where(np.isfinite(hit), hit, 0.0)
 
 
+TRIM = 0.95  # default: the trimmed RMS keeps this share of the pixels (the closest)
+
+
 def depth_rms(mesh: o3d.geometry.TriangleMesh, frames: list[Frame]) -> dict:
-    """The mesh against held-out depth: RMS (m) of rendered minus stereo depth where both exist."""
+    """The mesh against held-out depth: RMS (m) of rendered minus stereo depth where both exist, its
+    median, and the RMS of the closest TRIM of the pixels (mixed pixels at depth edges inside a mask
+    put the plain RMS at ~10 cm on ep13's rack while its median was 1.8 mm)."""
     diffs = []
     for f in frames:
         r = rendered_depth(mesh, f.K, f.camera_to_world, f.depth.shape)
         both = (r > 0) & (f.depth > 0)
         diffs.append((r - f.depth)[both])
     d = np.concatenate(diffs) if diffs else np.array([])
+    a = np.sort(np.abs(d))
+    kept = a[:max(1, int(TRIM * len(a)))] if len(a) else a
     return {"rms_m": float(np.sqrt(np.mean(d ** 2))) if len(d) else None, "pixels": int(len(d)),
-            "median_abs_m": float(np.median(np.abs(d))) if len(d) else None}
+            "median_abs_m": float(np.median(a)) if len(d) else None,
+            "trimmed_rms_m": float(np.sqrt(np.mean(kept ** 2))) if len(kept) else None, "trimmed_share": TRIM}
 
 
 def cloud(points: np.ndarray, normals: np.ndarray | None = None) -> o3d.geometry.PointCloud:

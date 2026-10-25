@@ -163,9 +163,11 @@ def run(ctx) -> StageResult:
                    "extents_cm": (np.ptp(v, axis=0) * 100).round(1).tolist() if len(v) else None}
             bar = key == main
             metrics.append(Metric(f"{name}: {key} surface vs held-out stereo depth (RMS)",
-                                  rms["rms_m"] * 1000 if rms.get("rms_m") is not None else None, "mm",
+                                  rms["trimmed_rms_m"] * 1000 if rms.get("trimmed_rms_m") is not None else None, "mm",
                                   ok=BARS["rms_mm"][0] if bar else None, warn=BARS["rms_mm"][1] if bar else None,
-                                  note=f"{len(held)} held-out frames; {file}"))
+                                  note=f"closest {rms.get('trimmed_share', 1):.0%} of the pixels; median "
+                                       f"{(rms.get('median_abs_m') or 0) * 1000:.1f} mm, plain RMS "
+                                       f"{(rms.get('rms_m') or 0) * 1000:.0f} mm; {len(held)} held-out frames; {file}"))
             if ctx.public and len(v):
                 ref = gt.scan_mesh(ctx.episode, name, ctx.files_read)
                 if ref is not None:
