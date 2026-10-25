@@ -88,10 +88,14 @@ def test_touch_windows():
 def test_fuse_scan_on_a_moved_box(episode):
     result = A21.run(episode)
     report = json.loads((episode.root / "s3a2_fuse_scan/box/fuse_report.json").read_text())
-    after = REST_A[0] + A21.SETTLE  # the hand leaves at REST_A[0] - 1
-    assert report["windows"] == {"rest_before": list(REST_B), "rest_after": [after, N - 1]}
+    # the hand touches 15-25 and the box moves 15-25; the motion test (+-5 frames) ends rest-before a few
+    # frames before the touch and starts rest-after a few frames after the settle
+    w = report["windows"]
+    assert 9 <= w["rest_before"][1] <= REST_B[1] and w["rest_before"][0] == 0
+    assert REST_A[0] + A21.SETTLE <= w["rest_after"][0] <= REST_A[0] + A21.SETTLE + 5 and w["rest_after"][1] == N - 1
     parts = report["partials"]
-    assert len(parts["rest_before"]["fused"]) == 15 and len(parts["rest_after"]["fused"]) == N - after
+    assert len(parts["rest_before"]["fused"]) == w["rest_before"][1] + 1
+    assert len(parts["rest_after"]["fused"]) == N - w["rest_after"][0]
     assert parts["rest_before"]["held_out_rms"]["rms_m"] < 0.003
     for key, file, t in (("rest_before", "partial_scan.ply", 0), ("rest_after", "partial_scan_after.ply", N - 1)):
         partial = o3d.io.read_triangle_mesh(str(episode.root / f"s3a2_fuse_scan/box/{file}"))
@@ -99,7 +103,7 @@ def test_fuse_scan_on_a_moved_box(episode):
         pts = np.asarray(S.mesh_points(partial, 5000).points)
         assert S.one_sided_cm(pts, np.asarray(truth.vertices), np.asarray(truth.triangles)) < 0.2, key
     status = {m.name: m.status for m in result.metrics}
-    assert status["box: frames fused"] == "WARN"  # 15 + 9 < 30
+    assert status["box: frames fused"] == "WARN"  # ~11 + ~5 < 30
     assert status["box: rest_before surface vs held-out stereo depth (RMS)"] == "PASS"
 
 
