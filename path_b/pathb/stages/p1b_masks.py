@@ -140,12 +140,17 @@ def run(ctx) -> StageResult:
     size = (first.shape[1] // 2, first.shape[0] // 2)
     writer = cv2.VideoWriter(str(d / "masks_overlay.mp4"), cv2.VideoWriter_fourcc(*"mp4v"), TRACK3_FPS, size)
     both, overlap = 0, []
+    objects = [i for i, t in enumerate(req["tracks"]) if "object" in t]
+    pairs = {(i, j): [] for a, i in enumerate(objects) for j in objects[a + 1:]}  # ep23: two tracks, one board
     for k, f in enumerate(frames):
         masks = [cv2.imread(str(d / t / f"{k:06d}.png"), cv2.IMREAD_GRAYSCALE) > 0 for t in names]
         image = overlay(cv2.imread(str(f)), masks)
         writer.write(cv2.resize(image, size))
         if k in picks:
             cv2.imwrite(str(d / f"overlay/{k:06d}.jpg"), image, [cv2.IMWRITE_JPEG_QUALITY, 85])
+        for (i, j), seen in pairs.items():
+            if masks[i].any() and masks[j].any():
+                seen.append((masks[i] & masks[j]).sum() / max((masks[i] | masks[j]).sum(), 1))
         L, R = masks[names.index("hand_L")], masks[names.index("hand_R")]
         if L.any() and R.any():
             both += 1
@@ -168,5 +173,10 @@ def run(ctx) -> StageResult:
     metrics.append(Metric("left/right hand mask overlap (median IoU, frames with both)",
                           float(np.median(overlap)) if overlap else None, "", ok=(0, 0.5), warn=(0, 0.8),
                           note=f"{both} frames with both; near 1 means both prompts found the same hand"))
+    worst = max(((float(np.median(v)), names[i], names[j]) for (i, j), v in pairs.items() if v), default=None)
+    metrics.append(Metric("object mask overlap (median IoU, worst pair, frames with both)",
+                          worst[0] if worst else None, "", ok=(0, 0.5), warn=(0, 0.8),
+                          note=f"{worst[1]} / {worst[2]}; near 1 means two prompts found the same object" if worst else
+                               "fewer than two objects"))
     return StageResult(metrics, {"masks": d, "prompts": d / "prompts.json", "hand_tracks": d / "hand_tracks.json",
                                  "overlay": d / "overlay", "video": d / "masks_overlay.mp4"})

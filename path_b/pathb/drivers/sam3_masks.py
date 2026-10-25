@@ -7,7 +7,10 @@ request.json: {"frames": <dir of %06d.jpg>, "out": <dir>, "tracks": [{"track": "
 some instance of the text has probability >= min_prob and a mask covering >= min_area of the image
 (V3_BUILD_SPEC.md P1b); every instance is propagated over the whole clip in both directions and
 that one alone is kept; a hand's instance must differ from the other hand's (mask IoU <= 0.5 on the seed
-frame). Writes <out>/<track>/%06d.png (255 = the object, every frame) and <out>/sam3_meta.json.
+frame), and an object's must differ from every earlier track's with the same text (ep23: two "wooden
+board" tracks both seeded on the left board). Look-alikes take instances in probability order, so which
+is which is arbitrary. Writes <out>/<track>/%06d.png (255 = the object, every frame) and
+<out>/sam3_meta.json.
 Imports only the sam3 package, numpy and PIL (no pathb).
 """
 from __future__ import annotations
@@ -25,9 +28,9 @@ from PIL import Image
 OTHER_HAND = {"hand_L": "hand_R", "hand_R": "hand_L"}
 
 
-def best(outputs: dict, min_prob: float, min_area: float, pixels: int, avoid: np.ndarray | None = None):
+def best(outputs: dict, min_prob: float, min_area: float, pixels: int, avoid: list | None = None):
     """(object id, prob, mask, box) of the most probable instance that passes both bars, or None;
-    avoid: a mask the instance must not repeat (IoU > 0.5), e.g. the other hand's."""
+    avoid: masks the instance must not repeat (IoU > 0.5), e.g. the other hand's."""
     ids = np.asarray(outputs["out_obj_ids"]).tolist()
     if not ids:
         return None
@@ -35,8 +38,9 @@ def best(outputs: dict, min_prob: float, min_area: float, pixels: int, avoid: np
     masks = np.asarray(outputs["out_binary_masks"]).astype(bool)
     boxes = np.asarray(outputs["out_boxes_xywh"]).tolist() if outputs.get("out_boxes_xywh") is not None else [None] * len(ids)
     keep = [i for i in range(len(ids)) if probs[i] >= min_prob and masks[i].sum() >= min_area * pixels]
-    if avoid is not None and avoid.any():
-        keep = [i for i in keep if (masks[i] & avoid).sum() <= 0.5 * (masks[i] | avoid).sum()]
+    for a in avoid or []:
+        if a.any():
+            keep = [i for i in keep if (masks[i] & a).sum() <= 0.5 * (masks[i] | a).sum()]
     if not keep:
         return None
     i = max(keep, key=lambda k: probs[k])
@@ -73,7 +77,7 @@ def main(request_path: str) -> int:
             predictor.handle_request(dict(type="close_session", session_id=old))
         return predictor.handle_request(dict(type="start_session", resource_path=str(frames),
                                              offload_video_to_cpu=True))["session_id"]
-    session = None
+    session, done = None, []
     for track in req["tracks"]:
         t1 = time.time()
         session = fresh(session)
@@ -82,10 +86,10 @@ def main(request_path: str) -> int:
             predictor.handle_request(dict(type="reset_session", session_id=session))
             got = predictor.handle_request(dict(type="add_prompt", session_id=session, frame_index=f,
                                                 text=track["text"]))["outputs"]
-            other = OTHER_HAND.get(track["track"])
-            avoid = None
-            if other and (out / other / f"{f:06d}.png").is_file():  # the other hand, written before this one
-                avoid = np.asarray(Image.open(out / other / f"{f:06d}.png")) > 0
+            others = [t["track"] for t in done if t["text"] == track["text"]]  # written before this one
+            others += [OTHER_HAND[track["track"]]] if track["track"] in OTHER_HAND else []
+            avoid = [np.asarray(Image.open(out / o / f"{f:06d}.png")) > 0 for o in others
+                     if (out / o / f"{f:06d}.png").is_file()]
             pick = best(got, req["min_prob"], req["min_area"], pixels, avoid)
             if pick is not None:
                 seed = (f, *pick)
@@ -143,6 +147,7 @@ def main(request_path: str) -> int:
                                               "seconds": round(time.time() - t1, 1)}
         print(f"{track['track']}: seed {meta['tracks'][track['track']]['seed_frame']}, "
               f"present on {len(present)}/{n} frames", flush=True)
+        done.append(track)
     if session is not None:
         predictor.handle_request(dict(type="close_session", session_id=session))
     meta["gpu_peak_mib"] = round(torch.cuda.max_memory_allocated() / 2 ** 20) if torch.cuda.is_available() else None
