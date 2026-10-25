@@ -23,6 +23,7 @@ KIT=$REPO/assets/data/v2d_submission_kit
 FC_PY=${FC_PY:-$FC/.venv/bin/python}
 STEPS=${STEPS:-100003840}
 CURRICULUM=${CURRICULUM:-tracking_100m_object2x}
+[ $((STEPS % 4096)) -eq 0 ] || { echo "STEPS must be a multiple of 4096 (the parallel environments), got $STEPS"; exit 1; }
 RECIPE="curriculum=$CURRICULUM task.motion_speed=1.0 sim.fps=20.254119873046875 termination.wrist_position.threshold=0.3 training.checkpoint.save_interval_environment_steps=5000192"
 mkdir -p "$RUNS"; touch "$Q.taken"
 
