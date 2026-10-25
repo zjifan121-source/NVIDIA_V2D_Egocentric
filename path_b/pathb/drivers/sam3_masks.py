@@ -66,10 +66,17 @@ def main(request_path: str) -> int:
     predictor.model.init_state = lambda **kw: init(**{k: v for k, v in kw.items() if k in takes})
     meta = {"model": "sam3.1 (build_sam3_multiplex_video_predictor)", "use_fa3": fa3, "frames": n, "size": [w, h],
             "load_seconds": round(time.time() - t0, 1), "tracks": {}}
-    session = predictor.handle_request(dict(type="start_session", resource_path=str(frames),
-                                            offload_video_to_cpu=True))["session_id"]
+    def fresh(old=None):
+        """A new session: the pinned SAM 3 keeps propagation state across reset_session (ep18: the next
+        track's forward pass "fetched existing predictions" and raised KeyError), so every pass gets one."""
+        if old is not None:
+            predictor.handle_request(dict(type="close_session", session_id=old))
+        return predictor.handle_request(dict(type="start_session", resource_path=str(frames),
+                                             offload_video_to_cpu=True))["session_id"]
+    session = None
     for track in req["tracks"]:
         t1 = time.time()
+        session = fresh(session)
         seed = None
         for f in range(n):  # the first frame where the text finds a clear instance
             predictor.handle_request(dict(type="reset_session", session_id=session))
@@ -111,7 +118,7 @@ def main(request_path: str) -> int:
             if f > 0:  # backward from a fresh prompt: after a forward pass the pinned SAM 3's multiplex
                 # tracker raised "No points are provided" going back (ep0, a hand seeded at frame 25)
                 try:
-                    predictor.handle_request(dict(type="reset_session", session_id=session))
+                    session = fresh(session)
                     again = predictor.handle_request(dict(type="add_prompt", session_id=session, frame_index=f,
                                                           text=track["text"]))["outputs"]
                     ids = np.asarray(again["out_obj_ids"]).tolist()
@@ -141,7 +148,8 @@ def main(request_path: str) -> int:
                                               "seconds": round(time.time() - t1, 1)}
         print(f"{track['track']}: seed {meta['tracks'][track['track']]['seed_frame']}, "
               f"present on {len(present)}/{n} frames", flush=True)
-    predictor.handle_request(dict(type="close_session", session_id=session))
+    if session is not None:
+        predictor.handle_request(dict(type="close_session", session_id=session))
     meta["gpu_peak_mib"] = round(torch.cuda.max_memory_allocated() / 2 ** 20) if torch.cuda.is_available() else None
     (out / "sam3_meta.json").write_text(json.dumps(meta, indent=1) + "\n")
     return 0
