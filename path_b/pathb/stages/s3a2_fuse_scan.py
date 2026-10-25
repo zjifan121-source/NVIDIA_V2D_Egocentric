@@ -4,7 +4,8 @@ so its rest windows come from the 2-D masks, not from S3b's segments: rest-befor
 hand mask (dilated 5 px at half resolution, as P1c) first touches the object's P1b mask; rest-after =
 the frames from SETTLE frames after it last touches it. Never touched: the whole clip is rest-before.
 Frames used: inside a window, the object's mask covers >= 1 % of the image (observe.area_bar: half the
-object's 90th-percentile share for a thin or small one) and no hand touches it. Each
+object's 90th-percentile share on the frames no hand touches, for a thin or small one) and no hand
+touches it. Each
 frame's P2 depth (depth_a_half, ego_cam_a) is kept inside the object's mask only, the mask eroded by
 MASK_ERODE_PX so the mixed depth at its edge stays out. Fused in the world (P4's camera_to_world) with
 pathb/scan.py's TSDF (voxel 4 mm, sdf_trunc 16 mm). The object moved between the windows, so each is
@@ -106,7 +107,8 @@ def rest_frames(ctx, k: int, K: np.ndarray, shape, c2w: np.ndarray, n: int) -> t
     """The windows, the usable frames per window, the per-frame log and the mask-share bar."""
     half = ctx.root / "p2_depth/depth_a_half"
     masks = [frame_masks(ctx, k, t, shape) for t in range(n)]
-    bar = area_bar([share for _, _, share in masks])
+    free = [share for _, touched, share in masks if not touched]  # its size at rest (ep31's sweeper: 0.4-0.5 %,
+    bar = area_bar(free or [share for _, _, share in masks])  # 1 % when carried nearer the camera)
     moving = object_moving(ctx, k, n)
     windows = touch_windows([touched for _, touched, _ in masks], moving)
     usable, log = {key: [] for key in WINDOWS}, []
