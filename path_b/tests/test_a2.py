@@ -85,6 +85,13 @@ def test_touch_windows():
     assert A21.touch_windows([True] + [False] * 3) == {"rest_before": None, "rest_after": None}  # no frame left after settling
 
 
+def test_area_bar_is_relative_for_thin_objects():
+    from pathb.observe import area_bar
+    assert area_bar([0.05] * 50 + [0.0] * 10) == 0.01  # the spec's 1 % for an object that shows large
+    assert area_bar([0.009] * 40 + [0.002] * 10) == pytest.approx(0.0045)  # ep18's sweeper: half its own share
+    assert area_bar([0.0] * 5) == 0.01  # never seen
+
+
 def test_fuse_scan_on_a_moved_box(episode):
     result = A21.run(episode)
     report = json.loads((episode.root / "s3a2_fuse_scan/box/fuse_report.json").read_text())

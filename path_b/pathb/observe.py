@@ -10,6 +10,17 @@ import numpy as np
 
 from .geometry import read_depth, read_transforms
 
+MIN_AREA = 0.01  # spec: the object's mask share of the image for a frame to count (S3a fuse, S3c unstable)
+SMALL_AREA = 0.5  # default: a thin or small object's bar, as a share of its own 90th-percentile mask share
+
+
+def area_bar(shares) -> float:
+    """The spec's 1 % mask bar, or half the object's own 90th-percentile mask share when that is lower:
+    ep18's mini sweeper lies in full view at 0.87-0.94 % of the image, so the spec bar kept no frame.
+    shares: the object's mask share per frame (0 without a mask)."""
+    s = np.asarray([x for x in shares if x and x > 0], dtype=np.float64)
+    return float(min(MIN_AREA, SMALL_AREA * np.percentile(s, 90))) if len(s) else MIN_AREA
+
 
 class View:
     """One episode's camera model, cameras and mask tracks; points(k, t) for object k at frame t."""

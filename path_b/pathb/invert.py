@@ -19,7 +19,7 @@ that holds there. Poses map the canonical mesh frame to the world (V4 §3).
             frames (S4b then takes `keyframe` there)
   unstable  cubic Hermite position (zero end velocity) + slerp between the neighbouring end poses,
             then <= UNSTABLE_STEPS least-squares steps per frame on (a) where the mask covers >= 1 % of
-            the image, held near the interpolation by a prior and bounded (5 cm, 20 degrees), kept only
+            the image (observe.area_bar), held near the interpolation by a prior and bounded (5 cm, 20 degrees), kept only
             when it explains the frame better
 Order: segments in clip order (statics and grasps), then the grasps again with both neighbouring
 poses as end terms, then the unstable bridges. Rendered depth: Open3D's RaycastingScene (CPU).
@@ -34,6 +34,7 @@ from scipy.optimize import least_squares
 from scipy.spatial.transform import Rotation, Slerp
 
 from . import scan as S
+from .observe import area_bar
 
 SIG_A = 0.01  # m: depth residual scale (soft-L1)
 SIG_B = 0.005  # m: fingertip signed distance scale
@@ -50,7 +51,6 @@ UNSTABLE_STEPS = 5  # spec
 UNSTABLE_PRIOR_M, UNSTABLE_PRIOR_RAD = 0.02, np.radians(10)  # default: how far (a) may pull a bridge frame
 UNSTABLE_REACH_M, UNSTABLE_REACH_RAD = 0.05, np.radians(20)  # default: the refinement's bound (a bridge frame
 # whose guess is far off otherwise wandered 0.6 m on the synthetic slip)
-MIN_SHARE = 0.01  # spec: mask share for an unstable frame's refinement
 FIT_FRAMES, FIT_RAYS, RAYS = 60, 150, 300  # default: pass 1 subsample; rays per frame (pass 1, pass 2)
 MIN_GRASP = 5
 SIL_POINTS = 200  # default: canonical surface points projected for the silhouette term
@@ -107,6 +107,7 @@ class Clip:
         self.rng = np.random.default_rng(self.seed)
         pts = np.asarray(self.surface.points)
         self.samples = pts[np.random.default_rng(self.seed).choice(len(pts), min(SIL_POINTS, len(pts)), replace=False)]
+        self.min_share = area_bar([o[2] if o is not None else 0 for o in self.obs])  # an unstable frame's mask bar
 
     @property
     def n(self) -> int:
@@ -363,7 +364,7 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
     poses, refined = guess.copy(), 0
     for i, t in enumerate(range(a, b + 1)):
         o = clip.obs[t]
-        if o is None or o[2] < MIN_SHARE:
+        if o is None or o[2] < clip.min_share:
             continue
 
         def residual(x, i=i, t=t):

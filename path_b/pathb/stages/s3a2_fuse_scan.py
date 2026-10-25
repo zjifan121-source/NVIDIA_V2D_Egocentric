@@ -3,7 +3,8 @@ head camera saw at rest, fused from stereo depth alone (no generative model). Ru
 so its rest windows come from the 2-D masks, not from S3b's segments: rest-before = the frames before a
 hand mask (dilated 5 px at half resolution, as P1c) first touches the object's P1b mask; rest-after =
 the frames from SETTLE frames after it last touches it. Never touched: the whole clip is rest-before.
-Frames used: inside a window, the object's mask covers >= 1 % of the image and no hand touches it. Each
+Frames used: inside a window, the object's mask covers >= 1 % of the image (observe.area_bar: half the
+object's 90th-percentile share for a thin or small one) and no hand touches it. Each
 frame's P2 depth (depth_a_half, ego_cam_a) is kept inside the object's mask only, the mask eroded by
 MASK_ERODE_PX so the mixed depth at its edge stays out. Fused in the world (P4's camera_to_world) with
 pathb/scan.py's TSDF (voxel 4 mm, sdf_trunc 16 mm). The object moved between the windows, so each is
@@ -31,10 +32,10 @@ from .. import baseline as B
 from .. import gt
 from .. import scan as S
 from ..geometry import read_depth, read_transforms
+from ..observe import area_bar
 from ..report import Metric, StageResult
 from ..runner import write_json
 
-MIN_AREA = 0.01  # share of the image (spec)
 HAND_DILATE_PX = 5  # half resolution, as P1c
 MASK_ERODE_PX = 2  # default: half resolution; stereo depth at mask edges mixes object and background
 HOLD_OUT = 10  # spec
@@ -86,10 +87,11 @@ def object_moving(ctx, k: int, n: int) -> list[bool]:
     return [bool(np.isfinite(x) and x >= G.STATIC_M) for x in m]
 
 
-def rest_frames(ctx, k: int, K: np.ndarray, shape, c2w: np.ndarray, n: int) -> tuple[dict, dict, list]:
-    """The windows, the usable frames per window and the per-frame log."""
+def rest_frames(ctx, k: int, K: np.ndarray, shape, c2w: np.ndarray, n: int) -> tuple[dict, dict, list, float]:
+    """The windows, the usable frames per window, the per-frame log and the mask-share bar."""
     half = ctx.root / "p2_depth/depth_a_half"
     masks = [frame_masks(ctx, k, t, shape) for t in range(n)]
+    bar = area_bar([share for _, _, share in masks])
     moving = object_moving(ctx, k, n)
     windows = touch_windows([touched for _, touched, _ in masks], moving)
     usable, log = {key: [] for key in WINDOWS}, []
@@ -104,15 +106,15 @@ def rest_frames(ctx, k: int, K: np.ndarray, shape, c2w: np.ndarray, n: int) -> t
                 log.append(row | {"used": False, "why": "no mask" if mask is None else "no depth"})
                 continue
             row["mask_share"] = round(share, 4)
-            if share < MIN_AREA or touched:
-                log.append(row | {"used": False, "why": "hand touches the object" if touched else "mask < 1 %"})
+            if share < bar or touched:
+                log.append(row | {"used": False, "why": "hand touches the object" if touched else f"mask < {bar:.2%}"})
                 continue
             depth = read_depth(path)
             depth[~mask] = 0.0
             row["depth_share_in_mask"] = round(float((depth[mask] > 0).mean()), 3)
             usable[key].append(S.Frame(t, depth, K, c2w[t]))
             log.append(row | {"used": True})
-    return windows, usable, log
+    return windows, usable, log, bar
 
 
 def held_out_rms(frames: list) -> tuple[list, dict]:
@@ -159,14 +161,16 @@ def run(ctx) -> StageResult:
     for k, name in enumerate(ctx.objects):
         out = d / name
         out.mkdir(parents=True, exist_ok=True)
-        windows, usable, log = rest_frames(ctx, k, K, shape, c2w, n)
-        report = {"object": name, "windows": windows, "settle_frames": SETTLE, "frames": log, "partials": {},
+        windows, usable, log, bar = rest_frames(ctx, k, K, shape, c2w, n)
+        report = {"object": name, "windows": windows, "settle_frames": SETTLE, "mask_share_bar": bar,
+                  "frames": log, "partials": {},
               "window_rule": "before the first touch or motion; from SETTLE frames after the last"}
         main = "rest_before" if usable["rest_before"] else "rest_after"
         fused = len(usable["rest_before"]) + len(usable["rest_after"])
         metrics.append(Metric(f"{name}: frames fused", fused, "", ok=BARS["frames"][0], warn=BARS["frames"][1],
                               note=f"rest before {len(usable['rest_before'])} (window {windows['rest_before']}), "
-                                   f"after {len(usable['rest_after'])} (window {windows['rest_after']})"))
+                                   f"after {len(usable['rest_after'])} (window {windows['rest_after']}); "
+                                   f"mask bar {bar:.2%} of the image"))
         for key, file in WINDOWS.items():
             frames = usable[key]
             partial = S.largest_part(S.integrate(frames)) if frames else o3d.geometry.TriangleMesh()
