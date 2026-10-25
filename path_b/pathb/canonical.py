@@ -43,6 +43,10 @@ from scipy.spatial.transform import Rotation
 
 from . import scan as S
 
+MAX_TILT_DEG = 5.0  # default: a resting body of revolution stands within this of the table normal
+WALL_MARGIN = 1.15  # default: profile cells beyond this x the wall circles' (90th percentile) radius are a
+# handle or spout: at a handle's height little else is seen, so the azimuth test alone let ep41's pot
+# handle be revolved into a 49 cm disc
 REVOLUTION = {"white_pot", "white_pot_lid", "blue_cup", "beige_cup", "water_pitcher"}
 MIRROR = {"mini_dust_pan", "wooden_piece_1", "wooden_piece_2"}
 MIN_FITNESS = 0.3
@@ -89,16 +93,37 @@ def fused_cloud(partials: list, moves: list[dict]) -> o3d.geometry.PointCloud:
 
 
 # ---------------------------------------------------------------- 3: symmetry
-def circle(xy: np.ndarray, rounds: int = 3) -> tuple[np.ndarray, float, np.ndarray]:
-    """Robust algebraic circle fit: centre (2,), radius, inlier mask (residual <= 5 mm)."""
-    keep = np.ones(len(xy), bool)
+def circle(xy: np.ndarray, rounds: int = 3, tries: int = 300, max_r: float = 0.3) -> tuple[np.ndarray, float, np.ndarray]:
+    """Robust circle fit: centre (2,), radius, inlier mask (residual <= 5 mm). RANSAC over triples (the
+    most points within NEAR of one circle of radius <= max_r), then algebraic refits on the inliers. A
+    trimmed algebraic fit alone settled on a circle through a pot's wall and its handle (ep41: the
+    revolved mesh came out 48 cm across)."""
+    rng = np.random.default_rng(0)
+    keep, best = np.ones(len(xy), bool), -1
+    for _ in range(tries if len(xy) >= 3 else 0):
+        p = xy[rng.choice(len(xy), 3, replace=False)]
+        A = np.c_[2 * p, np.ones(3)]
+        try:
+            cx, cy, c = np.linalg.solve(A, (p ** 2).sum(axis=1))
+        except np.linalg.LinAlgError:
+            continue
+        r = np.sqrt(max(c + cx ** 2 + cy ** 2, 0.0))
+        if not 0 < r <= max_r:
+            continue
+        inl = np.abs(np.linalg.norm(xy - [cx, cy], axis=1) - r) <= NEAR
+        if inl.sum() > best:
+            best, keep = int(inl.sum()), inl
+    if keep.sum() < 3:
+        keep = np.ones(len(xy), bool)
     for _ in range(rounds):
         A = np.c_[2 * xy[keep], np.ones(keep.sum())]
         b = (xy[keep] ** 2).sum(axis=1)
         (cx, cy, c), *_ = np.linalg.lstsq(A, b, rcond=None)
         r = float(np.sqrt(max(c + cx ** 2 + cy ** 2, 0.0)))
         resid = np.abs(np.linalg.norm(xy - [cx, cy], axis=1) - r)
-        keep = resid <= max(NEAR, np.percentile(resid, 60))
+        keep = resid <= NEAR
+        if keep.sum() < 3:
+            break
     return np.array([cx, cy]), r, keep
 
 
@@ -111,7 +136,10 @@ def basis(a: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 def fit_revolution(points: np.ndarray, normals: np.ndarray, iterations: int = 4) -> dict:
     """Axis and radius profile. Starts vertical: every revolution object of the roster rests upright
     (a partial view skews the principal axes, so symmetry.axis would not do). The circle fits use the
-    side wall only (normals across the axis): a cap's points fill the circle and pull its centre."""
+    side wall only (normals across the axis): a cap's points fill the circle and pull its centre. The
+    line through the slices' centres may tilt the axis by at most MAX_TILT_DEG; beyond that it stays
+    vertical (ep41's white pot, 11 cm tall, seen from one side with its 35 cm handle: the line tilted
+    30 degrees and the revolved mesh came out 39 x 35 x 34 cm)."""
     a, c = np.array([0.0, 0.0, 1.0]), points.mean(axis=0)
     all_points = points
     slices = []
@@ -136,11 +164,18 @@ def fit_revolution(points: np.ndarray, normals: np.ndarray, iterations: int = 4)
         m = (P * w[:, None]).sum(axis=0) / w.sum()
         _, _, vt = np.linalg.svd((P - m) * np.sqrt(w)[:, None], full_matrices=False)
         a_new = vt[0] * np.sign(vt[0] @ a)
-        c, a = m, a_new / np.linalg.norm(a_new)
-    return {"axis": a, "point": c, "slices": len(slices)}
+        a_new /= np.linalg.norm(a_new)
+        tilt = float(np.degrees(np.arccos(np.clip(a_new[2], -1, 1))))
+        capped = tilt > MAX_TILT_DEG
+        c, a = m, (np.array([0.0, 0.0, 1.0]) if capped else a_new)
+    radii = [x["r"] for x in slices if x["inliers"] >= 20]
+    return {"axis": a, "point": c, "slices": len(slices), "fitted_tilt_deg": tilt if centres else None,
+            "tilt_capped": bool(centres) and capped,
+            "wall_radius_m": float(np.percentile(radii, 90)) if radii else None}
 
 
-def generatrix(points: np.ndarray, normals: np.ndarray, fit: dict, azimuth_share: float = 0.5) -> dict:
+def generatrix(points: np.ndarray, normals: np.ndarray, fit: dict, azimuth_share: float = 0.5,
+               max_radius: float | None = None) -> dict:
     """The surface's profile in the (radius, height) plane about the axis: 4 mm cells seen over at least
     azimuth_share of the azimuth range seen at their height (walls and caps; a handle or spout, seen
     over a narrow azimuth, stays out), each with its mean radius, height and normal (radial and axial
@@ -166,6 +201,8 @@ def generatrix(points: np.ndarray, normals: np.ndarray, fit: dict, azimuth_share
     for (_, hb), idx in cells.items():
         idx = np.asarray(idx)
         if len(idx) < 5 or len(np.unique(phi_bin[idx])) < azimuth_share * len(seen[hb]):
+            continue
+        if max_radius is not None and r[idx].mean() > max_radius:  # a handle or spout: kept as observed
             continue
         nr, na = n_r[idx].mean(), n_a[idx].mean()
         norm = np.hypot(nr, na) or 1.0
@@ -360,10 +397,13 @@ def build(name: str, partials: list[o3d.geometry.TriangleMesh]) -> tuple[o3d.geo
     extra = [np.zeros((0, 3))], [np.zeros((0, 3))]
     if kind == "revolution":
         fit = fit_revolution(pts, nrm)
-        gen = generatrix(pts, nrm, fit)
+        cap = fit["wall_radius_m"] * WALL_MARGIN if fit.get("wall_radius_m") else None
+        gen = generatrix(pts, nrm, fit, max_radius=cap)
         rp, rn = revolve(fit, gen)
         extra = [rp], [rn]
         report["symmetry"] = {"kind": kind, "axis": fit["axis"], "point": fit["point"], "slices": fit["slices"],
+                              "fitted_tilt_deg": fit.get("fitted_tilt_deg"), "tilt_capped": fit.get("tilt_capped"),
+                              "wall_radius_m": fit.get("wall_radius_m"), "profile_radius_cap_m": cap,
                               "profile_cells": gen["cells"], "points_on_profile": gen["kept_share"],
                               "radial_residual_m": gen["residual_m"]}
     else:

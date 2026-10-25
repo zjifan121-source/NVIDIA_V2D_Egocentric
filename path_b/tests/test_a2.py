@@ -159,6 +159,20 @@ def test_canonical_revolution_completes_a_half_seen_pot():
     assert rep["coverage_before_completion"] < 0.6 and "coverage < 0.6" in rep["flags"]
 
 
+def test_canonical_revolution_keeps_a_handle_as_seen():
+    """ep41's case: a half-seen pot with a 17 cm handle out of one side, both seen by the camera. The
+    body is revolved (radius 0.1 m), the handle stays as observed: not a disc of the handle's reach."""
+    pot = o3d.geometry.TriangleMesh.create_cylinder(radius=0.1, height=0.12, resolution=120, split=24)
+    handle = o3d.geometry.TriangleMesh.create_box(0.17, 0.03, 0.02).translate([0.1, -0.015, 0.09])
+    both = pot.translate([0.0, 0.0, 0.06]) + handle
+    both.translate([0.3, -0.1, 0.0])
+    both.compute_vertex_normals()
+    mesh, rep = C.build("white_pot", [seen(both, [0.8, -0.1, 0.5])])
+    ext = np.asarray(rep["extents_cm"])
+    assert rep["watertight"] and abs(rep["symmetry"]["wall_radius_m"] - 0.1) < 0.01
+    assert 35 < ext[0] < 39 and 19 < ext[1] < 23 and 11 < ext[2] < 14, ext  # 20 cm body + the 17 cm handle; a disc: 54 x 54
+
+
 def test_canonical_mirror_finds_the_dust_pan_plane():
     pan = dust_pan()
     mesh, rep = C.build("mini_dust_pan", [seen(pan, [0.45, -0.25, 0.5])])
