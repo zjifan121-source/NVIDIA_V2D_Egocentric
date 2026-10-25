@@ -52,3 +52,37 @@ def test_p1d_hand_depth_keeps_the_valid_median(tmp_path, monkeypatch):
     valid = depth[hand & (depth > 0)]
     assert (got[hand] > 0).all() and abs(np.median(got[hand]) - np.median(valid)) < 1e-3
     assert np.allclose(got[~hand], depth[~hand], atol=1e-3)  # outside the hands: unchanged
+
+
+def test_side_masks_follow_wilor_handedness(tmp_path):
+    """Both P1b tracks on the left hand (ep0); WiLoR sees the left and the right: masks/2 gets the left
+    hand's P1b pixels inside WiLoR's left box, masks/3 WiLoR's right box (no P1b pixel there). The
+    files in masks/ are hard links to P1b's, which stay unchanged."""
+    import json
+    import os
+    import cv2
+    import numpy as np
+    from pathb.stages import p1d_hands as P
+    H, W = 120, 160
+    p1b = {name: tmp_path / "p1b" / name for name in ("hand_L", "hand_R")}
+    left = np.zeros((H, W), np.uint8)
+    left[60:90, 20:50] = 255
+    for name, folder in p1b.items():
+        folder.mkdir(parents=True)
+        cv2.imwrite(str(folder / "000000.png"), left)  # both tracks found the left hand
+    d = tmp_path / "p1d"
+    for oid, name in (("2", "hand_L"), ("3", "hand_R")):
+        (d / f"masks/{oid}").mkdir(parents=True)
+        os.link(p1b[name] / "000000.png", d / f"masks/{oid}/000000.png")
+    (d / "wilor_raw").mkdir()
+    (d / "wilor_raw/000000.json").write_text(json.dumps([
+        {"is_right": False, "score": 0.9, "bbox": {"x0": 18, "y0": 58, "x1": 52, "y1": 92}},
+        {"is_right": True, "score": 0.8, "bbox": {"x0": 100, "y0": 50, "x1": 140, "y1": 90}}]))
+    votes = {"hand_L": {"right": 0, "left": 5}, "hand_R": {"right": 1, "left": 4}}
+    counts = P.side_masks(d, p1b, 1, votes)
+    m2 = cv2.imread(str(d / "masks/2/000000.png"), 0) > 0
+    m3 = cv2.imread(str(d / "masks/3/000000.png"), 0) > 0
+    assert m2[70, 30] and not m2[70, 120] and m2.sum() == (left > 0).sum()
+    assert m3[70, 120] and not m3[70, 30] and abs(m3.sum() - 36 * 36) < 80
+    assert counts["2"]["wilor_and_p1b"] == 1 and counts["3"]["wilor_box"] == 1
+    assert (cv2.imread(str(p1b["hand_R"] / "000000.png"), 0) > 0).sum() == (left > 0).sum()  # P1b untouched

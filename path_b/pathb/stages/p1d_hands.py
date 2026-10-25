@@ -35,6 +35,8 @@ MASK_MIN_PIXELS = 1  # the pipeline's value in hamer-primary mode
 MAX_GAP = 15  # the pipeline's interp_max_gap_frames
 MAX_WRIST_SPEED = 2.0  # m/s, run_load_retarget.bad_hand_frames
 SPIKE_WINDOW = 2  # frames each side
+BOX_GROW = 1.1  # default: WiLoR's box, grown, bounds the P1b hand pixels kept for that side
+BOX_SHRINK = 0.9  # default: WiLoR's box, shrunk, is the mask where P1b has no hand pixel in it
 SPIKE_M = MAX_WRIST_SPEED * SPIKE_WINDOW / TRACK3_FPS  # 0.2 m: farther than the speed bar allows over the window
 
 
@@ -164,6 +166,61 @@ def reject_spikes(d) -> dict[str, list[int]]:
     return out
 
 
+def side_masks(d, tracks: dict, n: int, votes: dict) -> dict[str, dict[str, int]]:
+    """masks/2 = the left hand, masks/3 = the right, by WiLoR's handedness frame by frame: P1b's hand
+    pixels (either track) inside WiLoR's best box of that side (expanded BOX_GROW), else that box
+    (shrunk BOX_SHRINK); with no WiLoR box of that side, the P1b track WiLoR votes that side on most.
+    P1b's prompts can drift to the other hand (ep0: both tracks voted left, 263:20 and 61:21, so the
+    bundle had no right hand) or lose a hand for good (ep13: the left on 14 of the 171 frames WiLoR saw
+    it). The files in masks/ are P1b's hard links: each is unlinked before it is written."""
+    side_track = {}
+    for right in (False, True):
+        key = "right" if right else "left"
+        best = max(votes, key=lambda name: votes[name][key] - votes[name]["left" if right else "right"])
+        if votes[best][key] > votes[best]["left" if right else "right"]:
+            side_track[right] = best
+    counts = {"2": {"wilor_and_p1b": 0, "wilor_box": 0, "p1b_only": 0, "none": 0},
+              "3": {"wilor_and_p1b": 0, "wilor_box": 0, "p1b_only": 0, "none": 0}}
+    for k in range(n):
+        p = d / f"wilor_raw/{k:06d}.json"
+        dets = json.loads(p.read_text()) if p.is_file() else []
+        hands_px = None
+        for name in HANDS.values():
+            m = B.read_mask(tracks[name], k)
+            if m is not None:
+                hands_px = m if hands_px is None else hands_px | m
+        shape = hands_px.shape if hands_px is not None else None
+        for oid, right in (("2", False), ("3", True)):
+            target = d / f"masks/{oid}/{k:06d}.png"
+            if shape is None:
+                continue
+            mine = [x for x in dets if bool(x["is_right"]) == right]
+            out = np.zeros(shape, bool)
+            if mine:
+                b = max(mine, key=lambda x: x.get("score", 0))["bbox"]
+                cx, cy, w, h = (b["x0"] + b["x1"]) / 2, (b["y0"] + b["y1"]) / 2, b["x1"] - b["x0"], b["y1"] - b["y0"]
+                def box(f):
+                    x0, x1 = int(max(0, cx - f * w / 2)), int(min(shape[1], cx + f * w / 2))
+                    y0, y1 = int(max(0, cy - f * h / 2)), int(min(shape[0], cy + f * h / 2))
+                    r = np.zeros(shape, bool)
+                    r[y0:y1, x0:x1] = True
+                    return r
+                inside = hands_px & box(BOX_GROW)
+                if inside.any():
+                    out, kind = inside, "wilor_and_p1b"
+                else:
+                    out, kind = box(BOX_SHRINK), "wilor_box"
+            elif right in side_track:
+                m = B.read_mask(tracks[side_track[right]], k)
+                out, kind = (m, "p1b_only") if m is not None and m.any() else (out, "none")
+            else:
+                kind = "none"
+            counts[oid][kind] += 1
+            target.unlink(missing_ok=True)
+            cv2.imwrite(str(target), out.astype(np.uint8) * 255)
+    return counts
+
+
 def records(folder) -> dict[int, dict]:
     return {int(p.stem): json.loads(p.read_text()) for p in sorted(folder.glob("*.json")) if p.stem.isdigit()}
 
@@ -227,13 +284,14 @@ def run(ctx) -> StageResult:
     for stale in ("hamer", "hamer_aligned", "hamer_aligned_rejected", "hamer_aligned_filled"):
         shutil.rmtree(d / stale, ignore_errors=True)
     votes = handedness_votes(d, tracks, n)
+    sources = side_masks(d, tracks, n, votes)  # masks/2 left, masks/3 right, by WiLoR's handedness
     meta = json.loads((d / "hand_tracks.json").read_text())
     for t in meta["tracks"]:
         v = votes[HANDS[str(t["object_id"])]]
         t["prompt_is_right"] = t["is_right"]
-        if v["right"] + v["left"] > 0:
-            t["is_right"] = v["right"] > v["left"]
+        t["is_right"] = str(t["object_id"]) == "3"  # side_masks: 2 is the left hand, 3 the right
         t["wilor_votes"] = v
+        t["mask_sources"] = sources[str(t["object_id"])]
     write_json(d / "hand_tracks.json", meta)
     B.call("v2d.hamer.docker.run_masks_to_hands:run_masks_to_hands",
            {"frames_dir": ctx.root / "p1_calibrate/cam_a", "masks_dir": d / "masks", "tracks_path": d / "hand_tracks.json",
@@ -264,14 +322,15 @@ def run(ctx) -> StageResult:
     metrics, scales = [], {}
     for t in meta["tracks"]:
         name = HANDS[str(t["object_id"])]
-        metrics.append(Metric(f"{name}: handedness (WiLoR vote)", "right" if t["is_right"] else "left", "",
-                              note=f"votes {t['wilor_votes']}; P1b prompt said "
-                                   f"{'right' if t['prompt_is_right'] else 'left'}"
-                                   + (" (corrected)" if t["is_right"] != t["prompt_is_right"] else "")))
+        src = t["mask_sources"]
+        metrics.append(Metric(f"{name}: hand mask by WiLoR's handedness", "right" if t["is_right"] else "left", "",
+                              note=f"frames: WiLoR box with P1b pixels {src['wilor_and_p1b']}, WiLoR box only "
+                                   f"{src['wilor_box']}, P1b only {src['p1b_only']}, none {src['none']}; P1b track "
+                                   f"{name} votes {t['wilor_votes']}"))
     for oid, name in HANDS.items():
         filled = records(d / f"hamer_aligned_filled/{oid}")
         real = records(d / f"hamer_aligned/{oid}")
-        masked = {k for k in range(n) if (m := B.read_mask(tracks[name], k)) is not None and m.any()}
+        masked = {k for k in range(n) if (m := B.read_mask(d / f"masks/{oid}", k)) is not None and m.any()}
         posed = set(filled) & masked
         s = [r["diagnostics"]["scale"] for r in real.values() if r.get("diagnostics", {}).get("n_pixels", 0) > 0]
         scales[name] = {"median": float(np.median(s)) if s else None, "frames": len(s)}
@@ -284,7 +343,7 @@ def run(ctx) -> StageResult:
         seen = wilor[right]
         holes = [float((read_depth(d / f"depth/{k:06d}.png")[m] <= 0).mean())
                  for k in sorted(masked)[:: max(1, len(masked) // 20)]
-                 if (m := B.read_mask(tracks[name], k)) is not None]
+                 if (m := B.read_mask(d / f"masks/{oid}", k)) is not None]
         metrics += [
             Metric(f"{name}: hand-mask pixels without stereo depth (median)", float(np.median(holes)) if holes else None,
                    "share", note="run_align_hands takes the median over the mask with no validity test"),
@@ -298,7 +357,7 @@ def run(ctx) -> StageResult:
                    warn=(0.6, 1.5), note=f"{len(s)} aligned frames"),
             Metric(f"{name}: frames with wrist speed < {MAX_WRIST_SPEED} m/s", float(np.mean(speeds < MAX_WRIST_SPEED))
                    if len(speeds) else None, "share", ok=(0.99, 1)),
-            Metric(f"{name}: P1b mask on frames WiLoR finds this hand", len(seen & masked) / len(seen) if seen else None,
+            Metric(f"{name}: hand mask on frames WiLoR finds this hand", len(seen & masked) / len(seen) if seen else None,
                    "share", ok=(0.9, 1), note=f"WiLoR finds the {'right' if right else 'left'} hand on {len(seen)} frames"),
         ]
     write_json(d / "hand_scale.json", scales)
