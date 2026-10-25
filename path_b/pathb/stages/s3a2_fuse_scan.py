@@ -40,6 +40,7 @@ HAND_DILATE_PX = 5  # half resolution, as P1c
 MASK_ERODE_PX = 2  # default: half resolution; stereo depth at mask edges mixes object and background
 HOLD_OUT = 10  # spec
 SETTLE = 5  # default: frames after the last touch before rest-after starts (S4a's reach dilation)
+MOTION_RUN = 6  # default: motion counts in a run this long (half S3b's window + 1); shorter runs are noise
 WINDOWS = {"rest_before": "partial_scan.ply", "rest_after": "partial_scan_after.ply"}
 BARS = {"frames": ((30, np.inf), (10, np.inf)), "rms_mm": ((0, 5), (0, 10)), "chamfer_cm": (0, 0.3)}
 
@@ -67,9 +68,23 @@ def touch_windows(touched: list[bool], moving: list[bool] | None = None) -> dict
     """Inclusive rest windows: before the first frame a hand touches the object or it moves, and from
     SETTLE frames after the last such frame. `moving` (S3b's motion test on the object's own points)
     guards against hand masks P1b missed: ep13's right hand had no mask before frame 32, so the cup was
-    fused while carried (an 18 cm smear 15-30 cm above the table)."""
+    fused while carried (an 18 cm smear 15-30 cm above the table). Motion runs shorter than MOTION_RUN
+    are dropped: the test compares frames t - 5 and t + 5, so it flags scattered frames up to 5 before a
+    touch (ep43: frames 1-3 and 5 before the first touch at 7, the pot's mask share flat)."""
     n = len(touched)
-    busy = [bool(a) or bool(b) for a, b in zip(touched, moving or [False] * n)]
+    moving = list(moving or [False] * n)
+    t = 0
+    while t < n:  # keep only sustained motion
+        if moving[t]:
+            e = t
+            while e + 1 < n and moving[e + 1]:
+                e += 1
+            if e - t + 1 < MOTION_RUN:
+                moving[t:e + 1] = [False] * (e - t + 1)
+            t = e + 1
+        else:
+            t += 1
+    busy = [bool(a) or bool(b) for a, b in zip(touched, moving)]
     hits = [t for t, x in enumerate(busy) if x]
     if not hits:
         return {"rest_before": [0, n - 1], "rest_after": None}

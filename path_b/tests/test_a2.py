@@ -83,6 +83,10 @@ def test_touch_windows():
     assert A21.touch_windows(touched) == {"rest_before": [0, 2], "rest_after": [7 + A21.SETTLE, 19]}
     assert A21.touch_windows([False] * 8) == {"rest_before": [0, 7], "rest_after": None}  # never touched
     assert A21.touch_windows([True] + [False] * 3) == {"rest_before": None, "rest_after": None}  # no frame left after settling
+    moving = [False] + [True] * 3 + [False] + [True] + [False] * 14  # ep43: scattered flags before the touch
+    assert A21.touch_windows([False] * 7 + [True] * 5 + [False] * 8, moving)["rest_before"] == [0, 6]
+    carried = [False] * 5 + [True] * 8 + [False] * 7  # ep13: a carry the hand masks missed
+    assert A21.touch_windows([False] * 20, carried) == {"rest_before": [0, 4], "rest_after": [13 + A21.SETTLE, 19]}
 
 
 def test_area_bar_is_relative_for_thin_objects():

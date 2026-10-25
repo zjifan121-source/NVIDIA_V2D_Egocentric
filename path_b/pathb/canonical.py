@@ -4,7 +4,8 @@
     uv run --project path_b python path_b/run.py canonical --object white_pot --out <run> [--episodes ...]
 
 1. Partials: <run>/episode_*/s3a2_fuse_scan/<object>/partial_scan.ply (metres, each clip's v3 world,
-   the object at its frame-0 placement). Reference: the largest surface; every other partial onto it by
+   the object at its frame-0 placement), each fused from >= MIN_CLIP_FRAMES frames (all when none is).
+   Reference: the largest surface; every other partial onto it by
    FPFH + RANSAC (best of 3 seeds), point-to-point ICP (two clips often share only the top, whose
    outline only point-to-point uses; it slides slowly: 300 iterations), then point-to-plane to finish;
    scale fixed; kept if fitness >= 0.3.
@@ -56,6 +57,7 @@ MIRROR_CONFIDENT = 0.6
 MAX_FACES = 20000
 POISSON_DEPTH = 8
 COVERAGE_FLAG = 0.6
+MIN_CLIP_FRAMES = 10  # default: a partial fused from fewer frames is left out (s3a2_fuse_scan's WARN bar)
 
 
 # ---------------------------------------------------------------- 1-2: partials onto one reference
@@ -455,8 +457,16 @@ def main(name: str, out: Path, episodes: list[int] | None = None) -> Path:
     import trimesh
     found = sorted(p for p in out.glob(f"episode_*/s3a2_fuse_scan/{name}/partial_scan*.ply")  # rest before, after
                    if episodes is None or int(p.parts[-4][len("episode_"):]) in episodes)
+    def frames(p: Path) -> int:  # how many frames the fuse integrated into this partial
+        f = p.parent / "fuse_report.json"
+        if not f.is_file():
+            return MIN_CLIP_FRAMES
+        parts = json.loads(f.read_text())["partials"]
+        return len(next((v["fused"] for v in parts.values() if v["file"] == p.name), []))
+    enough = [p for p in found if frames(p) >= MIN_CLIP_FRAMES]
+    skipped = [str(p.relative_to(out)) for p in found if p not in enough] if enough else []
     partials, used = [], []
-    for p in found:
+    for p in enough or found:  # ep43's pot: touched at frame 7, a 1-frame rest-before partial of 45 vertices
         m = o3d.io.read_triangle_mesh(str(p))
         if len(m.triangles):
             m.compute_vertex_normals()
@@ -470,7 +480,8 @@ def main(name: str, out: Path, episodes: list[int] | None = None) -> Path:
     tm = trimesh.Trimesh(np.asarray(mesh.vertices), np.asarray(mesh.triangles), process=False)
     tm.export(dest / "mesh.obj")
     tm.export(dest / "mesh.glb")
-    report = {"object": name, "clips": [str(p.relative_to(out)) for p in used], **report}
+    report = {"object": name, "clips": [str(p.relative_to(out)) for p in used], "clips_left_out": skipped,
+              "min_clip_frames": MIN_CLIP_FRAMES, **report}
     (dest / "canonical.json").write_text(json.dumps(report, indent=1, default=to_json) + "\n")
     print(f"canonical {name}: {len(used)} clips, {report['faces']} faces, watertight {report['watertight']}, "
           f"coverage {report['coverage_before_completion']:.2f}, {report['symmetry']['kind']} -> {dest}", flush=True)
