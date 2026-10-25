@@ -62,22 +62,36 @@ def frame_masks(ctx, k: int, t: int, shape: tuple[int, int]) -> tuple[np.ndarray
     return eroded, touched, float(m.mean())
 
 
-def touch_windows(touched: list[bool]) -> dict[str, list[int] | None]:
-    """Inclusive rest windows from the per-frame 2-D touch: before the first touch, and from SETTLE
-    frames after the last one."""
+def touch_windows(touched: list[bool], moving: list[bool] | None = None) -> dict[str, list[int] | None]:
+    """Inclusive rest windows: before the first frame a hand touches the object or it moves, and from
+    SETTLE frames after the last such frame. `moving` (S3b's motion test on the object's own points)
+    guards against hand masks P1b missed: ep13's right hand had no mask before frame 32, so the cup was
+    fused while carried (an 18 cm smear 15-30 cm above the table)."""
     n = len(touched)
-    hits = [t for t, x in enumerate(touched) if x]
+    busy = [bool(a) or bool(b) for a, b in zip(touched, moving or [False] * n)]
+    hits = [t for t, x in enumerate(busy) if x]
     if not hits:
         return {"rest_before": [0, n - 1], "rest_after": None}
     a, b = hits[0], hits[-1] + 1 + SETTLE
     return {"rest_before": [0, a - 1] if a > 0 else None, "rest_after": [b, n - 1] if b < n else None}
 
 
+def object_moving(ctx, k: int, n: int) -> list[bool]:
+    """Per frame: the object's points moved >= segments.STATIC_M over segments.WINDOW frames (S3b's
+    test); a frame without points counts as not moving (the touch test still applies there)."""
+    from .. import segments as G
+    from ..observe import View
+    view, rng = View(ctx), np.random.default_rng(k)
+    m = G.motion([view.points(k, t, 3000, rng) for t in range(n)])
+    return [bool(np.isfinite(x) and x >= G.STATIC_M) for x in m]
+
+
 def rest_frames(ctx, k: int, K: np.ndarray, shape, c2w: np.ndarray, n: int) -> tuple[dict, dict, list]:
     """The windows, the usable frames per window and the per-frame log."""
     half = ctx.root / "p2_depth/depth_a_half"
     masks = [frame_masks(ctx, k, t, shape) for t in range(n)]
-    windows = touch_windows([touched for _, touched, _ in masks])
+    moving = object_moving(ctx, k, n)
+    windows = touch_windows([touched for _, touched, _ in masks], moving)
     usable, log = {key: [] for key in WINDOWS}, []
     for key, w in windows.items():
         if not w:
@@ -146,7 +160,8 @@ def run(ctx) -> StageResult:
         out = d / name
         out.mkdir(parents=True, exist_ok=True)
         windows, usable, log = rest_frames(ctx, k, K, shape, c2w, n)
-        report = {"object": name, "windows": windows, "settle_frames": SETTLE, "frames": log, "partials": {}}
+        report = {"object": name, "windows": windows, "settle_frames": SETTLE, "frames": log, "partials": {},
+              "window_rule": "before the first touch or motion; from SETTLE frames after the last"}
         main = "rest_before" if usable["rest_before"] else "rest_after"
         fused = len(usable["rest_before"]) + len(usable["rest_after"])
         metrics.append(Metric(f"{name}: frames fused", fused, "", ok=BARS["frames"][0], warn=BARS["frames"][1],
