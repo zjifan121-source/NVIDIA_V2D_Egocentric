@@ -123,7 +123,12 @@ def test_fixture_hands_give_fingertips(tmp_path, monkeypatch):
             if not 200 <= k < 230:
                 (d / f"{k:06d}.json").write_text(json.dumps({"interpolated": 100 <= k < 108}))
         dirs.append(d)
-    summary = H.export(EP41, tuple(dirs), tmp_path / "hands", tmp_path / "log.txt")
+    bare = tmp_path / "bare"  # P4's v4 bundle: result.npz and manifest, no mesh yet (the L40S's first run)
+    bare.mkdir()
+    for f in ("result.npz", "manifest.json"):
+        (bare / f).symlink_to((EP41 / f).resolve())
+    summary = H.export(bare, tuple(dirs), tmp_path / "hands", tmp_path / "log.txt")
+    assert not (tmp_path / "hands/_bundle").exists()
     tips = np.load(tmp_path / "hands/fingertips_world.npz")
     wrist = np.load(tmp_path / "hands/wrist_world.npz")["wrist"]
     assert tips["tips"].shape == (n, 2, 5, 3) and wrist.shape == (n, 2, 4, 4)

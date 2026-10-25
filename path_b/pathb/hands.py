@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -157,9 +158,22 @@ def export(bundle: Path, hand_dirs: tuple[Path | None, Path | None], out: Path, 
     bundle.hand_dirs gives them. Returns build()'s summary (no arrays)."""
     out.mkdir(parents=True, exist_ok=True)
     raw = out / "mano_world.npz"
+    source, scratch = bundle, None
+    if not (Path(bundle) / "mesh.obj").is_file():  # P4's bundle has no mesh yet; the loader's scene
+        # alignment opens one (mano_world.py undoes its shift), so a linked copy gets the writer's placeholder
+        from .bundle import PLACEHOLDER_OBJ
+        scratch = out / "_bundle"
+        shutil.rmtree(scratch, ignore_errors=True)
+        scratch.mkdir()
+        for f in Path(bundle).iterdir():
+            (scratch / f.name).symlink_to(f.resolve())
+        (scratch / "mesh.obj").write_text(PLACEHOLDER_OBJ)
+        source = scratch
     with open(log, "a") as f:
-        rc = subprocess.run([retarget_python(), str(PATH_B / "pathb/drivers/mano_world.py"), str(bundle), str(raw),
+        rc = subprocess.run([retarget_python(), str(PATH_B / "pathb/drivers/mano_world.py"), str(source), str(raw),
                              mano_dir()], stdout=f, stderr=subprocess.STDOUT).returncode
+    if scratch is not None:
+        shutil.rmtree(scratch, ignore_errors=True)
     if rc:
         raise RuntimeError(f"mano_world.py failed (exit {rc}): " + "\n".join(log.read_text().splitlines()[-15:]))
     mano = dict(np.load(raw))
