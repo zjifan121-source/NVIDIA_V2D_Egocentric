@@ -88,19 +88,44 @@ def main(request_path: str) -> int:
         present = []
         if seed is not None:
             f, obj, prob, _, box = seed
-            for other in np.asarray(got["out_obj_ids"]).tolist():  # keep the chosen instance only
-                if other != obj:
-                    predictor.handle_request(dict(type="remove_object", session_id=session, obj_id=other,
-                                                  frame_index=f))
-            masks = {}
-            for response in predictor.handle_stream_request(dict(type="propagate_in_video", session_id=session,
-                                                                  propagation_direction="both", start_frame_index=f)):
-                o = response["outputs"]
-                ids = np.asarray(o["out_obj_ids"]).tolist()
-                if obj in ids:
-                    m = np.asarray(o["out_binary_masks"])[ids.index(obj)].astype(bool)
-                    if m.any():
-                        masks[response["frame_index"]] = m
+            masks, backward_error = {}, None
+
+            def keep_only(outputs, chosen):
+                for other in np.asarray(outputs["out_obj_ids"]).tolist():  # keep the chosen instance only
+                    if other != chosen:
+                        predictor.handle_request(dict(type="remove_object", session_id=session, obj_id=other,
+                                                      frame_index=f))
+
+            def collect(direction, chosen):
+                for response in predictor.handle_stream_request(dict(type="propagate_in_video", session_id=session,
+                                                                      propagation_direction=direction,
+                                                                      start_frame_index=f)):
+                    o = response["outputs"]
+                    ids = np.asarray(o["out_obj_ids"]).tolist()
+                    if chosen in ids:
+                        m = np.asarray(o["out_binary_masks"])[ids.index(chosen)].astype(bool)
+                        if m.any():
+                            masks.setdefault(response["frame_index"], m)
+            keep_only(got, obj)
+            collect("forward", obj)
+            if f > 0:  # backward from a fresh prompt: after a forward pass the pinned SAM 3's multiplex
+                # tracker raised "No points are provided" going back (ep0, a hand seeded at frame 25)
+                try:
+                    predictor.handle_request(dict(type="reset_session", session_id=session))
+                    again = predictor.handle_request(dict(type="add_prompt", session_id=session, frame_index=f,
+                                                          text=track["text"]))["outputs"]
+                    ids = np.asarray(again["out_obj_ids"]).tolist()
+                    ref = masks.get(f)
+                    if ids:
+                        same = [np.asarray(again["out_binary_masks"])[i].astype(bool) for i in range(len(ids))]
+                        overlap = [((x & ref).sum() / max((x | ref).sum(), 1)) if ref is not None else 0 for x in same]
+                        back_obj = ids[int(np.argmax(overlap))]
+                        keep_only(again, back_obj)
+                        collect("backward", back_obj)
+                except RuntimeError as err:
+                    backward_error = str(err)[:200]
+                    print(f"{track['track']}: backward propagation failed ({backward_error}); frames before {f} "
+                          "stay empty", flush=True)
             for k in range(n):
                 m = masks.get(k)
                 Image.fromarray(((m if m is not None else np.zeros((h, w), bool)) * 255).astype(np.uint8)).save(
@@ -108,7 +133,7 @@ def main(request_path: str) -> int:
             present = sorted(masks)
             meta["tracks"][track["track"]] = {"text": track["text"], "seed_frame": f, "seed_prob": prob,
                                               "seed_box_xywh_rel": box, "obj_id": obj, "present_frames": present,
-                                              "seconds": round(time.time() - t1, 1)}
+                                              "backward_error": backward_error, "seconds": round(time.time() - t1, 1)}
         else:
             for k in range(n):
                 Image.fromarray(np.zeros((h, w), np.uint8)).save(d / f"{k:06d}.png")
