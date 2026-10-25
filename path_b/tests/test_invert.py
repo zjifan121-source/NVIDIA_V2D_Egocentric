@@ -217,3 +217,18 @@ def test_stage_s3d_settles_the_rests_and_resolves_the_carry(tmp_path, monkeypatc
     assert np.median(err) < 3 and np.percentile(err, 90) < 25
     status = {x.name: x.status for x in r.metrics}
     assert status["box: penetration into the support after settling (worst)"] == "PASS"
+
+
+def test_unsolved_runs_from_frame_0_bridge_from_the_registered_pose():
+    """ep18's dust pan: no rest before the carry (0-6 unstable) and the carry lost to the slip guard; the
+    two bridge as one from s3a2_register's pose to the final rest, not held at the final rest."""
+    c, segs, obj, m = clip()
+    segs = [{"kind": "unstable", "start": 0, "end": 6, "hand": None, "fingertips": []},
+            {"kind": "unstable", "start": 7, "end": GRASP[1], "hand": None, "fingertips": []}, segs[2]]
+    P, report = I.solve(c, segs, start_pose(), FPS)
+    err = add_mm(P, obj, np.asarray(m.vertices))
+    assert [r["kind"] for r in report] == ["unstable", "unstable", "static"]
+    assert report[0]["why"] != "no neighbouring pose"
+    assert err[0] < 20 and np.median(err[GRASP[1] + 1:]) < 3  # frame 0 near the registration (1 cm off)
+    held = add_mm(np.repeat(P[-1:], GRASP[1] + 1, axis=0), obj[:GRASP[1] + 1], np.asarray(m.vertices))
+    assert np.median(err[:GRASP[1] + 1]) < 0.6 * np.median(held)  # the bridge follows the carry's ends

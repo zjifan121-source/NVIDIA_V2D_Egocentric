@@ -17,10 +17,11 @@ that holds there. Poses map the canonical mesh frame to the world (V4 §3).
             SLIP_M for SLIP_FRAMES frames in a row splits the grasp there; that run becomes an unstable
             bridge and the parts are solved again. `failed`: (a) within 1 cm on fewer than half the
             frames (S4b then takes `keyframe` there)
-  unstable  cubic Hermite position (zero end velocity) + slerp between the neighbouring end poses,
+  unstable  cubic Hermite position (zero end velocity) + slerp between the neighbouring end poses
+            (consecutive unsolved segments as one bridge; at frame 0, s3a2_register's pose),
             then <= UNSTABLE_STEPS least-squares steps per frame on (a) where the mask covers >= 1 % of
-            the image (observe.area_bar), held near the interpolation by a prior and bounded (5 cm, 20 degrees), kept only
-            when it explains the frame better
+            the image (observe.area_bar), held near the interpolation by a prior and bounded (5 cm,
+            20 degrees), kept only when it explains the frame better
 Order: segments in clip order (statics and grasps), then the grasps again with both neighbouring
 poses as end terms, then the unstable bridges. Rendered depth: Open3D's RaycastingScene (CPU).
 """
@@ -359,9 +360,10 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
     P0 = before if before is not None else after
     P1 = after if after is not None else before
     if P0 is None:
-        return {"poses": np.full((b - a + 1, 4, 4), np.nan), "refined": 0, "why": "no neighbouring pose"}
+        return {"poses": np.full((b - a + 1, 4, 4), np.nan), "refined": np.zeros(b - a + 1, bool),
+                "why": "no neighbouring pose"}
     guess = interpolate(P0, P1, b - a + 1)
-    poses, refined = guess.copy(), 0
+    poses, refined = guess.copy(), np.zeros(b - a + 1, bool)
     for i, t in enumerate(range(a, b + 1)):
         o = clip.obs[t]
         if o is None or o[2] < clip.min_share:
@@ -378,7 +380,7 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
         before = np.median(np.abs(clip.appearance(guess[i], t)))
         if np.median(np.abs(clip.appearance(guess[i] @ T_of(r.x), t))) < before:  # kept only if it explains more
             poses[i] = guess[i] @ T_of(r.x)
-            refined += 1
+            refined[i] = True
     return {"poses": poses, "refined": refined}
 
 
@@ -435,12 +437,18 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
             solved[i] = parts
     rows = [p for i in sorted(solved) for p in solved[i]]
     rows += [{"kind": "unstable", "start": s["start"], "end": s["end"]} for s in work if s["kind"] == "unstable"]
+    refined = np.zeros(n, bool)
     for row in sorted(rows, key=lambda r: r["start"]):  # bridges: unstable segments, slip runs, frames left unsolved
         if row["kind"] == "unstable":
             a, b = row["start"], row["end"]
-            u = solve_unstable(clip, a, b, P[a - 1] if known(a - 1) else None, P[b + 1] if known(b + 1) else None)
-            P[a:b + 1] = u["poses"]
-            row.update(refined=u["refined"], why=row.get("why", u.get("why", "")))
+            if not known(a):  # one bridge over the whole unsolved run (ep18's dust pan: 0-6, then a 7-205 slip)
+                while b + 1 < n and not known(b + 1):
+                    b += 1
+                before = P[a - 1] if known(a - 1) else start_pose if a == 0 else None  # frame 0: S3a's pose
+                u = solve_unstable(clip, a, b, before, P[b + 1] if b + 1 < n and known(b + 1) else None)
+                P[a:b + 1], refined[a:b + 1] = u["poses"], u["refined"]
+                row.setdefault("why", u.get("why", ""))
+            row.update(refined=int(refined[row["start"]:row["end"] + 1].sum()), why=row.get("why", ""))
         report.append({k: v for k, v in row.items() if k not in ("poses", "T")})
     for t in range(n):  # a wrist gap inside a grasp left a frame unsolved: hold the last pose
         if not known(t) and t > 0 and known(t - 1):
