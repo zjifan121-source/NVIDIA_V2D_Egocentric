@@ -7,8 +7,12 @@ Frames used: inside a window, the object's mask covers >= 1 % of the image (obse
 object's 90th-percentile share on the frames no hand touches, for a thin or small one) and no hand
 touches it. Each
 frame's P2 depth (depth_a_half, ego_cam_a) is kept inside the object's mask only, the mask eroded by
-MASK_ERODE_PX so the mixed depth at its edge stays out. Fused in the world (P4's camera_to_world) with
-pathb/scan.py's TSDF (voxel 4 mm, sdf_trunc 16 mm). The object moved between the windows, so each is
+MASK_ERODE_PX so the mixed depth at its edge stays out, less (V4 §13.1 A2) the pixels inside another
+object's mask and those whose point lies within NEIGHBOUR_M of another object's points in that frame
+(ep12/ep13: rack wires in the cup's mask; a pot under its lid), and those whose point lies more than
+BELOW_TABLE_M under the table (stray far depth: a slab fused 64 cm under ep12's table). Fused in the world (P4's
+camera_to_world) with pathb/scan.py's TSDF (voxel 4 mm, sdf_trunc 16 mm; FINE_VOXEL, 2 mm, for the thin
+objects in FINE, V4 §13.1 A2). The object moved between the windows, so each is
 its own partial: partial_scan.ply (rest-before: the object at its frame-0 placement, which
 s3a2_register registers) and partial_scan_after.ply (rest-after); run.py canonical pools both, as
 clips. Out per object: the two .ply (metres, world, visible surfaces only), fuse_report.json (per frame:
@@ -44,6 +48,56 @@ SETTLE = 5  # default: frames after the last touch before rest-after starts (S4a
 MOTION_RUN = 6  # default: motion counts in a run this long (half S3b's window + 1); shorter runs are noise
 WINDOWS = {"rest_before": "partial_scan.ply", "rest_after": "partial_scan_after.ply"}
 BARS = {"frames": ((30, np.inf), (10, np.inf)), "rms_mm": ((0, 5), (0, 10)), "chamfer_cm": (0, 0.3)}
+NEIGHBOUR_M = 0.02  # spec §13.1 A2: object pixels within this of another object's points are dropped
+BELOW_TABLE_M = 0.02  # default: depth inside a mask whose point lies this far under the table (z = 0) is not the object
+FINE = {"plastic_dish_rack", "mini_sweeper", "wooden_piece_1", "wooden_piece_2"}  # spec §13.1 A2: rack, sweeper, boards
+FINE_VOXEL = 0.002  # m, spec §13.1 A2
+
+
+def voxel_for(name: str) -> float:
+    return FINE_VOXEL if name in FINE else S.VOXEL
+
+
+def neighbour_masks(ctx, k: int, t: int, shape: tuple[int, int]) -> np.ndarray | None:
+    """The other objects' P1b masks at frame t, joined, at depth resolution (not eroded); None if none."""
+    tracks = B.mask_tracks(ctx.root)
+    out = None
+    for j in range(len(ctx.objects)):
+        m = B.read_mask(tracks[f"obj_{j}"], t) if j != k and f"obj_{j}" in tracks else None
+        if m is not None:
+            r = cv2.resize(m.astype(np.uint8), shape[::-1], interpolation=cv2.INTER_NEAREST) > 0
+            out = r if out is None else out | r
+    return out
+
+
+def without_neighbours(depth: np.ndarray, mask: np.ndarray, other: np.ndarray, K: np.ndarray) -> tuple[np.ndarray, int]:
+    """depth inside mask, less the pixels in another object's mask and those whose point (camera frame)
+    lies within NEIGHBOUR_M of another object's points; and how many mask pixels went."""
+    from scipy.spatial import cKDTree
+
+    def cam(ys, xs):
+        z = depth[ys, xs]
+        return np.stack([(xs - K[0, 2]) * z / K[0, 0], (ys - K[1, 2]) * z / K[1, 1], z], axis=1)
+    keep = mask & ~other
+    ys, xs = np.nonzero(keep & (depth > 0) & np.isfinite(depth))
+    oy, ox = np.nonzero(other & (depth > 0) & np.isfinite(depth))
+    if len(ys) and len(oy):
+        near = cKDTree(cam(oy, ox)).query(cam(ys, xs), distance_upper_bound=NEIGHBOUR_M)[0] < NEIGHBOUR_M
+        keep[ys[near], xs[near]] = False
+    return np.where(keep, depth, 0.0), int(mask.sum() - keep.sum())
+
+
+def above_table(depth: np.ndarray, K: np.ndarray, camera_to_world: np.ndarray) -> tuple[np.ndarray, int]:
+    """depth less the pixels whose world point lies more than BELOW_TABLE_M under the table (P4's world:
+    the table at z = 0), and how many went. ep12's cup in the rack: stray far depth in its mask fused
+    into a slab 64 cm under the table, which became the largest piece once the rack wires were gone."""
+    ys, xs = np.nonzero((depth > 0) & np.isfinite(depth))
+    z = depth[ys, xs]
+    cam = np.stack([(xs - K[0, 2]) * z / K[0, 0], (ys - K[1, 2]) * z / K[1, 1], z], axis=1)
+    low = cam @ camera_to_world[2, :3] + camera_to_world[2, 3] < -BELOW_TABLE_M
+    out = depth.copy()
+    out[ys[low], xs[low]] = 0.0
+    return out, int(low.sum())
 
 
 def frame_masks(ctx, k: int, t: int, shape: tuple[int, int]) -> tuple[np.ndarray | None, bool, float]:
@@ -127,19 +181,27 @@ def rest_frames(ctx, k: int, K: np.ndarray, shape, c2w: np.ndarray, n: int) -> t
                 log.append(row | {"used": False, "why": "hand touches the object" if touched else f"mask < {bar:.2%}"})
                 continue
             depth = read_depth(path)
-            depth[~mask] = 0.0
+            other = neighbour_masks(ctx, k, t, shape)
+            if other is None:
+                depth[~mask] = 0.0
+            else:
+                depth, row["neighbour_pixels_dropped"] = without_neighbours(depth, mask, other, K)
+            depth, row["below_table_pixels_dropped"] = above_table(depth, K, c2w[t])
             row["depth_share_in_mask"] = round(float((depth[mask] > 0).mean()), 3)
             usable[key].append(S.Frame(t, depth, K, c2w[t]))
             log.append(row | {"used": True})
     return windows, usable, log, bar
 
 
-def held_out_rms(frames: list) -> tuple[list, dict]:
+def held_out_rms(frames: list, voxel: float = S.VOXEL) -> tuple[list, dict]:
     """RMS of a fusion without HOLD_OUT spread frames against those frames' stereo depth."""
     step = max(1, len(frames) // HOLD_OUT)
     held = frames[::step][:HOLD_OUT] if len(frames) >= 2 * HOLD_OUT else frames[::4]
     kept = [f for f in frames if f not in held]
-    return held, (S.depth_rms(S.largest_part(S.integrate(kept)), held) if kept and held else {"rms_m": None})
+    surface = S.largest_part(S.integrate(kept, voxel)) if kept and held else None
+    if surface is None or len(surface.triangles) == 0:  # ep0's pot under its lid: no pixel of its own left
+        return held, {"rms_m": None}
+    return held, S.depth_rms(surface, held)
 
 
 def chamfer_to_scan(partial: o3d.geometry.TriangleMesh, vertices: np.ndarray, faces: np.ndarray) -> dict:
@@ -179,8 +241,9 @@ def run(ctx) -> StageResult:
         out = d / name
         out.mkdir(parents=True, exist_ok=True)
         windows, usable, log, bar = rest_frames(ctx, k, K, shape, c2w, n)
+        voxel = voxel_for(name)
         report = {"object": name, "windows": windows, "settle_frames": SETTLE, "mask_share_bar": bar,
-                  "frames": log, "partials": {},
+                  "voxel_m": voxel, "neighbour_m": NEIGHBOUR_M, "frames": log, "partials": {},
               "window_rule": "before the first touch or motion; from SETTLE frames after the last"}
         main = "rest_before" if usable["rest_before"] else "rest_after"
         fused = len(usable["rest_before"]) + len(usable["rest_after"])
@@ -190,9 +253,9 @@ def run(ctx) -> StageResult:
                                    f"mask bar {bar:.2%} of the image"))
         for key, file in WINDOWS.items():
             frames = usable[key]
-            partial = S.largest_part(S.integrate(frames)) if frames else o3d.geometry.TriangleMesh()
+            partial = S.largest_part(S.integrate(frames, voxel)) if frames else o3d.geometry.TriangleMesh()
             o3d.io.write_triangle_mesh(str(out / file), partial)
-            held, rms = held_out_rms(frames)
+            held, rms = held_out_rms(frames, voxel)
             v = np.asarray(partial.vertices)
             row = {"file": file, "fused": [f.index for f in frames], "held_out": [f.index for f in held],
                    "held_out_rms": rms, "vertices": len(v),

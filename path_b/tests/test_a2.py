@@ -89,6 +89,22 @@ def test_touch_windows():
     assert A21.touch_windows([False] * 20, carried) == {"rest_before": [0, 4], "rest_after": [13 + A21.SETTLE, 19]}
 
 
+def test_neighbour_pixels_leave_the_scan():
+    """V4 §13.1 A2: the cup's mask also covers rack wires (in the rack's mask) and cup pixels 1 cm from
+    the rack; both go, the cup pixels 5 cm away stay."""
+    K = np.array([[500.0, 0, 50], [0, 500.0, 50], [0, 0, 1]])
+    depth = np.full((100, 100), 0.5)
+    cup = np.zeros((100, 100), bool)
+    cup[20:80, 20:60] = True
+    rack = np.zeros((100, 100), bool)
+    rack[20:80, 58:90] = True  # overlaps the cup's mask in columns 58-59
+    out, dropped = A21.without_neighbours(depth, cup, rack, K)
+    # at 0.5 m and f = 500 px a pixel is 1 mm: within 2 cm of column 58 = columns 39-59 (38 on the edge)
+    assert (out[:, 58:60] == 0).all() and (out[20:80, 40:58] == 0).all()
+    assert (out[20:80, 20:38] == 0.5).all() and dropped in (60 * 21, 60 * 22)
+    assert (out[~cup] == 0).all()
+
+
 def test_area_bar_is_relative_for_thin_objects():
     from pathb.observe import area_bar
     assert area_bar([0.05] * 50 + [0.0] * 10) == 0.01  # the spec's 1 % for an object that shows large

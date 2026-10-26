@@ -26,9 +26,11 @@ class Frame:
     camera_to_world: np.ndarray  # 4x4
 
 
-def volume() -> o3d.pipelines.integration.ScalableTSDFVolume:
+def volume(voxel: float = VOXEL) -> o3d.pipelines.integration.ScalableTSDFVolume:
+    """sdf_trunc scales with the voxel (4 voxels, the default's ratio)."""
     return o3d.pipelines.integration.ScalableTSDFVolume(
-        voxel_length=VOXEL, sdf_trunc=SDF_TRUNC, color_type=o3d.pipelines.integration.TSDFVolumeColorType.NoColor)
+        voxel_length=voxel, sdf_trunc=SDF_TRUNC * voxel / VOXEL,
+        color_type=o3d.pipelines.integration.TSDFVolumeColorType.NoColor)
 
 
 def intrinsic(K: np.ndarray, shape: tuple[int, int]) -> o3d.camera.PinholeCameraIntrinsic:
@@ -36,9 +38,9 @@ def intrinsic(K: np.ndarray, shape: tuple[int, int]) -> o3d.camera.PinholeCamera
     return o3d.camera.PinholeCameraIntrinsic(w, h, K[0, 0], K[1, 1], K[0, 2], K[1, 2])
 
 
-def integrate(frames: list[Frame]) -> o3d.geometry.TriangleMesh:
+def integrate(frames: list[Frame], voxel: float = VOXEL) -> o3d.geometry.TriangleMesh:
     """One TSDF over the frames, in the world; its marching-cubes mesh (empty if nothing fused)."""
-    vol = volume()
+    vol = volume(voxel)
     for f in frames:
         depth = o3d.geometry.Image(np.ascontiguousarray(f.depth, dtype=np.float32))
         color = o3d.geometry.Image(np.zeros(f.depth.shape + (3,), np.uint8))
