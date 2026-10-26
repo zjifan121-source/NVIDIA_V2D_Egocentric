@@ -5,7 +5,7 @@ Rules: push `zjifan121_pathb_v3` after every passing test or smoke test; no merg
 | # | Task | Where | Check | Status |
 |---|---|---|---|---|
 | 0 | Upload the Mac-only results to HF `path_b/runs/v4` (ep38 S1, ep2 rerun, 19 public CPU chains, canonicals; results only, no frame archives) with the refreshed token; commit and push `BUILD_LOG.md` | Mac | `hf_outputs.py list` shows 40 episodes | partial: 0.32 GB of results blocked by HF's storage limit (`usedStorage` 100.0 GB); the refreshed read token is not on the Mac yet |
-| 1 | A1 pooling gates: drop partials failing the held-out depth check; axis prior = table normal, reject > 20°; pot clips aligned by handle azimuth, reject > 30°; reject clips > 0.3 cm from the pool | Mac | explain-share ≥ 0.8 per clip; public CD-O; dimensions vs the 9 scans | todo |
+| 1 | A1 pooling gates: drop partials failing the held-out depth check; axis prior = table normal, reject > 20°; pot clips aligned by handle azimuth, reject > 30°; reject clips > 0.3 cm from the pool | Mac | explain-share ≥ 0.8 per clip; public CD-O; dimensions vs the 9 scans | done 2026-10-26: CD-O and dimensions fixed for the cups, pot, pitcher; explain-share fails where the voxel solid closes (pot, rack, cups): to A2/A5 |
 | 2 | A2 neighbour-free scans; 2 mm voxels for rack, sweeper, boards | Mac | public Chamfer ≤ 0.3 on cup/pot pairs | todo |
 | 3 | Download evaluation S1 results (~30 GB); A3 pool over all 40 clips; keep 40-clip vs 20-clip pool per object by explain-share | Mac | wooden_spoon has a mesh | todo |
 | 4 | A4 three mesh candidates per object (pooled / own clip / team SAM 3D); A5 completion keeps real asymmetric geometry | Mac | explain-share, B1 margin | todo |

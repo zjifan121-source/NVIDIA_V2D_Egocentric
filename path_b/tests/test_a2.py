@@ -211,6 +211,83 @@ def test_canonical_registers_clips_from_two_placements():
     assert np.abs(T[:3, 3]).max() < 0.004 and Rotation.from_matrix(T[:3, :3]).magnitude() < np.radians(2)
 
 
+def pot_with_handle(turn_deg=0.0):
+    pot = o3d.geometry.TriangleMesh.create_cylinder(radius=0.1, height=0.12, resolution=120, split=24)
+    handle = o3d.geometry.TriangleMesh.create_box(0.17, 0.03, 0.02).translate([0.1, -0.015, 0.09])
+    both = pot.translate([0.0, 0.0, 0.06]) + handle
+    both.rotate(Rotation.from_rotvec([0, 0, np.radians(turn_deg)]).as_matrix(), center=[0, 0, 0])
+    both.compute_vertex_normals()
+    return both
+
+
+def test_canonical_rejects_an_axis_far_from_the_table_normal():
+    """V4 §13.1 A1: a cup lying 30 or 60 degrees over (axis fitted beyond 20) or 45 (no side wall about
+    the vertical from this view) is not revolved about the vertical (the old cap); one leaning 10
+    degrees is, about the table normal."""
+    for lean, applied in ((30, False), (45, False), (60, False), (10, True)):
+        cup = o3d.geometry.TriangleMesh.create_cylinder(radius=0.05, height=0.15, resolution=120, split=30)
+        cup.rotate(Rotation.from_rotvec([np.radians(lean), 0, 0]).as_matrix(), center=[0, 0, 0])
+        cup.translate([0.3, -0.1, 0.12])
+        cup.compute_vertex_normals()
+        mesh, rep = C.build("blue_cup", [seen(cup, [0.3, -0.6, 0.6])])
+        sym = rep["symmetry"]
+        assert sym["applied"] is applied, (lean, sym)
+        if applied:
+            assert np.degrees(np.arccos(sym["axis"][2])) < 1.0
+        else:
+            assert "rejected" in sym and (sym["fitted_tilt_deg"] is None or sym["fitted_tilt_deg"] > C.AXIS_REJECT_DEG)
+
+
+def test_canonical_turns_clips_onto_the_handle_and_drops_a_clip_120_degrees_off():
+    """V4 §13.1 A1 (ep27/ep42's pot): clips registered with the handle 0, 0, +12 and +120 degrees about
+    the axis; the +12 one is turned onto the others, the +120 one is left out."""
+    turns = [0.0, 0.0, 12.0, 120.0]
+    clouds = [S.mesh_points(pot_with_handle(t), 20000) for t in turns]
+    moves = [{"T": np.eye(4), "kept": True} for _ in turns]
+    fit = {"axis": np.array([0.0, 0.0, 1.0]), "point": np.zeros(3), "wall_radius_m": 0.1}
+    out = C.align_features(clouds, moves, 0, fit)
+    assert out["clips_with_feature"] == 4
+    assert [m["kept"] for m in moves] == [True, True, True, False]
+    assert abs(moves[3]["feature_off_deg"]) > 100
+    after = [C.feature_azimuth(np.asarray(c.points), fit) for c, m in zip(clouds, moves) if m["kept"]]
+    assert max(abs(C.wrap(a - after[0])) for a in after) < 1.0
+    two = [S.mesh_points(pot_with_handle(t), 20000) for t in (0.0, 120.0)]  # no majority: neither goes
+    moves = [{"T": np.eye(4), "kept": True} for _ in two]
+    assert C.align_features(two, moves, 0, fit)["consensus_azimuth_deg"] is None and all(m["kept"] for m in moves)
+
+
+def test_canonical_drops_a_clip_away_from_the_rest_of_the_pool():
+    """V4 §13.1 A1: three dust-pan clips agree, a fourth registered 1.5 cm above them is left out (a
+    slide along the pan's base would not show: its points stay on the plane)."""
+    pan = dust_pan()
+    eyes = ([0.45, -0.25, 0.5], [0.40, -0.30, 0.55], [0.50, -0.20, 0.45], [0.45, -0.25, 0.5])
+    clouds = [S.mesh_points(seen(pan, e), 20000) for e in eyes]
+    clouds[3].translate([0.0, 0.0, 0.015])
+    moves = [{"T": np.eye(4), "kept": True} for _ in eyes]
+    C.pool_distances("mini_dust_pan", clouds, moves, 0)
+    assert [m["kept"] for m in moves] == [True, True, True, False], [m.get("pool_distance_mm") for m in moves]
+    assert max(m["pool_distance_mm"] for m in moves[:3]) < C.POOL_DIST * 1000
+
+
+def test_canonical_leaves_out_a_partial_failing_the_held_out_check(tmp_path):
+    """V4 §13.1 A1: a table patch fused as the pot (held-out RMS 900 mm, the largest surface) stays out
+    of the pool; the pot clip makes the mesh."""
+    slab = o3d.geometry.TriangleMesh.create_box(0.30, 0.40, 0.03).translate([0.0, 0.0, -0.03])
+    for n, (mesh, rms) in enumerate(((seen(pot_with_handle().translate([0.3, -0.1, 0.0]), [0.8, -0.1, 0.5]), 0.003),
+                                     (slab, 0.9)), start=1):
+        d = tmp_path / f"episode_{n:06d}/s3a2_fuse_scan/white_pot"
+        d.mkdir(parents=True)
+        mesh.compute_vertex_normals()
+        o3d.io.write_triangle_mesh(str(d / "partial_scan.ply"), mesh)
+        (d / "fuse_report.json").write_text(json.dumps({"partials": {"rest_before": {
+            "file": "partial_scan.ply", "fused": list(range(40)), "held_out_rms": {"trimmed_rms_m": rms}}}}))
+    dest = C.main("white_pot", tmp_path)
+    rep = json.loads((dest / "canonical.json").read_text())
+    assert rep["clips"] == ["episode_000001/s3a2_fuse_scan/white_pot/partial_scan.ply"]
+    assert rep["clips_left_out"][0]["reason"] == "held-out depth RMS 900 mm > 10"
+    assert max(rep["extents_cm"]) < 40 and rep["explained_min_kept"] > 0.8
+
+
 def test_voxel_solid_fills_a_sparse_closed_shell_and_not_an_open_plate():
     """The closing grows until a sparse shell encloses an interior; an open plate keeps the first one."""
     rng = np.random.default_rng(4)

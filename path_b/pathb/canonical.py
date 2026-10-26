@@ -4,15 +4,25 @@
     uv run --project path_b python path_b/run.py canonical --object white_pot --out <run> [--episodes ...]
 
 1. Partials: <run>/episode_*/s3a2_fuse_scan/<object>/partial_scan.ply (metres, each clip's v3 world,
-   the object at its frame-0 placement), each fused from >= MIN_CLIP_FRAMES frames (all when none is).
-   Reference: the largest surface; every other partial onto it by
+   the object at its frame-0 placement), each passing s3a2_fuse_scan's held-out depth check (trimmed
+   RMS <= HELD_OUT_RMS_MM, its WARN bar; V4 §13.1 A1: table patches fused as the object measured
+   0.77-1.25 m and, as the largest surface, became the reference) and fused from >= MIN_CLIP_FRAMES
+   frames (all passing ones when none is). Reference: the largest surface; every other partial onto it by
    FPFH + RANSAC (best of 3 seeds), point-to-point ICP (two clips often share only the top, whose
    outline only point-to-point uses; it slides slowly: 300 iterations), then point-to-plane to finish;
-   scale fixed; kept if fitness >= 0.3.
+   scale fixed; kept if fitness >= 0.3. Then (V4 §13.1 A1) a revolution object's clips are turned about
+   the pool's axis so their asymmetric feature (the points farthest outside the wall: a pot's handle)
+   points where the pool's does, and left out when it points more than FEATURE_AGREE_DEG away (a body
+   of revolution registers at any turn: ep27's and ep42's pot clips came out 120 degrees from nine
+   others, a pot with two handles); last, a clip whose points lie a median > POOL_DIST from the rest of
+   the pool (the other kept clips and their symmetry completion) is left out (never the reference).
 2. Fused: the registered partials' points, one 4 mm voxel grid (each partial is a TSDF average already).
 3. Symmetry (roster, spec §11): revolution (white_pot, white_pot_lid, blue_cup, beige_cup,
    water_pitcher): the axis starts vertical (they rest upright) and is refined through robust circle
-   fits per 5 mm height slice of the side wall; completion revolves the profile (4 mm cells in the
+   fits per 5 mm height slice of the side wall; the fit is kept within MAX_TILT_DEG of the table normal,
+   the table normal is used up to AXIS_REJECT_DEG, and beyond that the revolution is rejected and the
+   cloud closed as seen (V4 §13.1 A1: a fit 86-89 degrees off, forced vertical, revolved a table patch
+   into a 40-180 cm disc); completion revolves the profile (4 mm cells in the
    radius-height plane seen over at least half the azimuth seen at their height: walls and caps). Mirror (mini_dust_pan,
    wooden_piece_1/2): the vertical plane maximising the mirrored cloud's overlap (points within 5 mm),
    normals every 5 degrees tilted up to 10, offsets within 3 cm; completion mirrors the cloud. Others
@@ -26,9 +36,10 @@
    closing, filled, smoothed field, marching cubes, the voxel coarsened until <= 20,000 faces):
    watertight by construction, tight to what was seen.
 Frame: the reference clip's world, shifted so the origin is the footprint centre on the table (z up).
-Out: <run>/canonical/<object>/mesh.glb, mesh.obj, canonical.json (clips and registration, symmetry fit,
-coverage before completion, watertight, world-axis extents vs the completed cloud (bar 0.8-1.25) and vs
-the fused partial; coverage < 0.6 flagged).
+Out: <run>/canonical/<object>/mesh.glb, mesh.obj, canonical.json (clips and registration, each clip's
+gates and the share of it the mesh explains (within 5 mm, normals agreeing; s3a2_register's bar 0.8),
+the clips left out before registration and why, symmetry fit, coverage before completion, watertight,
+world-axis extents vs the completed cloud (bar 0.8-1.25) and vs the fused partial; coverage < 0.6 flagged).
 The learned completion fallbacks (SymmCompletion, AdaPoinTr, ForeHOI) need torch and their checkpoints:
 not wired; canonical.json says when one would have been the next step.
 """
@@ -45,6 +56,11 @@ from scipy.spatial.transform import Rotation
 from . import scan as S
 
 MAX_TILT_DEG = 5.0  # default: a resting body of revolution stands within this of the table normal
+AXIS_REJECT_DEG = 20.0  # spec §13.1 A1: a fitted axis further than this from the table normal is rejected
+FEATURE_AGREE_DEG = 30.0  # spec §13.1 A1: a clip whose handle points further than this from the pool's is left out
+FEATURE_MIN = 30  # default: points outside the wall (and >= 1 % of the clip) that make a feature
+POOL_DIST = 0.003  # m, spec §13.1 A1: a clip a median further than this from the rest of the pool is left out
+HELD_OUT_RMS_MM = 10.0  # s3a2_fuse_scan's WARN bar on a partial's surface vs held-out stereo depth
 WALL_MARGIN = 1.15  # default: profile cells beyond this x the wall circles' (90th percentile) radius are a
 # handle or spout: at a handle's height little else is seen, so the azimuth test alone let ep41's pot
 # handle be revolved into a 49 cm disc
@@ -141,12 +157,15 @@ def fit_revolution(points: np.ndarray, normals: np.ndarray, iterations: int = 4)
     side wall only (normals across the axis): a cap's points fill the circle and pull its centre. The
     line through the slices' centres may tilt the axis by at most MAX_TILT_DEG; beyond that it stays
     vertical (ep41's white pot, 11 cm tall, seen from one side with its 35 cm handle: the line tilted
-    30 degrees and the revolved mesh came out 39 x 35 x 34 cm)."""
+    30 degrees and the revolved mesh came out 39 x 35 x 34 cm). A fit beyond AXIS_REJECT_DEG, or no
+    fit (no side wall about the table normal), is `rejected`: the cloud is not upright (V4 §13.1 A1)."""
     a, c = np.array([0.0, 0.0, 1.0]), points.mean(axis=0)
     all_points = points
-    slices = []
+    slices, tilt, capped = [], None, False
     for _ in range(iterations):
         points = all_points[np.abs(normals @ a) < 0.5]
+        if len(points) < 20:  # no side wall about this axis (a cup lying over, seen from above)
+            break
         u, v = basis(a)
         h = (points - c) @ a
         centres, weights, slices = [], [], []
@@ -171,8 +190,8 @@ def fit_revolution(points: np.ndarray, normals: np.ndarray, iterations: int = 4)
         capped = tilt > MAX_TILT_DEG
         c, a = m, (np.array([0.0, 0.0, 1.0]) if capped else a_new)
     radii = [x["r"] for x in slices if x["inliers"] >= 20]
-    return {"axis": a, "point": c, "slices": len(slices), "fitted_tilt_deg": tilt if centres else None,
-            "tilt_capped": bool(centres) and capped,
+    return {"axis": a, "point": c, "slices": len(slices), "fitted_tilt_deg": tilt,
+            "tilt_capped": tilt is not None and capped, "rejected": tilt is None or tilt > AXIS_REJECT_DEG,
             "wall_radius_m": float(np.percentile(radii, 90)) if radii else None}
 
 
@@ -356,7 +375,9 @@ def voxel_solid(points: np.ndarray, close: int = 2) -> o3d.geometry.TriangleMesh
         else:  # open (a sheet, a cup, a rack): the plain closing
             occ = ndimage.binary_fill_holes(ndimage.binary_closing(raw, iterations=close))
         field = ndimage.gaussian_filter(np.pad(occ, 2).astype(np.float32), 0.75)
-        verts, faces, _, _ = marching_cubes(field, level=0.5)
+        # a sheet one voxel thick (an open object closed as seen) smooths below 0.5 everywhere: a thin
+        # closed shell around it at half its peak
+        verts, faces, _, _ = marching_cubes(field, level=min(0.5, 0.5 * float(field.max())))
         if len(faces) <= MAX_FACES:
             break
         voxel *= 1.05 * np.sqrt(len(faces) / MAX_FACES)
@@ -390,43 +411,155 @@ def close_surface(points: np.ndarray, normals: np.ndarray) -> tuple[o3d.geometry
     return solid, {"closing": "voxel solid", "poisson": " and ".join(why)}
 
 
-def build(name: str, partials: list[o3d.geometry.TriangleMesh]) -> tuple[o3d.geometry.TriangleMesh, dict]:
-    ref, moves = register(partials)
-    fused = fused_cloud(partials, moves)
-    pts, nrm = np.asarray(fused.points), np.asarray(fused.normals)
-    report = {"reference": ref, "moves": [{k: v for k, v in m.items()} for m in moves], "fused_points": len(pts)}
+def complete(name: str, pts: np.ndarray, nrm: np.ndarray) -> tuple[np.ndarray, np.ndarray, dict]:
+    """The roster symmetry's completion of a fused cloud: the points and normals it adds, and its report."""
     kind = "revolution" if name in REVOLUTION else "mirror" if name in MIRROR else "none"
-    extra = [np.zeros((0, 3))], [np.zeros((0, 3))]
+    none = np.zeros((0, 3))
     if kind == "revolution":
         fit = fit_revolution(pts, nrm)
+        if fit["rejected"]:
+            return none, none, {"kind": kind, "applied": False, "axis": fit["axis"], "point": fit["point"],
+                                "fitted_tilt_deg": fit["fitted_tilt_deg"], "wall_radius_m": fit["wall_radius_m"],
+                                "rejected": "no side wall about the table normal to fit an axis: closed as seen"
+                                if fit["fitted_tilt_deg"] is None else
+                                f"axis {fit['fitted_tilt_deg']:.0f} deg from the table normal "
+                                f"(> {AXIS_REJECT_DEG:.0f}): closed as seen"}
         cap = fit["wall_radius_m"] * WALL_MARGIN if fit.get("wall_radius_m") else None
         gen = generatrix(pts, nrm, fit, max_radius=cap)
         rp, rn = revolve(fit, gen)
-        extra = [rp], [rn]
-        report["symmetry"] = {"kind": kind, "axis": fit["axis"], "point": fit["point"], "slices": fit["slices"],
-                              "fitted_tilt_deg": fit.get("fitted_tilt_deg"), "tilt_capped": fit.get("tilt_capped"),
-                              "wall_radius_m": fit.get("wall_radius_m"), "profile_radius_cap_m": cap,
-                              "profile_cells": gen["cells"], "points_on_profile": gen["kept_share"],
-                              "radial_residual_m": gen["residual_m"]}
-    else:
-        fit = fit_mirror(pts)
-        use = kind == "mirror" or fit["overlap"] >= MIRROR_CONFIDENT
-        if use:
-            n, d = fit["normal"], fit["d"]
-            extra = [reflect(pts, n, d)], [nrm - 2 * (nrm @ n)[:, None] * n]
-        report["symmetry"] = {"kind": "mirror" if use else "none", "roster": kind, "normal": fit["normal"],
-                              "d": fit["d"], "overlap": fit["overlap"], "applied": bool(use)}
-    cap_p, cap_n = bottom_cap(np.concatenate([pts, *extra[0]]))
-    all_p = np.concatenate([pts, *extra[0], cap_p])
-    all_n = np.concatenate([nrm, *extra[1], cap_n])
+        return rp, rn, {"kind": kind, "applied": True, "axis": fit["axis"], "point": fit["point"],
+                        "slices": fit["slices"], "fitted_tilt_deg": fit.get("fitted_tilt_deg"),
+                        "tilt_capped": fit.get("tilt_capped"), "wall_radius_m": fit.get("wall_radius_m"),
+                        "profile_radius_cap_m": cap, "profile_cells": gen["cells"],
+                        "points_on_profile": gen["kept_share"], "radial_residual_m": gen["residual_m"]}
+    fit = fit_mirror(pts)
+    use = kind == "mirror" or fit["overlap"] >= MIRROR_CONFIDENT
+    rp, rn = (reflect(pts, fit["normal"], fit["d"]), nrm - 2 * (nrm @ fit["normal"])[:, None] * fit["normal"]) \
+        if use else (none, none)
+    return rp, rn, {"kind": "mirror" if use else "none", "roster": kind, "normal": fit["normal"], "d": fit["d"],
+                    "overlap": fit["overlap"], "applied": bool(use)}
+
+
+def wrap(deg: float) -> float:
+    return (deg + 180.0) % 360.0 - 180.0
+
+
+def circular_mean(deg) -> float:
+    return float(np.degrees(np.angle(np.exp(1j * np.radians(np.asarray(deg, float))).mean())))
+
+
+def feature_azimuth(points: np.ndarray, fit: dict) -> float | None:
+    """Azimuth (degrees about the fitted axis) of a body of revolution's asymmetric feature in one clip:
+    the farthest fifth of its points outside WALL_MARGIN x the wall radius (a pot's handle); None when
+    fewer than FEATURE_MIN of them (or 1 % of the clip) are there."""
+    a, c = fit["axis"], fit["point"]
+    u, v = basis(a)
+    q = points - c
+    rho = q - np.outer(q @ a, a)
+    r = np.linalg.norm(rho, axis=1)
+    far = r > WALL_MARGIN * fit["wall_radius_m"]
+    if far.sum() < max(FEATURE_MIN, 0.01 * len(points)):
+        return None
+    tip = far & (r >= np.quantile(r[far], 0.8))
+    return circular_mean(np.degrees(np.arctan2(rho[tip] @ v, rho[tip] @ u)))
+
+
+def turn_about(fit: dict, deg: float) -> np.ndarray:
+    """4x4: a turn by deg about the fitted axis."""
+    T = np.eye(4)
+    T[:3, :3] = Rotation.from_rotvec(np.radians(deg) * np.asarray(fit["axis"])).as_matrix()
+    T[:3, 3] = fit["point"] - T[:3, :3] @ fit["point"]
+    return T
+
+
+def align_features(clouds: list, moves: list[dict], ref: int, fit: dict) -> dict:
+    """V4 §13.1 A1 for a body of revolution: the feature azimuth most clips agree with (within
+    FEATURE_AGREE_DEG; ties: the reference's), each clip within it turned onto it about the axis, each
+    clip beyond it left out. Needs two clips agreeing on it. Updates moves and clouds in place."""
+    seen = {i: x for i, m in enumerate(moves) if m["kept"]
+            and (x := feature_azimuth(np.asarray(clouds[i].points), fit)) is not None}
+    if len(seen) < 2:
+        return {"clips_with_feature": len(seen)}
+
+    def members(x):
+        return [i for i, y in seen.items() if abs(wrap(y - x)) <= FEATURE_AGREE_DEG]
+    best = max(seen, key=lambda i: (len(members(seen[i])), i == ref))
+    pivot = seen[best]
+    if len(members(pivot)) < 2:  # no two clips agree: no majority to turn or drop a clip by (ep11/ep12's cup:
+        for i, x in seen.items():  # rack wires in one clip's mask read as a handle)
+            moves[i]["feature_azimuth_deg"] = x
+        return {"clips_with_feature": len(seen), "consensus_azimuth_deg": None}
+    consensus = wrap(pivot + circular_mean([wrap(seen[i] - pivot) for i in members(pivot)]))
+    for i, x in seen.items():
+        off = wrap(x - consensus)
+        moves[i].update(feature_azimuth_deg=x, feature_off_deg=off)
+        if abs(off) > FEATURE_AGREE_DEG:
+            moves[i].update(kept=False, reason=f"feature (handle) {off:+.0f} deg from the pool's")
+        else:
+            moves[i]["T"] = turn_about(fit, -off) @ np.asarray(moves[i]["T"])
+            clouds[i].transform(turn_about(fit, -off))
+    return {"clips_with_feature": len(seen), "consensus_azimuth_deg": consensus}
+
+
+def pool_distances(name: str, clouds: list, moves: list[dict], ref: int) -> None:
+    """V4 §13.1 A1: each kept clip's median distance to the rest of the pool (the other kept clips'
+    points and their symmetry completion); beyond POOL_DIST it is left out. Every distance is measured
+    before any clip goes; only with three clips kept or more; never the reference."""
+    kept = [i for i, m in enumerate(moves) if m["kept"]]
+    if len(kept) < 3:
+        return
+    rng = np.random.default_rng(0)
+    dist = {}
+    for i in kept:
+        rest = o3d.geometry.PointCloud()
+        for j in kept:
+            if j != i:
+                rest += clouds[j]
+        rest = rest.voxel_down_sample(S.VOXEL)
+        p, n = np.asarray(rest.points), np.asarray(rest.normals)
+        ep, _, _ = complete(name, p, n)
+        mine = np.asarray(clouds[i].points)
+        mine = mine[rng.choice(len(mine), min(5000, len(mine)), replace=False)]
+        dist[i] = float(np.median(cKDTree(np.concatenate([p, ep])).query(mine)[0]))
+    for i, d in dist.items():
+        moves[i]["pool_distance_mm"] = d * 1000
+        if d > POOL_DIST and i != ref:
+            moves[i].update(kept=False, reason=f"median {d * 1000:.1f} mm from the rest of the pool")
+
+
+def build(name: str, partials: list[o3d.geometry.TriangleMesh]) -> tuple[o3d.geometry.TriangleMesh, dict]:
+    ref, moves = register(partials)
+    for m in moves:
+        if not m["kept"]:
+            m["reason"] = f"registration fitness {m['fitness']:.2f} < {MIN_FITNESS}"
+    clouds = [S.mesh_points(p, 20000).transform(np.asarray(m["T"])) for p, m in zip(partials, moves)]
+    gates = {}
+    if name in REVOLUTION:
+        pre = fused_cloud(partials, moves)
+        fit = fit_revolution(np.asarray(pre.points), np.asarray(pre.normals))
+        if not fit["rejected"] and fit.get("wall_radius_m"):
+            gates["feature"] = align_features(clouds, moves, ref, fit)
+    pool_distances(name, clouds, moves, ref)
+    fused = fused_cloud(partials, moves)
+    pts, nrm = np.asarray(fused.points), np.asarray(fused.normals)
+    report = {"reference": ref, "moves": moves, "gates": gates, "fused_points": len(pts)}
+    ep, en, report["symmetry"] = complete(name, pts, nrm)
+    cap_p, cap_n = bottom_cap(np.concatenate([pts, ep]))
+    all_p = np.concatenate([pts, ep, cap_p])
+    all_n = np.concatenate([nrm, en, cap_n])
     mesh, closing = close_surface(all_p, all_n)
     report.update(closing)
     # canonical frame: the footprint centre on the table, z up
     v = np.asarray(mesh.vertices)
     origin = np.array([*((v[:, :2].min(axis=0) + v[:, :2].max(axis=0)) / 2), 0.0])
     mesh.translate(-origin)
-    surface = np.asarray(S.mesh_points(mesh, 20000).points) + origin
+    placed = S.mesh_points(mesh, 20000).translate(origin)
+    surface = np.asarray(placed.points)
     coverage = float(np.mean(cKDTree(pts).query(surface)[0] <= NEAR))
+    for c, m in zip(clouds, moves):  # the share of each clip the mesh explains (s3a2_register's measure)
+        m["explained"] = S.icp(c, placed, np.eye(4), max_dist=NEAR, iterations=0)["fitness"]
+    explained = [m["explained"] for m in moves if m["kept"]]
+    report["explained_min_kept"] = min(explained) if explained else None
     world = np.asarray(mesh.vertices) + origin
     ratio_cloud, ratio_fused = np.ptp(world, axis=0) / np.ptp(all_p, axis=0), np.ptp(world, axis=0) / np.ptp(pts, axis=0)
     report.update(world_to_canonical=-origin, coverage_before_completion=coverage, cap_points=len(cap_p),
@@ -457,16 +590,29 @@ def main(name: str, out: Path, episodes: list[int] | None = None) -> Path:
     import trimesh
     found = sorted(p for p in out.glob(f"episode_*/s3a2_fuse_scan/{name}/partial_scan*.ply")  # rest before, after
                    if episodes is None or int(p.parts[-4][len("episode_"):]) in episodes)
-    def frames(p: Path) -> int:  # how many frames the fuse integrated into this partial
+    def row(p: Path) -> dict:  # this partial's line in its fuse report (frames fused, held-out depth RMS)
         f = p.parent / "fuse_report.json"
         if not f.is_file():
-            return MIN_CLIP_FRAMES
-        parts = json.loads(f.read_text())["partials"]
-        return len(next((v["fused"] for v in parts.values() if v["file"] == p.name), []))
-    enough = [p for p in found if frames(p) >= MIN_CLIP_FRAMES]
-    skipped = [str(p.relative_to(out)) for p in found if p not in enough] if enough else []
+            return {}
+        return next((v for v in json.loads(f.read_text())["partials"].values() if v["file"] == p.name), {})
+
+    def rms_mm(p: Path) -> float | None:
+        r = (row(p).get("held_out_rms") or {}).get("trimmed_rms_m")
+        return None if r is None else r * 1000
+
+    checked = [p for p in found if (r := rms_mm(p)) is not None and r <= HELD_OUT_RMS_MM]
+    skipped = [{"clip": str(p.relative_to(out)), "reason": "no held-out depth check" if rms_mm(p) is None
+                else f"held-out depth RMS {rms_mm(p):.0f} mm > {HELD_OUT_RMS_MM:.0f}"} for p in found if p not in checked]
+    if not checked:  # never an empty pool: the partial that comes closest
+        known = [p for p in found if rms_mm(p) is not None]
+        checked = [min(known, key=rms_mm)] if known else found
+        skipped = [s for s in skipped if s["clip"] not in {str(p.relative_to(out)) for p in checked}]
+    enough = [p for p in checked if len(row(p).get("fused", [])) >= MIN_CLIP_FRAMES or not row(p)]
+    if enough:
+        skipped += [{"clip": str(p.relative_to(out)), "reason": f"fused from {len(row(p).get('fused', []))} frames "
+                     f"< {MIN_CLIP_FRAMES}"} for p in checked if p not in enough]
     partials, used = [], []
-    for p in enough or found:  # ep43's pot: touched at frame 7, a 1-frame rest-before partial of 45 vertices
+    for p in enough or checked:  # ep43's pot: touched at frame 7, a 1-frame rest-before partial of 45 vertices
         m = o3d.io.read_triangle_mesh(str(p))
         if len(m.triangles):
             m.compute_vertex_normals()
@@ -481,8 +627,11 @@ def main(name: str, out: Path, episodes: list[int] | None = None) -> Path:
     tm.export(dest / "mesh.obj")
     tm.export(dest / "mesh.glb")
     report = {"object": name, "clips": [str(p.relative_to(out)) for p in used], "clips_left_out": skipped,
-              "min_clip_frames": MIN_CLIP_FRAMES, **report}
+              "min_clip_frames": MIN_CLIP_FRAMES, "held_out_rms_bar_mm": HELD_OUT_RMS_MM, **report}
     (dest / "canonical.json").write_text(json.dumps(report, indent=1, default=to_json) + "\n")
-    print(f"canonical {name}: {len(used)} clips, {report['faces']} faces, watertight {report['watertight']}, "
-          f"coverage {report['coverage_before_completion']:.2f}, {report['symmetry']['kind']} -> {dest}", flush=True)
+    kept = sum(m["kept"] for m in report["moves"])
+    print(f"canonical {name}: {kept} of {len(used)} clips kept ({len(skipped)} left out before), {report['faces']} "
+          f"faces, watertight {report['watertight']}, extents {report['extents_cm'].tolist()} cm, explained >= "
+          f"{report['explained_min_kept']:.2f}, coverage {report['coverage_before_completion']:.2f}, "
+          f"{report['symmetry']['kind']}{'' if report['symmetry']['applied'] else ' (not applied)'} -> {dest}", flush=True)
     return dest
