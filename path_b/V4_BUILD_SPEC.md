@@ -228,3 +228,58 @@ Native in v4: segments, inversion and settle run per object; `support` (S3b) put
 Stand-in runs (team bundle fed into v3 CPU stages), ep40: raw 0.460, fused 0.519, `ref_keyframe = ref_tracking` 0.540, still 0.400, **A2 canonical mesh + team track 0.726** (MPPE 3.3 cm; CD-O 0.53 vs 0.24). ep26: 0.349 → 0.500 (= still); phase 2 no change. Real-input ep40 (2026-10-23, one run, lost with the VM): P1b/P1c/P1d PASS; S3a (SAM 3D) FAIL; S3b WARN; S4c FAIL; S5 FAIL; best reference 0.381 kinematic / 0.400 still; S6 60M ≈ 20 min. Decisions carried: canonical mesh is S3a; `tracking` cut; S4c off until it carries; two policies; HaMeR. Owed from v3: front-end comparison (team vs v3 S1) and the first scored Path B policy.
 
 Sources (checked 2026-10-24): `path_b/oracles/oracle_2026-10-17.json`; `path_b/BUILD_LOG.md`; `tools/track3/episodes.json`; FlashCHORD in `nvidia-isaac/video_to_data` (`configs/experiment/sharpa_flash_sac.yaml`, `configs/termination/tracking.yaml`, `runtime/actions/hand_pose.py`, `evaluation/harness.py`, `configs/curriculum/tracking_250m_mixed_reset.yaml`); ROHIT (arXiv 2512.07394, §3.1, suppl. Table 13); EgoFound3R README; challenge FAQ; Kaggle Track 3 boards 2026-10-23 (leader 0.922 / 1.30 cm; team 0.425, rank 13/27); the 2026-10-24 adversarial review of "Path B v4 Design".
+
+## 13. Plan after the first full runs (James, 2026-10-26; supersedes §6's Oct 28–31 rows and Task Queue items 6–13)
+
+**Facts the plan rests on** (run reports 2026-10-25/26, both review pages): 19 of 20 public episodes scored; ours 0.363 vs Edmond's place 0.401 on the same 19, 0.623 vs 0.391 where our mesh is right and 0.154 vs 0.520 where it is wrong. Every loss is a mesh case: table-patch partials pooled (held-out RMS 0.77–1.25 m), revolution axes capped instead of rejected, pot clips pooled 120° apart, anchor meshes registering 146–179° off in the scorer. `wooden_spoon` appears only in evaluation episodes (10 of 20), so pooling must include evaluation clips. S5/S6 have never run in v4; two-object scenes (16 of 20 evaluation episodes) score 0.237 on public vs the team's still 0.301. MP-SR tests per-object *means* (scorer guide), so it is reachable on clean clips (ep40, ep45 already pass in playback).
+
+**Rules.** Scans are never read on evaluation (James: no). Pooling over evaluation clips is allowed (James: yes). Every change ships with a GT-free signal measured on evaluation and calibrated on public: explain-share, registration margin (B1), frame-0 consistency (B3), P3 scale factor, segment agreement with hand motion, settle penetration, grasps failed, and — the primary gate for the submission — the policy's rollout error against its own reference. No rollout splicing: candidates are mixed per object in the *reference*, one policy per episode.
+
+### 13.1 Meshes (CPU, Oct 27)
+- **A1 pooling gates** (`pathb/canonical.py`): drop partials failing S1's held-out depth check; axis prior = table normal, reject fits > 20° off (never cap); align revolution objects by their asymmetric feature (pot handle azimuth: direction of the farthest-from-axis points) and reject clips disagreeing > 30°; reject clips whose partial is > 0.3 cm from the pool. Test: explain-share ≥ 0.8 on every clip; public CD-O; dimensions of the 9 scanned objects.
+- **A2 neighbour-free scans** (`s3a2_fuse_scan`): drop pixels inside another object's mask or within 2 cm of its points; 2 mm voxels for rack, sweeper, boards.
+- **A3 pool over all 40 clips** (`run.py canonical --split all`), after the evaluation S1 download (~30 GB). Keep the 40-clip pool where it explains more than the 20-clip one, per object.
+- **A4 three mesh candidates per object**: pooled, this clip's own, the team's SAM 3D mesh (bundle repo; verify it exists for evaluation objects — 69 bundles ≈ 33 public + 36 evaluation). Pick by explain-share, ties by B1 margin. Record the choice in `s3a2_register/report.json`.
+- **A5 completion keeps real asymmetric geometry** (closed cup bottom, modelled handle, sweeper handle side). No invented features (CD-O is bidirectional).
+- Then rerun S3a2 → S4b + waterfall on all 19 public episodes on **one** mesh set.
+
+### 13.2 Anchor-flip insurance (CPU, Oct 27)
+- **B1 registration-ambiguity test**: reuse `score_local.py`'s registration (RMS-radius rescale → 3 000 points → 25 PCA starts → trimmed ICP 90 %) to register our mesh onto our own rest scan; margin = runner-up cost − best cost. Calibrate on public: flagged ⇔ the scorer flipped (13, 31, 0). GT-free.
+- **B2** flagged anchor → the A4 candidate with the largest margin, else A5.
+- **B3 frame-0 rule and bar**: the scorer aligns the whole episode from frame 0 of object 0 (translation) and the first non-symmetric object (rotation). Bar: ‖pose(frame 0) − static-segment pose after settle‖ < 5 mm / 1° for those objects. Where object 0 is a cup, the second object's frame-0 orientation is the most valuable number in the episode.
+
+### 13.3 Carry solve (CPU, Oct 28)
+- **C1** inside a grasp: contact set fixed, pose free per frame, strong temporal prior (ROHIT's relaxation). Not "absorb 3 cm". Keep the slip guard; test inverted ≥ keyframe and MPPE on 41, 18, 43.
+- **C2** rotation with the wrist in the grasp fit (oracle: `place_pos_rot_gt − place_pos_gt` = +0.259 mean; ep23 +0.60, ep24 +0.81, ep43 +0.60).
+- **C3** thin objects: fingertip term up, depth term down. **C4** turned-over rest pose (180° flip candidate when rest-after differs from rest-before). **C5** two-handed grasps (optional).
+
+### 13.4 Stacked objects and candidates (CPU, Oct 28)
+- **D1** supports bottom-up (overlapping footprints: lower on the table, upper on the lower); settle in that order.
+- **D2** per-object candidate choice (inverted / keyframe / still) in the reference; one policy per episode. Replaces the ep41/ep13 go/no-go gate (removed).
+- **D3** `edmond_place` as a per-episode candidate (his bundle through the same GT-free signals).
+
+### 13.5 Hands and camera (GPU window 1, Oct 27)
+- **E1** second-hand seeding when WiLoR first sees it; reject overlap > 0.5 and re-seed; re-run P1b/P1d on 2, 10, 21, 22, 28, 33, 44.
+- **E2** camera: measure on the opening 30 frames when no rest plane; keep more table in the depth prior; re-run P1c on 2, 20, 22, 24, 32.
+- **E3** bars: wrist speed → WARN < 0.95; hand-scale bar 0.7.
+
+### 13.6 Policy stage
+- **F1 S0.1 runs in GPU window 1 (Oct 27)**: policy on the true trajectory for ep41 and ep13 (2 × 20 min). It is also S5/S6's first run in v4. Below still → the S6 recipe is the problem; ≥ 0.7 → the reference is.
+- **F1b two-object smoke**: S5/S6 on ep26 end to end in the same window (merge, RPE selection).
+- **F1c** dry `run.py pack` on the public split in the same window.
+- **F2** two candidates × 60M on all 40; 250M on the chosen reference for the 20 evaluation episodes (trim to evaluation only if time is short).
+- **F3 selection on evaluation**: primary gate = rollout error against its own reference (kit termination 10 cm / 0.5 rad); then the GT-free signals; candidates include `edmond_place`. Experiment on public first: selection accuracy vs the GT-best candidate.
+- **F4** MP-SR: per-object means; aim it at 40, 45, 26, 18, 41.
+
+### 13.7 Evaluation run and submission
+- **G1** CPU chain on the 20 evaluation episodes; collect per object: explain-share, B1 margin, B3 frame-0 consistency, P3 scale factor, segment agreement, settle penetration, grasps failed.
+- **G2** fit signals → score on public; apply to evaluation.
+- **G3** reference with D2/D3, policies, F3 selection, pack, preflight; **HOLD** for James.
+- **HF**: uploads resume (space freed, read token refreshed 2026-10-26); first upload = the Mac-only results (ep38 S1, ep2 rerun, the 19 public CPU chains, canonicals); S4b outputs also copied Mac → VM directly for the policy window.
+
+### 13.8 Schedule
+Oct 27: 13.1, 13.2, 13.5 + GPU window 1 (F1, F1b, F1c, E). Oct 28: 13.3, 13.4, G1. Oct 29–31: F2, G2, G3 → safe submission Oct 31 (James's go). Freeze Nov 4 5 pm EST, unlimited submissions Nov 2–4: Nov 1–3 for 250M reruns and a resubmission on Nov 3 if James lifts the Nov 1 stop.
+
+**Dropped:** scans as meshes; "frame 0 is free" (the opposite holds); slip absorption to 3 cm; invented mesh markers; rollout splicing; the go/no-go gate; S4c; full HF re-upload of frame archives (results only).
+
+Sources: review pages "All Episodes: v4 vs Refined Baseline" and "Seven Episodes Deep Dive" (2026-10-26); `track3_scorer_guide.md` (registration recipe, frame-0 alignment, MP-SR on means, scale never corrected); `BUILD_LOG.md` 2026-10-24–26; challenge FAQ (own reconstructed meshes) and page (Nov 4 freeze); FlashCHORD `termination/tracking.yaml`; ROHIT arXiv 2512.07394; `tools/track3/episodes.json` (wooden_spoon evaluation-only).
