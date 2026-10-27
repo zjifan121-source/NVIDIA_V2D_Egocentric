@@ -232,3 +232,143 @@ def test_unsolved_runs_from_frame_0_bridge_from_the_registered_pose():
     assert err[0] < 20 and np.median(err[GRASP[1] + 1:]) < 3  # frame 0 near the registration (1 cm off)
     held = add_mm(np.repeat(P[-1:], GRASP[1] + 1, axis=0), obj[:GRASP[1] + 1], np.asarray(m.vertices))
     assert np.median(err[:GRASP[1] + 1]) < 0.6 * np.median(held)  # the bridge follows the carry's ends
+
+
+def test_static_rays_missed_flags_a_mesh_the_mask_sees_past():
+    """A static pose's mask rays all hit the true box; a box half its size (a see-through or shrunken mesh:
+    ep40's voxel net let 27 % through) misses most of them, though ICP onto the fused surface may fit it."""
+    c, segs, obj, m = clip()
+    assert I.rays_missed(c, 0, GRASP[0] - 1, obj[0]) < I.MISSED_BAR  # edge pixels: 2 %
+    small = (np.asarray(m.vertices) - [0, 0, 0.03]) * 0.5 + [0, 0, 0.03]
+    half = I.Clip(K=c.K, c2w=c.c2w, obs=c.obs, tips=c.tips, wrist=c.wrist, valid=c.valid, vertices=small,
+                  faces=np.asarray(m.faces), group=c.group, target=c.target, silhouette=c.silhouette)
+    assert I.rays_missed(half, 0, GRASP[0] - 1, obj[0]) > 0.5
+    _, report = I.solve(c, segs, start_pose(), FPS)
+    assert all(r["rays_missed"] < I.MISSED_BAR for r in report if r["kind"] == "static")
+
+
+def test_pass2_moves_the_offset_at_most_one_step_per_frame(monkeypatch):
+    """An ICP start a quarter turn off (ep41's near-round pot: ICP turned it 165 degrees in the hand at 2 mm)
+    moves the in-hand offset D by at most the spec's 5 mm / 3 degrees per component per frame."""
+    c, _, _, _ = clip()
+    quarter = np.eye(4)
+    quarter[:3, :3] = Rotation.from_rotvec([0, 0, np.pi / 2]).as_matrix()
+    monkeypatch.setattr(I, "icp_start", lambda clip, t, guess: (guess @ quarter, 1.0))
+    a, b = GRASP
+    poses, _ = I.pass2(c, a, b, 1, [0, 1], HAND_TO_OBJECT)
+    D = np.array([I.x_of(np.linalg.inv(c.wrist[t, 1] @ HAND_TO_OBJECT) @ poses[t - a]) for t in range(a, b + 1)])
+    step = np.diff(np.vstack([np.zeros(6), D]), axis=0)
+    assert np.abs(step[:, :3]).max() <= I.STEP_RAD + 1e-9 and np.abs(step[:, 3:]).max() <= I.STEP_M + 1e-9
+
+
+def test_static_retry_turns_about_gravity_to_the_turn_the_mask_sees():
+    """ep45's pot: the fused surface (here a square top) fits a quarter turn as well; the mask still sees the
+    handle where it is. From a start a quarter turn off, the retry's turns about gravity find it, and among
+    fits tied on the fused surface the one the fewest mask rays miss wins (the least-turned one kept 81 deg)."""
+    body = trimesh.creation.box((0.10, 0.10, 0.06))
+    body.apply_translation([0, 0, 0.03])
+    handle = trimesh.creation.box((0.08, 0.03, 0.03))
+    handle.apply_translation([0.09, 0, 0.035])  # sticks out along +x, beside the camera's view of the body
+    m = trimesh.util.concatenate([body, handle])
+    true = np.eye(4)
+    frames = 6
+    c2w = np.repeat(camera()[None], frames, axis=0)
+    mesh = o3d.geometry.TriangleMesh(o3d.utility.Vector3dVector(m.vertices), o3d.utility.Vector3iVector(m.faces))
+    obs, sil = [], []
+    for t in range(frames):
+        depth = S.rendered_depth(o3d.geometry.TriangleMesh(mesh).transform(true), K, c2w[t], SHAPE)
+        ys, xs = np.nonzero(depth > 0)
+        obs.append((np.stack([xs, ys], 1).astype(float), depth[ys, xs], len(ys) / (4 * SHAPE[0] * SHAPE[1])))
+        sil.append(I.silhouette_map(depth > 0))
+    g = np.stack(np.meshgrid(np.linspace(-0.045, 0.045, 40), np.linspace(-0.045, 0.045, 40)), -1).reshape(-1, 2)
+    top = S.cloud(np.column_stack([g, np.full(len(g), 0.06)]), np.tile([0, 0, 1.0], (len(g), 1)))
+    c = I.Clip(K=K, c2w=c2w, obs=obs, tips=np.full((frames, 2, 5, 3), np.nan), wrist=np.tile(np.eye(4), (frames, 2, 1, 1)),
+               valid=np.zeros((frames, 2), bool), vertices=np.asarray(m.vertices), faces=np.asarray(m.faces),
+               group=np.eye(4)[None], target=lambda a, b: top, silhouette=sil)
+    off = np.eye(4)
+    off[:3, :3] = Rotation.from_rotvec([0, 0, np.pi / 2]).as_matrix()
+    assert I.rays_missed(c, 0, frames - 1, off) > I.MISSED_BAR  # the handle's pixels see past the turned mesh
+    r = I.solve_static(c, 0, frames - 1, off)
+    assert r["residual_m"] < I.STATIC_BAR_M and r["rays_missed"] < I.MISSED_BAR, r
+    assert np.degrees(Rotation.from_matrix(r["pose"][:3, :3]).magnitude()) < 5, r["start_from"]
+
+
+def test_a_failed_grasp_is_bridged_not_placed(monkeypatch):
+    """A grasp whose fit fails (ep26's carry: 56 cm off, none of its frames within 1 cm) anchors nothing: its
+    frames are bridged between the rests like an unstable run, and the row still says failed (S4b's fallback)."""
+    c, segs, obj, m = clip()
+
+    def far(clip, a, b, *args, **kwargs):
+        P = obj[a:b + 1].copy()
+        P[:, :3, 3] += [0.0, 0.0, 0.5]
+        return [{"kind": "grasp", "start": a, "end": b, "poses": P, "failed": True, "share_within_1cm": 0.0}]
+    monkeypatch.setattr(I, "solve_grasp", far)
+    P, report = I.solve(c, segs, start_pose(), FPS)
+    g = next(r for r in report if r["kind"] == "grasp")
+    assert g["failed"] and "poses" not in g
+    a, b = GRASP
+    assert np.isfinite(P).all()
+    assert np.abs(P[a:b + 1, 2, 3] - obj[a:b + 1, 2, 3]).max() < 0.15  # bridged near the path, not 50 cm up
+
+
+def test_overhang_counts_the_mesh_hanging_out_of_the_mask():
+    """rays_missed's other direction: a handle turned out of the mask's outline hangs out of it (ep13's cup upside
+    down: 2 % of rays missed, as upright, but 16 % hanging out against 3 %)."""
+    body = trimesh.creation.box((0.10, 0.10, 0.06))
+    body.apply_translation([0, 0, 0.03])
+    handle = trimesh.creation.box((0.04, 0.06, 0.02))
+    handle.apply_translation([0, -0.08, 0.05])  # towards the camera, inside the body's outline
+    m = trimesh.util.concatenate([body, handle])
+    mesh = o3d.geometry.TriangleMesh(o3d.utility.Vector3dVector(m.vertices), o3d.utility.Vector3iVector(m.faces))
+    depth = S.rendered_depth(mesh, K, camera(), SHAPE)
+    ys, xs = np.nonzero(depth > 0)
+    c = I.Clip(K=K, c2w=camera()[None], obs=[(np.stack([xs, ys], 1).astype(float), depth[ys, xs], 0.0)],
+               tips=np.full((1, 2, 5, 3), np.nan), wrist=np.tile(np.eye(4), (1, 2, 1, 1)), valid=np.zeros((1, 2), bool),
+               vertices=np.asarray(m.vertices), faces=np.asarray(m.faces), group=np.eye(4)[None],
+               target=lambda a, b: None, silhouette=[I.silhouette_map(depth > 0)])
+    turned = np.eye(4)
+    turned[:3, :3] = Rotation.from_rotvec([0, 0, np.pi / 2]).as_matrix()
+    assert I.overhang(c, 0, 0, np.eye(4)) < 0.01
+    assert I.overhang(c, 0, 0, turned) > I.MISSED_BAR
+    f = {"rays_missed": I.rays_missed(c, 0, 0, turned), "overhang": I.overhang(c, 0, 0, turned)}
+    assert I.disagreement(f) == pytest.approx(f["rays_missed"] + f["overhang"])
+    assert I.disagreement({"rays_missed": None}) is None
+
+
+def test_a_grasp_anchored_only_at_its_end_is_tracked_from_that_end():
+    """The part after a slip knows only the rest after it: pass 1's offset fits that end, the wrist drifts
+    away from it towards the start (here 6 cm), and pass 2 tracks from the end backwards (ep41's 91-frame
+    part, tracked from its start, never locked on)."""
+    c, _, obj, m = clip()
+    a, b = GRASP
+    wrist = c.wrist.copy()
+    for t in range(a, b + 1):
+        drift = np.eye(4)
+        drift[0, 3] = 0.06 * (b - t) / (b - a)
+        wrist[t, 1] = wrist[t, 1] @ drift
+    c = I.Clip(K=c.K, c2w=c.c2w, obs=c.obs, tips=np.full_like(c.tips, np.nan), wrist=wrist, valid=c.valid,
+               vertices=c.vertices, faces=c.faces, group=c.group, target=c.target, silhouette=c.silhouette)
+    [g] = I.solve_grasp(c, a, b, 1, [], None, obj[b + 1], split=False)
+    err = add_mm(g["poses"], obj[a:b + 1], np.asarray(m.vertices))
+    assert np.median(err) < 5 and np.median(err[:10]) < 8, (np.median(err), np.median(err[:10]))
+
+
+def test_the_hand_letting_go_is_bridged_not_tracked(monkeypatch):
+    """The wrist leaves the object over the grasp's last 4 frames (3 cm a frame, as ep41's left hand at
+    the release): those frames are bridged and the carry stays on the object."""
+    c, segs, obj, m = clip()
+    wrist = c.wrist.copy()
+    for t in range(GRASP[1] - 3, GRASP[1] + 1):
+        away = np.eye(4)
+        away[:3, :3] = Rotation.from_rotvec([0, 0, np.radians(25) * (t - GRASP[1] + 4)]).as_matrix()
+        away[1, 3] = -0.03 * (t - GRASP[1] + 4)
+        wrist[t, 1] = wrist[t, 1] @ away
+    c = I.Clip(K=c.K, c2w=c.c2w, obs=c.obs, tips=c.tips, wrist=wrist, valid=c.valid, vertices=c.vertices,
+               faces=c.faces, group=c.group, target=c.target, silhouette=c.silhouette)
+    P, report = I.solve(c, segs, start_pose(), FPS)
+    assert any(r["kind"] == "unstable" and r["why"] == "the hand letting go" for r in report), report
+    err = add_mm(P, obj, np.asarray(m.vertices))
+    assert np.median(err[GRASP[0]:GRASP[1] + 1]) < 4 and err[GRASP[1] - 3:GRASP[1] + 1].max() < 10, err[GRASP[1] - 5:]
+    monkeypatch.setattr(I, "RELEASE_M", np.inf)  # tracked to the end: the last frames follow the hand
+    P, _ = I.solve(c, segs, start_pose(), FPS)
+    assert add_mm(P, obj, np.asarray(m.vertices))[GRASP[1] - 3:GRASP[1] + 1].max() > 10

@@ -33,8 +33,8 @@
 5. Screened Poisson (depth 8) on the oriented points; density-trimmed only if it stays watertight;
    decimated to <= 20,000 faces. Where the clips leave a side unseen, Poisson inflates it: if its mesh
    leaks or outgrows the cloud (extents outside 0.8-1.25x), the voxel solid instead (2 mm occupancy,
-   closing, filled, smoothed field, marching cubes, the voxel coarsened until <= 100,000 faces; not
-   decimated, which opens it): watertight by construction, tight to what was seen.
+   closing, filled, smoothed field, marching cubes, stray pieces dropped, the voxel coarsened until
+   <= 100,000 faces; not decimated, which opens it): watertight by construction, tight to what was seen.
 Pools (V4 §13.1 A3): `--versus <split>` also pools that split's clips alone and keeps the pool whose mesh
 explains more of the clips (each partial of the larger pool registered onto each mesh as s3a2_register
 does; mean share), the other in canonical/<object>/alternative/.
@@ -348,7 +348,19 @@ SOLID_SHARE = 0.5  # default: Poisson's volume over the voxel solid's below this
 ENCLOSED_SHARE = 0.2  # default: an interior this large (vs the dilated shell) makes a closed object
 SOLID_VOXEL = 0.002  # default: the voxel solid's grid; at 4 mm the pot's walls came out ~1 cm thick, the clips
 # a median 3.9 mm off it (explain-share 0.38 -> 0.66 at 2 mm, CD-O 0.59 -> 0.41 cm on the public pot)
-SOLID_CLOSE, SOLID_SIGMA = 1, 0.5  # default: closing iterations, smoothing (voxels)
+SOLID_SIGMA = 0.5  # default: smoothing (voxels)
+SOLID_STEPS = ((1, 1), (2, 2), (2, 1))  # default: (dilate, erode) iterations of an open object's occupancy with the
+# 3x3x3 cube, thinnest first; the first the cloud cannot see through (see_through) is kept. The cloud lies on
+# fused_cloud's 4 mm grid: the 6-neighbour closing of 1 (until 2026-10-27) left ep40's dust pan a net of 816 pieces
+# that 27 % of its mask's rays passed through on static frames (CD-O and explain-share, measured on points, did not
+# see it), and no 6-neighbour closing seals a thin sheet (its erosion reopens the gaps across it). The cube's step
+# reaches the grid's diagonals: (1, 1) seals the dust pan, the pot and a synthetic 1 mm sheet
+SEE_THROUGH_BAR = 0.05  # default: rays across the cloud's surface that may pass through the mesh (ep40's dust pan:
+# 0.33 -> 27 % of its static mask rays missed, 0.14 -> 12 %, 0.10 -> 6 %, <= 0.034 -> none)
+SEE_PAIR, SEE_REACH = 0.006, 0.015  # default: a ray through two points this close; no hit this far either side
+CUBE = np.ones((3, 3, 3), bool)
+FLOAT_AREA = 2e-4  # m^2, default: closed pieces smaller than this are dropped: stray voxels (<= 1.2 cm^2 on the pooled
+# dust pan and pot), not a part seen apart from the body (a synthetic pot's handle: pieces of 13-17 cm^2, 1 % of it)
 SOLID_MAX_FACES = 100_000  # default: the voxel solid is not decimated (fast_simplification opens it); the
 # packer budgets the submitted copy itself
 
@@ -365,7 +377,7 @@ def enclosed(occ: np.ndarray) -> np.ndarray:
     return inside
 
 
-def voxel_solid(points: np.ndarray) -> o3d.geometry.TriangleMesh:
+def voxel_solid(points: np.ndarray) -> tuple[o3d.geometry.TriangleMesh, dict]:
     """A watertight surface around the points: occupancy, morphological closing, interior filled, the
     field smoothed, marching cubes at 0.5. Filling: the occupancy dilated by `close`, its holes and the
     voxels it encloses along all six axis directions (`enclosed`) filled, then eroded back by `close`,
@@ -377,15 +389,53 @@ def voxel_solid(points: np.ndarray) -> o3d.geometry.TriangleMesh:
     a smoothed mesh folds thin parts into themselves. Not decimated (quadric decimation and
     fast_simplification open it): the voxel grows until the mesh fits the face cap. Closed or open is
     decided on the 4 mm grid (closing 2: seals a shell 6-8 mm sparse); a closed object keeps that solid
-    (<= MAX_FACES), an open one is rebuilt on the SOLID_VOXEL grid (closing SOLID_CLOSE, smoothing
-    SOLID_SIGMA, <= SOLID_MAX_FACES), whose walls follow the clips (the pot's: 1 cm thick at 4 mm)."""
+    (<= MAX_FACES), an open one is rebuilt on the SOLID_VOXEL grid (the first of SOLID_STEPS the cloud
+    cannot see through, smoothing SOLID_SIGMA, <= SOLID_MAX_FACES), whose walls follow the clips (the pot's:
+    1 cm thick at 4 mm). Either way, closed pieces smaller than FLOAT_AREA are dropped.
+    Returns the mesh and how it was made (canonical.json)."""
     mesh, closed = grid_solid(points, S.VOXEL, 2, 0.75, MAX_FACES)
-    return mesh if closed else grid_solid(points, SOLID_VOXEL, SOLID_CLOSE, SOLID_SIGMA, SOLID_MAX_FACES)[0]
+    if closed:
+        return mesh, {"solid": "closed (4 mm grid, closing 2)"}
+    tried, meshes = [], []
+    for dilate, erode in SOLID_STEPS:
+        meshes.append(grid_solid(points, SOLID_VOXEL, dilate, SOLID_SIGMA, SOLID_MAX_FACES, erode=erode)[0])
+        tried.append({"dilate": dilate, "erode": erode, "see_through": see_through(meshes[-1], points)})
+        if tried[-1]["see_through"] <= SEE_THROUGH_BAR:
+            break
+    # none passes (a rack's wires leave real gaps: 0.07-0.18): the least see-through, thinnest on ties
+    kept = min(range(len(tried)), key=lambda i: (tried[i]["see_through"] > SEE_THROUGH_BAR, tried[i]["see_through"]))
+    return meshes[kept], {"solid": "open", "steps": tried, "kept": tried[kept]}
 
 
-def grid_solid(points: np.ndarray, voxel: float, close: int, sigma: float,
-               max_faces: int) -> tuple[o3d.geometry.TriangleMesh, bool]:
-    """voxel_solid on one grid: the mesh and whether the occupancy enclosed an interior (closed)."""
+def see_through(mesh: o3d.geometry.TriangleMesh, points: np.ndarray, rays: int = 4000) -> float:
+    """The share of rays across the cloud's surface that pass through the mesh: each through the midpoint
+    of two neighbouring points (<= SEE_PAIR apart: the surface between samples, where a voxel net has its
+    holes), along the local normal, no hit within SEE_REACH of it on either side. Cloud only (no camera):
+    on ep40's dust pan it ranks the meshes as the mask rays they let through on static frames do."""
+    if not len(mesh.triangles) or len(points) < 10:
+        return 1.0
+    pc = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
+    pc.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=3 * S.VOXEL, max_nn=30))
+    normals = np.asarray(pc.normals)
+    rng = np.random.default_rng(0)
+    i = rng.choice(len(points), min(rays, len(points)), replace=False)
+    dist, j = cKDTree(points).query(points[i], k=7)
+    pick = rng.integers(1, j.shape[1], len(i))
+    near = dist[np.arange(len(i)), pick] <= SEE_PAIR
+    if not near.any():
+        return 1.0
+    mid = (points[i] + points[j[np.arange(len(i)), pick]])[near] / 2
+    n = normals[i][near]
+    scene = o3d.t.geometry.RaycastingScene()
+    scene.add_triangles(o3d.t.geometry.TriangleMesh.from_legacy(mesh))
+    hit = scene.cast_rays(o3d.core.Tensor(np.concatenate([mid - SEE_REACH * n, n], axis=1).astype(np.float32)))
+    return float(np.mean(~(hit["t_hit"].numpy() <= 2 * SEE_REACH)))
+
+
+def grid_solid(points: np.ndarray, voxel: float, close: int, sigma: float, max_faces: int,
+               erode: int | None = None) -> tuple[o3d.geometry.TriangleMesh, bool]:
+    """voxel_solid on one grid: the mesh and whether the occupancy enclosed an interior (closed). With
+    `erode`, open whatever the occupancy encloses: dilated by `close`, eroded by `erode` (the 3x3x3 cube)."""
     from scipy import ndimage
     from skimage.measure import marching_cubes
     for _ in range(6):
@@ -395,11 +445,13 @@ def grid_solid(points: np.ndarray, voxel: float, close: int, sigma: float,
         raw[tuple(idx.T)] = True
         grown = ndimage.binary_dilation(raw, iterations=close)
         interior = (ndimage.binary_fill_holes(grown) | enclosed(grown)) & ~grown
-        closed = bool(interior.sum() >= ENCLOSED_SHARE * grown.sum())
+        closed = erode is None and bool(interior.sum() >= ENCLOSED_SHARE * grown.sum())
         if closed:  # a closed object: fill, then erode back
             occ = ndimage.binary_erosion(grown | interior, iterations=close) | raw
-        else:  # open (a sheet, a cup, a rack): the plain closing
-            occ = ndimage.binary_fill_holes(ndimage.binary_closing(raw, iterations=close))
+        else:  # open (a sheet, a cup, a rack): dilated, eroded (a closing when equal), holes filled
+            occ = ndimage.binary_fill_holes(ndimage.binary_erosion(grown, iterations=close) if erode is None else
+                                            ndimage.binary_erosion(ndimage.binary_dilation(raw, CUBE, iterations=close),
+                                                                   CUBE, iterations=erode))
         field = ndimage.gaussian_filter(np.pad(occ, 2).astype(np.float32), sigma)
         # a sheet one voxel thick (an open object closed as seen) smooths below 0.5 everywhere: a thin
         # closed shell around it at half its peak
@@ -409,8 +461,18 @@ def grid_solid(points: np.ndarray, voxel: float, close: int, sigma: float,
         voxel *= 1.05 * np.sqrt(len(faces) / max_faces)
     mesh = o3d.geometry.TriangleMesh(o3d.utility.Vector3dVector((verts - 2) * voxel + lo),
                                      o3d.utility.Vector3iVector(faces[:, ::-1].astype(np.int32)))
+    labels, _, areas = mesh.cluster_connected_triangles()  # each piece is closed: dropping one keeps it watertight
+    labels, areas = np.asarray(labels), np.asarray(areas)
+    if len(areas) > 1:
+        mesh.remove_triangles_by_mask(areas[labels] < min(FLOAT_AREA, areas.max()))
+        mesh.remove_unreferenced_vertices()
     mesh.compute_vertex_normals()
     return mesh, closed
+
+
+def pieces(mesh: o3d.geometry.TriangleMesh) -> int:
+    """Connected pieces (triangles sharing an edge): one for a rigid object."""
+    return len(np.unique(np.asarray(mesh.cluster_connected_triangles()[0]))) if len(mesh.triangles) else 0
 
 
 def volume(mesh: o3d.geometry.TriangleMesh) -> float:
@@ -426,7 +488,7 @@ def close_surface(points: np.ndarray, normals: np.ndarray) -> tuple[o3d.geometry
     go into canonical.json."""
     mesh = poisson(points, normals)
     ratio = np.ptp(np.asarray(mesh.vertices), axis=0) / np.ptp(points, axis=0)
-    solid = voxel_solid(points)
+    solid, how = voxel_solid(points)
     share = volume(mesh) / max(volume(solid), 1e-12) if watertight(mesh) else 0.0
     why = [w for w, bad in (("not watertight", not watertight(mesh)),
                             (f"ballooned (extents x{ratio.round(2).tolist()})", not np.all((ratio >= 0.8) & (ratio <= 1.25))),
@@ -434,7 +496,7 @@ def close_surface(points: np.ndarray, normals: np.ndarray) -> tuple[o3d.geometry
            if bad]
     if not why:
         return mesh, {"closing": "screened Poisson", "volume_vs_voxel_solid": share}
-    return solid, {"closing": "voxel solid", "poisson": " and ".join(why)}
+    return solid, {"closing": "voxel solid", "poisson": " and ".join(why), "voxel_solid": how}
 
 
 def complete(name: str, pts: np.ndarray, nrm: np.ndarray) -> tuple[np.ndarray, np.ndarray, dict]:
@@ -589,7 +651,7 @@ def build(name: str, partials: list[o3d.geometry.TriangleMesh]) -> tuple[o3d.geo
     world = np.asarray(mesh.vertices) + origin
     ratio_cloud, ratio_fused = np.ptp(world, axis=0) / np.ptp(all_p, axis=0), np.ptp(world, axis=0) / np.ptp(pts, axis=0)
     report.update(world_to_canonical=-origin, coverage_before_completion=coverage, cap_points=len(cap_p),
-                  watertight=watertight(mesh), faces=len(mesh.triangles),
+                  watertight=watertight(mesh), faces=len(mesh.triangles), pieces=pieces(mesh),
                   extents_cm=(np.ptp(world, axis=0) * 100).round(1),
                   # bar against the completed cloud (Poisson must not balloon); against the fused partial
                   # completion legitimately doubles an unseen side, so that ratio is information only

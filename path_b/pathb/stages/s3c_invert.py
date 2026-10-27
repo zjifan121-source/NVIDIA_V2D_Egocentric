@@ -9,7 +9,8 @@ each static segment's masked depth (pathb/scan.py, at most TSDF_FRAMES frames), 
 Out per object: object_to_world.npz (N, 4, 4), invert_report.json (per segment: kind, frames, start
 it came from, residuals, drift, refinement, failed), bundle/ (P4's bundle with this track and the
 canonical mesh: the BUNDLES.md layout S4b and the waterfall read).
-Bars: static residual median <= 5 mm; grasp segments `failed` (residual (a) within 1 cm on fewer
+Bars: static residual median <= 5 mm; a static pose's mask rays that miss the mesh <= 5 % (a WARN: a
+see-through mesh); grasp segments `failed` (residual (a) within 1 cm on fewer
 than half the frames: S4b takes keyframe there) a WARN; no frame-to-frame jump > 3 cm inside a
 static or grasp segment. Public, one object: the track's playback AUC (official metric; the waterfall
 scores scenes as `ref_inverted` after S3d and S4b).
@@ -109,6 +110,9 @@ def run(ctx) -> StageResult:
                                   for r in report)[:300]),
             Metric(f"{name}: static residual (worst segment median)", max(r["residual_m"] for r in statics) * 1000
                    if statics else None, "mm", ok=(0, I.STATIC_BAR_M * 1000)),
+            Metric(f"{name}: static mask rays that miss the mesh (worst segment)",
+                   max((r["rays_missed"] for r in statics if r.get("rays_missed") is not None), default=None), "",
+                   ok=(0, I.MISSED_BAR), warn=(0, 1), note="a see-through mesh: the depth fit holds, every grasp slips"),
             Metric(f"{name}: grasp segments failed", sum(r["failed"] for r in grasps), "", ok=(0, 0), warn=(0, np.inf),
                    note=", ".join(f"{r['start']}-{r['end']}: {r['share_within_1cm']:.2f} within 1 cm, median "
                                   f"{(r['residual_a_median_m'] or 0) * 100:.2f} cm, drift {r['drift_max_m'] * 100:.1f} cm / "

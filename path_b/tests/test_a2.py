@@ -328,12 +328,32 @@ def test_voxel_solid_fills_a_sparse_closed_shell_and_not_an_open_plate():
     lo, hi = np.array([-0.06, -0.04, 0.0]), np.array([0.06, 0.04, 0.05])
     pts[np.arange(len(pts)), axis] = np.where(rng.random(len(pts)) < 0.5, lo[axis], hi[axis])  # on a face
     keep = rng.random(len(pts)) < 0.06  # ~1 200 points: 6-8 mm apart, gaps a 2-step closing leaves
-    box = C.voxel_solid(pts[keep])
+    box, _ = C.voxel_solid(pts[keep])
     vol = abs(trimesh.Trimesh(np.asarray(box.vertices), np.asarray(box.triangles), process=False).volume)
     assert 0.6 * 0.12 * 0.08 * 0.05 < vol < 1.4 * 0.12 * 0.08 * 0.05  # was 0.13 x before the fill (marching cubes loses ~half a voxel a side)
     plate = rng.uniform([-0.1, -0.08, 0.0], [0.1, 0.08, 0.0], (4000, 3))  # a dust pan's flat sheet
-    sheet = C.voxel_solid(plate)
+    sheet, _ = C.voxel_solid(plate)
     assert np.ptp(np.asarray(sheet.vertices)[:, 2]) < 0.03  # not grown into a slab
+
+
+def test_voxel_solid_of_a_sheet_on_the_fused_grid_is_one_piece_no_ray_passes():
+    """A thin sheet as fused_cloud leaves it (4 mm voxel-downsampled, 1 mm noise) plus a few stray points:
+    one closed piece that every ray through the sheet hits (closing 1 on the 2 mm grid left ep40's dust pan
+    a net that 27 % of its mask's rays passed through)."""
+    import open3d as o3d
+    rng = np.random.default_rng(5)
+    dense = rng.uniform([-0.1, -0.08, 0.0], [0.1, 0.08, 0.0], (60000, 3))
+    dense[:, 2] = 0.3 * dense[:, 0] ** 2 + rng.normal(0, 0.001, len(dense))  # a shallow scoop
+    pts = np.asarray(o3d.geometry.PointCloud(o3d.utility.Vector3dVector(dense)).voxel_down_sample(0.004).points)
+    stray = rng.uniform([-0.1, -0.08, 0.03], [0.1, 0.08, 0.05], (5, 3))
+    mesh, how = C.voxel_solid(np.concatenate([pts, stray]))
+    assert C.pieces(mesh) == 1 and C.watertight(mesh)
+    assert how["steps"][-1]["see_through"] <= C.SEE_THROUGH_BAR
+    scene = o3d.t.geometry.RaycastingScene()
+    scene.add_triangles(o3d.t.geometry.TriangleMesh.from_legacy(mesh))
+    xy = rng.uniform([-0.09, -0.07], [0.09, 0.07], (2000, 2))
+    rays = np.c_[xy, np.full(len(xy), 0.2), np.tile([0, 0, -1.0], (len(xy), 1))].astype(np.float32)
+    assert np.mean(~np.isfinite(scene.cast_rays(o3d.core.Tensor(rays))["t_hit"].numpy())) <= 0.01  # a pinhole at most
 
 
 # ---------------------------------------------------------------- A2.3 register + re-expressed track

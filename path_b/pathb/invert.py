@@ -2,21 +2,34 @@
 that holds there. Poses map the canonical mesh frame to the world (V4 §3).
 
   static    one pose: ICP of the canonical mesh onto the segment's fused surface (scale fixed), from
-            the previous segment's end pose (the registration's for the first), and from that pose
-            times each element of the object's symmetry group; the lowest median point-to-mesh
-            residual wins (bar <= 5 mm)
+            the previous segment's end pose (the registration's for the first) and its pose EARLIER
+            frames before its end, each times each element of the object's symmetry group; the lowest
+            median point-to-mesh residual wins (bar <= 5 mm), among fits within TIE_M of it the one
+            whose posed mesh the fewest mask rays miss (rays_missed), then the one hanging out of the mask
+            least (overhang). Global starts (FPFH + RANSAC) and the best fit so far turned about gravity
+            (YAW_STEP) too when the fit misses that bar or rays missed plus overhang exceed MISSED_BAR
   grasp     pass 1: one hand->object offset T for the grasping hand, object(t) = wrist(t) T, fitted
             over the segment on (a) the canonical mesh's rendered depth vs the stereo depth inside the
             mask, with its silhouette against the mask the other way (Clip.silhouette_residual), (b)
             the contact fingertips' signed distance to the mesh, (c) the end poses equal to
             the neighbouring static poses (weight W_END); pass 2: per frame, object(t) = wrist(t) T
-            D(t), D refined on (a) + (b), its change per frame bounded by 5 mm / 3 degrees per component
-            (and pulled towards none by a soft prior): the object may shift in the hand gradually
-            (ROHIT's relaxation), not jump (a soft prior alone let a 6 cm jump through in one frame,
-            the depth outweighs it, and the slip guard never saw it). Slip guard: (a) above
+            D(t). D starts where ICP of the frame's depth points onto the mesh puts it, from the
+            previous frame's D carried by the wrist (icp_start: 2 cm, then 1 cm; kept when it pairs
+            >= ICP_FIT of the points, else that previous D), clipped into 5 mm / 3 degrees per
+            component of the previous D, and is refined on (a) + (b) within that box (pulled towards
+            the start by a soft prior): D may not jump (a soft prior alone let a 6 cm jump through in
+            one frame, the depth outweighs it, and the slip guard never saw it; an unclipped ICP start
+            turned ep41's near-round pot 165 degrees in the hand at 2 mm). Started from the previous D alone
+            (until 2026-10-27), ep40's carries sat 3-5 cm / 20-40 degrees off the truth with residual
+            (a) above the truth's on 75-85 % of frames: the hand tracker's wrist drifts 6-9 cm from
+            the object over a carry, and (a)'s misses and silhouette are flat there; ICP from the
+            same start tracked to 1.6 cm / 10 degrees. Pass 2 runs from the end backwards when the
+            only known neighbour is after the grasp (the part after a slip: T fits that end, and from
+            the start ep41's 91-frame carry never locked on, ICP pairing 12 %). Slip guard: (a) above
             SLIP_M for SLIP_FRAMES frames in a row splits the grasp there; that run becomes an unstable
             bridge and the parts are solved again. `failed`: (a) within 1 cm on fewer than half the
-            frames (S4b then takes `keyframe` there)
+            frames: its poses anchor nothing, it is bridged as an unstable run (S4b then takes
+            `keyframe` there)
   unstable  cubic Hermite position (zero end velocity) + slerp between the neighbouring end poses
             (consecutive unsolved segments as one bridge; at frame 0, s3a2_register's pose),
             then <= UNSTABLE_STEPS least-squares steps per frame on (a) where the mask covers >= 1 % of
@@ -47,13 +60,28 @@ STEP_M, STEP_RAD = 0.005, np.radians(3.0)  # spec: per-frame change of the in-ha
 SLIP_M, SLIP_FRAMES = 0.015, 10  # spec slip guard
 FAIL_M, FAIL_SHARE = 0.01, 0.5  # spec: grasp residual (a) median <= 1 cm on >= 50 % of its frames
 STATIC_BAR_M = 0.005  # spec
+MISSED_BAR = 0.05  # default: a static pose's mask rays that may miss the mesh (mask edges; the closed meshes 0-4 %),
+# and its retry bar on rays missed plus overhang (the right fits 1-5 % on ep13/42/43/44)
 TIE_M = 0.001  # default: static fits this close count as the same fit
+RAYS_TIE = 0.02  # default: tied static fits whose missed-ray shares differ by this little count as alike (mask edges)
+OVER_M, OVER_TIE = 0.005, 0.005  # default: how far outside the mask a projected surface point hangs out (mask
+# edges); overhang shares this close count as alike (ep42's frame-0 rest: 1.0 % at the true turn, 2.1 % kept)
+YAW_STEP = 45  # default: degrees between the start's turns about gravity in a static retry
 UNSTABLE_STEPS = 5  # spec
+EARLIER = (5, 10)  # default: a static fit also starts from the previous segment this many frames before its end
+# (a grasp's last frames, the hand letting go, are its least sure: ep40's track flipped 140 degrees at the release
+# and the rest after it fitted upside down, 2.4 mm against 1.0 from five frames earlier)
 UNSTABLE_PRIOR_M, UNSTABLE_PRIOR_RAD = 0.02, np.radians(10)  # default: how far (a) may pull a bridge frame
 UNSTABLE_REACH_M, UNSTABLE_REACH_RAD = 0.05, np.radians(20)  # default: the refinement's bound (a bridge frame
 # whose guess is far off otherwise wandered 0.6 m on the synthetic slip)
 FIT_FRAMES, FIT_RAYS, RAYS = 60, 150, 300  # default: pass 1 subsample; rays per frame (pass 1, pass 2)
 MIN_GRASP = 5
+RELEASE_M, RELEASE_FRAMES = 0.01, 10  # default: a grasp's frames next to a rest whose wrist moves more than this per
+# frame (at most this many per end) are the hand arriving or letting go: bridged, not tracked (ep41's left wrist
+# moved 2-12 cm per frame over the carry's last 6 frames, 0.1-0.4 before; the release frame anchored the whole carry)
+BRIDGE_FAILED = True  # default: a failed grasp's poses anchor nothing; its frames are bridged (ep26's carry)
+ICP_FIT = 0.3  # default: share of a frame's depth points ICP pairs (within 1 cm) for its pose to start pass 2
+ICP_REACH = (0.02, 0.01)  # default: ICP's pairing distance, coarse then fine (m)
 SIL_POINTS = 200  # default: canonical surface points projected for the silhouette term
 SIL_MARGIN = 80  # px: the distance map's crop around the allowed mask
 SIL_CAP = 80.0  # px: distances beyond the crop
@@ -190,7 +218,7 @@ def _trimesh_watertight(v, f) -> bool:
 
 
 # ---------------------------------------------------------------- static
-def solve_static(clip: Clip, a: int, b: int, init: np.ndarray) -> dict:
+def solve_static(clip: Clip, a: int, b: int, init: np.ndarray, earlier: list[np.ndarray] = ()) -> dict:
     """One pose over [a, b] by ICP onto the segment's fused surface, best over the symmetry group."""
     target = clip.target(a, b)
     if target is None or len(target.points) < 50:
@@ -200,25 +228,78 @@ def solve_static(clip: Clip, a: int, b: int, init: np.ndarray) -> dict:
     centred[:3, :3] = init[:3, :3]
     centred[:3, 3] = pts.mean(axis=0) - init[:3, :3] @ np.asarray(clip.surface.points).mean(axis=0)
 
-    def fit(starts, label):
+    def fit(starts, label, group=None):
         found = []
-        for k, G in enumerate(clip.group):
+        for k, G in enumerate(clip.group if group is None else group):
             for name, s0 in starts:
                 T = S.icp(clip.surface, target, s0 @ G, max_dist=0.02, iterations=60, point_to_point=True)["T"]
                 T = S.icp(clip.surface, target, T, max_dist=0.005, iterations=60)["T"]
                 local = (pts - T[:3, 3]) @ T[:3, :3]
                 res = float(np.median(np.abs(clip.scene.compute_distance(o3d.core.Tensor(local.astype(np.float32))).numpy())))
                 found.append({"pose": T, "residual_m": res, "symmetry_index": k, "start_from": name or label})
-        # a shape that looks the same turned (a box's half turn) fits as well both ways: among fits within
-        # TIE_M of the best, the one turned least from the start pose
+        return found
+
+    def pick(found):
+        # fits within TIE_M of the best fit the fused surface alike (a box's half turn, a pot turned about its
+        # axis: the fused surface is one side of it): among them the fewest mask rays missing the posed mesh
+        # (within RAYS_TIE), then the least mesh hanging out of the mask (within OVER_TIE), then the least turned
+        # from the start pose. Overhang only breaks ties: an occluded or thinly masked part hangs out at the
+        # true pose too (ep31's sweeper: 3 % missed, 12 % hanging out; turned 180 degrees 6 % and 0.3 %)
         floor = min(f["residual_m"] for f in found)
-        tied = [f for f in found if f["residual_m"] <= floor + TIE_M]
-        return min(tied, key=lambda f: Rotation.from_matrix(f["pose"][:3, :3] @ init[:3, :3].T).magnitude())
-    best = fit([("previous pose", init), ("centred on the fused surface", centred)], "")
-    if best["residual_m"] > STATIC_BAR_M:  # the start was too far (a bad grasp before it): global starts too
-        alt = fit([("", S.global_start(clip.surface, target, seed=seed)) for seed in range(3)], "global (FPFH + RANSAC)")
-        best = alt if alt["residual_m"] < best["residual_m"] else best
+        near = [f for f in found if f["residual_m"] <= floor + TIE_M]
+        for f in near:
+            if "rays_missed" not in f:
+                f["rays_missed"], f["overhang"] = rays_missed(clip, a, b, f["pose"]), overhang(clip, a, b, f["pose"])
+        for key, tie in (("rays_missed", RAYS_TIE), ("overhang", OVER_TIE)):
+            least = min((f[key] for f in near if f[key] is not None), default=None)
+            near = [f for f in near if least is None or f[key] is None or f[key] <= least + tie]
+        return min(near, key=lambda f: Rotation.from_matrix(f["pose"][:3, :3] @ init[:3, :3].T).magnitude())
+
+    found = fit([("previous pose", init), ("centred on the fused surface", centred)]
+                + [(f"the previous segment {k} frames before its end", E) for k, E in zip(EARLIER, earlier)], "")
+    best = pick(found)
+    if best["residual_m"] > STATIC_BAR_M or (disagreement(best) or 0) > MISSED_BAR:
+        # the start was too far (a bad grasp before it), or the mask disagrees with the fit (a turn the fused
+        # surface cannot tell: ep45's pot, 81 degrees off at 1.4 mm, 30 % missed; ep13's cup upside down, 2 %
+        # missed but 16 % hanging out of the mask): global starts, then the best fit so far, global ones included,
+        # turned about gravity (its tilt and place are sure, its turn is not; turning the start instead missed
+        # ep26's, ep27's and ep43's final rests, 2-3 % missed and 4-6 degrees off against the 13-14 % kept)
+        found += fit([("", S.global_start(clip.surface, target, seed=seed)) for seed in range(3)], "global (FPFH + RANSAC)")
+        best, mid, turned = pick(found), pts.mean(axis=0), []
+        for deg in range(YAW_STEP, 360, YAW_STEP):
+            Rz = Rotation.from_euler("z", deg, degrees=True).as_matrix()
+            E = best["pose"].copy()
+            E[:3, :3], E[:3, 3] = Rz @ E[:3, :3], Rz @ (E[:3, 3] - mid) + mid
+            turned.append((f"the best fit turned {deg} degrees about gravity", E))
+        best = pick(found + fit(turned, "", clip.group[:1]))  # a cup's own group turns it about its axis
     return best | {"candidates": len(clip.group), "points": len(pts)}
+
+
+def disagreement(f: dict) -> float | None:
+    """A static fit's disagreement with the mask both ways: rays missed plus overhang (None without a mask)."""
+    if f.get("rays_missed") is None:
+        return None
+    return f["rays_missed"] + (f.get("overhang") or 0.0)
+
+
+def overhang(clip: Clip, a: int, b: int, pose: np.ndarray, frames: int = 10) -> float | None:
+    """The share of the posed mesh's projected surface points more than OVER_M outside the allowed mask (the
+    object's and the hands'), over up to `frames` frames of [a, b]: rays_missed's other direction. A cup
+    upside down on its rest misses no more rays than upright (the mask is its side) but hangs out of it."""
+    ts = [t for t in range(a, b + 1) if clip.obs[t] is not None]
+    r = [clip.silhouette_residual(pose, t) for t in ts[:: max(1, len(ts) // frames)]]
+    r = np.concatenate(r) if r else np.zeros(0)
+    return float(np.mean(r > OVER_M)) if len(r) else None
+
+
+def rays_missed(clip: Clip, a: int, b: int, pose: np.ndarray, frames: int = 10) -> float | None:
+    """The share of the mask's rays that miss the mesh at a static pose (up to `frames` frames of [a, b]):
+    a see-through mesh (ep40's dust pan, a voxel net: 27 %) fits the fused surface to 1 mm all the same,
+    and every grasp then trips the slip guard on the misses alone."""
+    ts = [t for t in range(a, b + 1) if clip.obs[t] is not None]
+    r = [clip.depth_residual(pose, t) for t in ts[:: max(1, len(ts) // frames)]]
+    r = np.concatenate(r) if r else np.zeros(0)
+    return float(np.mean(r == MISS)) if len(r) else None
 
 
 # ---------------------------------------------------------------- grasp
@@ -249,27 +330,63 @@ def pass1(clip: Clip, a: int, b: int, hand: int, fingers: list[int], start, end,
     return {"T": T_of(r.x), "cost": float(r.cost), "nfev": int(r.nfev), "frames": len(fit)}
 
 
-def pass2(clip: Clip, a: int, b: int, hand: int, fingers: list[int], T: np.ndarray) -> tuple[np.ndarray, dict]:
-    """Per frame wrist(t) T D(t), D refined on (a) + (b) with a soft prior on D's change per frame."""
+def frame_cloud(clip: Clip, t: int) -> o3d.geometry.PointCloud | None:
+    """Frame t's observed mask pixels as world points, normals towards the camera (None under 50)."""
+    o = clip.obs[t]
+    if o is None or len(o[1]) < 50:
+        return None
+    uv, d, _ = o
+    K, c2w = clip.K, clip.c2w[t]
+    cam = np.stack([(uv[:, 0] - K[0, 2]) * d / K[0, 0], (uv[:, 1] - K[1, 2]) * d / K[1, 1], d], axis=1)
+    pc = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(cam @ c2w[:3, :3].T + c2w[:3, 3]))
+    pc.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.01, max_nn=30))
+    pc.orient_normals_towards_camera_location(c2w[:3, 3])
+    return pc
+
+
+def icp_start(clip: Clip, t: int, guess: np.ndarray) -> tuple[np.ndarray, float]:
+    """Frame t's depth points ICP'd onto the mesh posed at `guess` (point-to-plane, ICP_REACH): the
+    corrected pose and the share of points paired; `guess` itself when fewer than ICP_FIT pair."""
+    pc = frame_cloud(clip, t)
+    if pc is None:
+        return guess, 0.0
+    pts, nrm = np.asarray(clip.surface.points), np.asarray(clip.surface.normals)
+    target = S.cloud(pts @ guess[:3, :3].T + guess[:3, 3], nrm @ guess[:3, :3].T)
+    T, fitness = np.eye(4), 0.0
+    for reach in ICP_REACH:
+        r = S.icp(pc, target, T, max_dist=reach, iterations=30)
+        T, fitness = r["T"], r["fitness"]
+    return (np.linalg.inv(T) @ guess, fitness) if fitness >= ICP_FIT else (guess, fitness)
+
+
+def pass2(clip: Clip, a: int, b: int, hand: int, fingers: list[int], T: np.ndarray,
+          backward: bool = False) -> tuple[np.ndarray, dict]:
+    """Per frame wrist(t) T D(t): D starts from ICP (icp_start, from the previous D) clipped into the per-frame
+    step around the previous D, and is refined on (a) + (b) within that step. backward: from b down to a (a
+    part whose only known neighbour is after it: T holds there, the wrist drifts away from it before)."""
     W = clip.wrist[:, hand]
     poses = np.full((b - a + 1, 4, 4), np.nan)
-    med, q75 = np.full(b - a + 1, np.nan), np.full(b - a + 1, np.nan)
+    med, q75, paired = np.full(b - a + 1, np.nan), np.full(b - a + 1, np.nan), np.full(b - a + 1, np.nan)
     D_prev = np.zeros(6)
     drift = []
-    for i, t in enumerate(range(a, b + 1)):
+    for t in (range(b, a - 1, -1) if backward else range(a, b + 1)):
+        i = t - a
         if not clip.valid[t, hand]:
             continue
         base = W[t] @ T
+        step = np.array([STEP_RAD] * 3 + [STEP_M] * 3)  # the spec's per-frame limit, per component
+        start, paired[i] = icp_start(clip, t, base @ T_of(D_prev))
+        lo, hi = D_prev - step, D_prev + step  # ICP's own step is unbounded (a near-round pot turned 165
+        # degrees in ep41's hand at 2 mm): its start is clipped into the spec's box around the previous D
+        D0 = np.clip(x_of(np.linalg.inv(base) @ start), lo + 1e-12, hi - 1e-12)
 
         def residual(x):
             P = base @ T_of(x)
             r = [clip.appearance(P, t) / SIG_A, clip.tip_distance(P, t, hand, fingers) / SIG_B,
-                 np.concatenate([(x[:3] - D_prev[:3]) / STEP_RAD, (x[3:] - D_prev[3:]) / STEP_M])]
+                 np.concatenate([(x[:3] - D0[:3]) / STEP_RAD, (x[3:] - D0[3:]) / STEP_M])]
             return np.concatenate([p for p in r if len(p)])
 
-        step = np.array([STEP_RAD] * 3 + [STEP_M] * 3)  # the spec's per-frame limit, per component
-        lo, hi = D_prev - step, D_prev + step
-        r = least_squares(residual, np.clip(D_prev, lo + 1e-12, hi - 1e-12), loss="soft_l1", f_scale=1.0,
+        r = least_squares(residual, D0, loss="soft_l1", f_scale=1.0,
                           max_nfev=30, x_scale=[0.05] * 3 + [0.005] * 3, bounds=(lo, hi))
         D_prev = r.x
         poses[i] = base @ T_of(r.x)
@@ -279,7 +396,8 @@ def pass2(clip: Clip, a: int, b: int, hand: int, fingers: list[int], T: np.ndarr
         drift.append(r.x)
     drift = np.array(drift) if drift else np.zeros((1, 6))
     return poses, {"residual_a_median_m": med, "residual_a_q75_m": q75, "drift_max_m": float(np.abs(drift[:, 3:]).max()),
-                   "drift_max_deg": float(np.degrees(np.linalg.norm(drift[:, :3], axis=1).max()))}
+                   "drift_max_deg": float(np.degrees(np.linalg.norm(drift[:, :3], axis=1).max())),
+                   "icp_paired_median": float(np.nanmedian(paired)) if np.isfinite(paired).any() else None}
 
 
 def slips(q75: np.ndarray) -> list[tuple[int, int]]:
@@ -297,12 +415,34 @@ def slips(q75: np.ndarray) -> list[tuple[int, int]]:
     return out
 
 
+def trimmed(clip: Clip, a: int, b: int, hand: int, at_start: bool, at_end: bool) -> tuple[int, int]:
+    """[a, b] without the end frames next to a rest whose wrist moves more than RELEASE_M per frame."""
+    W, ok = clip.wrist[:, hand, :3, 3], clip.valid[:, hand]
+
+    def fast(t, u):
+        return ok[t] and ok[u] and np.linalg.norm(W[t] - W[u]) > RELEASE_M
+    a2, b2 = a, b
+    while at_end and b2 > a2 and b - b2 < RELEASE_FRAMES and fast(b2, b2 - 1):
+        b2 -= 1
+    while at_start and a2 < b2 and a2 - a < RELEASE_FRAMES and fast(a2, a2 + 1):
+        a2 += 1
+    return a2, b2
+
+
 def solve_grasp(clip: Clip, a: int, b: int, hand: int, fingers: list[int], start, end, split: bool = True,
-                T_hint: np.ndarray | None = None, near: tuple | None = None) -> list[dict]:
+                T_hint: np.ndarray | None = None, near: tuple | None = None, trim: tuple = (False, False)) -> list[dict]:
     """The grasp [a, b] (and, after a slip, its parts and the bridge between them). start / end: the
     adjacent segments' poses (end terms (c)). Where to start pass 1 from, in order: start, end, T_hint
     (a part after a slip: the hand offset before it), near = (pose, before?) (the nearest known pose
-    across an unstable bridge: the object rested there just before or after), identity."""
+    across an unstable bridge: the object rested there just before or after), identity. trim: (start,
+    end) next to a rest: the hand's arriving / letting-go frames there are bridged (trimmed)."""
+    a2, b2 = trimmed(clip, a, b, hand, *trim)
+    if (a2, b2) != (a, b):
+        rows = [{"kind": "unstable", "start": a, "end": a2 - 1, "why": "the hand arriving"}] if a2 > a else []
+        tail = [{"kind": "unstable", "start": b2 + 1, "end": b, "why": "the hand letting go"}] if b2 < b else []
+        if b2 - a2 + 1 < MIN_GRASP:
+            return [{"kind": "unstable", "start": a, "end": b, "why": "the hand arriving or letting go"}]
+        return rows + solve_grasp(clip, a2, b2, hand, fingers, start, end, split, T_hint, near) + tail
     W = clip.wrist[:, hand]
     first = next((t for t in range(a, b + 1) if clip.valid[t, hand]), None)
     if first is None:
@@ -319,7 +459,7 @@ def solve_grasp(clip: Clip, a: int, b: int, hand: int, fingers: list[int], start
     else:
         T0 = np.eye(4)
     p1 = pass1(clip, a, b, hand, fingers, start, end, T0)
-    poses, p2 = pass2(clip, a, b, hand, fingers, p1["T"])
+    poses, p2 = pass2(clip, a, b, hand, fingers, p1["T"], backward=start is None and end is not None)
     med = p2["residual_a_median_m"]
     runs = slips(p2["residual_a_q75_m"]) if split else []
     if runs:
@@ -342,7 +482,8 @@ def solve_grasp(clip: Clip, a: int, b: int, hand: int, fingers: list[int], start
              "T": p1["T"], "pass1": {k: v for k, v in p1.items() if k != "T"},
              "residual_a_median_m": float(np.nanmedian(med)) if np.isfinite(med).any() else None,
              "share_within_1cm": float(ok.mean()), "failed": bool(ok.mean() < FAIL_SHARE),
-             "drift_max_m": p2["drift_max_m"], "drift_max_deg": p2["drift_max_deg"]}]
+             "drift_max_m": p2["drift_max_m"], "drift_max_deg": p2["drift_max_deg"],
+             "icp_paired_median": p2["icp_paired_median"]}]
 
 
 # ---------------------------------------------------------------- unstable
@@ -393,7 +534,7 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
     n = clip.n
     P = np.full((n, 4, 4), np.nan)
     HANDS = ("L", "R")
-    work = [dict(s) for s in segments]
+    work = [dict(s, i=i) for i, s in enumerate(segments)]
     report = []
 
     def known(t):
@@ -407,7 +548,9 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
         after = next((t for t in range(b + 1, n) if known(t)), None) if both else None
         near = (P[before], True) if before is not None else (P[after], False) if after is not None else (start_pose, True)
         hand = HANDS.index(s["hand"])
-        return solve_grasp(clip, a, b, hand, [f for h, f in s["fingertips"] if h == s["hand"]], start, end, near=near)
+        rest = [work[j]["kind"] == "static" if 0 <= j < len(work) else False for j in (s["i"] - 1, s["i"] + 1)]
+        return solve_grasp(clip, a, b, hand, [f for h, f in s["fingertips"] if h == s["hand"]], start, end, near=near,
+                           trim=tuple(rest))
 
     solved: dict[int, list[dict]] = {}
     for i, s in enumerate(work):  # sweep 1: statics and grasps in clip order
@@ -418,13 +561,14 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
         elif s["kind"] == "static":
             last = next((t for t in range(a - 1, -1, -1) if known(t)), None)
             init = P[a - 1] if known(a - 1) else P[last] if last is not None else start_pose
-            r = solve_static(clip, a, b, init)
+            earlier = [P[last - k] for k in EARLIER if last is not None and known(last - k)]
+            r = solve_static(clip, a, b, init, earlier)
             P[a:b + 1] = r["pose"]
             solved[i] = [{"kind": "static", "start": a, "end": b, **{k: v for k, v in r.items() if k != "pose"}}]
         elif s["kind"] == "grasp":
             parts = run_grasp(s, both=False)
             for p in parts:
-                if p["kind"] == "grasp":
+                if p["kind"] == "grasp" and not (BRIDGE_FAILED and p.get("failed")):  # bridged below
                     P[p["start"]:p["end"] + 1] = p["poses"]
             solved[i] = parts
     for i, s in enumerate(work):  # sweep 2: grasps with both neighbouring poses
@@ -432,14 +576,17 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
             parts = run_grasp(s, both=True)
             P[s["start"]:s["end"] + 1] = np.nan
             for p in parts:
-                if p["kind"] == "grasp":
+                if p["kind"] == "grasp" and not (BRIDGE_FAILED and p.get("failed")):
                     P[p["start"]:p["end"] + 1] = p["poses"]
             solved[i] = parts
     rows = [p for i in sorted(solved) for p in solved[i]]
     rows += [{"kind": "unstable", "start": s["start"], "end": s["end"]} for s in work if s["kind"] == "unstable"]
     refined = np.zeros(n, bool)
-    for row in sorted(rows, key=lambda r: r["start"]):  # bridges: unstable segments, slip runs, frames left unsolved
-        if row["kind"] == "unstable":
+    # bridges: unstable segments, slip runs, failed grasps, frames left unsolved. A failed grasp (its fit within
+    # 1 cm on under half its frames) is bridged like an unstable run: ep26's carry, placed 56 cm off, pulled the
+    # bridges on both sides to it, and S4b's interpolation over the grasp alone then ran between those
+    for row in sorted(rows, key=lambda r: r["start"]):
+        if row["kind"] == "unstable" or (BRIDGE_FAILED and row.get("failed")):
             a, b = row["start"], row["end"]
             if not known(a):  # one bridge over the whole unsolved run (ep18's dust pan: 0-6, then a 7-205 slip)
                 while b + 1 < n and not known(b + 1):
