@@ -11,7 +11,7 @@ Run from the repo root (README in path_b/):
     uv run --project path_b python path_b/run.py pack --split evaluation --out <run>  # S7: preflight + pack, no upload (public: dry pack)
     uv run --project path_b python path_b/run.py analysis --out <run> [--tag v2]  # after waterfall; dev episodes by default
     uv run --project path_b python path_b/run.py review --split all --out <run>  # review page (after an all-episode run)
-    uv run --project path_b python path_b/run.py canonical --object white_pot --split all --out <run>
+    uv run --project path_b python path_b/run.py canonical --object white_pot --split all --out <run> [--versus public]
                                                     # S3a: after s3a2_fuse_scan, -> <run>/canonical/
 Outputs: path_b/data/outputs/<run>/episode_XXXXXX/{<stage>/report.json, run.json, loss_report.md, ...};
 <run> defaults to the commit, so code changes never reuse stale results.
@@ -55,6 +55,8 @@ def main() -> int:
                         help="default: every stage of the chain")
     parser.add_argument("--force", action="store_true", help="rerun stages whose reports exist")
     parser.add_argument("--object", help="canonical: the roster object to build")
+    parser.add_argument("--versus", choices=("public", "evaluation"), help="canonical: also pool this split's "
+                        "clips alone and keep the pool that explains more (V4 §13.1 A3)")
     parser.add_argument("--tag", default="", help="analysis: suffix of the page's name, e.g. v2")
     parser.add_argument("--variants", nargs="+", help="oracle: S0.2 variants to score (public only) instead of S0.1")
     parser.add_argument("--hands-from", type=Path, help="oracle (S0.1): the run whose P4 bundles (our P1d hands) and "
@@ -113,7 +115,8 @@ def main() -> int:
 
     if args.command == "canonical":
         from pathb import canonical
-        canonical.main(args.object, out, episodes(args))
+        versus = [n for n, e in manifest().items() if e["split"] == args.versus] if args.versus else None
+        canonical.main(args.object, out, episodes(args), versus, (args.split or "episodes", args.versus or ""))
         return 0
 
     if args.command == "oracle":

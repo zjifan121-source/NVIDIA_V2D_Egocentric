@@ -105,6 +105,22 @@ def test_neighbour_pixels_leave_the_scan():
     assert (out[~cup] == 0).all()
 
 
+def test_nested_masks_leave_the_overlap_to_the_smaller_object(tmp_path):
+    """ep0: the pot's mask holds the lid's; the lid keeps its pixels, the pot loses them."""
+    pot, lid = np.zeros((40, 40), np.uint8), np.zeros((40, 40), np.uint8)
+    pot[5:35, 5:35], lid[10:30, 10:30] = 255, 255
+    for name, m in (("obj_0", pot), ("obj_1", lid)):
+        (tmp_path / "p1b_masks" / name).mkdir(parents=True)
+        cv2.imwrite(str(tmp_path / "p1b_masks" / name / "000000.png"), m)
+
+    class Ctx:
+        root, objects = tmp_path, ["white_pot", "white_pot_lid"]
+    for_lid = A21.neighbour_masks(Ctx, 1, 0, (40, 40))
+    for_pot = A21.neighbour_masks(Ctx, 0, 0, (40, 40))
+    assert not for_lid[10:30, 10:30].any() and for_lid[5:10, 5:35].all()
+    assert for_pot[10:30, 10:30].all() and not for_pot[5:10, 5:35].any()
+
+
 def test_area_bar_is_relative_for_thin_objects():
     from pathb.observe import area_bar
     assert area_bar([0.05] * 50 + [0.0] * 10) == 0.01  # the spec's 1 % for an object that shows large
@@ -327,14 +343,39 @@ from pathb.stages import s3a2_register as A23  # noqa: E402
 SIM = Path.home() / "V2D/venvs/sim/bin/python"  # a venv with coacd (FlashCHORD's 1.0.11) on the Mac
 
 
+def test_b1_margin_small_for_a_symmetric_mesh_large_with_a_handle():
+    """V4 §13.2 B1: a plain cylinder registers as well upside down (margin ~0); the handle pins the pot."""
+    from pathb.ambiguity import margin
+    cyl = o3d.geometry.TriangleMesh.create_cylinder(radius=0.08, height=0.11, resolution=120, split=20)
+    cyl.translate([0, 0, 0.055])
+    cyl.compute_vertex_normals()
+    out = {}
+    for label, mesh in (("cylinder", cyl), ("pot", pot_with_handle())):
+        part = seen(mesh, [0.6, -0.3, 0.5])
+        out[label] = margin(np.asarray(mesh.vertices), np.asarray(mesh.triangles), np.asarray(part.vertices),
+                            np.asarray(part.triangles), 7, revolution=True)
+    assert out["pot"]["margin_m"] is not None and out["pot"]["margin_m"] > 3 * max(out["cylinder"]["margin_m"] or 0, 1e-4), out
+
+
+def test_mesh_candidate_choice():
+    """V4 §13.1 A4: the best share wins; within TIE the more complete mesh, or the larger B1 margin."""
+    r = lambda s: {"partial_explained": s}  # noqa: E731
+    assert A23.choose({"pooled": r(0.62), "own": r(0.93), "team": r(0.40)})[0] == "own"
+    assert A23.choose({"pooled": r(0.90), "own": r(0.93), "team": r(0.40)})[0] == "pooled"
+    assert A23.choose({"pooled": r(0.90), "own": r(0.93)}, {"pooled": 0.1, "own": 0.5})[0] == "own"
+    assert A23.choose({"pooled": r(0.5), "own": {"skipped": "x"}, "team": r(0.52)})[0] == "pooled"
+
+
 def test_register_places_the_canonical_mesh_and_writes_its_files(episode, monkeypatch):
     if SIM.exists():
         monkeypatch.setenv("COACD_PY", str(SIM))
+    monkeypatch.setattr(A23, "team_mesh", lambda number, name: FileNotFoundError("no team bundle in a test"))
     A21.run(episode)
     C.main("box", episode.root.parent)
     result = A23.run(episode)
     reg = json.loads((episode.root / "s3a2_register/box/registration.json").read_text())
     assert reg["start"] == "canonical.json" and reg["partial_explained"] > 0.8 and reg["window"] == "rest_before"
+    assert reg["mesh"] == "pooled" and "skipped" in reg["candidates"]["team"]  # own ties it: the more complete
     canon = trimesh.load(episode.root.parent / "canonical/box/mesh.obj", force="mesh", process=False)
     T0 = np.asarray(reg["canonical_to_world"])
     world = canon.vertices @ T0[:3, :3].T + T0[:3, 3]

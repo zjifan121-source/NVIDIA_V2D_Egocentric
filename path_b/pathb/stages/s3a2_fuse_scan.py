@@ -59,14 +59,22 @@ def voxel_for(name: str) -> float:
 
 
 def neighbour_masks(ctx, k: int, t: int, shape: tuple[int, int]) -> np.ndarray | None:
-    """The other objects' P1b masks at frame t, joined, at depth resolution (not eroded); None if none."""
+    """Where the other objects show at frame t, joined, at depth resolution (not eroded); None if none.
+    Where two masks overlap the smaller one owns the pixels: ep0's pot mask holds the lid's whole mask
+    (seen from above the lid covers the pot), and dropping the overlap from both left the lid nothing."""
     tracks = B.mask_tracks(ctx.root)
-    out = None
+
+    def mask(j):
+        m = B.read_mask(tracks[f"obj_{j}"], t) if f"obj_{j}" in tracks else None
+        return None if m is None else cv2.resize(m.astype(np.uint8), shape[::-1], interpolation=cv2.INTER_NEAREST) > 0
+    mine, out = mask(k), None
     for j in range(len(ctx.objects)):
-        m = B.read_mask(tracks[f"obj_{j}"], t) if j != k and f"obj_{j}" in tracks else None
-        if m is not None:
-            r = cv2.resize(m.astype(np.uint8), shape[::-1], interpolation=cv2.INTER_NEAREST) > 0
-            out = r if out is None else out | r
+        r = mask(j) if j != k else None
+        if r is None:
+            continue
+        if mine is not None and r.sum() > mine.sum():
+            r = r & ~mine  # the larger mask yields the overlap to this object
+        out = r if out is None else out | r
     return out
 
 

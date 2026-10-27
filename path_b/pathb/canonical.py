@@ -32,9 +32,12 @@
    world) under the object's lowest band closes it.
 5. Screened Poisson (depth 8) on the oriented points; density-trimmed only if it stays watertight;
    decimated to <= 20,000 faces. Where the clips leave a side unseen, Poisson inflates it: if its mesh
-   leaks or outgrows the cloud (extents outside 0.8-1.25x), the voxel solid instead (4 mm occupancy,
-   closing, filled, smoothed field, marching cubes, the voxel coarsened until <= 20,000 faces):
-   watertight by construction, tight to what was seen.
+   leaks or outgrows the cloud (extents outside 0.8-1.25x), the voxel solid instead (2 mm occupancy,
+   closing, filled, smoothed field, marching cubes, the voxel coarsened until <= 100,000 faces; not
+   decimated, which opens it): watertight by construction, tight to what was seen.
+Pools (V4 §13.1 A3): `--versus <split>` also pools that split's clips alone and keeps the pool whose mesh
+explains more of the clips (each partial of the larger pool registered onto each mesh as s3a2_register
+does; mean share), the other in canonical/<object>/alternative/.
 Frame: the reference clip's world, shifted so the origin is the footprint centre on the table (z up).
 Out: <run>/canonical/<object>/mesh.glb, mesh.obj, canonical.json (clips and registration, each clip's
 gates and the share of it the mesh explains (within 5 mm, normals agreeing; s3a2_register's bar 0.8),
@@ -295,8 +298,15 @@ def watertight(mesh: o3d.geometry.TriangleMesh) -> bool:
                                                         process=False).is_watertight
 
 
+SEATED_ABOVE = 0.03  # default: an object whose lowest seen point is this far above the table rests on another
+# one (the lid on the pot's rim: ~11 cm); below it, an object on the table whose lowest centimetre went
+# unseen (mask erosion, occlusion) is still closed down to the table
+
+
 def bottom_cap(points: np.ndarray, band: float = 0.01) -> tuple[np.ndarray, np.ndarray]:
-    """Points on the table plane under the object's lowest band (the side the camera never sees)."""
+    """Points on the table plane under the object's lowest band (the side the camera never sees); at
+    the lowest band itself when the object rests on another one (V4 §13.1 A5: ep0's lid sits on the
+    pot, and a cap on the table closed it into a 12.7 cm column; the scan's lid is 4.7 cm tall)."""
     from scipy.spatial import ConvexHull, Delaunay
     low = points[points[:, 2] < points[:, 2].min() + band][:, :2]
     if len(low) < 10:
@@ -306,7 +316,8 @@ def bottom_cap(points: np.ndarray, band: float = 0.01) -> tuple[np.ndarray, np.n
     gx, gy = np.meshgrid(np.arange(lo[0], hi[0], S.VOXEL), np.arange(lo[1], hi[1], S.VOXEL))
     grid = np.c_[gx.ravel(), gy.ravel()]
     grid = grid[hull.find_simplex(grid) >= 0]
-    z = min(0.0, float(points[:, 2].min()))
+    bottom = float(points[:, 2].min())
+    z = bottom if bottom > SEATED_ABOVE else min(0.0, bottom)
     return np.c_[grid, np.full(len(grid), z)], np.tile([0, 0, -1.0], (len(grid), 1))
 
 
@@ -335,6 +346,11 @@ def poisson(points: np.ndarray, normals: np.ndarray) -> o3d.geometry.TriangleMes
 
 SOLID_SHARE = 0.5  # default: Poisson's volume over the voxel solid's below this is hollow
 ENCLOSED_SHARE = 0.2  # default: an interior this large (vs the dilated shell) makes a closed object
+SOLID_VOXEL = 0.002  # default: the voxel solid's grid; at 4 mm the pot's walls came out ~1 cm thick, the clips
+# a median 3.9 mm off it (explain-share 0.38 -> 0.66 at 2 mm, CD-O 0.59 -> 0.41 cm on the public pot)
+SOLID_CLOSE, SOLID_SIGMA = 1, 0.5  # default: closing iterations, smoothing (voxels)
+SOLID_MAX_FACES = 100_000  # default: the voxel solid is not decimated (fast_simplification opens it); the
+# packer budgets the submitted copy itself
 
 
 def enclosed(occ: np.ndarray) -> np.ndarray:
@@ -349,20 +365,29 @@ def enclosed(occ: np.ndarray) -> np.ndarray:
     return inside
 
 
-def voxel_solid(points: np.ndarray, close: int = 2) -> o3d.geometry.TriangleMesh:
+def voxel_solid(points: np.ndarray) -> o3d.geometry.TriangleMesh:
     """A watertight surface around the points: occupancy, morphological closing, interior filled, the
-    field smoothed (Gaussian, 0.75 voxel), marching cubes at 0.5. Filling: the occupancy dilated by
-    `close`, its holes and the voxels it encloses along all six axis directions (`enclosed`) filled,
-    then eroded back by `close`, when that interior is >= ENCLOSED_SHARE of the dilated shell (a closed
-    object); else (open: a sheet, a cup, a rack) the plain closing, then fill_holes. A closing seals
+    field smoothed, marching cubes at 0.5. Filling: the occupancy dilated by `close`, its holes and the
+    voxels it encloses along all six axis directions (`enclosed`) filled, then eroded back by `close`,
+    when that interior is >= ENCLOSED_SHARE of the dilated shell (a closed object); else (open: a sheet,
+    a cup, a rack) the plain closing, then fill_holes. A closing seals
     gaps in solids, not in a sparse surface (its erosion thins the dilated sheet back, holes and all):
     on a sparse cloud fill_holes then filled nothing and marching cubes made a hollow solid (a synthetic
     box enclosed 13 % of its hull). Smoothing the field, not the mesh:
-    a smoothed mesh folds thin parts into themselves. Not decimated (quadric decimation opens it):
-    the voxel grows from 4 mm until the mesh has <= MAX_FACES faces."""
+    a smoothed mesh folds thin parts into themselves. Not decimated (quadric decimation and
+    fast_simplification open it): the voxel grows until the mesh fits the face cap. Closed or open is
+    decided on the 4 mm grid (closing 2: seals a shell 6-8 mm sparse); a closed object keeps that solid
+    (<= MAX_FACES), an open one is rebuilt on the SOLID_VOXEL grid (closing SOLID_CLOSE, smoothing
+    SOLID_SIGMA, <= SOLID_MAX_FACES), whose walls follow the clips (the pot's: 1 cm thick at 4 mm)."""
+    mesh, closed = grid_solid(points, S.VOXEL, 2, 0.75, MAX_FACES)
+    return mesh if closed else grid_solid(points, SOLID_VOXEL, SOLID_CLOSE, SOLID_SIGMA, SOLID_MAX_FACES)[0]
+
+
+def grid_solid(points: np.ndarray, voxel: float, close: int, sigma: float,
+               max_faces: int) -> tuple[o3d.geometry.TriangleMesh, bool]:
+    """voxel_solid on one grid: the mesh and whether the occupancy enclosed an interior (closed)."""
     from scipy import ndimage
     from skimage.measure import marching_cubes
-    voxel = S.VOXEL
     for _ in range(6):
         lo = points.min(axis=0) - (close + 2) * voxel
         idx = np.floor((points - lo) / voxel).astype(int)
@@ -370,21 +395,22 @@ def voxel_solid(points: np.ndarray, close: int = 2) -> o3d.geometry.TriangleMesh
         raw[tuple(idx.T)] = True
         grown = ndimage.binary_dilation(raw, iterations=close)
         interior = (ndimage.binary_fill_holes(grown) | enclosed(grown)) & ~grown
-        if interior.sum() >= ENCLOSED_SHARE * grown.sum():  # a closed object: fill, then erode back
+        closed = bool(interior.sum() >= ENCLOSED_SHARE * grown.sum())
+        if closed:  # a closed object: fill, then erode back
             occ = ndimage.binary_erosion(grown | interior, iterations=close) | raw
         else:  # open (a sheet, a cup, a rack): the plain closing
             occ = ndimage.binary_fill_holes(ndimage.binary_closing(raw, iterations=close))
-        field = ndimage.gaussian_filter(np.pad(occ, 2).astype(np.float32), 0.75)
+        field = ndimage.gaussian_filter(np.pad(occ, 2).astype(np.float32), sigma)
         # a sheet one voxel thick (an open object closed as seen) smooths below 0.5 everywhere: a thin
         # closed shell around it at half its peak
         verts, faces, _, _ = marching_cubes(field, level=min(0.5, 0.5 * float(field.max())))
-        if len(faces) <= MAX_FACES:
+        if len(faces) <= max_faces:
             break
-        voxel *= 1.05 * np.sqrt(len(faces) / MAX_FACES)
+        voxel *= 1.05 * np.sqrt(len(faces) / max_faces)
     mesh = o3d.geometry.TriangleMesh(o3d.utility.Vector3dVector((verts - 2) * voxel + lo),
                                      o3d.utility.Vector3iVector(faces[:, ::-1].astype(np.int32)))
     mesh.compute_vertex_normals()
-    return mesh
+    return mesh, closed
 
 
 def volume(mesh: o3d.geometry.TriangleMesh) -> float:
@@ -586,8 +612,8 @@ def to_json(x):
     raise TypeError(type(x))
 
 
-def main(name: str, out: Path, episodes: list[int] | None = None) -> Path:
-    import trimesh
+def pool(name: str, out: Path, episodes: list[int] | None = None) -> tuple[o3d.geometry.TriangleMesh, dict]:
+    """The canonical mesh and its report from the partials of `episodes` (all when None)."""
     found = sorted(p for p in out.glob(f"episode_*/s3a2_fuse_scan/{name}/partial_scan*.ply")  # rest before, after
                    if episodes is None or int(p.parts[-4][len("episode_"):]) in episodes)
     def row(p: Path) -> dict:  # this partial's line in its fuse report (frames fused, held-out depth RMS)
@@ -621,16 +647,65 @@ def main(name: str, out: Path, episodes: list[int] | None = None) -> Path:
     if not partials:
         raise SystemExit(f"no partial scan of {name} under {out}/episode_*/s3a2_fuse_scan/")
     mesh, report = build(name, partials)
-    dest = out / "canonical" / name
+    return mesh, {"object": name, "clips": [str(p.relative_to(out)) for p in used], "clips_left_out": skipped,
+                  "min_clip_frames": MIN_CLIP_FRAMES, "held_out_rms_bar_mm": HELD_OUT_RMS_MM, **report}
+
+
+def explains(mesh: o3d.geometry.TriangleMesh, report: dict, out: Path, clips: list[str]) -> list[float]:
+    """Each clip's partial registered onto the canonical mesh as s3a2_register registers it (from this
+    pool's move when it kept the clip, else global starts); the share of the partial the mesh explains."""
+    from .stages.s3a2_register import canonical_move, register
+    placed = o3d.geometry.TriangleMesh(mesh)
+    placed.compute_vertex_normals()
+    shares = []
+    for c in clips:
+        partial = o3d.io.read_triangle_mesh(str(out / c))
+        partial.compute_vertex_normals()
+        shares.append(register(placed, partial, canonical_move(report, c))["partial_explained"])
+    return shares
+
+
+def write(mesh: o3d.geometry.TriangleMesh, report: dict, dest: Path) -> None:
+    import trimesh
     dest.mkdir(parents=True, exist_ok=True)
     tm = trimesh.Trimesh(np.asarray(mesh.vertices), np.asarray(mesh.triangles), process=False)
     tm.export(dest / "mesh.obj")
     tm.export(dest / "mesh.glb")
-    report = {"object": name, "clips": [str(p.relative_to(out)) for p in used], "clips_left_out": skipped,
-              "min_clip_frames": MIN_CLIP_FRAMES, "held_out_rms_bar_mm": HELD_OUT_RMS_MM, **report}
     (dest / "canonical.json").write_text(json.dumps(report, indent=1, default=to_json) + "\n")
+
+
+def main(name: str, out: Path, episodes: list[int] | None = None, versus: list[int] | None = None,
+         labels: tuple[str, str] = ("pool", "versus")) -> Path:
+    import shutil
+    mesh, report = pool(name, out, episodes)
+    dest = out / "canonical" / name
+    shutil.rmtree(dest / "alternative", ignore_errors=True)  # an earlier comparison's loser
+    if versus is not None:  # V4 §13.1 A3: keep the pool that explains more of the larger pool's clips
+        try:
+            alt_mesh, alt_report = pool(name, out, versus)
+        except SystemExit:  # no clip of the object in that split (wooden_spoon has no public clip)
+            alt_mesh = None
+        if alt_mesh is not None:
+            clips = report["clips"] if len(report["clips"]) >= len(alt_report["clips"]) else alt_report["clips"]
+            mine, theirs = explains(mesh, report, out, clips), explains(alt_mesh, alt_report, out, clips)
+            choice = {labels[0]: {"clips": len(report["clips"]), "mean_explained": float(np.mean(mine))},
+                      labels[1]: {"clips": len(alt_report["clips"]), "mean_explained": float(np.mean(theirs))},
+                      "judged_on": len(clips)}
+            if np.mean(theirs) > np.mean(mine):
+                mesh, report, alt_mesh, alt_report = alt_mesh, alt_report, mesh, report
+                choice["kept"] = labels[1]
+            else:
+                choice["kept"] = labels[0]
+            report["pool_choice"], alt_report["pool_choice"] = choice, choice
+            write(alt_mesh, alt_report, dest / "alternative")
+        else:
+            report["pool_choice"] = {"kept": labels[0], "note": f"no {labels[1]} clip"}
+    write(mesh, report, dest)
+    skipped = report["clips_left_out"]
     kept = sum(m["kept"] for m in report["moves"])
-    print(f"canonical {name}: {kept} of {len(used)} clips kept ({len(skipped)} left out before), {report['faces']} "
+    if "pool_choice" in report:
+        print(f"canonical {name}: pool choice {report['pool_choice']}", flush=True)
+    print(f"canonical {name}: {kept} of {len(report['clips'])} clips kept ({len(skipped)} left out before), {report['faces']} "
           f"faces, watertight {report['watertight']}, extents {report['extents_cm'].tolist()} cm, explained >= "
           f"{report['explained_min_kept']:.2f}, coverage {report['coverage_before_completion']:.2f}, "
           f"{report['symmetry']['kind']}{'' if report['symmetry']['applied'] else ' (not applied)'} -> {dest}", flush=True)

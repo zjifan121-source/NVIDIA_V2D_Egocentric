@@ -148,6 +148,32 @@ def write_bundle(src: Path, dest: Path, data: dict) -> Path:
     return dest
 
 
+B3_BARS = {"dt_mm": (0, 5), "dtheta_deg": (0, 1)}  # spec §13.2 B3
+
+
+def b3_objects(names: list[str]) -> list[str]:
+    """The objects the scorer aligns an episode by (V4 §13.2 B3): object 0 (translation) and the first
+    one without a symmetry in the kit (rotation)."""
+    from ..team import scorer
+    sym = scorer().SYMMETRY_ORDER
+    return list(dict.fromkeys([names[0]] + [n for n in names if n not in sym][:1]))
+
+
+def frame0_check(ctx, name: str, track: np.ndarray) -> dict | None:
+    """B3: the candidate's frame-0 pose against the settled pose of the object's first static segment
+    (S3d's settled_<start>.json); None without one."""
+    segs = json.loads((ctx.root / f"s3b_segments/{name}/segments.json").read_text())
+    first = next((s for s in segs if s["kind"] == "static"), None)
+    f = ctx.root / f"s3d_settle/{name}/settled_{first['start']:06d}.json" if first else None
+    if f is None or not f.is_file():
+        return None
+    P = np.asarray(json.loads(f.read_text())["pose"], dtype=np.float64)
+    T0 = np.asarray(track[0], dtype=np.float64)
+    turn = Rotation.from_matrix(T0[:3, :3].T @ P[:3, :3]).magnitude()
+    return {"segment_start": int(first["start"]), "dt_mm": float(np.linalg.norm(T0[:3, 3] - P[:3, 3]) * 1000),
+            "dtheta_deg": float(np.degrees(turn))}
+
+
 def run(ctx) -> StageResult:
     L = retarget_tools()
     d = ctx.dir("s4b_reference")
@@ -186,6 +212,14 @@ def run(ctx) -> StageResult:
             outputs[f"{name}/{cand}"] = bundle
             metrics.append(Metric(f"{name}: {cand} frames " + " / ".join(R.KINDS),
                                   " / ".join(str(counts[k]) for k in R.KINDS), "frames"))
+            if name in b3_objects(ctx.objects) and found[name]:
+                b3 = frame0_check(ctx, name, track)
+                report["candidates"][cand]["b3"] = b3
+                for k, unit in (("dt_mm", "mm"), ("dtheta_deg", "deg")):
+                    metrics.append(Metric(f"{name}: B3 {cand} frame 0 vs settled static ({k.split('_')[0]})",
+                                          None if b3 is None else b3[k], unit, ok=B3_BARS[k],
+                                          note="no settled static segment" if b3 is None else
+                                          f"first static segment from frame {b3['segment_start']}"))
         metrics.append(Metric(f"{name}: input track", source, ""))
         write_json(d / name / "reference_report.json", report)
     metrics.append(Metric("moving candidate S5 and S6 train", moving["candidate"], "", note=moving["why"]))
