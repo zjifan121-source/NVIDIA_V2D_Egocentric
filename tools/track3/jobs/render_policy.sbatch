@@ -3,6 +3,7 @@
 # Usage: sbatch render_policy.sbatch <run name under flash_runs/diag> [...]
 #   writes <run>/rollout.mp4 (newest policy checkpoint, deterministic, one loop of the clip); the camera
 #   looks at the table centre (0, 0, 1.1) from 0.7 m away, override with CAM="[x,y,z]" TARGET="[x,y,z]"
+#   PARQUET=<scene partition> replaces the scene saved in the checkpoint (a run trained on another machine)
 #SBATCH -J render-policy
 #SBATCH -p preempt
 #SBATCH --qos=preempt_qos
@@ -28,7 +29,7 @@ for NAME in "$@"; do
   echo "== $NAME $CKPT"
   $PY scripts/view_policy.py "evaluation.checkpoint=$CKPT" viewer.backend=mp4 \
     "viewer.output_path=$RUN/rollout_tmp.mp4" viewer.num_frames=${FRAMES:-450} viewer.width=1280 viewer.height=720 \
-    viewer.realtime=false markers.enabled=false "viewer.camera_position=${CAM:-[0.45,-0.55,1.5]}" "viewer.camera_target=${TARGET:-[0,0,1.1]}" 2>&1 | grep -v 'nefc overflow' | tail -5
+    viewer.realtime=false markers.enabled=false ${PARQUET:+"task.parquet='$PARQUET'"} "viewer.camera_position=${CAM:-[0.45,-0.55,1.5]}" "viewer.camera_target=${TARGET:-[0,0,1.1]}" 2>&1 | grep -v 'nefc overflow' | tail -5
   [ -s "$RUN/rollout_tmp.mp4" ] && mv "$RUN/rollout_tmp.mp4" "$RUN/rollout.mp4" && echo "$NAME -> $RUN/rollout.mp4"
 done
 echo "== $(date) done"
