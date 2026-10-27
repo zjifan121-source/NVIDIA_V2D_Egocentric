@@ -18,10 +18,10 @@ Mesh candidates (V4 §13.1 A4), each registered onto the partial: `pooled` (run.
 (canonical.py on this episode's clips alone, in s3a2_register/<object>/own/), `team` (the team's SAM 3D
 mesh from the bundle repo, episode_XXXXXX/<object>/result_slam_gravity_aligned/mesh.obj, at its SLAM
 scale: the scale that explains most of the partial, TEAM_SCALES then +-0.05, in .../team/). The
-choice: the candidates within TIE of the best share are tied; among them the larger B1 registration
-margin when it is measured, else the more complete mesh (ORDER: pooled, team, own); an own mesh is
-made from the very partial it is judged on, so the share alone would always pick it. The choice and
-every candidate's numbers go into registration.json; the chosen mesh into s3a_mesh/.
+choice (`choose`): the more complete mesh first (ORDER: pooled, team, own) among those that pass
+EXPLAIN_BAR or lie within TIE of the best share. Each candidate's B1 margin (V4 §13.2) is recorded but
+does not rank pooled against own: like the share it is measured on the partial the own mesh is made
+from. The choice and every candidate's numbers go into registration.json; the chosen mesh into s3a_mesh/.
 """
 from __future__ import annotations
 
@@ -46,7 +46,8 @@ from .s3a2_fuse_scan import WINDOWS
 
 COACD_THRESHOLD = 0.05  # spec S3a
 TIE = 0.05  # default (spec §13.1 A4 "ties"): explain-shares this close are tied
-ORDER = ("pooled", "team", "own")  # ties without a B1 margin: the more complete mesh
+EXPLAIN_BAR = 0.8  # the stage's PASS bar on the share of the partial the mesh explains
+ORDER = ("pooled", "team", "own")  # the more complete mesh first
 TEAM_SCALES = np.arange(0.6, 1.41, 0.1)  # default: the team's SLAM scale (Stage 1 factors 0.83-1.2), refined +-0.05
 TEAM_REPO = os.environ.get("V2D_BUNDLE_REPO", "rose-tea-cafe/v2d-t3-recon")
 
@@ -59,12 +60,17 @@ def load_mesh(path) -> o3d.geometry.TriangleMesh:
 
 
 def team_mesh(number: int, name: str):
-    """The team's SAM 3D mesh of this object in this episode (cached in path_b/data/team_meshes/), or None."""
-    from huggingface_hub import hf_hub_download
+    """The team's SAM 3D mesh of this object in this episode: from path_b/data/team_meshes/ (fill it with
+    the tools venv's huggingface_hub, as hf_outputs.py downloads), else downloaded when this venv has
+    huggingface_hub; the exception when neither works (the candidate is then skipped and says why)."""
+    rel = f"episode_{number:06d}/{name}/result_slam_gravity_aligned/mesh.obj"
+    cached = PATH_B / "data/team_meshes" / rel
+    if cached.is_file():
+        return str(cached)
     try:
-        return hf_hub_download(TEAM_REPO, f"episode_{number:06d}/{name}/result_slam_gravity_aligned/mesh.obj",
-                               repo_type="dataset", local_dir=str(PATH_B / "data/team_meshes"))
-    except Exception as e:  # no bundle, no access, offline: the candidate is skipped and says why
+        from huggingface_hub import hf_hub_download
+        return hf_hub_download(TEAM_REPO, rel, repo_type="dataset", local_dir=str(PATH_B / "data/team_meshes"))
+    except Exception as e:  # not cached and no huggingface_hub, no bundle, no access, offline
         return e
 
 
@@ -105,15 +111,16 @@ def candidates(ctx, name: str, partial, clip: str, out) -> dict:
     return found
 
 
-def choose(found: dict, margins: dict | None = None) -> tuple[str, str]:
-    """(candidate, why): tied within TIE of the best share; then the larger B1 margin, else ORDER."""
+def choose(found: dict) -> tuple[str, str]:
+    """(candidate, why): the first of ORDER whose share passes EXPLAIN_BAR or lies within TIE of the best;
+    so the pooled mesh stays unless it fails the bar and another explains clearly more. Neither the
+    share nor the B1 margin can rank pooled against own: both are measured on the partial the own mesh
+    is made from (ep45: own 0.91 / 10.7 mm vs pooled 0.86 / 8.2 mm, CD-O 0.78 vs 0.44 cm)."""
     shares = {c: r["partial_explained"] for c, r in found.items() if "partial_explained" in r}
     top = max(shares.values())
-    tied = [c for c in ORDER if c in shares and shares[c] >= top - TIE]
-    if margins and all(margins.get(c) is not None for c in tied) and len(tied) > 1:
-        pick = max(tied, key=lambda c: margins[c])
-        return pick, f"tied within {TIE} ({', '.join(tied)}); largest B1 margin"
-    return tied[0], (f"tied within {TIE} ({', '.join(tied)}); the more complete" if len(tied) > 1 else "best share")
+    good = [c for c in ORDER if c in shares and (shares[c] >= EXPLAIN_BAR or shares[c] >= top - TIE)]
+    why = "passes the explain bar" if shares[good[0]] >= EXPLAIN_BAR else f"within {TIE} of the best share"
+    return good[0], why + ("" if good[0] == "pooled" else f" (pooled {shares.get('pooled', 0):.2f})")
 
 
 def coacd_python() -> str:
@@ -189,7 +196,7 @@ def run(ctx) -> StageResult:
             if "dir" in x:
                 m = trimesh.load(Path(x["dir"]) / "mesh.obj", force="mesh", process=False)
                 x["b1"] = margin(m.vertices, m.faces, pv, pf, 1_000_003 * ctx.number + 101 * slot, name in C.REVOLUTION)
-        pick, why = choose(found, {c: x["b1"]["margin_m"] for c, x in found.items() if "b1" in x})
+        pick, why = choose(found)
         r = found[pick]
         files = mesh_files(name, r["dir"], ctx.root / f"s3a_mesh/{name}", out / "coacd.log")
         tm = trimesh.load(ctx.root / f"s3a_mesh/{name}/mesh.obj", force="mesh", process=False)

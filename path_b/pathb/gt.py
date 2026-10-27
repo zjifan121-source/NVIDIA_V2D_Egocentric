@@ -33,7 +33,7 @@ def allowed(episode: dict) -> None:
 
 
 def parquet(number: int) -> Path:
-    return GT_DATA / f"data/chunk-000/episode_{number:06d}.parquet"
+    return GT_DATA / f"chunk-000/episode_{number:06d}.parquet"
 
 
 def scan(name: str) -> Path | None:

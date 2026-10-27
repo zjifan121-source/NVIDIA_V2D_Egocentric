@@ -159,19 +159,17 @@ def b3_objects(names: list[str]) -> list[str]:
     return list(dict.fromkeys([names[0]] + [n for n in names if n not in sym][:1]))
 
 
-def frame0_check(ctx, name: str, track: np.ndarray) -> dict | None:
-    """B3: the candidate's frame-0 pose against the settled pose of the object's first static segment
-    (S3d's settled_<start>.json); None without one."""
-    segs = json.loads((ctx.root / f"s3b_segments/{name}/segments.json").read_text())
-    first = next((s for s in segs if s["kind"] == "static"), None)
-    f = ctx.root / f"s3d_settle/{name}/settled_{first['start']:06d}.json" if first else None
-    if f is None or not f.is_file():
+def frame0_check(ctx, name: str) -> dict | None:
+    """B3: how far physics moves the object's frame-0 pose (V4 §13.2): S3d's settle of the static segment
+    that starts at frame 0, S3c's pose against the settled one. The reference holds the settled pose when
+    S3d accepted it and S3c's otherwise, so the track's own frame 0 says nothing. None when frame 0 is not
+    static or the settle did not run."""
+    f = ctx.root / f"s3d_settle/{name}/settle_report.json"
+    row = next((r for r in json.loads(f.read_text())["statics"] if r["segment"][0] == 0), None) if f.is_file() else None
+    if row is None or "moved_cm" not in row:
         return None
-    P = np.asarray(json.loads(f.read_text())["pose"], dtype=np.float64)
-    T0 = np.asarray(track[0], dtype=np.float64)
-    turn = Rotation.from_matrix(T0[:3, :3].T @ P[:3, :3]).magnitude()
-    return {"segment_start": int(first["start"]), "dt_mm": float(np.linalg.norm(T0[:3, 3] - P[:3, 3]) * 1000),
-            "dtheta_deg": float(np.degrees(turn))}
+    return {"dt_mm": row["moved_cm"] * 10, "dtheta_deg": row["turned_deg"], "settled": row["settled"],
+            "contacts": row["contacts"], "support": row.get("support")}
 
 
 def run(ctx) -> StageResult:
@@ -212,14 +210,14 @@ def run(ctx) -> StageResult:
             outputs[f"{name}/{cand}"] = bundle
             metrics.append(Metric(f"{name}: {cand} frames " + " / ".join(R.KINDS),
                                   " / ".join(str(counts[k]) for k in R.KINDS), "frames"))
-            if name in b3_objects(ctx.objects) and found[name]:
-                b3 = frame0_check(ctx, name, track)
-                report["candidates"][cand]["b3"] = b3
-                for k, unit in (("dt_mm", "mm"), ("dtheta_deg", "deg")):
-                    metrics.append(Metric(f"{name}: B3 {cand} frame 0 vs settled static ({k.split('_')[0]})",
-                                          None if b3 is None else b3[k], unit, ok=B3_BARS[k],
-                                          note="no settled static segment" if b3 is None else
-                                          f"first static segment from frame {b3['segment_start']}"))
+        if name in b3_objects(ctx.objects) and found[name]:
+            report["b3"] = b3 = frame0_check(ctx, name)
+            note = ("frame 0 not in a settled static segment" if b3 is None else
+                    f"settle {'accepted' if b3['settled'] else 'rejected'}, {b3['contacts']} contacts"
+                    f" on {b3['support'] or 'the table'}")
+            for k, unit in (("dt_mm", "mm"), ("dtheta_deg", "deg")):
+                metrics.append(Metric(f"{name}: B3 frame 0 vs settled ({k.split('_')[0]})",
+                                      None if b3 is None else b3[k], unit, ok=B3_BARS[k], note=note))
         metrics.append(Metric(f"{name}: input track", source, ""))
         write_json(d / name / "reference_report.json", report)
     metrics.append(Metric("moving candidate S5 and S6 train", moving["candidate"], "", note=moving["why"]))

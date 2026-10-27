@@ -358,12 +358,13 @@ def test_b1_margin_small_for_a_symmetric_mesh_large_with_a_handle():
 
 
 def test_mesh_candidate_choice():
-    """V4 §13.1 A4: the best share wins; within TIE the more complete mesh, or the larger B1 margin."""
+    """V4 §13.1 A4: the pooled mesh unless it fails the bar and another explains clearly more."""
     r = lambda s: {"partial_explained": s}  # noqa: E731
     assert A23.choose({"pooled": r(0.62), "own": r(0.93), "team": r(0.40)})[0] == "own"
     assert A23.choose({"pooled": r(0.90), "own": r(0.93), "team": r(0.40)})[0] == "pooled"
-    assert A23.choose({"pooled": r(0.90), "own": r(0.93)}, {"pooled": 0.1, "own": 0.5})[0] == "own"
+    assert A23.choose({"pooled": r(0.86), "own": r(0.91)})[0] == "pooled"  # ep45: passes the bar
     assert A23.choose({"pooled": r(0.5), "own": {"skipped": "x"}, "team": r(0.52)})[0] == "pooled"
+    assert A23.choose({"pooled": r(0.5), "own": r(0.6), "team": r(0.62)})[0] == "team"
 
 
 def test_register_places_the_canonical_mesh_and_writes_its_files(episode, monkeypatch):
@@ -389,3 +390,24 @@ def test_register_places_the_canonical_mesh_and_writes_its_files(episode, monkey
     assert status["box: share of the partial the canonical mesh explains"] == "PASS"
     if SIM.exists():
         assert status["box: convex pieces (CoACD 0.05)"] == "PASS" and (files / "coacd/pieces.json").is_file()
+
+
+from types import SimpleNamespace  # noqa: E402
+
+from pathb.stages import s4b_reference as S4B  # noqa: E402
+
+
+def test_b3_is_the_settle_of_the_static_segment_from_frame_0(tmp_path):
+    def statics(*rows):
+        (tmp_path / "s3d_settle/cup").mkdir(parents=True, exist_ok=True)
+        (tmp_path / "s3d_settle/cup/settle_report.json").write_text(json.dumps({"object": "cup", "statics": list(rows)}))
+    ctx = SimpleNamespace(root=tmp_path)
+    assert S4B.frame0_check(ctx, "cup") is None
+    statics({"segment": [0, 14], "support": "rack", "settled": False, "moved_cm": 0.3, "turned_deg": 0.4,
+             "contacts": 12}, {"segment": [60, 99], "settled": True, "moved_cm": 5.0, "turned_deg": 9.0, "contacts": 3})
+    b3 = S4B.frame0_check(ctx, "cup")
+    assert b3["dt_mm"] == pytest.approx(3.0) and b3["dtheta_deg"] == 0.4 and not b3["settled"]
+    statics({"segment": [0, 14], "settled": False, "why": "settle.py failed"})
+    assert S4B.frame0_check(ctx, "cup") is None
+    statics({"segment": [5, 14], "settled": True, "moved_cm": 0.1, "turned_deg": 0.1, "contacts": 4})
+    assert S4B.frame0_check(ctx, "cup") is None
