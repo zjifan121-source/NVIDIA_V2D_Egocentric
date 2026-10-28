@@ -1,0 +1,6 @@
+{
+ "placeholder": true,
+ "depth_source": "foundation_stereo",
+ "frames": 290,
+ "note": "depth/ = fs_depth/ (FoundationStereo ONNX small 576x960; holes 0 m, 2.5 m cut, frames paired by index). Written only because run_baseline_reconstruction.py --seed requires depth_scale.json."
+}

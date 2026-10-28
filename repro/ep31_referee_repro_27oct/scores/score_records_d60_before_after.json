@@ -1,0 +1,272 @@
+[
+ {
+  "file": "c0m_e31.json",
+  "ep": 31,
+  "v": "recon_ourmesh",
+  "n": 2,
+  "AUC": 0.7710129310344828,
+  "SP-SR": 0.0,
+  "MP-SR": 0.0,
+  "RPE": 18.497347099057183,
+  "MPPE": 3.4151753360792902,
+  "extra": {
+   "diag": [
+    {
+     "name": "mini_sweeper",
+     "gt_moving_frac": 0.8275862068965517,
+     "gt_path_cm": 107.81938297053411,
+     "our_path_cm": 97.19923133855721,
+     "gt_max_disp_cm": 15.585432855761825,
+     "pos_err_cm": 1.6179861581030188,
+     "rot_err_deg": 108.74706638880951,
+     "pos_err_rest_cm": 1.0203775835305182,
+     "pos_err_moving_cm": 1.74248794447229,
+     "rot_err_rest_deg": 48.654224867942986,
+     "rot_err_moving_deg": 121.26640837232337,
+     "scale_fit": 1.0110669962629213,
+     "hand_rest_agree": 0.896551724137931,
+     "speed_rest_agree": 0.803448275862069
+    },
+    {
+     "name": "plastic_dish_rack",
+     "gt_moving_frac": 0.0,
+     "gt_path_cm": 1.897706707588507,
+     "our_path_cm": 26.32154557576616,
+     "gt_max_disp_cm": 0.15283728183159076,
+     "pos_err_cm": 0.9138460066759067,
+     "rot_err_deg": 2.679964143246232,
+     "pos_err_rest_cm": 0.9138460066759067,
+     "pos_err_moving_cm": null,
+     "rot_err_rest_deg": 2.679964143246232,
+     "rot_err_moving_deg": null,
+     "scale_fit": 0.25,
+     "hand_rest_agree": 0.041379310344827586,
+     "speed_rest_agree": 1.0
+    }
+   ],
+   "gap_gt_cm": 11.41125965468369,
+   "gap_ours_cm": 11.937303329515402,
+   "gap_err_cm": 0.9753457798208539,
+   "rest_frames_both": 50,
+   "rest_common_rms_cm": 0.5324841599827933,
+   "rest_diff_rms_cm": 0.6885436283999102
+  },
+  "ns": "babel_fs_s3mf_d60_noref"
+ },
+ {
+  "file": "post_fin31.json",
+  "ep": 31,
+  "v": "recon_ourmesh",
+  "n": 2,
+  "AUC": 0.7710129310344828,
+  "SP-SR": 0.0,
+  "MP-SR": 0.0,
+  "RPE": 18.497347099057183,
+  "MPPE": 3.4151753360792902,
+  "extra": {
+   "diag": [
+    {
+     "name": "mini_sweeper",
+     "gt_moving_frac": 0.8275862068965517,
+     "gt_path_cm": 107.81938297053411,
+     "our_path_cm": 97.19923133855721,
+     "gt_max_disp_cm": 15.585432855761825,
+     "pos_err_cm": 1.6179861581030188,
+     "rot_err_deg": 108.74706638880951,
+     "pos_err_rest_cm": 1.0203775835305182,
+     "pos_err_moving_cm": 1.74248794447229,
+     "rot_err_rest_deg": 48.654224867942986,
+     "rot_err_moving_deg": 121.26640837232337,
+     "scale_fit": 1.0110669962629213,
+     "hand_rest_agree": 0.896551724137931,
+     "speed_rest_agree": 0.803448275862069
+    },
+    {
+     "name": "plastic_dish_rack",
+     "gt_moving_frac": 0.0,
+     "gt_path_cm": 1.897706707588507,
+     "our_path_cm": 26.32154557576616,
+     "gt_max_disp_cm": 0.15283728183159076,
+     "pos_err_cm": 0.9138460066759067,
+     "rot_err_deg": 2.679964143246232,
+     "pos_err_rest_cm": 0.9138460066759067,
+     "pos_err_moving_cm": null,
+     "rot_err_rest_deg": 2.679964143246232,
+     "rot_err_moving_deg": null,
+     "scale_fit": 0.25,
+     "hand_rest_agree": 0.041379310344827586,
+     "speed_rest_agree": 1.0
+    }
+   ],
+   "gap_gt_cm": 11.41125965468369,
+   "gap_ours_cm": 11.937303329515402,
+   "gap_err_cm": 0.9753457798208539,
+   "rest_frames_both": 50,
+   "rest_common_rms_cm": 0.5324841599827933,
+   "rest_diff_rms_cm": 0.6885436283999102
+  },
+  "ns": "babel_fs_s3mf_d60_noref"
+ },
+ {
+  "file": "ep_nofnd60.json",
+  "ep": 31,
+  "v": "recon_ourmesh",
+  "n": 2,
+  "AUC": 0.7710129310344828,
+  "SP-SR": 0.0,
+  "MP-SR": 0.0,
+  "RPE": 18.497347099057183,
+  "MPPE": 3.4151753360792902,
+  "extra": {
+   "diag": [
+    {
+     "name": "mini_sweeper",
+     "gt_moving_frac": 0.8275862068965517,
+     "gt_path_cm": 107.81938297053411,
+     "our_path_cm": 97.19923133855721,
+     "gt_max_disp_cm": 15.585432855761825,
+     "pos_err_cm": 1.6179861581030188,
+     "rot_err_deg": 108.74706638880951,
+     "pos_err_rest_cm": 1.0203775835305182,
+     "pos_err_moving_cm": 1.74248794447229,
+     "rot_err_rest_deg": 48.654224867942986,
+     "rot_err_moving_deg": 121.26640837232337,
+     "scale_fit": 1.0110669962629213,
+     "hand_rest_agree": 0.896551724137931,
+     "speed_rest_agree": 0.803448275862069
+    },
+    {
+     "name": "plastic_dish_rack",
+     "gt_moving_frac": 0.0,
+     "gt_path_cm": 1.897706707588507,
+     "our_path_cm": 26.32154557576616,
+     "gt_max_disp_cm": 0.15283728183159076,
+     "pos_err_cm": 0.9138460066759067,
+     "rot_err_deg": 2.679964143246232,
+     "pos_err_rest_cm": 0.9138460066759067,
+     "pos_err_moving_cm": null,
+     "rot_err_rest_deg": 2.679964143246232,
+     "rot_err_moving_deg": null,
+     "scale_fit": 0.25,
+     "hand_rest_agree": 0.041379310344827586,
+     "speed_rest_agree": 1.0
+    }
+   ],
+   "gap_gt_cm": 11.41125965468369,
+   "gap_ours_cm": 11.937303329515402,
+   "gap_err_cm": 0.9753457798208539,
+   "rest_frames_both": 50,
+   "rest_common_rms_cm": 0.5324841599827933,
+   "rest_diff_rms_cm": 0.6885436283999102
+  },
+  "ns": "babel_fs_s3mf_d60_noref"
+ },
+ {
+  "file": "unsm_e31.json",
+  "ep": 31,
+  "v": "recon_ourmesh",
+  "n": 2,
+  "AUC": 0.7710129310344828,
+  "SP-SR": 0.0,
+  "MP-SR": 0.0,
+  "RPE": 18.497347099057183,
+  "MPPE": 3.4151753360792902,
+  "extra": {
+   "diag": [
+    {
+     "name": "mini_sweeper",
+     "gt_moving_frac": 0.8275862068965517,
+     "gt_path_cm": 107.81938297053411,
+     "our_path_cm": 97.19923133855721,
+     "gt_max_disp_cm": 15.585432855761825,
+     "pos_err_cm": 1.6179861581030188,
+     "rot_err_deg": 108.74706638880951,
+     "pos_err_rest_cm": 1.0203775835305182,
+     "pos_err_moving_cm": 1.74248794447229,
+     "rot_err_rest_deg": 48.654224867942986,
+     "rot_err_moving_deg": 121.26640837232337,
+     "scale_fit": 1.0110669962629213,
+     "hand_rest_agree": 0.896551724137931,
+     "speed_rest_agree": 0.803448275862069
+    },
+    {
+     "name": "plastic_dish_rack",
+     "gt_moving_frac": 0.0,
+     "gt_path_cm": 1.897706707588507,
+     "our_path_cm": 26.32154557576616,
+     "gt_max_disp_cm": 0.15283728183159076,
+     "pos_err_cm": 0.9138460066759067,
+     "rot_err_deg": 2.679964143246232,
+     "pos_err_rest_cm": 0.9138460066759067,
+     "pos_err_moving_cm": null,
+     "rot_err_rest_deg": 2.679964143246232,
+     "rot_err_moving_deg": null,
+     "scale_fit": 0.25,
+     "hand_rest_agree": 0.041379310344827586,
+     "speed_rest_agree": 1.0
+    }
+   ],
+   "gap_gt_cm": 11.41125965468369,
+   "gap_ours_cm": 11.937303329515402,
+   "gap_err_cm": 0.9753457798208539,
+   "rest_frames_both": 50,
+   "rest_common_rms_cm": 0.5324841599827933,
+   "rest_diff_rms_cm": 0.6885436283999102
+  },
+  "ns": "babel_fs_s3mf_d60_noref"
+ },
+ {
+  "file": "cot_a.json",
+  "ep": 31,
+  "v": "recon_ourmesh",
+  "n": 2,
+  "AUC": 0.8816810344827586,
+  "SP-SR": 1.0,
+  "MP-SR": 1.0,
+  "RPE": 4.081985387388107,
+  "MPPE": 1.7044508729601302,
+  "extra": {
+   "diag": [
+    {
+     "name": "mini_sweeper",
+     "gt_moving_frac": 0.8275862068965517,
+     "gt_path_cm": 107.81938297053411,
+     "our_path_cm": 146.69145046893334,
+     "gt_max_disp_cm": 15.585432855761825,
+     "pos_err_cm": 1.507651526295266,
+     "rot_err_deg": 16.56171338036659,
+     "pos_err_rest_cm": 1.2477444856817592,
+     "pos_err_moving_cm": 1.56179882642308,
+     "rot_err_rest_deg": 18.40568662071835,
+     "rot_err_moving_deg": 16.177552288626643,
+     "scale_fit": 0.9982364863182067,
+     "hand_rest_agree": 0.896551724137931,
+     "speed_rest_agree": 0.8379310344827586
+    },
+    {
+     "name": "plastic_dish_rack",
+     "gt_moving_frac": 0.0,
+     "gt_path_cm": 1.897706707588507,
+     "our_path_cm": 26.32154557576616,
+     "gt_max_disp_cm": 0.15283728183159076,
+     "pos_err_cm": 0.9138460066759067,
+     "rot_err_deg": 2.679964143246232,
+     "pos_err_rest_cm": 0.9138460066759067,
+     "pos_err_moving_cm": null,
+     "rot_err_rest_deg": 2.679964143246232,
+     "rot_err_moving_deg": null,
+     "scale_fit": 0.25,
+     "hand_rest_agree": 0.041379310344827586,
+     "speed_rest_agree": 1.0
+    }
+   ],
+   "gap_gt_cm": 11.41125965468369,
+   "gap_ours_cm": 11.944385571154228,
+   "gap_err_cm": 1.0030832186757468,
+   "rest_frames_both": 50,
+   "rest_common_rms_cm": 0.7035799161139639,
+   "rest_diff_rms_cm": 0.8679163822446325
+  },
+  "ns": "babel_fs_c0_s3mf_d60_noref"
+ }
+]

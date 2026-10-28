@@ -1,0 +1,66 @@
+{
+ "run": "baseline/reconstruction/data/outputs/babel_fs_s3mf_d60/episode_000031/mini_sweeper",
+ "poses": "baseline/reconstruction/data/outputs/babel_fs_s3mf_d60/episode_000031/mini_sweeper/poses",
+ "anchor": "0",
+ "mesh": "mesh_scaled.obj",
+ "pca": {
+  "axes": [
+   "minor",
+   "mid",
+   "major"
+  ],
+  "extent_cm": [
+   3.79,
+   8.67,
+   11.96
+  ]
+ },
+ "query_frames": [
+  0,
+  30,
+  60,
+  90,
+  120,
+  150,
+  180,
+  210,
+  240,
+  270
+ ],
+ "points": 552,
+ "pairs": 2220,
+ "labeled": 264,
+ "twin_frames": 173,
+ "segments": [
+  [
+   0,
+   23,
+   0
+  ],
+  [
+   24,
+   25,
+   3
+  ],
+  [
+   26,
+   29,
+   1
+  ],
+  [
+   30,
+   172,
+   3
+  ],
+  [
+   173,
+   265,
+   0
+  ],
+  [
+   266,
+   289,
+   3
+  ]
+ ]
+}
