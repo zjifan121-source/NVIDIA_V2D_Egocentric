@@ -372,3 +372,74 @@ def test_the_hand_letting_go_is_bridged_not_tracked(monkeypatch):
     monkeypatch.setattr(I, "RELEASE_M", np.inf)  # tracked to the end: the last frames follow the hand
     P, _ = I.solve(c, segs, start_pose(), FPS)
     assert add_mm(P, obj, np.asarray(m.vertices))[GRASP[1] - 3:GRASP[1] + 1].max() > 10
+
+
+def test_a_carry_lost_to_the_slip_guard_is_bridged_with_the_wrist(monkeypatch):
+    """ep43: every grasp of the carry tripped the slip guard and the bridge between the rests was interpolated,
+    missing what the hand did with the object (there: turned it over; here: the 8 cm lift). With the hand S3b saw
+    holding it, the bridge moves with that wrist, and keeps that guess because it explains the frames better."""
+    monkeypatch.setattr(I, "CARRIED_BRIDGES", True)
+    c, segs, obj, m = clip()
+
+    def slipped(clip, a, b, *args, **kwargs):
+        return [{"kind": "unstable", "start": a, "end": b, "why": "slip guard"}]
+    monkeypatch.setattr(I, "solve_grasp", slipped)
+    a, b = GRASP
+    P, report = I.solve(c, segs, start_pose(), FPS)
+    row = next(r for r in report if r["kind"] == "unstable" and r["start"] == a)
+    assert row["guess"] == "carried" and row["explains_carried_m"] < row["explains_interpolated_m"], row
+    err = add_mm(P, obj, np.asarray(m.vertices))[a:b + 1]
+    monkeypatch.setattr(I, "CARRIED_BRIDGES", False)
+    P0, report0 = I.solve(c, segs, start_pose(), FPS)
+    err0 = add_mm(P0, obj, np.asarray(m.vertices))[a:b + 1]
+    assert next(r for r in report0 if r["start"] == a)["guess"] == "interpolated"
+    assert np.median(err) < 10 and np.median(err) < 0.5 * np.median(err0), (np.median(err), np.median(err0))
+
+
+def test_carried_holds_both_ends_and_follows_the_wrist_between():
+    """carried: forward from the pose before, backward from the pose after, blended; a frame without a carrier
+    keeps the object where it was."""
+    c, segs, obj, m = clip()
+    a, b = GRASP
+    carrier = np.full(N, -1)
+    carrier[a:b + 1] = 1
+    G = I.carried(c, a, b, obj[a - 1], obj[b + 1], carrier)
+    # the ends: one wrist step from the known pose (two noisy wrist samples, 2 mm / 0.5 degrees each at a 12 cm lever)
+    assert add_mm(G[[0, -1]], obj[[a, b]], np.asarray(m.vertices)).max() < 15
+    assert np.median(add_mm(G, obj[a:b + 1], np.asarray(m.vertices))) < 8
+    still = I.carried(c, a, b, obj[a - 1], None, np.full(N, -1))
+    assert still is None
+
+
+def test_a_grasp_takes_its_end_terms_across_a_short_unstable_gap(monkeypatch):
+    """ep43: S3b put 0-5 and 272-274 between the carry and its rests, and the carry had neither end term (pass 1
+    drifted, the slip guard took 6-271). A gap of at most ANCHOR_GAP frames with a rest (or the clip's start)
+    beyond it passes that rest's pose on as the end term, as across the grasp's own trimmed frames."""
+    c, segs, obj, m = clip()
+    a, b = GRASP
+    gapped = [{"kind": "static", "start": 0, "end": a - 5, "hand": None, "fingertips": []},
+              {"kind": "unstable", "start": a - 4, "end": a - 1, "hand": None, "fingertips": []},
+              segs[1],
+              {"kind": "unstable", "start": b + 1, "end": b + 3, "hand": None, "fingertips": []},
+              {"kind": "static", "start": b + 4, "end": N - 1, "hand": None, "fingertips": []}]
+    monkeypatch.setattr(I, "ANCHOR_GAP", I.RELEASE_FRAMES)
+    seen = []
+    real = I.pass1
+
+    def spy(clip, a_, b_, hand, fingers, start, end, T0):
+        seen.append((start is not None, end is not None))
+        return real(clip, a_, b_, hand, fingers, start, end, T0)
+    monkeypatch.setattr(I, "pass1", spy)
+    P, report = I.solve(c, gapped, start_pose(), FPS)
+    assert seen[0] == (True, False) and seen[-1] == (True, True), seen  # sweep 1: the rest before; sweep 2: both
+    assert np.median(add_mm(P, obj, np.asarray(m.vertices))[a:b + 1]) < 4
+    seen.clear()
+    monkeypatch.setattr(I, "ANCHOR_GAP", 3)  # the 4-frame gap is longer: no end term across it
+    I.solve(c, gapped, start_pose(), FPS)
+    assert seen[0] == (False, False), seen
+    seen.clear()
+    monkeypatch.setattr(I, "ANCHOR_GAP", I.RELEASE_FRAMES)
+    start = [{"kind": "unstable", "start": 0, "end": 3, "hand": None, "fingertips": []},
+             {"kind": "grasp", "start": 4, "end": b, "hand": "R", "fingertips": [["R", 0], ["R", 1]]}, segs[2]]
+    I.solve(c, start, start_pose(), FPS)
+    assert seen[0][0], seen  # the clip's start: s3a2_register's pose

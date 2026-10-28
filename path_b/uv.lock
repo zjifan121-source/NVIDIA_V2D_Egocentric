@@ -1096,6 +1096,7 @@ dependencies = [
     { name = "rtree" },
     { name = "scikit-image" },
     { name = "scipy" },
+    { name = "threadpoolctl" },
     { name = "trimesh" },
 ]
 
@@ -1117,6 +1118,7 @@ requires-dist = [
     { name = "rtree", specifier = ">=1.0" },
     { name = "scikit-image", specifier = ">=0.24" },
     { name = "scipy", specifier = ">=1.11" },
+    { name = "threadpoolctl", specifier = ">=3.5" },
     { name = "trimesh", specifier = ">=4.0" },
 ]
 

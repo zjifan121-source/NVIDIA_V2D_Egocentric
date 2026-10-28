@@ -1,10 +1,11 @@
 {
  "name": "public_2026-10-28_f1fa2b40",
  "run": "v4_fix",
- "commit_at_save": "b03dce67",
- "saved": "2026-10-28T14:58:49.910339+00:00",
+ "commit_at_save": "2034f773",
+ "saved": "2026-10-28T17:24:59.877708+00:00",
  "episodes": [
   0,
+  2,
   11,
   12,
   13,
@@ -25,16 +26,17 @@
   45
  ],
  "means": {
-  "ref_inverted AUC": 0.5453,
-  "ref_keyframe AUC": 0.3965,
-  "ref_still AUC": 0.3372,
-  "best of three AUC": 0.5714,
-  "edmond_place AUC": 0.4009,
+  "episodes scored": "19 of 20",
+  "ref_inverted AUC": 0.518,
+  "ref_keyframe AUC": 0.3766,
+  "ref_still AUC": 0.3203,
+  "best of three AUC": 0.5428,
+  "edmond_place AUC": 0.3875,
   "ref_inverted MPPE cm": 14.0181,
   "ref_inverted MP-SR": 0.3158,
   "ref_inverted SP-SR": 0.5789,
   "best of three AUC, single-object": 0.7075,
-  "best of three AUC, two-object": 0.492
+  "best of three AUC, two-object": 0.4542
  },
  "per_episode": {
   "0": {
@@ -70,6 +72,15 @@
    },
    "edmond_place": 0.23734919571045576,
    "best": "ref_still"
+  },
+  "2": {
+   "objects": [
+    "white_pot",
+    "white_pot_lid"
+   ],
+   "scores": {},
+   "edmond_place": 0.13392857142857142,
+   "best": "none"
   },
   "11": {
    "objects": [

@@ -9,13 +9,17 @@ candidate the six metrics, the commit and the run. Two means: `ref_inverted` (on
 episode, chosen without ground truth) and `best of three` (inverted / keyframe / still picked per episode
 by AUC against ground truth: an upper bound until F3's GT-free selection exists). `compare` prints the
 same means and the per-episode AUC change of a run against a checkpoint; it reads only the episodes both
-have, and says so when they differ.
+have, and says so when they differ. It ends with the consistency check run after every change: episodes up,
+down and unchanged, and each one that fell, marked HIGH when it scored at least HIGH before.
+Compare only repeatable runs: S3c runs Open3D on one thread since 2026-10-28 (pathb/invert.solve); before that the
+same code gave one episode 0.637 and 0.482.
 """
 from __future__ import annotations
 
 import argparse
 import json
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -24,29 +28,42 @@ OUTPUTS = PATH_B / "data/outputs"
 CHECKPOINTS = PATH_B / "reports/checkpoints"
 CANDIDATES = ("ref_inverted", "ref_keyframe", "ref_still")
 EDMOND = "S0.2 recon / place"
+DROP = 0.005  # default: an episode's best-of-three change smaller than this counts as unchanged
+FALLBACK = "v4"  # the S1 run: baselines of an episode a run has no waterfall for
+HIGH = 0.7  # default: an episode at or above this before the change is a high scorer (its drop is flagged HIGH)
 
 
 def rows(run: Path) -> dict[int, dict]:
-    """Episode -> {candidate: metrics} and Edmond's place, from the run's per-episode waterfalls."""
+    """Every public episode of the manifest (20) -> {candidate: metrics} and Edmond's place, from the run's
+    per-episode waterfalls. An episode the run has no candidate for (ep2: its P1b masks failed, so S3a-S4b never
+    ran) is kept with no scores and counts 0 in every mean; its baselines come from the S1 run (FALLBACK)."""
+    sys.path.insert(0, str(PATH_B))
+    from pathb.paths import manifest
     out = {}
-    for f in sorted(run.glob("episode_*/waterfall.json")):
-        w = json.loads(f.read_text())
-        scores = {c: w["scores"][c] for c in CANDIDATES if (w["scores"].get(c) or {}).get("AUC") is not None}
-        if scores:
-            out[int(w["episode"])] = {"objects": w["objects"], "scores": scores,
-                                      "edmond_place": w["baselines"].get(EDMOND)}
+    for n, e in sorted(manifest().items()):
+        if e["split"] != "public":
+            continue
+        f = next((r / f"episode_{n:06d}/waterfall.json" for r in (run, OUTPUTS / FALLBACK)
+                  if (r / f"episode_{n:06d}/waterfall.json").is_file()), None)
+        w = json.loads(f.read_text()) if f else {"scores": {}, "baselines": {}, "objects": [o["name"] for o in e["objects"]]}
+        scores = {c: w["scores"][c] for c in CANDIDATES if (w["scores"].get(c) or {}).get("AUC") is not None} \
+            if f is not None and f.parent.parent == run else {}
+        out[n] = {"objects": w["objects"], "scores": scores, "edmond_place": w["baselines"].get(EDMOND)}
     return out
 
 
 def best(ep: dict) -> tuple[str, float]:
+    if not ep["scores"]:
+        return "none", 0.0
     c = max(ep["scores"], key=lambda k: ep["scores"][k]["AUC"])
     return c, ep["scores"][c]["AUC"]
 
 
 def means(eps: dict[int, dict]) -> dict:
     mean = lambda xs: round(sum(xs) / len(xs), 4) if xs else None  # noqa: E731
-    out = {f"{c} AUC": mean([e["scores"][c]["AUC"] for e in eps.values() if c in e["scores"]]) for c in CANDIDATES}
-    out["best of three AUC"] = mean([best(e)[1] for e in eps.values()])
+    out = {"episodes scored": f"{sum(1 for e in eps.values() if e['scores'])} of {len(eps)}"}
+    out |= {f"{c} AUC": mean([e["scores"].get(c, {}).get("AUC", 0.0) for e in eps.values()]) for c in CANDIDATES}
+    out["best of three AUC"] = mean([best(e)[1] for e in eps.values()])  # an episode without candidates: 0
     out["edmond_place AUC"] = mean([e["edmond_place"] for e in eps.values() if e["edmond_place"] is not None])
     for k in ("MPPE cm", "MP-SR", "SP-SR"):
         out[f"ref_inverted {k}"] = mean([e["scores"]["ref_inverted"][k] for e in eps.values()
@@ -88,8 +105,20 @@ def compare(name: str, run_name: str, episodes: list[int] | None) -> None:
     mo, mn = means({n: old[n] for n in both}), means({n: new[n] for n in both})
     print(f"means over {len(both)} episodes ({name} -> {run_name}):")
     for k in mo:
-        d = "" if mo[k] is None or mn[k] is None else f" ({mn[k] - mo[k]:+.4f})"
+        d = f" ({mn[k] - mo[k]:+.4f})" if isinstance(mo[k], float) and isinstance(mn[k], float) else ""
         print(f"  {k:36s} {mo[k]} -> {mn[k]}{d}")
+    # consistency across episodes (James, 2026-10-28): every change is run on all public episodes, and a drop on
+    # an episode that already scored high is named even when the mean rises
+    change = {n: best(new[n])[1] - best(old[n])[1] for n in both}
+    up = [n for n in both if change[n] > DROP]
+    down = [n for n in both if change[n] < -DROP]
+    print(f"consistency: {len(up)} up, {len(down)} down, {len(both) - len(up) - len(down)} within {DROP} "
+          f"(best of three)")
+    for n in down:
+        high = " HIGH" if best(old[n])[1] >= HIGH else ""
+        print(f"  regression{high}: ep{n} {best(old[n])[1]:.3f} -> {best(new[n])[1]:.3f} ({change[n]:+.3f})")
+    if not down:
+        print("  no episode fell")
 
 
 def main() -> None:

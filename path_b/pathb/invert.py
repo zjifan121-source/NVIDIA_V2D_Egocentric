@@ -12,7 +12,8 @@ that holds there. Poses map the canonical mesh frame to the world (V4 §3).
             over the segment on (a) the canonical mesh's rendered depth vs the stereo depth inside the
             mask, with its silhouette against the mask the other way (Clip.silhouette_residual), (b)
             the contact fingertips' signed distance to the mesh, (c) the end poses equal to
-            the neighbouring static poses (weight W_END); pass 2: per frame, object(t) = wrist(t) T
+            the neighbouring static poses (weight W_END; across S3b's unstable run of at most ANCHOR_GAP
+            frames to a rest or the clip's start, that rest's pose); pass 2: per frame, object(t) = wrist(t) T
             D(t). D starts where ICP of the frame's depth points onto the mesh puts it, from the
             previous frame's D carried by the wrist (icp_start: 2 cm, then 1 cm; kept when it pairs
             >= ICP_FIT of the points, else that previous D), clipped into 5 mm / 3 degrees per
@@ -31,7 +32,9 @@ that holds there. Poses map the canonical mesh frame to the world (V4 §3).
             frames: its poses anchor nothing, it is bridged as an unstable run (S4b then takes
             `keyframe` there)
   unstable  cubic Hermite position (zero end velocity) + slerp between the neighbouring end poses
-            (consecutive unsolved segments as one bridge; at frame 0, s3a2_register's pose),
+            (consecutive unsolved segments as one bridge; at frame 0, s3a2_register's pose); over frames S3b
+            saw a hand holding, also the object moved with that wrist from both ends (`carried`), whichever
+            explains the frames better (`explains`),
             then <= UNSTABLE_STEPS least-squares steps per frame on (a) where the mask covers >= 1 % of
             the image (observe.area_bar), held near the interpolation by a prior and bounded (5 cm,
             20 degrees), kept only when it explains the frame better
@@ -80,6 +83,13 @@ RELEASE_M, RELEASE_FRAMES = 0.01, 10  # default: a grasp's frames next to a rest
 # frame (at most this many per end) are the hand arriving or letting go: bridged, not tracked (ep41's left wrist
 # moved 2-12 cm per frame over the carry's last 6 frames, 0.1-0.4 before; the release frame anchored the whole carry)
 BRIDGE_FAILED = True  # default: a failed grasp's poses anchor nothing; its frames are bridged (ep26's carry)
+ANCHOR_GAP = RELEASE_FRAMES  # default: a grasp whose S3b neighbour is an unstable run at most this long with a rest
+# (or the clip's start) beyond it takes that rest's pose as its end term, as across its own trimmed frames (ep43:
+# 0-5 and 272-274 left its carry 6-271 without either end, pass 1 drifted and the slip guard took all of it). Public,
+# 20 episodes: best of three 0.536 -> 0.546 (ep31 +0.115, ep43 +0.080, ep39 +0.017; ep26 -0.012)
+CARRIED_BRIDGES = True  # default: a bridge over frames S3b saw a hand holding also tries the object moved with that
+# wrist (`carried`) and keeps whichever guess explains the frames better (`explains`). Public, 20 episodes, on top of
+# the gap anchor: best of three 0.546 -> 0.554 (12, 13, 26, 41, 42 up 0.02-0.05; ep45 -0.008)
 ICP_FIT = 0.3  # default: share of a frame's depth points ICP pairs (within 1 cm) for its pose to start pass 2
 ICP_REACH = (0.02, 0.01)  # default: ICP's pairing distance, coarse then fine (m)
 SIL_POINTS = 200  # default: canonical surface points projected for the silhouette term
@@ -497,13 +507,69 @@ def interpolate(P0: np.ndarray, P1: np.ndarray, n: int) -> np.ndarray:
     return out
 
 
-def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after: np.ndarray | None) -> dict:
+def blend(A: np.ndarray, B: np.ndarray, w: float) -> np.ndarray:
+    """The pose w of the way from A to B: translation linear, rotation slerp."""
+    out = np.eye(4)
+    out[:3, 3] = (1 - w) * A[:3, 3] + w * B[:3, 3]
+    out[:3, :3] = Slerp([0, 1], Rotation.from_matrix([A[:3, :3], B[:3, :3]]))([w]).as_matrix()[0]
+    return out
+
+
+def carried(clip: Clip, a: int, b: int, before: np.ndarray | None, after: np.ndarray | None,
+            carrier: np.ndarray) -> np.ndarray | None:
+    """The bridge [a, b] moved with the hands S3b saw holding the object: from frame t-1 to t the object moves
+    rigidly with the wrist of carrier[t] (>= 0, that wrist valid on both frames), else it stays. Forward from
+    `before` (the pose at a-1; at frame 0 the pose of frame 0 itself), backward from `after` (the pose at b+1),
+    the two blended by the frame's place in the bridge so both ends hold. None when no frame is carried."""
+    n, W, ok = clip.n, clip.wrist, clip.valid
+
+    def step(t):  # frame t-1 -> t: the carrying wrist's motion, or None
+        c = carrier[t] if 0 < t < n else -1
+        return W[t, c] @ np.linalg.inv(W[t - 1, c]) if c >= 0 and ok[t, c] and ok[t - 1, c] else None
+    steps = {t: step(t) for t in range(max(a, 1), min(b + 1, n - 1) + 1)}
+    if not any(s is not None for s in steps.values()):
+        return None
+    fwd = bwd = None
+    if before is not None:
+        fwd, Q = np.empty((b - a + 1, 4, 4)), before
+        for t in range(a, b + 1):
+            S_ = steps.get(t) if (t > a or a > 0) else None
+            Q = S_ @ Q if S_ is not None else Q
+            fwd[t - a] = Q
+    if after is not None:
+        bwd, Q = np.empty((b - a + 1, 4, 4)), after
+        for t in range(b, a - 1, -1):
+            S_ = steps.get(t + 1)
+            Q = np.linalg.inv(S_) @ Q if S_ is not None else Q
+            bwd[t - a] = Q
+    if fwd is None or bwd is None:
+        return fwd if bwd is None else bwd
+    return np.stack([blend(fwd[i], bwd[i], (i + 1) / (b - a + 2)) for i in range(b - a + 1)])
+
+
+def explains(clip: Clip, poses: np.ndarray, a: int) -> float | None:
+    """Mean over the frames with a mask above the bar of the mean |residual (a)| of `poses` from frame a, each
+    residual capped at MISS. A median saturates at MISS once half the rays miss (ep43's 0-274 bridge: 3 cm
+    for both guesses), the share that misses still tells them apart."""
+    r = [float(np.mean(np.minimum(np.abs(clip.appearance(P, a + i)), MISS))) for i, P in enumerate(poses)
+         if clip.obs[a + i] is not None and clip.obs[a + i][2] >= clip.min_share]
+    return float(np.mean(r)) if r else None
+
+
+def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after: np.ndarray | None,
+                   carrier: np.ndarray | None = None) -> dict:
     P0 = before if before is not None else after
     P1 = after if after is not None else before
     if P0 is None:
         return {"poses": np.full((b - a + 1, 4, 4), np.nan), "refined": np.zeros(b - a + 1, bool),
                 "why": "no neighbouring pose"}
-    guess = interpolate(P0, P1, b - a + 1)
+    guess, how = interpolate(P0, P1, b - a + 1), {"guess": "interpolated"}
+    alt = carried(clip, a, b, before, after, carrier) if carrier is not None else None
+    if alt is not None:
+        how.update(explains_interpolated_m=explains(clip, guess, a), explains_carried_m=explains(clip, alt, a))
+        if how["explains_carried_m"] is not None and (how["explains_interpolated_m"] is None
+                                                      or how["explains_carried_m"] < how["explains_interpolated_m"]):
+            guess, how["guess"] = alt, "carried"
     poses, refined = guess.copy(), np.zeros(b - a + 1, bool)
     for i, t in enumerate(range(a, b + 1)):
         o = clip.obs[t]
@@ -522,7 +588,7 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
         if np.median(np.abs(clip.appearance(guess[i] @ T_of(r.x), t))) < before:  # kept only if it explains more
             poses[i] = guess[i] @ T_of(r.x)
             refined[i] = True
-    return {"poses": poses, "refined": refined}
+    return {"poses": poses, "refined": refined, **how}
 
 
 # ---------------------------------------------------------------- the clip
@@ -530,7 +596,17 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
           fixed: dict[int, np.ndarray] | None = None) -> tuple[np.ndarray, list[dict]]:
     """(object_to_world (N, 4, 4), per-segment report). start_pose: s3a2_register's canonical_to_world
     (the first static segment's start). fixed: static segment start -> its pose, used as it is (S3d's
-    settled poses: the grasps and bridges are solved again against them)."""
+    settled poses: the grasps and bridges are solved again against them). Open3D's OpenMP runs on one thread
+    here: its multithreaded ICP sums in a different order each run, and the solver's thresholds (slip guard,
+    kept-if-better, the static tie-breaks) turn that into different tracks (ep45: 0.637 and 0.482 from the same
+    code and inputs; one thread: identical tracks, 0.632)."""
+    from threadpoolctl import threadpool_limits
+    with threadpool_limits(1, user_api="openmp"):
+        return _solve(clip, segments, start_pose, fps, fixed)
+
+
+def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
+           fixed: dict[int, np.ndarray] | None) -> tuple[np.ndarray, list[dict]]:
     n = clip.n
     P = np.full((n, 4, 4), np.nan)
     HANDS = ("L", "R")
@@ -540,10 +616,24 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
     def known(t):
         return 0 <= t < n and np.isfinite(P[t]).all()
 
+    def across(i: int, side: int) -> np.ndarray | None:
+        """The rest pose beyond S3b's short unstable neighbour of segment i on `side` (-1 before, +1 after): the
+        hand arriving or letting go, the object still at that rest. At the clip's start, s3a2_register's pose."""
+        j = i + side
+        if not (0 <= j < len(work)) or work[j]["kind"] != "unstable" or work[j]["end"] - work[j]["start"] + 1 > ANCHOR_GAP:
+            return None
+        if side < 0 and work[j]["start"] == 0:
+            return start_pose
+        k = j + side
+        if 0 <= k < len(work) and work[k]["kind"] == "static":
+            t = work[k]["end"] if side < 0 else work[k]["start"]
+            return P[t] if known(t) else None
+        return None
+
     def run_grasp(s, both: bool):
         a, b = s["start"], s["end"]
-        start = P[a - 1] if known(a - 1) else (start_pose if a == 0 else None)
-        end = P[b + 1] if both and known(b + 1) else None
+        start = P[a - 1] if known(a - 1) else (start_pose if a == 0 else across(s["i"], -1))
+        end = P[b + 1] if both and known(b + 1) else across(s["i"], +1) if both else None
         before = next((t for t in range(a - 1, -1, -1) if known(t)), None)
         after = next((t for t in range(b + 1, n) if known(t)), None) if both else None
         near = (P[before], True) if before is not None else (P[after], False) if after is not None else (start_pose, True)
@@ -572,7 +662,7 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
                     P[p["start"]:p["end"] + 1] = p["poses"]
             solved[i] = parts
     for i, s in enumerate(work):  # sweep 2: grasps with both neighbouring poses
-        if s["kind"] == "grasp" and known(s["end"] + 1):
+        if s["kind"] == "grasp" and (known(s["end"] + 1) or across(i, +1) is not None):
             parts = run_grasp(s, both=True)
             P[s["start"]:s["end"] + 1] = np.nan
             for p in parts:
@@ -582,6 +672,13 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
     rows = [p for i in sorted(solved) for p in solved[i]]
     rows += [{"kind": "unstable", "start": s["start"], "end": s["end"]} for s in work if s["kind"] == "unstable"]
     refined = np.zeros(n, bool)
+    carrier = np.full(n, -1)  # per frame: the hand S3b saw holding the object, except its arriving / letting-go frames
+    for s in work if CARRIED_BRIDGES else ():
+        if s["kind"] == "grasp":
+            carrier[s["start"]:s["end"] + 1] = HANDS.index(s["hand"])
+    for row in rows:
+        if row["kind"] == "unstable" and ("arriving" in row.get("why", "") or "letting go" in row.get("why", "")):
+            carrier[row["start"]:row["end"] + 1] = -1
     # bridges: unstable segments, slip runs, failed grasps, frames left unsolved. A failed grasp (its fit within
     # 1 cm on under half its frames) is bridged like an unstable run: ep26's carry, placed 56 cm off, pulled the
     # bridges on both sides to it, and S4b's interpolation over the grasp alone then ran between those
@@ -592,9 +689,12 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
                 while b + 1 < n and not known(b + 1):
                     b += 1
                 before = P[a - 1] if known(a - 1) else start_pose if a == 0 else None  # frame 0: S3a's pose
-                u = solve_unstable(clip, a, b, before, P[b + 1] if b + 1 < n and known(b + 1) else None)
+                u = solve_unstable(clip, a, b, before, P[b + 1] if b + 1 < n and known(b + 1) else None,
+                                   carrier if CARRIED_BRIDGES else None)
                 P[a:b + 1], refined[a:b + 1] = u["poses"], u["refined"]
                 row.setdefault("why", u.get("why", ""))
+                row.update({k: u[k] for k in ("guess", "explains_interpolated_m", "explains_carried_m") if k in u},
+                           bridge=[a, b])
             row.update(refined=int(refined[row["start"]:row["end"] + 1].sum()), why=row.get("why", ""))
         report.append({k: v for k, v in row.items() if k not in ("poses", "T")})
     for t in range(n):  # a wrist gap inside a grasp left a frame unsolved: hold the last pose

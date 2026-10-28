@@ -1,0 +1,691 @@
+{
+ "name": "public_2026-10-28_repeatable",
+ "run": "v4_d0",
+ "commit_at_save": "2034f773",
+ "saved": "2026-10-28T17:24:59.960469+00:00",
+ "episodes": [
+  0,
+  2,
+  11,
+  12,
+  13,
+  18,
+  21,
+  22,
+  23,
+  24,
+  26,
+  27,
+  31,
+  39,
+  40,
+  41,
+  42,
+  43,
+  44,
+  45
+ ],
+ "means": {
+  "episodes scored": "19 of 20",
+  "ref_inverted AUC": 0.5111,
+  "ref_keyframe AUC": 0.3732,
+  "ref_still AUC": 0.3168,
+  "best of three AUC": 0.5363,
+  "edmond_place AUC": 0.3875,
+  "ref_inverted MPPE cm": 13.7318,
+  "ref_inverted MP-SR": 0.2632,
+  "ref_inverted SP-SR": 0.6316,
+  "best of three AUC, single-object": 0.7057,
+  "best of three AUC, two-object": 0.4451
+ },
+ "per_episode": {
+  "0": {
+   "objects": [
+    "white_pot",
+    "white_pot_lid"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.07841823056300268,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 21.9508479534859,
+     "MPPE cm": 46.61073155124786,
+     "CD-O cm": 0.5115362271434075
+    },
+    "ref_keyframe": {
+     "AUC": 0.10330093833780161,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 14.26204193665919,
+     "MPPE cm": 59.360464384462,
+     "CD-O cm": 0.5115362271434075
+    },
+    "ref_still": {
+     "AUC": 0.35405495978552276,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 14.83201287283769,
+     "MPPE cm": 9.650457985552208,
+     "CD-O cm": 0.5115362271434075
+    }
+   },
+   "edmond_place": 0.23734919571045576,
+   "best": "ref_still"
+  },
+  "2": {
+   "objects": [
+    "white_pot",
+    "white_pot_lid"
+   ],
+   "scores": {},
+   "edmond_place": 0.13392857142857142,
+   "best": "none"
+  },
+  "11": {
+   "objects": [
+    "blue_cup",
+    "beige_cup"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.43544708029197077,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 69.68846676066862,
+     "MPPE cm": 35.741599894280576,
+     "CD-O cm": 0.37475235614870195
+    },
+    "ref_keyframe": {
+     "AUC": 0.5663777372262774,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 70.36274144985808,
+     "MPPE cm": 35.84912698621432,
+     "CD-O cm": 0.37475235614870195
+    },
+    "ref_still": {
+     "AUC": 0.5989963503649636,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 14.23322451060573,
+     "MPPE cm": 7.506566774525577,
+     "CD-O cm": 0.37475235614870195
+    }
+   },
+   "edmond_place": 0.2682481751824818,
+   "best": "ref_still"
+  },
+  "12": {
+   "objects": [
+    "blue_cup",
+    "plastic_dish_rack"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.5749309392265194,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 6.01618069322612,
+     "MPPE cm": 4.3112929632606125,
+     "CD-O cm": 0.593000291327225
+    },
+    "ref_keyframe": {
+     "AUC": 0.48687845303867405,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 10.760111427630779,
+     "MPPE cm": 6.051935664316784,
+     "CD-O cm": 0.593000291327225
+    },
+    "ref_still": {
+     "AUC": 0.3651588397790055,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 8.120163681754095,
+     "MPPE cm": 9.64808139943943,
+     "CD-O cm": 0.593000291327225
+    }
+   },
+   "edmond_place": 0.588225138121547,
+   "best": "ref_inverted"
+  },
+  "13": {
+   "objects": [
+    "blue_cup",
+    "plastic_dish_rack"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.65,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 8.565396484169405,
+     "MPPE cm": 5.170974820080874,
+     "CD-O cm": 0.5772902094703283
+    },
+    "ref_keyframe": {
+     "AUC": 0.6710526315789473,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 8.456397890100572,
+     "MPPE cm": 4.983515422448987,
+     "CD-O cm": 0.5772902094703283
+    },
+    "ref_still": {
+     "AUC": 0.4636513157894737,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 14.758172834231727,
+     "MPPE cm": 9.913613894203479,
+     "CD-O cm": 0.5772902094703283
+    }
+   },
+   "edmond_place": 0.4753289473684211,
+   "best": "ref_keyframe"
+  },
+  "18": {
+   "objects": [
+    "mini_sweeper",
+    "mini_dust_pan"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.8869511331444759,
+     "SP-SR": 1.0,
+     "MP-SR": 1.0,
+     "RPE cm": 4.32391381441455,
+     "MPPE cm": 1.8048643831607547,
+     "CD-O cm": 0.3479614753885154
+    },
+    "ref_keyframe": {
+     "AUC": 0.613314447592068,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 9.93729218358395,
+     "MPPE cm": 4.294438591686223,
+     "CD-O cm": 0.3479614753885154
+    },
+    "ref_still": {
+     "AUC": 0.5790545325779037,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 9.989536580844929,
+     "MPPE cm": 4.492895331554622,
+     "CD-O cm": 0.3479614753885154
+    }
+   },
+   "edmond_place": 0.6121635977337111,
+   "best": "ref_inverted"
+  },
+  "21": {
+   "objects": [
+    "blue_cup",
+    "water_pitcher"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.01915322580645161,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 106.67548365125361,
+     "MPPE cm": 57.56087555318835,
+     "CD-O cm": 0.8552647247075231
+    },
+    "ref_keyframe": {
+     "AUC": 0.03377016129032258,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 115.45597373384533,
+     "MPPE cm": 74.93776519949998,
+     "CD-O cm": 0.8552647247075231
+    },
+    "ref_still": {
+     "AUC": 0.06300403225806452,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 112.15764116658467,
+     "MPPE cm": 63.13890513788285,
+     "CD-O cm": 0.8552647247075231
+    }
+   },
+   "edmond_place": 0.48723118279569894,
+   "best": "ref_still"
+  },
+  "22": {
+   "objects": [
+    "blue_cup",
+    "water_pitcher"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.20932539682539683,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 68.14953352183285,
+     "MPPE cm": 35.294453979805255,
+     "CD-O cm": 0.5459982706391338
+    },
+    "ref_keyframe": {
+     "AUC": 0.11491402116402116,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 66.38747745845097,
+     "MPPE cm": 35.69028467103577,
+     "CD-O cm": 0.5459982706391338
+    },
+    "ref_still": {
+     "AUC": 0.009755291005291005,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 20.006282405875016,
+     "MPPE cm": 13.265860797987875,
+     "CD-O cm": 0.5459982706391338
+    }
+   },
+   "edmond_place": 0.5315806878306879,
+   "best": "ref_inverted"
+  },
+  "23": {
+   "objects": [
+    "wooden_piece_1",
+    "wooden_piece_2"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.15759615384615383,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 18.985157425349747,
+     "MPPE cm": 7.033728370703099,
+     "CD-O cm": 0.31662297680498863
+    },
+    "ref_keyframe": {
+     "AUC": 0.07692307692307693,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 18.143239668060655,
+     "MPPE cm": 10.309605305928676,
+     "CD-O cm": 0.31662297680498863
+    },
+    "ref_still": {
+     "AUC": 0.05057692307692308,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 26.178930772422888,
+     "MPPE cm": 13.770762202766374,
+     "CD-O cm": 0.31662297680498863
+    }
+   },
+   "edmond_place": 0.1275,
+   "best": "ref_inverted"
+  },
+  "24": {
+   "objects": [
+    "wooden_piece_1",
+    "wooden_piece_2"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.028522727272727273,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 25.140380028471732,
+     "MPPE cm": 34.164254218588646,
+     "CD-O cm": 0.31483980031035924
+    },
+    "ref_keyframe": {
+     "AUC": 0.028522727272727273,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 25.005756505006747,
+     "MPPE cm": 32.149419647442,
+     "CD-O cm": 0.31483980031035924
+    },
+    "ref_still": {
+     "AUC": 0.028522727272727273,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 28.760696773180467,
+     "MPPE cm": 25.61044233272018,
+     "CD-O cm": 0.31483980031035924
+    }
+   },
+   "edmond_place": 0.06829545454545455,
+   "best": "ref_inverted"
+  },
+  "26": {
+   "objects": [
+    "plastic_dish_rack",
+    "white_pot"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.8714398734177216,
+     "SP-SR": 1.0,
+     "MP-SR": 1.0,
+     "RPE cm": 2.338337827680154,
+     "MPPE cm": 1.6454189986319603,
+     "CD-O cm": 0.6049011188432596
+    },
+    "ref_keyframe": {
+     "AUC": 0.7943037974683544,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 4.701333319895533,
+     "MPPE cm": 2.8200046626157658,
+     "CD-O cm": 0.6049011188432596
+    },
+    "ref_still": {
+     "AUC": 0.607001582278481,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 12.38352638062453,
+     "MPPE cm": 6.9016409044847835,
+     "CD-O cm": 0.6049011188432596
+    }
+   },
+   "edmond_place": 0.4465981012658228,
+   "best": "ref_inverted"
+  },
+  "27": {
+   "objects": [
+    "plastic_dish_rack",
+    "white_pot"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.7369156504065041,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 5.364250907150363,
+     "MPPE cm": 2.9152583681956425,
+     "CD-O cm": 0.5965912926580093
+    },
+    "ref_keyframe": {
+     "AUC": 0.6481199186991871,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 14.32362143243176,
+     "MPPE cm": 7.422237528512028,
+     "CD-O cm": 0.5965912926580093
+    },
+    "ref_still": {
+     "AUC": 0.6054369918699187,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 14.409119147673193,
+     "MPPE cm": 7.468985112429756,
+     "CD-O cm": 0.5965912926580093
+    }
+   },
+   "edmond_place": 0.5409044715447154,
+   "best": "ref_inverted"
+  },
+  "31": {
+   "objects": [
+    "mini_sweeper",
+    "plastic_dish_rack"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.6340517241379311,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 11.471507069604431,
+     "MPPE cm": 3.149142950085252,
+     "CD-O cm": 0.44477860938882735
+    },
+    "ref_keyframe": {
+     "AUC": 0.554094827586207,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 9.219850725704298,
+     "MPPE cm": 5.161494405125341,
+     "CD-O cm": 0.44477860938882735
+    },
+    "ref_still": {
+     "AUC": 0.36702586206896554,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 10.899475225918444,
+     "MPPE cm": 6.1886634063826165,
+     "CD-O cm": 0.44477860938882735
+    }
+   },
+   "edmond_place": 0.40840517241379315,
+   "best": "ref_inverted"
+  },
+  "39": {
+   "objects": [
+    "mini_dust_pan"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.7989811912225706,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 3.218526433274275,
+     "CD-O cm": 0.38513000855578017
+    },
+    "ref_keyframe": {
+     "AUC": 0.3512931034482759,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 13.727974671225146,
+     "CD-O cm": 0.38513000855578017
+    },
+    "ref_still": {
+     "AUC": 0.1751567398119122,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 16.734133848384,
+     "CD-O cm": 0.38513000855578017
+    }
+   },
+   "edmond_place": 0.16849529780564265,
+   "best": "ref_inverted"
+  },
+  "40": {
+   "objects": [
+    "mini_dust_pan"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.9382211538461539,
+     "SP-SR": 1.0,
+     "MP-SR": 1.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 1.2183365290986161,
+     "CD-O cm": 0.38439105043557437
+    },
+    "ref_keyframe": {
+     "AUC": 0.4173076923076923,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 12.600005227643496,
+     "CD-O cm": 0.38439105043557437
+    },
+    "ref_still": {
+     "AUC": 0.40048076923076925,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 12.919421750271864,
+     "CD-O cm": 0.38439105043557437
+    }
+   },
+   "edmond_place": 0.3384615384615385,
+   "best": "ref_inverted"
+  },
+  "41": {
+   "objects": [
+    "white_pot"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.7867892976588629,
+     "SP-SR": 1.0,
+     "MP-SR": 1.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 2.4549172618794706,
+     "CD-O cm": 0.5057511571599599
+    },
+    "ref_keyframe": {
+     "AUC": 0.405309364548495,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 9.092657197838141,
+     "CD-O cm": 0.5057511571599599
+    },
+    "ref_still": {
+     "AUC": 0.3559782608695652,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 9.79424512575596,
+     "CD-O cm": 0.5057511571599599
+    }
+   },
+   "edmond_place": 0.2872073578595318,
+   "best": "ref_inverted"
+  },
+  "42": {
+   "objects": [
+    "white_pot"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.5926556420233463,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 3.538366292095145,
+     "CD-O cm": 0.5512849033270949
+    },
+    "ref_keyframe": {
+     "AUC": 0.46352140077821014,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 5.591685241162154,
+     "CD-O cm": 0.5512849033270949
+    },
+    "ref_still": {
+     "AUC": 0.19114785992217898,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 7.374230136054094,
+     "CD-O cm": 0.5512849033270949
+    }
+   },
+   "edmond_place": 0.6928501945525292,
+   "best": "ref_inverted"
+  },
+  "43": {
+   "objects": [
+    "white_pot"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.36138803680981596,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 10.227331212907172,
+     "CD-O cm": 0.4999410419049965
+    },
+    "ref_keyframe": {
+     "AUC": 0.13247699386503067,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 11.850280402465764,
+     "CD-O cm": 0.4999410419049965
+    },
+    "ref_still": {
+     "AUC": 0.13247699386503067,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 11.836884757619268,
+     "CD-O cm": 0.4999410419049965
+    }
+   },
+   "edmond_place": 0.17580521472392638,
+   "best": "ref_inverted"
+  },
+  "44": {
+   "objects": [
+    "white_pot"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.830070281124498,
+     "SP-SR": 1.0,
+     "MP-SR": 1.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 1.3291157871477584,
+     "CD-O cm": 0.5515086213095867
+    },
+    "ref_keyframe": {
+     "AUC": 0.5958835341365463,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 6.526676247393722,
+     "CD-O cm": 0.5515086213095867
+    },
+    "ref_still": {
+     "AUC": 0.5963855421686748,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 6.964055289101047,
+     "CD-O cm": 0.5515086213095867
+    }
+   },
+   "edmond_place": 0.7464859437751004,
+   "best": "ref_inverted"
+  },
+  "45": {
+   "objects": [
+    "white_pot"
+   ],
+   "scores": {
+    "ref_inverted": {
+     "AUC": 0.6316810344827586,
+     "SP-SR": 1.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 3.5145391519462326,
+     "CD-O cm": 0.4277667984463494
+    },
+    "ref_keyframe": {
+     "AUC": 0.40625,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 12.615527131647333,
+     "CD-O cm": 0.4277667984463494
+    },
+    "ref_still": {
+     "AUC": 0.3911637931034483,
+     "SP-SR": 0.0,
+     "MP-SR": 0.0,
+     "RPE cm": 0.0,
+     "MPPE cm": 12.905156592227515,
+     "CD-O cm": 0.4277667984463494
+    }
+   },
+   "edmond_place": 0.41508620689655173,
+   "best": "ref_inverted"
+  }
+ }
+}
