@@ -380,23 +380,23 @@ def test_b1_margin_small_for_a_symmetric_mesh_large_with_a_handle():
 def test_mesh_candidate_choice():
     """V4 §13.1 A4: the pooled mesh unless it fails the bar and another explains clearly more."""
     r = lambda s: {"partial_explained": s}  # noqa: E731
-    assert A23.choose({"pooled": r(0.62), "own": r(0.93), "team": r(0.40)})[0] == "own"
-    assert A23.choose({"pooled": r(0.90), "own": r(0.93), "team": r(0.40)})[0] == "pooled"
+    assert A23.choose({"pooled": r(0.62), "own": r(0.93)})[0] == "own"
+    assert A23.choose({"pooled": r(0.90), "own": r(0.93)})[0] == "pooled"
     assert A23.choose({"pooled": r(0.86), "own": r(0.91)})[0] == "pooled"  # ep45: passes the bar
-    assert A23.choose({"pooled": r(0.5), "own": {"skipped": "x"}, "team": r(0.52)})[0] == "pooled"
-    assert A23.choose({"pooled": r(0.5), "own": r(0.6), "team": r(0.62)})[0] == "team"
+    assert A23.choose({"pooled": r(0.5), "own": {"skipped": "x"}})[0] == "pooled"
+    assert A23.choose({"pooled": r(0.5), "own": r(0.6)})[0] == "own"
+    assert A23.ORDER == ("pooled", "own")  # no team mesh (James, 2026-10-28)
 
 
 def test_register_places_the_canonical_mesh_and_writes_its_files(episode, monkeypatch):
     if SIM.exists():
         monkeypatch.setenv("COACD_PY", str(SIM))
-    monkeypatch.setattr(A23, "team_mesh", lambda number, name: FileNotFoundError("no team bundle in a test"))
     A21.run(episode)
     C.main("box", episode.root.parent)
     result = A23.run(episode)
     reg = json.loads((episode.root / "s3a2_register/box/registration.json").read_text())
     assert reg["start"] == "canonical.json" and reg["partial_explained"] > 0.8 and reg["window"] == "rest_before"
-    assert reg["mesh"] == "pooled" and "skipped" in reg["candidates"]["team"]  # own ties it: the more complete
+    assert reg["mesh"] == "pooled" and "team" not in reg["candidates"]  # own ties it: the more complete
     canon = trimesh.load(episode.root.parent / "canonical/box/mesh.obj", force="mesh", process=False)
     T0 = np.asarray(reg["canonical_to_world"])
     world = canon.vertices @ T0[:3, :3].T + T0[:3, 3]

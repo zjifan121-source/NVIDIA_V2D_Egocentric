@@ -14,11 +14,10 @@ Bars: share of the partial the placed mesh explains (within 5 mm, normals agreei
 0.6 (WARN) (WARN/FAIL: S3b_track seeds the orientation); RMSE <= 3 mm / 6 mm; the canonical mesh
 watertight; CoACD pieces made; public only: CD-O against the scan < 0.3 cm (PASS) / 0.5 cm (WARN).
 
-Mesh candidates (V4 §13.1 A4), each registered onto the partial: `pooled` (run.py canonical), `own`
-(canonical.py on this episode's clips alone, in s3a2_register/<object>/own/), `team` (the team's SAM 3D
-mesh from the bundle repo, episode_XXXXXX/<object>/result_slam_gravity_aligned/mesh.obj, at its SLAM
-scale: the scale that explains most of the partial, TEAM_SCALES then +-0.05, in .../team/). The
-choice (`choose`): the more complete mesh first (ORDER: pooled, team, own) among those that pass
+Mesh candidates (V4 §13.1 A4), each registered onto the partial: `pooled` (run.py canonical) and `own`
+(canonical.py on this episode's clips alone, in s3a2_register/<object>/own/); only meshes fused from our own
+S1 evidence (the team's SAM 3D mesh was a third candidate until 2026-10-28: James, no team work in the
+pipeline). The choice (`choose`): the more complete mesh first (ORDER: pooled, own) among those that pass
 EXPLAIN_BAR or lie within TIE of the best share. Each candidate's B1 margin (V4 §13.2) is recorded but
 does not rank pooled against own: like the share it is measured on the partial the own mesh is made
 from. The choice and every candidate's numbers go into registration.json; the chosen mesh into s3a_mesh/.
@@ -47,9 +46,7 @@ from .s3a2_fuse_scan import WINDOWS
 COACD_THRESHOLD = 0.05  # spec S3a
 TIE = 0.05  # default (spec §13.1 A4 "ties"): explain-shares this close are tied
 EXPLAIN_BAR = 0.8  # the stage's PASS bar on the share of the partial the mesh explains
-ORDER = ("pooled", "team", "own")  # the more complete mesh first
-TEAM_SCALES = np.arange(0.6, 1.41, 0.1)  # default: the team's SLAM scale (Stage 1 factors 0.83-1.2), refined +-0.05
-TEAM_REPO = os.environ.get("V2D_BUNDLE_REPO", "rose-tea-cafe/v2d-t3-recon")
+ORDER = ("pooled", "own")  # the more complete mesh first
 
 
 def load_mesh(path) -> o3d.geometry.TriangleMesh:
@@ -57,21 +54,6 @@ def load_mesh(path) -> o3d.geometry.TriangleMesh:
     mesh = o3d.geometry.TriangleMesh(o3d.utility.Vector3dVector(tm.vertices), o3d.utility.Vector3iVector(tm.faces))
     mesh.compute_vertex_normals()
     return mesh
-
-
-def team_mesh(number: int, name: str):
-    """The team's SAM 3D mesh of this object in this episode: from path_b/data/team_meshes/ (fill it with
-    the tools venv's huggingface_hub, as hf_outputs.py downloads), else downloaded when this venv has
-    huggingface_hub; the exception when neither works (the candidate is then skipped and says why)."""
-    rel = f"episode_{number:06d}/{name}/result_slam_gravity_aligned/mesh.obj"
-    cached = PATH_B / "data/team_meshes" / rel
-    if cached.is_file():
-        return str(cached)
-    try:
-        from huggingface_hub import hf_hub_download
-        return hf_hub_download(TEAM_REPO, rel, repo_type="dataset", local_dir=str(PATH_B / "data/team_meshes"))
-    except Exception as e:  # not cached and no huggingface_hub, no bundle, no access, offline
-        return e
 
 
 def write_mesh(mesh: o3d.geometry.TriangleMesh, d) -> None:
@@ -94,20 +76,6 @@ def candidates(ctx, name: str, partial, clip: str, out) -> dict:
                         **register(load_mesh(out / "own/mesh.obj"), partial, canonical_move(rep, clip))}
     except SystemExit as e:
         found["own"] = {"skipped": str(e)}
-    path = team_mesh(ctx.number, name)
-    if isinstance(path, Exception):
-        found["team"] = {"skipped": f"no team mesh: {type(path).__name__}"}
-        return found
-    raw = load_mesh(path)
-
-    def at(s):
-        m = o3d.geometry.TriangleMesh(raw).scale(float(s), center=raw.get_center())
-        m.compute_vertex_normals()
-        return m, register(m, partial, None)
-    best = max(((s, *at(s)) for s in TEAM_SCALES), key=lambda x: x[2]["partial_explained"])
-    best = max([best] + [(s, *at(s)) for s in (best[0] - 0.05, best[0] + 0.05)], key=lambda x: x[2]["partial_explained"])
-    write_mesh(best[1], out / "team")
-    found["team"] = {"dir": out / "team", "scale": float(best[0]), "source": str(path), **best[2]}
     return found
 
 
@@ -175,6 +143,13 @@ def mesh_files(name: str, canon, out, log) -> dict:
 
 
 def run(ctx) -> StageResult:
+    """Open3D on one thread, as in pathb/invert.solve: its multithreaded ICP sums in a different order each run."""
+    from threadpoolctl import threadpool_limits
+    with threadpool_limits(1, user_api="openmp"):
+        return _run(ctx)
+
+
+def _run(ctx) -> StageResult:
     from .. import canonical as C
     from ..ambiguity import margin
     d = ctx.dir("s3a2_register")
