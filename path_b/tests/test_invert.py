@@ -443,3 +443,22 @@ def test_a_grasp_takes_its_end_terms_across_a_short_unstable_gap(monkeypatch):
              {"kind": "grasp", "start": 4, "end": b, "hand": "R", "fingertips": [["R", 0], ["R", 1]]}, segs[2]]
     I.solve(c, start, start_pose(), FPS)
     assert seen[0][0], seen  # the clip's start: s3a2_register's pose
+
+
+def test_a_rest_beyond_the_hands_reach_keeps_the_rest_before():
+    """ep0 / ep11 / ep22: a final rest fitted ~1 m from the rest before, while the hand that carried the object in
+    between reached ~25 cm, is not where the object lies: it keeps the rest before. A normal carry is not flagged."""
+    c, segs, obj, m = clip()
+    P, report = I.solve(c, segs, start_pose(), FPS)
+    assert not any("beyond_reach" in r for r in report)
+    far = c.target
+
+    def target(a, b):  # the last rest's fused surface 1 m away (a wrong mask or a far background)
+        pc = far(a, b)
+        return pc.translate([1.0, 0.0, 0.0]) if a > GRASP[1] else pc
+    moved = I.Clip(K=c.K, c2w=c.c2w, obs=c.obs, tips=c.tips, wrist=c.wrist, valid=c.valid, vertices=c.vertices,
+                   faces=c.faces, group=c.group, target=target, silhouette=c.silhouette)
+    P, report = I.solve(moved, segs, start_pose(), FPS)
+    last = next(r for r in report if r["kind"] == "static" and r["start"] > GRASP[1])
+    assert last["beyond_reach"]["moved_m"] > 0.9 and last["beyond_reach"]["reach_m"] < 0.5, last
+    assert np.allclose(P[-1], P[GRASP[0] - 1], atol=1e-9)  # the rest before, held

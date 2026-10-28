@@ -9,9 +9,9 @@ gaps, fixed betas), the filled overlay video. A hand that enters late has its ow
 P1b already (SAM 3.1 propagates both directions), which is what --late-hands does in the baseline.
 
 Out: hamer_aligned_filled/{2,3}/%06d.json, hand_scale.json, handedness.json, overlay.mp4.
-Bars: per hand, frames with a pose >= 90 % of frames with a mask; median hand scale 0.8-1.2 (PASS)
-/ 0.6-1.5 (WARN); wrist speed < 2 m/s on >= 99 % of frames (run_load_retarget.bad_hand_frames's
-limit; world via P1c). P1b's hand bar: a mask on >= 90 % of the frames WiLoR finds that hand.
+Bars: per hand, frames with a pose >= 90 % of frames with a mask; median hand scale 0.7-1.2 (PASS)
+/ 0.6-1.5 (WARN); wrist speed < 2 m/s on >= 99 % of frames (PASS) / >= 95 % (WARN)
+(run_load_retarget.bad_hand_frames's limit; world via P1c; V4 §13.5 E3). P1b's hand bar: a mask on >= 90 % of the frames WiLoR finds that hand.
 """
 from __future__ import annotations
 
@@ -353,10 +353,11 @@ def run(ctx) -> StageResult:
                    note="left to tracks_interpolate; frames " + (", ".join(map(str, spikes[oid][:12])) or "none")),
             Metric(f"{name}: frames with a pose / frames with a mask", len(posed) / len(masked) if masked else None,
                    "share", ok=(0.9, 1), note=f"{len(posed)} of {len(masked)}"),
-            Metric(f"{name}: hand scale (median, depth fit)", scales[name]["median"], "x", ok=(0.8, 1.2),
+            Metric(f"{name}: hand scale (median, depth fit)", scales[name]["median"], "x", ok=(0.7, 1.2),
                    warn=(0.6, 1.5), note=f"{len(s)} aligned frames"),
             Metric(f"{name}: frames with wrist speed < {MAX_WRIST_SPEED} m/s", float(np.mean(speeds < MAX_WRIST_SPEED))
-                   if len(speeds) else None, "share", ok=(0.99, 1)),
+                   if len(speeds) else None, "share", ok=(0.99, 1), warn=(0.95, 1),
+                   note="E3: 0.95-0.99 is WARN (a few frames of the hand tracker's spikes, left to tracks_interpolate)"),
             Metric(f"{name}: hand mask on frames WiLoR finds this hand", len(seen & masked) / len(seen) if seen else None,
                    "share", ok=(0.9, 1), note=f"WiLoR finds the {'right' if right else 'left'} hand on {len(seen)} frames"),
         ]

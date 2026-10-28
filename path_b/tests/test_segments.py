@@ -107,6 +107,17 @@ def test_support_table_rack_and_floating():
     assert name == "table" and ev["floating"]
 
 
+def test_support_is_bottom_up_a_lid_never_holds_its_pot():
+    """ep0 (D1): the pot under its lid is seen from 2.8 cm up (the lid owns the pixels they share), so it is not
+    on the table by its own points; the lid above it must not count as its support, while the pot holds the lid."""
+    rng = np.random.default_rng(3)
+    pot = rng.uniform([-0.09, -0.09, 0.028], [0.09, 0.09, 0.10], (3000, 3))
+    lid = rng.uniform([-0.095, -0.095, 0.092], [0.095, 0.095, 0.13], (2000, 3))
+    assert G.support(lid, {"white_pot": pot})[0] == "white_pot"
+    name, ev = G.support(pot, {"white_pot_lid": lid})
+    assert name == "table" and ev.get("floating")
+
+
 @pytest.mark.parametrize("gap", [None])
 def test_motion_is_small_at_rest_and_large_in_the_carry(gap):
     clouds, *_ = clip(gap)

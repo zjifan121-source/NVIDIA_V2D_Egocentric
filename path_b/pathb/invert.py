@@ -38,6 +38,8 @@ that holds there. Poses map the canonical mesh frame to the world (V4 §3).
             then <= UNSTABLE_STEPS least-squares steps per frame on (a) where the mask covers >= 1 % of
             the image (observe.area_bar), held near the interpolation by a prior and bounded (5 cm,
             20 degrees), kept only when it explains the frame better
+  reach     a rest farther from the previous rest than the holding wrists reached in between plus REACH_MARGIN keeps
+            the previous rest's pose (`beyond_reach`)
 Order: segments in clip order (statics and grasps), then the grasps again with both neighbouring
 poses as end terms, then the unstable bridges. Rendered depth: Open3D's RaycastingScene (CPU).
 """
@@ -90,6 +92,9 @@ ANCHOR_GAP = RELEASE_FRAMES  # default: a grasp whose S3b neighbour is an unstab
 CARRIED_BRIDGES = True  # default: a bridge over frames S3b saw a hand holding also tries the object moved with that
 # wrist (`carried`) and keeps whichever guess explains the frames better (`explains`). Public, 20 episodes, on top of
 # the gap anchor: best of three 0.546 -> 0.554 (12, 13, 26, 41, 42 up 0.02-0.05; ep45 -0.008)
+REACH_MARGIN = 0.10  # default (m): a rest may lie this much beyond the reach of the hands that moved it before it
+# keeps the previous rest instead (`beyond_reach`; public, flagged 7 rests: 6 fitted 0.8-1.9 m off a move of
+# 0-24 cm, ep0 / ep11 / ep21 / ep22, and ep21's pitcher once, whose wrist track reached 3.8 cm of its 34 cm move)
 ICP_FIT = 0.3  # default: share of a frame's depth points ICP pairs (within 1 cm) for its pose to start pass 2
 ICP_REACH = (0.02, 0.01)  # default: ICP's pairing distance, coarse then fine (m)
 SIL_POINTS = 200  # default: canonical surface points projected for the silhouette term
@@ -591,6 +596,27 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
     return {"poses": poses, "refined": refined, **how}
 
 
+def beyond_reach(clip: Clip, work: list[dict], i: int, pose: np.ndarray, P: np.ndarray) -> dict:
+    """A rest farther from the object's previous rest than the hands that held it in between reached (the farthest
+    each S3b grasp's wrist got from where it started, summed) plus REACH_MARGIN keeps the previous rest's pose: an object
+    moves only with a hand. {} when it is within reach or there is no previous rest."""
+    if REACH_MARGIN is None:
+        return {}
+    prev = next((s for s in reversed(work[:i]) if s["kind"] == "static"), None)
+    if prev is None or not np.isfinite(P[prev["end"]]).all():
+        return {}
+    reach = 0.0
+    for g in (s for s in work if s["kind"] == "grasp" and prev["end"] < s["start"] and s["end"] < work[i]["start"]):
+        h = ("L", "R").index(g["hand"])
+        w = clip.wrist[[t for t in range(g["start"], g["end"] + 1) if clip.valid[t, h]], h, :3, 3]
+        reach += float(np.linalg.norm(w - w[0], axis=1).max()) if len(w) else 0.0
+    moved = float(np.linalg.norm(pose[:3, 3] - P[prev["end"], :3, 3]))
+    if moved <= reach + REACH_MARGIN:
+        return {}
+    return {"pose": P[prev["end"]].copy(), "beyond_reach": {"moved_m": moved, "reach_m": reach},
+            "start_from": f"the rest before held: the fit moved {moved * 100:.0f} cm, the hands reached {reach * 100:.0f} cm"}
+
+
 # ---------------------------------------------------------------- the clip
 def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
           fixed: dict[int, np.ndarray] | None = None) -> tuple[np.ndarray, list[dict]]:
@@ -653,6 +679,7 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
             init = P[a - 1] if known(a - 1) else P[last] if last is not None else start_pose
             earlier = [P[last - k] for k in EARLIER if last is not None and known(last - k)]
             r = solve_static(clip, a, b, init, earlier)
+            r |= beyond_reach(clip, work, i, r["pose"], P)
             P[a:b + 1] = r["pose"]
             solved[i] = [{"kind": "static", "start": a, "end": b, **{k: v for k, v in r.items() if k != "pose"}}]
         elif s["kind"] == "grasp":

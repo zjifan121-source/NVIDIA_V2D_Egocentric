@@ -42,6 +42,8 @@ ELIGIBLE_SHARE = 0.3  # default: a hand counts for a grasp run with two fingerti
 MIN_STATIC = 5  # frames (spec)
 HYSTERESIS = 3  # frames (spec)
 SUPPORT_M = 0.015  # spec: 1.5 cm
+SUPPORT_BELOW_M = 0.01  # default (§13.4 D1, bottom-up): a support's lowest points lie at least this much below the
+# object's (ep0: the pot, seen from 2.8 cm up under its lid, was put on the lid, and the lid on the pot)
 LONG_GAP = 15  # frames: P1d's tracks_interpolate limit (hands.MAX_GAP)
 QUERY = 2000  # points per frame queried for motion (spec: <= 2 000)
 
@@ -288,7 +290,9 @@ def pooled(clouds: list, a: int, b: int, limit: int = 20000, seed: int = 0) -> n
 
 def support(points: np.ndarray, others: dict[str, np.ndarray]) -> tuple[str, dict]:
     """What a static segment rests on, from its pooled points and the other objects' pooled points
-    over the same frames. Returns (support, evidence)."""
+    over the same frames: the table, else the overlapping object whose top is nearest its bottom among those
+    lower than it (bottom-up: a lid above a pot never holds the pot, so two objects cannot hold each other).
+    Returns (support, evidence)."""
     bottom = float(np.percentile(points[:, 2], 5))
     if bottom <= SUPPORT_M:
         return "table", {"bottom_cm": bottom * 100}
@@ -296,6 +300,8 @@ def support(points: np.ndarray, others: dict[str, np.ndarray]) -> tuple[str, dic
     best = None
     for name, q in others.items():
         if q is None or not len(q):
+            continue
+        if float(np.percentile(q[:, 2], 5)) > bottom - SUPPORT_BELOW_M:  # not lower than the object: not under it
             continue
         qc = np.median(q[:, :2], axis=0)
         radius = float(np.percentile(np.linalg.norm(q[:, :2] - qc, axis=1), 95))
