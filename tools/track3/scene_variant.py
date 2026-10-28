@@ -164,12 +164,22 @@ def add_table(scene: Path, rested: list[tuple[str, np.ndarray]], edge: bool = Fa
     return '; '.join(notes)
 
 
+def hull_collision(urdf: Path, mesh: trimesh.Trimesh) -> str:
+    """Collision mesh = the object's single convex hull (CoACD then keeps it as one piece)."""
+    out = urdf.with_name(urdf.stem.replace('_rigid', '') + '_collision_hull.stl')
+    mesh.convex_hull.export(out)
+    text = re.sub(r'(<collision>.*?<mesh filename=")[^"]+(")', rf'\g<1>./{out.name}\g<2>', urdf.read_text(), count=1, flags=re.S)
+    urdf.write_text(text)
+    return f'collision = convex hull ({len(mesh.convex_hull.faces)} faces)'
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument('src', type=Path)
     ap.add_argument('dst', type=Path)
     ap.add_argument('--mass', nargs='*', default=[])
     ap.add_argument('--thin', nargs='*', default=[])
+    ap.add_argument('--hull', nargs='*', default=[], help='CLASS ...: collide as one convex hull')
     ap.add_argument('--table', action='store_true')
     ap.add_argument('--table-edge', action='store_true', help='table only where no reference hand goes below it')
     a = ap.parse_args()
@@ -185,6 +195,7 @@ def main() -> None:
         rested.append((name, mesh.vertices @ rot0.T + pos0))
         notes = [set_mass(urdf, mesh, kg) for c, kg in mass.items() if c in name]
         notes += [thin_collision(urdf, mesh, rot0, f) for c, f in thin.items() if c in name]
+        notes += [hull_collision(urdf, mesh) for c in a.hull if c in name]
         print(f'{a.dst.name} {name}: ' + ('; '.join(notes) or 'unchanged'))
     if a.table or a.table_edge:
         lowest = min(v[:, 2].min() for _, v in rested)
