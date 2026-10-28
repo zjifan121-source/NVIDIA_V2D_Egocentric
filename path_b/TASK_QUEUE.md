@@ -1,4 +1,4 @@
-# Path B task queue (2026-10-26; mirrors V4_BUILD_SPEC.md §13)
+# Path B task queue (2026-10-26; mirrors V4_BUILD_SPEC.md §13; evaluation runs paused 2026-10-28, see "Paused")
 
 Rules: push `zjifan121_pathb_v3` after every passing test or smoke test; no merge to `main_buffer` and no Kaggle upload without James. Scans are never read on evaluation. Pooling over evaluation clips is allowed. Every change ships with a GT-free signal (explain-share, B1 margin, B3 frame-0 consistency, P3 scale, segment agreement, settle penetration, grasps failed; primary gate for the submission = rollout error vs own reference).
 
@@ -12,14 +12,16 @@ Rules: push `zjifan121_pathb_v3` after every passing test or smoke test; no merg
 | 5 | B1 registration-ambiguity test with `score_local.py`'s registration; B3 frame-0 bar (< 5 mm / 1° vs the settled static pose) | Mac | public: flagged ⇔ scorer flipped (13, 31, 0) | done 2026-10-26: flips now 0, 21, 23, 24, 31, 43 (13 fixed); B1 ≤ 0.5 mm flags 4 of 6, 1 false; B3 fails 15 of 21 (6 settles with 0 contacts) |
 | 6 | Rerun S3a2 → S4b + waterfall on all 19 public episodes on one mesh set | Mac | mean vs Edmond 0.401; 12/21/22 > 0 | done 2026-10-26: 0.358 vs 0.401 (expected 0.47–0.55); 12/21/22 > 0 (0.23 / 0.18 / 0.33); single-object carries lost in S3c on the new meshes (ep40: old mesh 0.731, new 0.427) |
 | 6b | S3c on the new meshes (James, 2026-10-27): ep40 first, then 45, 41, 26 | Mac | per-segment errors vs GT; waterfall vs 0.401 | done 2026-10-27: **0.571** (single 0.707, two-object 0.492); ep40 0.938, ep41 0.787, ep45 0.632, ep26 0.871, ep42 0.593, ep31 0.749. Open voxel solid, pass 2 ICP start in a 5 mm / 3° box, backward pass, release trim, static tie-break (rays, then overhang) with turns from the best fit, failed grasps bridged. Edmond still ahead on 21, 22, 23, 24, 42 |
-| 7 | GPU window 1 (new L40S): S0.1 on ep41/ep13 (first S5/S6 run); S5/S6 on ep26 (two-object smoke); E1/E2 re-runs on 2 10 21 22 28 33 44 and 2 20 22 24 32; dry `run.py pack` on public | L40S | S0.1 vs still; overlap < 0.5; spread < 1 cm; pack passes | todo |
+| 7 | GPU window 1 (new L40S): S0.1 on ep41/ep13 (first S5/S6 run); S5/S6 on ep26 (two-object smoke); E1/E2 re-runs on the public 2 21 22 44 and 2 22 24; dry `run.py pack` on public | L40S | S0.1 vs still; overlap < 0.5; spread < 1 cm; pack passes | todo |
 | 8 | C1 per-frame refinement inside a grasp (contact set fixed, temporal prior); C2 rotation with the wrist; C3 thin-object weights; C4 turned-over rest | Mac | inverted ≥ keyframe on 41, 18, 43; MPPE | todo (C1's per-frame step is now pass 2's ICP start, 6b; left: ep41 116–143, ep43's carries at 10–28 cm) |
 | 9 | D1 bottom-up supports and settle; D2 per-object candidate mix in the reference; D3 `edmond_place` candidate | Mac | ep0 > 0.424; public selection accuracy | todo |
-| 10 | G1 CPU chain on the 20 evaluation episodes + GT-free signals per object; G2 signals → score fit on public | Mac | — | todo |
-| 11 | F2 policies: two candidates × 60M on all 40; 250M on the chosen reference for the 20 evaluation episodes | L40S | rollout vs playback on public | todo |
-| 12 | F3 selection (rollout-vs-reference gate, then signals); G3 pack + preflight; HOLD for James | Mac | preflight clean | todo |
+| 10 | G2 GT-free signals per object → score fit on public | Mac | — | todo |
+| 11 | F2 policies: two candidates × 60M on the 20 public episodes | L40S | rollout vs playback on public | todo |
+| 12 | F3 selection experiment on public (rollout-vs-reference gate, then signals): selection accuracy vs the GT-best candidate | Mac | selection accuracy | todo |
 | 13 | E3 bars: wrist speed → WARN < 0.95; hand-scale bar 0.7 | Mac | reports | todo |
+
+Paused (James, 2026-10-28: no runs on evaluation episodes, Mac or cloud GPU, until he lifts it): E1 re-run on 10, 28, 33 and E2 on 20, 32 (task 7); G1 CPU chain on the 20 evaluation episodes and applying G2's fit to them (task 10); F2 on the 20 evaluation episodes, two candidates × 60M and 250M on the chosen reference (task 11); F3 selection on evaluation, G3 pack + preflight, HOLD for James (task 12).
 
 Dropped: scans as meshes; "frame 0 is free"; slip absorption to 3 cm; invented mesh markers; rollout splicing; the ep41/ep13 go/no-go gate; S4c; full HF re-upload of frame archives.
 
-Schedule: Oct 27 tasks 0–7; Oct 28 tasks 8–10; Oct 29–31 tasks 11–12 → safe submission Oct 31 (James's go). Nov 1–3 reruns and resubmission on Nov 3 if James lifts the Nov 1 stop (freeze Nov 4, 5 pm EST).
+Schedule (set 2026-10-26, before the pause; the submission steps wait for the evaluation runs): Oct 27 tasks 0–7; Oct 28 tasks 8–10; Oct 29–31 tasks 11–12 → safe submission Oct 31 (James's go). Nov 1–3 reruns and resubmission on Nov 3 if James lifts the Nov 1 stop (freeze Nov 4, 5 pm EST).
