@@ -63,12 +63,18 @@ def main(request_path: str) -> int:
         fa3 = torch.cuda.get_device_capability()[0] >= 9
     except ImportError:
         fa3 = False
-    predictor = build_sam3_multiplex_video_predictor(use_fa3=fa3)
+    build = {"use_fa3": fa3}
+    if "async_loading_frames" in inspect.signature(build_sam3_multiplex_video_predictor).parameters:
+        # frames load before a session starts, not in a background thread: ep2 aborted ("terminate called without an
+        # active exception") when a session closed while its loader was still reading frames (a short backward pass)
+        build["async_loading_frames"] = False
+    predictor = build_sam3_multiplex_video_predictor(**build)
     # the pinned SAM 3 base predictor passes offload_state_to_cpu to init_state, which the multiplex
     # model's init_state does not take: pass on only the arguments it declares
     init, takes = predictor.model.init_state, set(inspect.signature(predictor.model.init_state).parameters)
     predictor.model.init_state = lambda **kw: init(**{k: v for k, v in kw.items() if k in takes})
-    meta = {"model": "sam3.1 (build_sam3_multiplex_video_predictor)", "use_fa3": fa3, "frames": n, "size": [w, h],
+    meta = {"model": "sam3.1 (build_sam3_multiplex_video_predictor)", "use_fa3": fa3,
+            "async_loading_frames": build.get("async_loading_frames", "builder default"), "frames": n, "size": [w, h],
             "load_seconds": round(time.time() - t0, 1), "tracks": {}}
     def fresh(old=None):
         """A new session for every pass: each starts with an empty action history, which SAM 3.1 reads
