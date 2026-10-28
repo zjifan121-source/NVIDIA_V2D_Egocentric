@@ -85,8 +85,13 @@ def run(ctx) -> StageResult:
                               note="same as the score's" if by_observation[0] == choice else f"score picks {choice}"))
     else:
         choice, reason = by_observation
+        trust = selection.reference_trust(ctx.root, ctx.objects)
+        out["reference_trust"] = trust
+        if not trust["trusted"] and "still" in rollouts:  # the cost is against a reference that lost the object
+            choice, reason = "still", f"our inverted reference is untrusted ({trust['why']})"
         out["rule"] = ("evaluation: mean position error against our own reference (S4b inverted) on its observed "
-                       f"frames, failure frames at the pinned {PINNED_POSITION_M} m / {PINNED_ROTATION_RAD} rad")
+                       f"frames, failure frames at the pinned {PINNED_POSITION_M} m / {PINNED_ROTATION_RAD} rad; "
+                       "the still rollout when that reference is untrusted (selection.reference_trust)")
     out.update(candidate=choice, task=task_of(choice), reason=reason, rollout=rollouts[choice][0],
                pinned={"position_m": PINNED_POSITION_M, "rotation_rad": PINNED_ROTATION_RAD})
     write_json(d / "selection.json", out)

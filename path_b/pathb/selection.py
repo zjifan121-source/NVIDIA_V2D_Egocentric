@@ -12,8 +12,15 @@ reference never moves, so its rollout always tracks it best.
 Phase 2 (two objects, V3_BUILD_SPEC.md §8 "S6 selection adds RPE"): public ties go to the lower RPE before
 MPPE; the observation cost also counts, on frames where both objects are observed, the error of the
 second object's position relative to the first (capped like the rest).
+Reference trust (V4 §13.6 F3, GT-free): the observation cost measures rollouts against our own inverted
+reference, so it means nothing where that reference lost the object. `reference_trust` reads S3c's reports:
+a rest whose posed mesh misses most of its mask's rays, or one S3c held because the fit lay beyond the hands'
+reach, makes the reference untrusted; the episode then takes the still candidate (`pick_reference`).
 """
 from __future__ import annotations
+
+import json
+from pathlib import Path
 
 import numpy as np
 from scipy.spatial.transform import Rotation
@@ -24,6 +31,30 @@ TIE_AUC = 0.001
 PENALTY_M = 0.10  # termination-equivalent position error
 MAX_ROT = 0.5  # rad
 OBSERVED = ("held", "trusted", "inverted")  # S4b provenance with an observation behind it
+RAYS_UNTRUSTED = 0.5  # default: a rest whose posed mesh misses this share of its mask's rays is not the object
+# (public: worst rests at 0.84-0.95 on ep0, 11, 21, 22, where the inverted reference collapsed; <= 0.37 elsewhere)
+
+
+def reference_trust(root: Path, names: list[str]) -> dict:
+    """Whether the episode's inverted reference holds the objects, from S3c's own reports (no ground truth):
+    {"trusted", "why", "rays_missed" (worst rest per object), "beyond_reach" (rests held, per object)}."""
+    rays, held, why = {}, {}, []
+    for name in names:
+        f = Path(root) / f"s3c_invert/{name}/invert_report.json"
+        rows = [r for r in json.loads(f.read_text())["segments"] if r["kind"] == "static"] if f.is_file() else []
+        worst = max((r["rays_missed"] for r in rows if r.get("rays_missed") is not None), default=None)
+        rays[name], held[name] = worst, [[r["start"], r["end"]] for r in rows if r.get("beyond_reach")]
+        if worst is not None and worst > RAYS_UNTRUSTED:
+            why.append(f"{name}: a rest misses {worst:.0%} of its mask's rays")
+        if held[name]:
+            why.append(f"{name}: {len(held[name])} rest(s) beyond the hands' reach")
+    return {"trusted": not why, "why": "; ".join(why) or "every rest explains its mask and lies within reach",
+            "rays_missed": rays, "beyond_reach": held}
+
+
+def pick_reference(trust: dict) -> tuple[str, str]:
+    """The reference an episode takes without ground truth: inverted, or still when it is untrusted."""
+    return ("inverted", "the inverted reference is trusted") if trust["trusted"] else ("still", trust["why"])
 
 
 def matrices(poses: np.ndarray) -> np.ndarray:

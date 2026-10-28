@@ -7,7 +7,8 @@
 scored by the official metric code) and writes path_b/reports/checkpoints/<name>.json: per episode and
 candidate the six metrics, the commit and the run. Two means: `ref_inverted` (one candidate for every
 episode, chosen without ground truth) and `best of three` (inverted / keyframe / still picked per episode
-by AUC against ground truth: an upper bound until F3's GT-free selection exists). The goal is a mean of GOAL
+by AUC against ground truth: an upper bound) and `selected` (selection.pick_reference: inverted, or still where
+selection.reference_trust says the inverted reference lost an object; no ground truth). The goal is a mean of GOAL
 (0.8) over the 20 public episodes. `compare` prints the
 same means and the per-episode AUC change of a run against a checkpoint; it reads only the episodes both
 have, and says so when they differ. It ends with the consistency check run after every change: episodes up,
@@ -39,6 +40,7 @@ def rows(run: Path) -> dict[int, dict]:
     per-episode waterfalls. An episode the run has no candidate for (ep2: its P1b masks failed, so S3a-S4b never
     ran) is kept with no scores and counts 0 in every mean; its baselines come from the S1 run (FALLBACK)."""
     sys.path.insert(0, str(PATH_B))
+    from pathb import selection
     from pathb.paths import manifest
     out = {}
     for n, e in sorted(manifest().items()):
@@ -50,6 +52,9 @@ def rows(run: Path) -> dict[int, dict]:
         scores = {c: w["scores"][c] for c in CANDIDATES if (w["scores"].get(c) or {}).get("AUC") is not None} \
             if f is not None and f.parent.parent == run else {}
         out[n] = {"objects": w["objects"], "scores": scores}
+        if scores:  # the GT-free choice (selection.pick_reference) and what it scores
+            pick, _ = selection.pick_reference(selection.reference_trust(run / f"episode_{n:06d}", w["objects"]))
+            out[n]["selected"] = [pick, scores.get(f"ref_{pick}", {}).get("AUC", 0.0)]
     return out
 
 
@@ -65,6 +70,7 @@ def means(eps: dict[int, dict]) -> dict:
     out = {"episodes scored": f"{sum(1 for e in eps.values() if e['scores'])} of {len(eps)}"}
     out |= {f"{c} AUC": mean([e["scores"].get(c, {}).get("AUC", 0.0) for e in eps.values()]) for c in CANDIDATES}
     out["best of three AUC"] = mean([best(e)[1] for e in eps.values()])  # an episode without candidates: 0
+    out["selected (GT-free) AUC"] = mean([e.get("selected", [None, 0.0])[1] for e in eps.values()])
     for k in ("MPPE cm", "MP-SR", "SP-SR"):
         out[f"ref_inverted {k}"] = mean([e["scores"]["ref_inverted"][k] for e in eps.values()
                                          if "ref_inverted" in e["scores"] and e["scores"]["ref_inverted"].get(k) is not None])
@@ -120,7 +126,10 @@ def compare(name: str, run_name: str, episodes: list[int] | None) -> None:
     if not down:
         print("  no episode fell")
     print(f"goal {GOAL}: best of three {mn['best of three AUC']} ({mn['best of three AUC'] - GOAL:+.3f}), "
+          f"selected without ground truth {mn['selected (GT-free) AUC']} ({mn['selected (GT-free) AUC'] - GOAL:+.3f}), "
           f"inverted {mn['ref_inverted AUC']} ({mn['ref_inverted AUC'] - GOAL:+.3f})")
+    picks = [f"ep{n} {new[n]['selected'][0]}" for n in both if new[n].get("selected") and new[n]["selected"][0] != "inverted"]
+    print(f"GT-free picks other than inverted: {', '.join(picks) or 'none'}")
 
 
 def main() -> None:
