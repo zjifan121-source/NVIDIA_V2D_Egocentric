@@ -738,6 +738,14 @@ def write(mesh: o3d.geometry.TriangleMesh, report: dict, dest: Path) -> None:
 
 def main(name: str, out: Path, episodes: list[int] | None = None, versus: list[int] | None = None,
          labels: tuple[str, str] = ("pool", "versus")) -> Path:
+    """Open3D on one thread, as in pathb/invert.solve: its multithreaded ICP sums in a different order each run."""
+    from threadpoolctl import threadpool_limits
+    with threadpool_limits(1, user_api="openmp"):
+        return _main(name, out, episodes, versus, labels)
+
+
+def _main(name: str, out: Path, episodes: list[int] | None, versus: list[int] | None,
+          labels: tuple[str, str]) -> Path:
     import shutil
     mesh, report = pool(name, out, episodes)
     dest = out / "canonical" / name
