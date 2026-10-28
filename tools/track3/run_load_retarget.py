@@ -1046,7 +1046,10 @@ def main() -> int:
              "--sequence_id", seq, "--device", args.device, "--save"], RG, env, log)
 
     # Loader body names: the sequence id for one object, <seq>_<object> per object when merged.
-    bodies = [f"{seq}_{name}" for name in merge_info["objects"]] if merge_info else [seq]
+    # An explicitly supplied bundle can already contain multiple objects.
+    with np.load(bundle / "result.npz") as bundle_arrays:
+        bundle_names = [str(n) for n in bundle_arrays["object_names"]] if "object_names" in bundle_arrays else []
+    bodies = [f"{seq}_{name}" for name in bundle_names] if len(bundle_names) > 1 else [seq]
     print("== object URDF", flush=True)
     if not all((processed / f"{body}_rigid.urdf").is_file() for body in bodies):
         run([py, "scripts/generate_rigid_urdfs.py", "--dataset", "ego_recon"], RG, env, log)

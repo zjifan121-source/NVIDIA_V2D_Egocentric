@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+# Modified for V2D Track 3 by Codex, 2026-10: cover overflow in reduced-precision replay storage.
 """Deterministic tests for native JAX FlashSAC replay."""
 
 import json
@@ -416,3 +417,38 @@ def test_fixed_bootstrap_discount_matches_upstream_without_effective_horizon():
     spec = _spec()
     assert spec.bootstrap_discount == pytest.approx(0.9**3)
     assert "effective_horizon" not in ReplayStorage.__dataclass_fields__
+
+
+@pytest.mark.parametrize("n_step", [1, 3])
+@pytest.mark.parametrize("field", ["observation", "next_observation"])
+@pytest.mark.parametrize("storage_dtype", ["float16", "float32"])
+def test_storage_overflow_cannot_poison_replay_or_n_step_bootstrap(n_step, field, storage_dtype):
+    jax, jnp = _dependencies()
+    from flash_chord.training.flash_sac.replay import create_replay, gather_replay, insert_replay
+
+    state = create_replay(_spec(capacity=16, minimum_size=1, batch_size=2, world_count=2,
+                                objective_term_count=1, n_step=n_step,
+                                observation_storage_dtype=storage_dtype))
+    for step in range(n_step):
+        transition = jax.tree.map(lambda x: jnp.repeat(x, 2, axis=0),
+                                  _scalar_transition(jnp, step+1, 0.25, 2.0))
+        if step == 0:
+            # A finite but exploded simulation state fits float32, not float16.
+            transition = transition.replace(**{field: getattr(transition, field).at[0, 0].set(1e8)})
+        state = insert_replay(state, transition)
+    batch = gather_replay(state, jnp.asarray([0, 1], dtype=jnp.int32))
+    assert np.isfinite(np.asarray(state.storage.observation)).all()
+    assert np.isfinite(np.asarray(state.storage.next_observation)).all()
+    assert np.isfinite(np.asarray(state.pending.observation)).all()
+    assert np.isfinite(np.asarray(state.pending.next_observation)).all()
+    # The other world must retain its exact multi-step target and bootstrap state.
+    assert not bool(batch.terminated[1])
+    assert float(batch.discounted_objective_terms[1, 0]) == pytest.approx(2 * sum(0.9**k for k in range(n_step)))
+    assert float(batch.next_observation[1, 0]) == n_step+1
+    if storage_dtype == "float16":
+        assert bool(batch.terminated[0])
+        assert float(batch.observation[0, 0]) == 0
+        assert float(batch.next_observation[0, 0]) == 0
+        assert float(batch.discounted_objective_terms[0, 0]) == 0
+    else:
+        assert not bool(batch.terminated[0])

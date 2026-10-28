@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
+# Modified for V2D Track 3 by Codex, 2026-10: reject observations that overflow reduced-precision replay storage.
 """Device-resident uniform replay with upstream-compatible n-step aggregation."""
 
 from __future__ import annotations
@@ -351,9 +352,33 @@ def _append_batch(state: ReplayState, batch: ReplayBatch) -> ReplayState:
     )
 
 
+def _sanitize_insert(transition: ReplayInsert, observation_storage_dtype: str = "float32") -> ReplayInsert:
+    """Zero a world's transition and mark it terminated when any of its values is non-finite.
+
+    A world whose simulation blows up writes NaN/inf into replay; once stored, every sampled batch carries it, every
+    actor and critic update is skipped as non-finite, and the loss scale backs off to zero, so training stops for good
+    (seen on spoon + container scenes: 100% skipped updates from the first log). Terminating the world's transition
+    keeps the bad values out of both the stored sample and the bootstrap target.
+    """
+    fields = ("observation", "action", "objective_terms", "next_observation", "critic_context", "next_critic_context")
+    bad = jnp.zeros(transition.terminated.shape, dtype=jnp.bool_)
+    for name in fields:
+        bad = bad | ~jnp.isfinite(getattr(transition, name)).all(axis=1)
+    # A finite float32 explosion can otherwise become inf only when the ring or
+    # n-step pending queue casts it to float16, poisoning every later update.
+    if observation_storage_dtype == "float16":
+        limit = jnp.finfo(jnp.float16).max
+        for name in ("observation", "next_observation"):
+            bad = bad | (jnp.abs(getattr(transition, name)) > limit).any(axis=1)
+    clean = {name: jnp.where(bad[:, None], 0.0, getattr(transition, name)).astype(getattr(transition, name).dtype)
+             for name in fields}
+    return transition.replace(**clean, terminated=transition.terminated | bad)
+
+
 def _insert_replay(state: ReplayState, transition: ReplayInsert) -> ReplayState:
     """Pure insertion implementation used by the composed learner executable."""
     _validate_insert(state, transition)
+    transition = _sanitize_insert(transition, state.spec.observation_storage_dtype)
     pending_count = state.spec.n_step - 1
     if pending_count == 0:
         return _append_batch(state, _one_step_batch(transition))
