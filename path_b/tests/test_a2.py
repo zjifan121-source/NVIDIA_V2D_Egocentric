@@ -386,6 +386,11 @@ def test_mesh_candidate_choice():
     assert A23.choose({"pooled": r(0.5), "own": {"skipped": "x"}})[0] == "pooled"
     assert A23.choose({"pooled": r(0.5), "own": r(0.6)})[0] == "own"
     assert A23.ORDER == ("pooled", "own")  # no team mesh (James, 2026-10-28)
+    b = lambda s, mm: {"partial_explained": s, "b1": {"margin_m": mm / 1000}}  # noqa: E731
+    assert A23.insure({"pooled": b(0.89, 0.24), "own": b(0.95, 1.62)}, "pooled", "x")[0] == "own"  # ep21's cup
+    assert A23.insure({"pooled": b(0.99, 0.005), "own": b(1.0, 0.009)}, "pooled", "x")[0] == "pooled"  # boards
+    assert A23.insure({"pooled": b(0.89, 0.24), "own": b(0.70, 1.62)}, "pooled", "x")[0] == "pooled"  # own fails the bar
+    assert A23.insure({"pooled": b(0.89, 2.0), "own": b(0.95, 5.0)}, "pooled", "x")[0] == "pooled"  # not flagged
 
 
 def test_register_places_the_canonical_mesh_and_writes_its_files(episode, monkeypatch):

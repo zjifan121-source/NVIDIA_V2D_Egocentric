@@ -47,6 +47,7 @@ COACD_THRESHOLD = 0.05  # spec S3a
 TIE = 0.05  # default (spec §13.1 A4 "ties"): explain-shares this close are tied
 EXPLAIN_BAR = 0.8  # the stage's PASS bar on the share of the partial the mesh explains
 ORDER = ("pooled", "own")  # the more complete mesh first
+B1_FLAG_M = 0.0005  # §13.2 B1, calibrated 2026-10-26: a margin this small flags an ambiguous registration (4 of 6 flips)
 
 
 def load_mesh(path) -> o3d.geometry.TriangleMesh:
@@ -89,6 +90,27 @@ def choose(found: dict) -> tuple[str, str]:
     good = [c for c in ORDER if c in shares and (shares[c] >= EXPLAIN_BAR or shares[c] >= top - TIE)]
     why = "passes the explain bar" if shares[good[0]] >= EXPLAIN_BAR else f"within {TIE} of the best share"
     return good[0], why + ("" if good[0] == "pooled" else f" (pooled {shares.get('pooled', 0):.2f})")
+
+
+def anchors(names: list[str]) -> list[str]:
+    """The objects the scorer aligns a scene by (s4b_reference.b3_objects: object 0, the first non-symmetric)."""
+    from .s4b_reference import b3_objects
+    return b3_objects(names)
+
+
+def insure(found: dict, pick: str, why: str) -> tuple[str, str]:
+    """§13.2 B2: an anchor whose chosen mesh registers ambiguously (B1 margin <= B1_FLAG_M) takes the candidate
+    with the largest margin above the flag among those that pass EXPLAIN_BAR (ep21's cup: pooled 0.24 mm, own
+    1.62 mm and explaining 0.95 of the partial vs 0.89). Otherwise the choice stands."""
+    m = lambda c: (found[c].get("b1") or {}).get("margin_m")  # noqa: E731
+    if m(pick) is None or m(pick) > B1_FLAG_M:
+        return pick, why
+    better = [c for c in ORDER if c != pick and m(c) is not None and m(c) > B1_FLAG_M
+              and found[c].get("partial_explained", 0) >= EXPLAIN_BAR]
+    if not better:
+        return pick, why + f"; B2: margin {m(pick) * 1000:.2f} mm, no clearer candidate"
+    c = max(better, key=m)
+    return c, f"B2: {pick}'s margin {m(pick) * 1000:.2f} mm is ambiguous, {c}'s {m(c) * 1000:.2f} mm"
 
 
 def coacd_python() -> str:
@@ -172,6 +194,8 @@ def _run(ctx) -> StageResult:
                 m = trimesh.load(Path(x["dir"]) / "mesh.obj", force="mesh", process=False)
                 x["b1"] = margin(m.vertices, m.faces, pv, pf, 1_000_003 * ctx.number + 101 * slot, name in C.REVOLUTION)
         pick, why = choose(found)
+        if name in anchors(ctx.objects):
+            pick, why = insure(found, pick, why)
         r = found[pick]
         files = mesh_files(name, r["dir"], ctx.root / f"s3a_mesh/{name}", out / "coacd.log")
         tm = trimesh.load(ctx.root / f"s3a_mesh/{name}/mesh.obj", force="mesh", process=False)
