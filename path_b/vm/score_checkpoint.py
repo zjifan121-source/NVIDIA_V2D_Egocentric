@@ -7,7 +7,8 @@
 scored by the official metric code) and writes path_b/reports/checkpoints/<name>.json: per episode and
 candidate the six metrics, the commit and the run. Two means: `ref_inverted` (one candidate for every
 episode, chosen without ground truth) and `best of three` (inverted / keyframe / still picked per episode
-by AUC against ground truth: an upper bound until F3's GT-free selection exists). `compare` prints the
+by AUC against ground truth: an upper bound until F3's GT-free selection exists). The goal is a mean of GOAL
+(0.8) over the 20 public episodes. `compare` prints the
 same means and the per-episode AUC change of a run against a checkpoint; it reads only the episodes both
 have, and says so when they differ. It ends with the consistency check run after every change: episodes up,
 down and unchanged, and each one that fell, marked HIGH when it scored at least HIGH before.
@@ -27,14 +28,14 @@ PATH_B = Path(__file__).resolve().parents[1]
 OUTPUTS = PATH_B / "data/outputs"
 CHECKPOINTS = PATH_B / "reports/checkpoints"
 CANDIDATES = ("ref_inverted", "ref_keyframe", "ref_still")
-EDMOND = "S0.2 recon / place"
+GOAL = 0.8  # James, 2026-10-28: the public mean AUC to reach (the baselines are out of date and not reported)
 DROP = 0.005  # default: an episode's best-of-three change smaller than this counts as unchanged
 FALLBACK = "v4"  # the S1 run: baselines of an episode a run has no waterfall for
 HIGH = 0.7  # default: an episode at or above this before the change is a high scorer (its drop is flagged HIGH)
 
 
 def rows(run: Path) -> dict[int, dict]:
-    """Every public episode of the manifest (20) -> {candidate: metrics} and Edmond's place, from the run's
+    """Every public episode of the manifest (20) -> {candidate: metrics}, from the run's
     per-episode waterfalls. An episode the run has no candidate for (ep2: its P1b masks failed, so S3a-S4b never
     ran) is kept with no scores and counts 0 in every mean; its baselines come from the S1 run (FALLBACK)."""
     sys.path.insert(0, str(PATH_B))
@@ -48,7 +49,7 @@ def rows(run: Path) -> dict[int, dict]:
         w = json.loads(f.read_text()) if f else {"scores": {}, "baselines": {}, "objects": [o["name"] for o in e["objects"]]}
         scores = {c: w["scores"][c] for c in CANDIDATES if (w["scores"].get(c) or {}).get("AUC") is not None} \
             if f is not None and f.parent.parent == run else {}
-        out[n] = {"objects": w["objects"], "scores": scores, "edmond_place": w["baselines"].get(EDMOND)}
+        out[n] = {"objects": w["objects"], "scores": scores}
     return out
 
 
@@ -64,7 +65,6 @@ def means(eps: dict[int, dict]) -> dict:
     out = {"episodes scored": f"{sum(1 for e in eps.values() if e['scores'])} of {len(eps)}"}
     out |= {f"{c} AUC": mean([e["scores"].get(c, {}).get("AUC", 0.0) for e in eps.values()]) for c in CANDIDATES}
     out["best of three AUC"] = mean([best(e)[1] for e in eps.values()])  # an episode without candidates: 0
-    out["edmond_place AUC"] = mean([e["edmond_place"] for e in eps.values() if e["edmond_place"] is not None])
     for k in ("MPPE cm", "MP-SR", "SP-SR"):
         out[f"ref_inverted {k}"] = mean([e["scores"]["ref_inverted"][k] for e in eps.values()
                                          if "ref_inverted" in e["scores"] and e["scores"]["ref_inverted"].get(k) is not None])
@@ -119,6 +119,8 @@ def compare(name: str, run_name: str, episodes: list[int] | None) -> None:
         print(f"  regression{high}: ep{n} {best(old[n])[1]:.3f} -> {best(new[n])[1]:.3f} ({change[n]:+.3f})")
     if not down:
         print("  no episode fell")
+    print(f"goal {GOAL}: best of three {mn['best of three AUC']} ({mn['best of three AUC'] - GOAL:+.3f}), "
+          f"inverted {mn['ref_inverted AUC']} ({mn['ref_inverted AUC'] - GOAL:+.3f})")
 
 
 def main() -> None:
