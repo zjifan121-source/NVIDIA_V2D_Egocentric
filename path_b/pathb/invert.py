@@ -95,6 +95,9 @@ CARRIED_BRIDGES = True  # default: a bridge over frames S3b saw a hand holding a
 REACH_MARGIN = 0.10  # default (m): a rest may lie this much beyond the reach of the hands that moved it before it
 # keeps the previous rest instead (`beyond_reach`; public, flagged 7 rests: 6 fitted 0.8-1.9 m off a move of
 # 0-24 cm, ep0 / ep11 / ep21 / ep22, and ep21's pitcher once, whose wrist track reached 3.8 cm of its 34 cm move)
+WRIST_SMOOTH = 0  # frames either side over which the wrist track is averaged before solving (0: off). Against
+# ground truth the object turns 1-2 degrees per frame in a grasp but 3-4 against our wrist (p90 8-12): the hand
+# tracker's orientation jitters, and pass 2's 3-degree box makes the track inherit it. Under measurement
 ICP_FIT = 0.3  # default: share of a frame's depth points ICP pairs (within 1 cm) for its pose to start pass 2
 ICP_REACH = (0.02, 0.01)  # default: ICP's pairing distance, coarse then fine (m)
 SIL_POINTS = 200  # default: canonical surface points projected for the silhouette term
@@ -631,8 +634,23 @@ def solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
         return _solve(clip, segments, start_pose, fps, fixed)
 
 
+def smoothed_wrist(wrist: np.ndarray, valid: np.ndarray, half: int) -> np.ndarray:
+    """(N, 2, 4, 4): each valid wrist pose averaged with the valid ones within `half` frames (rotation mean,
+    position mean)."""
+    out = wrist.copy()
+    for h in range(wrist.shape[1]):
+        for t in np.flatnonzero(valid[:, h]):
+            ts = [u for u in range(max(0, t - half), min(len(wrist), t + half + 1)) if valid[u, h]]
+            if len(ts) > 1:
+                out[t, h, :3, :3] = Rotation.from_matrix(wrist[ts, h, :3, :3]).mean().as_matrix()
+                out[t, h, :3, 3] = wrist[ts, h, :3, 3].mean(axis=0)
+    return out
+
+
 def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
            fixed: dict[int, np.ndarray] | None) -> tuple[np.ndarray, list[dict]]:
+    if WRIST_SMOOTH:
+        clip.wrist = smoothed_wrist(clip.wrist, clip.valid, int(WRIST_SMOOTH))
     n = clip.n
     P = np.full((n, 4, 4), np.nan)
     HANDS = ("L", "R")
