@@ -1,0 +1,14 @@
+['right_thumb_tip_site', 'right_index_tip_site', 'right_middle_tip_site', 'right_ring_tip_site', 'right_pinky_tip_site']
+['ep25_split_gripfixed3_wooden_piece_1', 'ep25_split_gripfixed3_wooden_piece_2']
+0 100 thumb pad-to-board cm 0.26303616316415196 vertices inside 0
+0 100 index pad-to-board cm 4.4473392740274424e-05 vertices inside 105
+0 100 middle pad-to-board cm 3.3838646776274475 vertices inside 0
+1 190 thumb pad-to-board cm 0.028404822976022003 vertices inside 0
+1 190 index pad-to-board cm 1.1291418372792617 vertices inside 0
+1 190 middle pad-to-board cm 0.1408842807953402 vertices inside 0
+1 220 thumb pad-to-board cm 0.16712905214133272 vertices inside 0
+1 220 index pad-to-board cm 0.0797454171459138 vertices inside 0
+1 220 middle pad-to-board cm 0.0016773728928504684 vertices inside 95
+1 280 thumb pad-to-board cm 0.27295335143809557 vertices inside 0
+1 280 index pad-to-board cm 0.6456323439998299 vertices inside 0
+1 280 middle pad-to-board cm 9.545383441302782e-05 vertices inside 95

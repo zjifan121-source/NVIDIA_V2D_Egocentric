@@ -1,0 +1,18 @@
+[
+  {
+    "board": 1,
+    "hulls": 267,
+    "wall_seconds": 74.08653521537781,
+    "threshold": 0.005,
+    "preprocess_mode": "off",
+    "resolution": 10000
+  },
+  {
+    "board": 2,
+    "hulls": 179,
+    "wall_seconds": 46.67663049697876,
+    "threshold": 0.005,
+    "preprocess_mode": "off",
+    "resolution": 10000
+  }
+]

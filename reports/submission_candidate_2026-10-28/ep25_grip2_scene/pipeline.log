@@ -1,0 +1,40 @@
+
+$ /data/user_data/edmondwa/v2d/venvs/retarget/bin/python -m v2d.task_library_loader.lib.run_loader --dataset ego_recon --dataset_root /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_bundle --result_subpath . --output_dir /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene/intermediate/ego_recon/loaded --mano_model_dir /home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/weights/hand --no_ground_align --ground_z_offset 1.0 --sequence_name ep25_split_gripfixed2 --object_name ep25_split_gripfixed2 --sequence_id ep25_split_gripfixed2 --device cpu --save
+Found 1 sequences
+  0%|          | 0/1 [00:00<?, ?it/s][ego_recon] right world-repose gate OK (max joint err 1.11e-07 m)
+[ego_recon] left world-repose gate OK (max joint err 1.33e-07 m)
+[ego_recon] installed object mesh asset -> /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene/assets/human_motion_data/ego_recon/processed/ep25_split_gripfixed2_wooden_piece_1.obj
+[ego_recon] installed object mesh asset -> /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene/assets/human_motion_data/ego_recon/processed/ep25_split_gripfixed2_wooden_piece_2.obj
+/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/modules/v2d_task_library_loader/lib/dataset_loader_base.py:741: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:203.)
+  torch.from_numpy(hand_normals).float().to(device)
+100%|██████████| 1/1 [00:11<00:00, 11.56s/it]100%|██████████| 1/1 [00:11<00:00, 11.56s/it]
+Loaded 1/1 sequences (0 skipped)
+
+$ /data/user_data/edmondwa/v2d/venvs/retarget/bin/python scripts/retarget/ego_recon_to_sharpa.py --input_dir /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene/intermediate/ego_recon/loaded --output_dir /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene/assets/human_motion_data/ego_recon/processed --sequence_id ep25_split_gripfixed2 --device cpu --save
+Found 1 sequences in /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene/intermediate/ego_recon/loaded
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:10<00:00, 10.22s/it]100%|██████████| 1/1 [00:10<00:00, 10.22s/it]
+
+$ /data/user_data/edmondwa/v2d/venvs/retarget/bin/python scripts/generate_rigid_urdfs.py --dataset ego_recon
+
+============================================================
+Generating rigid URDFs for ego_recon
+============================================================
+
+Generated: 2, Skipped: 0
+Output directory: /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene/assets/human_motion_data/ego_recon/processed
+
+$ /data/user_data/edmondwa/v2d/venvs/retarget/bin/python scripts/reconstruct_support_surfaces.py --dataset ego_recon --input_dir /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene/assets/human_motion_data/ego_recon/processed --sequence_id ep25_split_gripfixed2 --robot_name sharpa_wave --output /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene/assets/human_motion_data/ego_recon/reconstructed_stage/ep25_split_gripfixed2_sharpa_wave_support.usda
+Processing 1 of 1 sequence(s).
+Detected schema for ep25_split_gripfixed2: mano_sharpa
+
+Sequence: ep25_split_gripfixed2
+Frames: 356
+Object bodies: ['ep25_split_gripfixed2_wooden_piece_1', 'ep25_split_gripfixed2_wooden_piece_2']
+  ep25_split_gripfixed2_wooden_piece_1: mesh vertices=5363
+  ep25_split_gripfixed2_wooden_piece_2: mesh vertices=3828
+  ep25_split_gripfixed2_wooden_piece_1: 52 still frames, 5 segment(s)
+    merged 5 disk(s) -> 1, kept 1 above ground
+  ep25_split_gripfixed2_wooden_piece_2: 110 still frames, 4 segment(s)
+    merged 4 disk(s) -> 1, kept 1 above ground
+  consolidated 2 colliding support surface(s) -> 1
+Wrote 1 support surface(s) to /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene/assets/human_motion_data/ego_recon/reconstructed_stage/ep25_split_gripfixed2_sharpa_wave_support.usda

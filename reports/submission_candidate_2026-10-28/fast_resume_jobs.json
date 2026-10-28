@@ -1,0 +1,26 @@
+[
+  {
+    "episode": 33,
+    "name": "ep33_R005_OT_s42",
+    "job": "10964129",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+    "radius": "0.05",
+    "constraint": "L40S|6000Ada|VRAM_80GB|VRAM_141GB"
+  },
+  {
+    "episode": 33,
+    "name": "ep33_R100_OT_s42",
+    "job": "10964130",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+    "radius": "1.0",
+    "constraint": "L40S|6000Ada|VRAM_80GB|VRAM_141GB"
+  },
+  {
+    "episode": 19,
+    "name": "ep19_ST_OT_s42",
+    "job": "10964131",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_S",
+    "radius": null,
+    "constraint": "L40S|6000Ada|VRAM_80GB|VRAM_141GB"
+  }
+]

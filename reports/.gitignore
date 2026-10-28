@@ -1,0 +1,21 @@
+# Code, notes and small results are tracked. Heavy or private outputs stay local:
+# images, viewer pages, scenes, meshes, packed predictions and arrays (rebuildable
+# from the scripts + bundles, or shared through the private HF dataset).
+*.png
+*.jpg
+*.mp4
+*.html
+*.parquet
+*.obj
+*.mtl
+*.stl
+*.glb
+*.ply
+*.npz
+*.npy
+*.usd
+*.usda
+*.urdf
+*.safetensors
+*.lock
+__pycache__/

@@ -1,0 +1,71 @@
+{
+  "source_scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_S",
+  "episode": 30,
+  "table_normal_before": [
+    0.1525675523045602,
+    0.07761485362576194,
+    0.9852406185701271
+  ],
+  "rotation_deg": 9.856150345265693,
+  "normal_spread_deg": 0.5979290906026566,
+  "measurement_frames": [
+    0,
+    25,
+    50,
+    75,
+    100,
+    125,
+    150,
+    175,
+    200,
+    225,
+    250
+  ],
+  "removed_object_tilts": [
+    {
+      "slot": 0,
+      "removed_local_tilt_deg": 1.121578444297241e-06
+    },
+    {
+      "slot": 1,
+      "removed_local_tilt_deg": 10.94159557930959
+    }
+  ],
+  "world_transform": [
+    [
+      0.9882750444462646,
+      -0.005964772294800259,
+      -0.15256755230456023,
+      0.0
+    ],
+    [
+      -0.005964772294800259,
+      0.9969655741238624,
+      -0.07761485362576195,
+      0.0
+    ],
+    [
+      0.15256755230456023,
+      0.07761485362576195,
+      0.9852406185701271,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "scale_changed": false,
+  "preprocessing": {
+    "hand_left_refilled_frames": 0,
+    "hand_right_refilled_frames": 3,
+    "hand_smooth_sigma_frames": 2.0,
+    "object_refilled_frames_mini_sweeper": 0,
+    "rest_hold_until_frame_mini_sweeper": 27,
+    "object_refilled_frames_plastic_dish_rack": 0,
+    "rest_hold_until_frame_plastic_dish_rack": 4
+  },
+  "method": "Observed stereo table normal; restore source poses before mesh-based local tilts"
+}

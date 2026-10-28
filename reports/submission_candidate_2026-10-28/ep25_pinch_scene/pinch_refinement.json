@@ -1,0 +1,35 @@
+{
+  "source": "reports/submission_candidate_2026-10-28/ep25_grip3_scene",
+  "source_sha256": "2f6b8dba9ddf43cbecb1b3f1dfa83fce1ebad9b61a4ca502736f51f89772f925",
+  "changed_columns": [
+    "robot_right_finger_joints",
+    "robot_right_frames",
+    "robot_right_wrist_position",
+    "robot_right_wrist_wxyz"
+  ],
+  "holds": [
+    {
+      "object": "ep25_split_gripfixed3_wooden_piece_2",
+      "hold": [
+        150,
+        333
+      ],
+      "anchor": 220,
+      "opposing_normal_dot": -0.5979893195624232,
+      "max_anchor_target_error_m": 0.0002264371220940193,
+      "targets_local": [
+        [
+          0.07850666148871349,
+          0.06198133491277912,
+          -0.075669150319178
+        ],
+        [
+          0.05755448747984133,
+          0.06312361543216073,
+          -0.059757572088170306
+        ]
+      ],
+      "robot_wrist_rigid": true
+    }
+  ]
+}

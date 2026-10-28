@@ -1,0 +1,29 @@
+[
+  {
+    "episode": 33,
+    "name": "ep33_R005_OT_s42",
+    "job": "10963703",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+    "radius": "0.05",
+    "replay_capacity": 1048576,
+    "observation_storage_dtype": "float16"
+  },
+  {
+    "episode": 33,
+    "name": "ep33_R100_OT_s42",
+    "job": "10963704",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+    "radius": "1.0",
+    "replay_capacity": 1048576,
+    "observation_storage_dtype": "float16"
+  },
+  {
+    "episode": 19,
+    "name": "ep19_ST_OT_s42",
+    "job": "10963705",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_S",
+    "radius": null,
+    "replay_capacity": 1048576,
+    "observation_storage_dtype": "float16"
+  }
+]

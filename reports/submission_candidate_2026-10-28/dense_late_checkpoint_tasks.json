@@ -1,0 +1,97 @@
+[
+  {
+    "episode": 1,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42",
+    "steps": [
+      60010000,
+      65010000,
+      70010000,
+      80010000,
+      85010000,
+      95010000
+    ]
+  },
+  {
+    "episode": 3,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43",
+    "steps": [
+      60010000,
+      65010000,
+      70010000,
+      80010000,
+      85010000,
+      95010000
+    ]
+  },
+  {
+    "episode": 5,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42",
+    "steps": [
+      60010000,
+      65010000,
+      70010000,
+      80010000,
+      85010000,
+      95010000
+    ]
+  },
+  {
+    "episode": 19,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s43",
+    "steps": [
+      60010000,
+      65010000,
+      70010000,
+      80010000,
+      85010000,
+      95010000
+    ]
+  },
+  {
+    "episode": 20,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42",
+    "steps": [
+      60010000,
+      65010000,
+      70010000,
+      80010000,
+      85010000,
+      95010000
+    ]
+  },
+  {
+    "episode": 25,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s42",
+    "steps": [
+      60010000,
+      65010000,
+      70010000,
+      80010000,
+      85010000,
+      95010000
+    ]
+  },
+  {
+    "episode": 30,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_S_s42",
+    "steps": [
+      40010000,
+      45010000,
+      55010000,
+      60010000,
+      65010000
+    ]
+  },
+  {
+    "episode": 33,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s42",
+    "steps": [
+      60010000,
+      65010000,
+      70010000,
+      80010000,
+      85010000,
+      95010000
+    ]
+  }
+]

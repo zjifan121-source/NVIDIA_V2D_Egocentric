@@ -1,0 +1,128 @@
+[
+  {
+    "frame": 0,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 27,
+    "inside_collision_rack": 73,
+    "falsely_inside_collision": 46
+  },
+  {
+    "frame": 15,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 43,
+    "inside_collision_rack": 143,
+    "falsely_inside_collision": 100
+  },
+  {
+    "frame": 30,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 6,
+    "inside_collision_rack": 94,
+    "falsely_inside_collision": 88
+  },
+  {
+    "frame": 45,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 129,
+    "inside_collision_rack": 134,
+    "falsely_inside_collision": 5
+  },
+  {
+    "frame": 60,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 0,
+    "inside_collision_rack": 0,
+    "falsely_inside_collision": 0
+  },
+  {
+    "frame": 75,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 0,
+    "inside_collision_rack": 0,
+    "falsely_inside_collision": 0
+  },
+  {
+    "frame": 90,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 9,
+    "inside_collision_rack": 36,
+    "falsely_inside_collision": 27
+  },
+  {
+    "frame": 105,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 0,
+    "inside_collision_rack": 0,
+    "falsely_inside_collision": 0
+  },
+  {
+    "frame": 120,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 12,
+    "inside_collision_rack": 31,
+    "falsely_inside_collision": 19
+  },
+  {
+    "frame": 135,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 0,
+    "inside_collision_rack": 0,
+    "falsely_inside_collision": 0
+  },
+  {
+    "frame": 150,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 31,
+    "inside_collision_rack": 76,
+    "falsely_inside_collision": 45
+  },
+  {
+    "frame": 165,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 0,
+    "inside_collision_rack": 0,
+    "falsely_inside_collision": 0
+  },
+  {
+    "frame": 180,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 0,
+    "inside_collision_rack": 0,
+    "falsely_inside_collision": 0
+  },
+  {
+    "frame": 195,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 0,
+    "inside_collision_rack": 0,
+    "falsely_inside_collision": 0
+  },
+  {
+    "frame": 210,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 0,
+    "inside_collision_rack": 0,
+    "falsely_inside_collision": 0
+  },
+  {
+    "frame": 225,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 202,
+    "inside_collision_rack": 224,
+    "falsely_inside_collision": 22
+  },
+  {
+    "frame": 240,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 0,
+    "inside_collision_rack": 26,
+    "falsely_inside_collision": 26
+  },
+  {
+    "frame": 255,
+    "brush_vertices": 5400,
+    "inside_actual_rack": 10,
+    "inside_collision_rack": 115,
+    "falsely_inside_collision": 105
+  }
+]

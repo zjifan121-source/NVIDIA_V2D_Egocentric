@@ -1,0 +1,72 @@
+{
+ "sequence_id": "ep30_stereo_table",
+ "episode": 30,
+ "object": null,
+ "bundle": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_bundle",
+ "fps": 20.25411910142744,
+ "ground_z_offset": 1.0,
+ "started_utc": "2026-10-28T05:45:53+00:00",
+ "bundle_check": {
+  "frames": 263,
+  "nan_arrays": [],
+  "valid_fraction": {
+   "camera": 1.0,
+   "object": 1.0,
+   "hand_left": 1.0,
+   "hand_right": 1.0
+  },
+  "hand_scale_mean": {
+   "left": 0.9894272089004517,
+   "right": 0.9337800145149231
+  },
+  "gravity_alignment_applied": true,
+  "object_drift_first_30_frames_cm": 0.19,
+  "object_step_median_cm": 0.25,
+  "first_still_frame": 0,
+  "mesh_vertices": 7467,
+  "mesh_extents_cm": [
+   12.4,
+   10.9,
+   4.0
+  ],
+  "rest_footprint_cm": [
+   8.4,
+   1.9
+  ],
+  "warnings": [
+   "rest footprint 8.4x1.9 cm is a strip: object may sit on an edge (level it)"
+  ]
+ },
+ "output_check": {
+  "frames": 263,
+  "fps": 20.254119873046875,
+  "task_error_cm": {
+   "right": {
+    "mean": 2.46,
+    "max": 6.06
+   },
+   "left": {
+    "mean": 1.73,
+    "max": 5.0
+   }
+  },
+  "penetration_frames": {
+   "any": 0.255,
+   "over_1cm": 0.0,
+   "over_2cm": 0.0
+  },
+  "support_disks": 1,
+  "frame0_seating_cm": [
+   3.75,
+   1.03
+  ],
+  "warnings": [
+   "right task error 2.46 cm mean / 6.06 cm max (bar ~2.2 / 6)",
+   "object 0 bottom is 3.75 cm from the support top at frame 0"
+  ]
+ },
+ "processed": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/assets/human_motion_data/ego_recon/processed/sequence_id=ep30_stereo_table/robot_name=sharpa_wave",
+ "support_usd": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/assets/human_motion_data/ego_recon/reconstructed_stage/ep30_stereo_table_sharpa_wave_support.usda",
+ "video": null,
+ "finished_utc": "2026-10-28T05:47:32+00:00"
+}

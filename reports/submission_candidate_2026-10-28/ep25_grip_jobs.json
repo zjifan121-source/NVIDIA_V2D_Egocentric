@@ -1,0 +1,14 @@
+[
+  {
+    "job": "10963863",
+    "name": "ep25_grip2_OT1M_s42",
+    "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+    "seed": 42
+  },
+  {
+    "job": "10963864",
+    "name": "ep25_grip2_OT1M_s44",
+    "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+    "seed": 44
+  }
+]

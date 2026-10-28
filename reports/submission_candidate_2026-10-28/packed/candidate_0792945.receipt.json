@@ -1,0 +1,16 @@
+{
+  "track": "track_3",
+  "file": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/packed/candidate_0792945.parquet",
+  "message": "Moving references: 79.2945% local tracking; ep25 moving policy 59.17%; best completed per-episode rollouts",
+  "submissions": {
+    "add_auc": {
+      "slug": "v2d-challenge-track3-auc",
+      "state": "COMPLETE",
+      "file": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/packed/candidate_0792945.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - AUC",
+      "ref": 57726860,
+      "public_score": "0.64008",
+      "error": ""
+    }
+  }
+}

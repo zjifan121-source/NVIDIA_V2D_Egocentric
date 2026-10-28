@@ -1,0 +1,526 @@
+{
+  "pieces": 104,
+  "all_single_convex": true,
+  "rows": [
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull000.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull001.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull002.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull003.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull004.stl",
+      "pieces": 1,
+      "bound_error_m": 4.656612873077393e-10
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull005.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull006.stl",
+      "pieces": 1,
+      "bound_error_m": 1.8402934074401855e-06
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull007.stl",
+      "pieces": 1,
+      "bound_error_m": 1.7620623111724854e-06
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull008.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull009.stl",
+      "pieces": 1,
+      "bound_error_m": 3.0547380447387695e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull010.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull011.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull012.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull013.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull014.stl",
+      "pieces": 1,
+      "bound_error_m": 1.2218952178955078e-06
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull015.stl",
+      "pieces": 1,
+      "bound_error_m": 2.146698534488678e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull016.stl",
+      "pieces": 1,
+      "bound_error_m": 6.984919309616089e-10
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull017.stl",
+      "pieces": 1,
+      "bound_error_m": 5.166977643966675e-06
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull018.stl",
+      "pieces": 1,
+      "bound_error_m": 3.0118972063064575e-06
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull019.stl",
+      "pieces": 1,
+      "bound_error_m": 3.725290298461914e-09
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull020.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull021.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull022.stl",
+      "pieces": 1,
+      "bound_error_m": 6.034970283508301e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull023.stl",
+      "pieces": 1,
+      "bound_error_m": 7.562339305877686e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull024.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull025.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull026.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull027.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull028.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull029.stl",
+      "pieces": 1,
+      "bound_error_m": 2.3283064365386963e-10
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull030.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull031.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull032.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull033.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull034.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull035.stl",
+      "pieces": 1,
+      "bound_error_m": 1.3969838619232178e-09
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull036.stl",
+      "pieces": 1,
+      "bound_error_m": 1.4640390872955322e-06
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull037.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull038.stl",
+      "pieces": 1,
+      "bound_error_m": 3.5762786865234375e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull039.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull040.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull041.stl",
+      "pieces": 1,
+      "bound_error_m": 2.2351741790771484e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull042.stl",
+      "pieces": 1,
+      "bound_error_m": 4.4818807509727776e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull043.stl",
+      "pieces": 1,
+      "bound_error_m": 2.3283064365386963e-10
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull044.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull045.stl",
+      "pieces": 1,
+      "bound_error_m": 2.421438694000244e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull046.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull047.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull048.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull049.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull050.stl",
+      "pieces": 1,
+      "bound_error_m": 1.1641532182693481e-10
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull051.stl",
+      "pieces": 1,
+      "bound_error_m": 8.791685104370117e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull052.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull053.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board1_hull054.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull000.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull001.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull002.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull003.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull004.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull005.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull006.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull007.stl",
+      "pieces": 1,
+      "bound_error_m": 4.656612873077393e-10
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull008.stl",
+      "pieces": 1,
+      "bound_error_m": 6.984919309616089e-10
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull009.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull010.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull011.stl",
+      "pieces": 1,
+      "bound_error_m": 6.984919309616089e-10
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull012.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull013.stl",
+      "pieces": 1,
+      "bound_error_m": 8.67992639541626e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull014.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull015.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull016.stl",
+      "pieces": 1,
+      "bound_error_m": 1.1641532182693481e-10
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull017.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull018.stl",
+      "pieces": 1,
+      "bound_error_m": 7.34871719032526e-10
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull019.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull020.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull021.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull022.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull023.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull024.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull025.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull026.stl",
+      "pieces": 1,
+      "bound_error_m": 3.3527612686157227e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull027.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull028.stl",
+      "pieces": 1,
+      "bound_error_m": 5.522997525986284e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull029.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull030.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull031.stl",
+      "pieces": 1,
+      "bound_error_m": 4.76837158203125e-07
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull032.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull033.stl",
+      "pieces": 1,
+      "bound_error_m": 1.862645149230957e-09
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull034.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull035.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull036.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull037.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull038.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull039.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull040.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull041.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull042.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull043.stl",
+      "pieces": 1,
+      "bound_error_m": 3.637978807091713e-12
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull044.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull045.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull046.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull047.stl",
+      "pieces": 1,
+      "bound_error_m": 0.0
+    },
+    {
+      "file": "assets/human_motion_data/ego_recon/processed/slot_collision/board2_hull048.stl",
+      "pieces": 1,
+      "bound_error_m": 1.0579824447631836e-06
+    }
+  ]
+}

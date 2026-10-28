@@ -1,0 +1,781 @@
+[
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 36,
+    "pad_gap_m": [
+      0.0005107511262608217,
+      0.029466218656751867,
+      0.040037044227935775
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.8123145176526382,
+      -0.6388018229216822
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 48,
+    "pad_gap_m": [
+      0.008987766670227418,
+      0.004423757934986536,
+      0.022880351929297636
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.6639650645915672,
+      -0.4255513854513579
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 60,
+    "pad_gap_m": [
+      0.0037363227085906313,
+      0.006613395925412516,
+      0.022694638800637996
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.6639650645915672,
+      -0.4259449176551605
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 72,
+    "pad_gap_m": [
+      0.00436331113698289,
+      0.006451509593156104,
+      0.021891803095209297
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.5936622256069963,
+      -0.4571149730932049
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 84,
+    "pad_gap_m": [
+      0.0028260424829165296,
+      0.004272847920822924,
+      0.021985883256304437
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.5364230213057909,
+      -0.4531675372754163
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 96,
+    "pad_gap_m": [
+      0.00088316066074987,
+      0.001999951926182931,
+      0.019696707985235436
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.690026623467395,
+      -0.5648441855309021
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 108,
+    "pad_gap_m": [
+      0.0034610533482251696,
+      0.012113250214955832,
+      0.02483639684275534
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.6828413168441314,
+      -0.5165830612030554
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 120,
+    "pad_gap_m": [
+      0.002320009877921004,
+      0.001228825164994016,
+      0.02031087751777224
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.06864276697064552,
+      -0.10657413580282805
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 132,
+    "pad_gap_m": [
+      0.004306692850547345,
+      0.012344051710805494,
+      0.027120625259128013
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.7156088961469624,
+      -0.5078021282131585
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 144,
+    "pad_gap_m": [
+      0.005774454794445544,
+      0.005159152620660937,
+      0.021139314543847418
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.6343715933528024,
+      -0.4705217700332648
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 156,
+    "pad_gap_m": [
+      0.0003828806974979248,
+      0.005475470455283222,
+      0.021509476243221096
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.750165966187937,
+      -0.6283127061351734
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 168,
+    "pad_gap_m": [
+      0.001993511206696718,
+      0.009277847981105617,
+      0.023751511846023216
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.6715447701778792,
+      -0.5497262974139503
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 180,
+    "pad_gap_m": [
+      0.0017715347819431224,
+      0.02149978428617141,
+      0.030115488411111054
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.6611978486267781,
+      -0.4868282851917039
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 192,
+    "pad_gap_m": [
+      0.003908000464176154,
+      0.019233244539691125,
+      0.030467841224277824
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.6901271763819773,
+      -0.4870462098091036
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 204,
+    "pad_gap_m": [
+      0.0026899227773713487,
+      0.003145930117219892,
+      0.020971790220434182
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.5316403801140174,
+      -0.4660313330876293
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 216,
+    "pad_gap_m": [
+      5.438329698571485e-05,
+      7.944489221109682e-07,
+      0.016472338803627844
+    ],
+    "pad_penetration_m": [
+      0.001470748871185822,
+      0.0018237677253086474,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.3471330181447273,
+      0.4274222942411939
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 228,
+    "pad_gap_m": [
+      2.642302819303981e-05,
+      2.3300295928360142e-06,
+      0.016448873258279983
+    ],
+    "pad_penetration_m": [
+      0.001459502758221048,
+      0.0017536755299627658,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.40886502866013796,
+      -0.3928948814594085
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 240,
+    "pad_gap_m": [
+      0.005071187687222973,
+      0.003909943508592814,
+      0.023549824710398203
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.5639863095787859,
+      -0.3213617553487416
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 252,
+    "pad_gap_m": [
+      6.524759563909637e-06,
+      3.1142597912938156e-05,
+      0.017545715276778912
+    ],
+    "pad_penetration_m": [
+      0.0016143953734815552,
+      0.001785117845447779,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.3305904075403983,
+      0.13567776768655315
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 264,
+    "pad_gap_m": [
+      1.2195511271273415e-05,
+      0.016200319246370935,
+      0.03151030986659533
+    ],
+    "pad_penetration_m": [
+      0.0014487606431516885,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.31183615652006447,
+      -0.2156684040406589
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 276,
+    "pad_gap_m": [
+      0.0029422724984915767,
+      0.013365773867634753,
+      0.02839107440850582
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.4938077760719214,
+      -0.4593804569584763
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 288,
+    "pad_gap_m": [
+      0.007061616263967624,
+      0.010279154788125165,
+      0.025256113177340552
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.5054316364499895,
+      -0.43114107340412927
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_blue_cup",
+    "side": "left",
+    "frame": 300,
+    "pad_gap_m": [
+      3.3606464772891624e-05,
+      0.01431675093430595,
+      0.028532670948746654
+    ],
+    "pad_penetration_m": [
+      0.0014967887338182017,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.49604726974158514,
+      -0.3996405923002212
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 73,
+    "pad_gap_m": [
+      5.683939398561447e-05,
+      0.0019870333312450874,
+      0.01261789164739796
+    ],
+    "pad_penetration_m": [
+      0.008531223699365724,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.7022369806909544,
+      0.7079058929881896
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 85,
+    "pad_gap_m": [
+      0.0017746337254945037,
+      0.004336292948679046,
+      0.004667888637664817
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.5228084802738076,
+      0.9303186888231872
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 97,
+    "pad_gap_m": [
+      0.008034626469622863,
+      1.0985128896737112e-05,
+      0.012090227716661236
+    ],
+    "pad_penetration_m": [
+      0,
+      0.004636899607481998,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.40587033781843884,
+      -0.9870447339428189
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 109,
+    "pad_gap_m": [
+      0.0036688086757047096,
+      7.1847544465564925e-06,
+      0.004028938211138397
+    ],
+    "pad_penetration_m": [
+      0,
+      0.007282714639708863,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.4355780874588937,
+      -0.9860508693482285
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 121,
+    "pad_gap_m": [
+      0.0003011058180950748,
+      2.5335837874773957e-05,
+      0.008994240375564299
+    ],
+    "pad_penetration_m": [
+      0,
+      0.006649456916417704,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.23854417724403063,
+      -0.9759362399668949
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 133,
+    "pad_gap_m": [
+      1.4279046610820165e-05,
+      0.00017702198132852514,
+      0.0018112578457109847
+    ],
+    "pad_penetration_m": [
+      0.0005987429045359626,
+      0.008390817322786317,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.9999451862485357,
+      -0.771966669073523
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 145,
+    "pad_gap_m": [
+      5.923813396914988e-05,
+      0.004571083065011872,
+      0.012211245990513495
+    ],
+    "pad_penetration_m": [
+      0.0033155336874911914,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.3533139581315451,
+      0.4280261084162367
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 157,
+    "pad_gap_m": [
+      3.65359273636554e-05,
+      1.844846665543156e-05,
+      0.008507298293373579
+    ],
+    "pad_penetration_m": [
+      0.006411229651090034,
+      0.00030484414568736985,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.9386686993183206,
+      0.18356762577678
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 169,
+    "pad_gap_m": [
+      0.004370994007586183,
+      0.005189915760798533,
+      0.005074621296979044
+    ],
+    "pad_penetration_m": [
+      0,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.8662733647788271,
+      -0.6718867529885203
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 181,
+    "pad_gap_m": [
+      0.0017311975932340997,
+      9.172490596278086e-05,
+      3.197012806042013e-05
+    ],
+    "pad_penetration_m": [
+      0,
+      0.003841756584467463,
+      0.0022158620680823296
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.7694268550859344,
+      -0.8462739496264173
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 193,
+    "pad_gap_m": [
+      0.011665434445113226,
+      3.839479293465203e-05,
+      0.005564888322914778
+    ],
+    "pad_penetration_m": [
+      0,
+      0.008438933979788751,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.37418871998186004,
+      -0.9395090547570069
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 205,
+    "pad_gap_m": [
+      3.7117964198615265e-06,
+      2.849603971954412e-06,
+      0.012200841656957864
+    ],
+    "pad_penetration_m": [
+      0.003507815887163936,
+      0.004405046343659949,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.8759226980424315,
+      0.9948301862389394
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 217,
+    "pad_gap_m": [
+      2.20512719087007e-07,
+      0.003707741541146099,
+      0.0031827524098645417
+    ],
+    "pad_penetration_m": [
+      0.005857653016741301,
+      0,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.1969734875541094,
+      0.9949401274719955
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 229,
+    "pad_gap_m": [
+      0.009805868071797638,
+      1.8535228124474953e-05,
+      0.009801961045989753
+    ],
+    "pad_penetration_m": [
+      0,
+      0.007368280385265042,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.398255399880575,
+      -0.9917269542411258
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 241,
+    "pad_gap_m": [
+      0.0031950823574225045,
+      4.898105121252971e-05,
+      5.55963618786461e-06
+    ],
+    "pad_penetration_m": [
+      0,
+      0.005815714260424938,
+      0.0013244315382758146
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.510654159851256,
+      -0.8345944681118621
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 253,
+    "pad_gap_m": [
+      9.860614052969014e-05,
+      9.973349841757768e-05,
+      0.0044804713070780945
+    ],
+    "pad_penetration_m": [
+      0.00010096432897792253,
+      0.007124737028516675,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      0.21457778934839974,
+      -0.8768323027266771
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 265,
+    "pad_gap_m": [
+      0.013729688355087451,
+      2.366498774487452e-05,
+      0.009496946216982511
+    ],
+    "pad_penetration_m": [
+      0,
+      0.008253602666620702,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.8938822145997337,
+      -0.9515085481568684
+    ]
+  },
+  {
+    "object": "ep33_ken_c_scored_attach_wooden_spoon",
+    "side": "right",
+    "frame": 277,
+    "pad_gap_m": [
+      9.838827284993299e-05,
+      4.094460922488265e-07,
+      0.010347708434959038
+    ],
+    "pad_penetration_m": [
+      0.0010290526395580573,
+      0.009400110155233005,
+      0
+    ],
+    "thumb_vs_other_normal_dot": [
+      -0.04178218245593719,
+      0.10565419269535441
+    ]
+  }
+]

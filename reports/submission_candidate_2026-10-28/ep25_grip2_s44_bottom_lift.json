@@ -1,0 +1,16 @@
+[
+  {
+    "body": 0,
+    "reference_max_bottom_lift_cm": 14.48954303648964,
+    "reference_bottom_lift_at190_cm": 0.9163398733107897,
+    "achieved_max_bottom_lift_cm": 6.0048273002243135,
+    "achieved_bottom_lift_at190_cm": -0.11149773379641736
+  },
+  {
+    "body": 1,
+    "reference_max_bottom_lift_cm": 11.315640615972466,
+    "reference_bottom_lift_at190_cm": 10.449381490443466,
+    "achieved_max_bottom_lift_cm": 0.10378047500890775,
+    "achieved_bottom_lift_at190_cm": -0.6000682903141707
+  }
+]

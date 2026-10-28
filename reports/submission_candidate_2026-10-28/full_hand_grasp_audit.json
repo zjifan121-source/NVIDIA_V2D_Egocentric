@@ -1,0 +1,422 @@
+[
+  {
+    "scene": "ep33_grasp_lead_scene",
+    "side": "left",
+    "object": "blue_cup",
+    "frame": 96,
+    "links": [
+      {
+        "link": "left_hand_C_MC",
+        "intersection_cm3": null,
+        "max_vertex_penetration_m": 0.001622544050825412,
+        "min_vertex_gap_m": 0.0002574090984836073
+      },
+      {
+        "link": "left_thumb_MC",
+        "intersection_cm3": null,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.0079850877492377
+      },
+      {
+        "link": "left_thumb_PP",
+        "intersection_cm3": 0.006242864197320995,
+        "max_vertex_penetration_m": 0.0007624551344797843,
+        "min_vertex_gap_m": 0.0001928074295398743
+      },
+      {
+        "link": "left_thumb_DP",
+        "intersection_cm3": 0.004526979400711859,
+        "max_vertex_penetration_m": 0.00043124183797405344,
+        "min_vertex_gap_m": 0.0003237994107333975
+      },
+      {
+        "link": "left_thumb_elastomer",
+        "intersection_cm3": 0.003691365313676732,
+        "max_vertex_penetration_m": 0.0004999331370228192,
+        "min_vertex_gap_m": 8.528969026583591e-05
+      },
+      {
+        "link": "left_index_PP",
+        "intersection_cm3": 2.6462738711609566,
+        "max_vertex_penetration_m": 0.001547407901293562,
+        "min_vertex_gap_m": 6.96728468564148e-06
+      },
+      {
+        "link": "left_index_MP",
+        "intersection_cm3": 1.151221474692958,
+        "max_vertex_penetration_m": 0.0014656804297274982,
+        "min_vertex_gap_m": 1.2470983671923826e-06
+      },
+      {
+        "link": "left_index_DP",
+        "intersection_cm3": 0.001391217394090743,
+        "max_vertex_penetration_m": 0.00047566669952569754,
+        "min_vertex_gap_m": 9.431096758786756e-05
+      },
+      {
+        "link": "left_index_elastomer",
+        "intersection_cm3": 0.04943861981342612,
+        "max_vertex_penetration_m": 0.0011779791159746424,
+        "min_vertex_gap_m": 1.9000889296467294e-05
+      },
+      {
+        "link": "left_middle_PP",
+        "intersection_cm3": 0.8268496779953014,
+        "max_vertex_penetration_m": 0.0013413318395376476,
+        "min_vertex_gap_m": 1.5925197605324594e-05
+      },
+      {
+        "link": "left_middle_MP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.01034077293521879
+      },
+      {
+        "link": "left_middle_DP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.019753634062042565
+      },
+      {
+        "link": "left_middle_elastomer",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.019696707985235436
+      },
+      {
+        "link": "left_ring_PP",
+        "intersection_cm3": 0.20498006348406297,
+        "max_vertex_penetration_m": 0.001601486380604482,
+        "min_vertex_gap_m": 8.614867171657986e-05
+      },
+      {
+        "link": "left_ring_MP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.019640659268934386
+      },
+      {
+        "link": "left_ring_DP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.025043021108397515
+      },
+      {
+        "link": "left_ring_elastomer",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.024401627876417205
+      },
+      {
+        "link": "left_pinky_MC",
+        "intersection_cm3": 3.662410401260783,
+        "max_vertex_penetration_m": 0.0011814744088000546,
+        "min_vertex_gap_m": 5.515101437883926e-05
+      },
+      {
+        "link": "left_pinky_PP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.00295928626279394
+      },
+      {
+        "link": "left_pinky_MP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.025456906765031352
+      },
+      {
+        "link": "left_pinky_DP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.027842211999823688
+      },
+      {
+        "link": "left_pinky_elastomer",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.028509476920755394
+      }
+    ]
+  },
+  {
+    "scene": "ep33_grasp_lead_scene",
+    "side": "right",
+    "object": "wooden_spoon",
+    "frame": 133,
+    "links": [
+      {
+        "link": "right_hand_C_MC",
+        "intersection_cm3": null,
+        "max_vertex_penetration_m": 0.0021945984673911586,
+        "min_vertex_gap_m": 0.0005775349374332509
+      },
+      {
+        "link": "right_thumb_MC",
+        "intersection_cm3": null,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.013930369350944995
+      },
+      {
+        "link": "right_thumb_PP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.007355066247384698
+      },
+      {
+        "link": "right_thumb_DP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.002320382276599768
+      },
+      {
+        "link": "right_thumb_elastomer",
+        "intersection_cm3": 0.00874703057121572,
+        "max_vertex_penetration_m": 0.0005000093744696749,
+        "min_vertex_gap_m": 2.0849145835496385e-05
+      },
+      {
+        "link": "right_index_PP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.0037146591469183273
+      },
+      {
+        "link": "right_index_MP",
+        "intersection_cm3": 2.906198169504368,
+        "max_vertex_penetration_m": 0.007203149510714125,
+        "min_vertex_gap_m": 0.0003287353327882387
+      },
+      {
+        "link": "right_index_DP",
+        "intersection_cm3": 0.7479902461064414,
+        "max_vertex_penetration_m": 0.005814137841945472,
+        "min_vertex_gap_m": 3.219217838424203e-05
+      },
+      {
+        "link": "right_index_elastomer",
+        "intersection_cm3": 0.004476512092550378,
+        "max_vertex_penetration_m": 0.0013804886071843258,
+        "min_vertex_gap_m": 0.00012686460739607834
+      },
+      {
+        "link": "right_middle_PP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.010059314084655293
+      },
+      {
+        "link": "right_middle_MP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.005564763910860152
+      },
+      {
+        "link": "right_middle_DP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.0024515962390687603
+      },
+      {
+        "link": "right_middle_elastomer",
+        "intersection_cm3": 0.004565105362145066,
+        "max_vertex_penetration_m": 0.0004994172739063514,
+        "min_vertex_gap_m": 2.5462796243074704e-05
+      },
+      {
+        "link": "right_ring_PP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.01623703786977106
+      },
+      {
+        "link": "right_ring_MP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.023562762484966145
+      },
+      {
+        "link": "right_ring_DP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.0160085605151342
+      },
+      {
+        "link": "right_ring_elastomer",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.014760499289932215
+      },
+      {
+        "link": "right_pinky_MC",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.014915685319837037
+      },
+      {
+        "link": "right_pinky_PP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.03003053933135726
+      },
+      {
+        "link": "right_pinky_MP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.033587810948186365
+      },
+      {
+        "link": "right_pinky_DP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.02721868631343207
+      },
+      {
+        "link": "right_pinky_elastomer",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.026644862646333548
+      }
+    ]
+  },
+  {
+    "scene": "ep25_assembly2_scene",
+    "side": "right",
+    "object": "wooden_piece_2",
+    "frame": 220,
+    "links": [
+      {
+        "link": "right_hand_C_MC",
+        "intersection_cm3": null,
+        "max_vertex_penetration_m": 0.0009704737358399836,
+        "min_vertex_gap_m": 0.0009704737358399836
+      },
+      {
+        "link": "right_thumb_MC",
+        "intersection_cm3": null,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.026463102322940586
+      },
+      {
+        "link": "right_thumb_PP",
+        "intersection_cm3": 0.6106871253630181,
+        "max_vertex_penetration_m": 0.0023355723457682506,
+        "min_vertex_gap_m": 0.0007011430901849241
+      },
+      {
+        "link": "right_thumb_DP",
+        "intersection_cm3": 0.8123347702911335,
+        "max_vertex_penetration_m": 0.0022005327088762,
+        "min_vertex_gap_m": 0.0004117779545570909
+      },
+      {
+        "link": "right_thumb_elastomer",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.00030025630183376793
+      },
+      {
+        "link": "right_index_PP",
+        "intersection_cm3": 1.6229282528987703,
+        "max_vertex_penetration_m": 0.0012386781989214479,
+        "min_vertex_gap_m": 0.000161566370205776
+      },
+      {
+        "link": "right_index_MP",
+        "intersection_cm3": 2.4645366691622304,
+        "max_vertex_penetration_m": 0.00450906120623482,
+        "min_vertex_gap_m": 1.1591759600374852e-05
+      },
+      {
+        "link": "right_index_DP",
+        "intersection_cm3": 0.020821140258282123,
+        "max_vertex_penetration_m": 0.0014392349971455813,
+        "min_vertex_gap_m": 0.00013079437320511782
+      },
+      {
+        "link": "right_index_elastomer",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.00040281663767105063
+      },
+      {
+        "link": "right_middle_PP",
+        "intersection_cm3": 1.4042582119813085,
+        "max_vertex_penetration_m": 0.0021857161901178857,
+        "min_vertex_gap_m": 0.00010592567631658521
+      },
+      {
+        "link": "right_middle_MP",
+        "intersection_cm3": 0.255700190484238,
+        "max_vertex_penetration_m": 0.0033477053882349445,
+        "min_vertex_gap_m": 0.0006274622300621147
+      },
+      {
+        "link": "right_middle_DP",
+        "intersection_cm3": 0.32364891274263796,
+        "max_vertex_penetration_m": 0.002186866149324784,
+        "min_vertex_gap_m": 1.8969498600903304e-06
+      },
+      {
+        "link": "right_middle_elastomer",
+        "intersection_cm3": 0.45034153456771603,
+        "max_vertex_penetration_m": 0.0024583534373075282,
+        "min_vertex_gap_m": 1.6770955637363608e-05
+      },
+      {
+        "link": "right_ring_PP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.011884592889665192
+      },
+      {
+        "link": "right_ring_MP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.013735940336334853
+      },
+      {
+        "link": "right_ring_DP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.014835233412696328
+      },
+      {
+        "link": "right_ring_elastomer",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.014002455064375878
+      },
+      {
+        "link": "right_pinky_MC",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.028134622065689938
+      },
+      {
+        "link": "right_pinky_PP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.03238734510452819
+      },
+      {
+        "link": "right_pinky_MP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.03111444607803607
+      },
+      {
+        "link": "right_pinky_DP",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.02690574247709455
+      },
+      {
+        "link": "right_pinky_elastomer",
+        "intersection_cm3": 0,
+        "max_vertex_penetration_m": 0,
+        "min_vertex_gap_m": 0.026841959993400517
+      }
+    ]
+  }
+]

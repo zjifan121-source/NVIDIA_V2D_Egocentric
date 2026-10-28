@@ -1,0 +1,34 @@
+[
+  {
+    "episode": 1,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s43"
+  },
+  {
+    "episode": 10,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep10_v5_obj2x_s45"
+  },
+  {
+    "episode": 14,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_bm_s43"
+  },
+  {
+    "episode": 16,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_v5_obj2x_s45"
+  },
+  {
+    "episode": 19,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_bm_s42"
+  },
+  {
+    "episode": 20,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_bm_s43"
+  },
+  {
+    "episode": 25,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v5_obj2x_s42"
+  },
+  {
+    "episode": 30,
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_bm_s43"
+  }
+]

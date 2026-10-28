@@ -1,0 +1,7 @@
+- evaluation.checkpoint=/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42/train/policy_50003968.safetensors
+- evaluation.world_count=1
+- evaluation.start_frame=96
+- evaluation.reset_mode=explicit
+- evaluation.metrics_output=/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/grasp_tail_diagnostics/wide50/metrics.json
+- evaluation.object_trajectories_output=/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/grasp_tail_diagnostics/wide50/trajectory.parquet
+- logging.mode=disabled

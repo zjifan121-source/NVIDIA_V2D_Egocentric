@@ -1,0 +1,212 @@
+{
+  "mean_own_reference": 0.7860048122769691,
+  "v2_mean_own_reference": 0.7435720194319133,
+  "episodes": 20,
+  "candidate_counts": {
+    "14": 6,
+    "36": 8,
+    "33": 16,
+    "5": 13,
+    "19": 11,
+    "16": 5,
+    "8": 6,
+    "30": 6,
+    "35": 10,
+    "20": 7,
+    "3": 10,
+    "6": 5,
+    "15": 6,
+    "38": 6,
+    "32": 21,
+    "37": 5,
+    "28": 5,
+    "1": 7,
+    "10": 5,
+    "25": 0
+  },
+  "eval_hashes": {
+    "b1b3ebe3ae4629d1687a83f420149e3f6fdfc154d70acad55c12fc8fa69811a1": 20
+  },
+  "checks": [
+    {
+      "episode": 1,
+      "rows": 670,
+      "frames": 335,
+      "issues": []
+    },
+    {
+      "episode": 3,
+      "rows": 626,
+      "frames": 313,
+      "issues": []
+    },
+    {
+      "episode": 5,
+      "rows": 576,
+      "frames": 288,
+      "issues": []
+    },
+    {
+      "episode": 6,
+      "rows": 486,
+      "frames": 243,
+      "issues": []
+    },
+    {
+      "episode": 8,
+      "rows": 438,
+      "frames": 219,
+      "issues": []
+    },
+    {
+      "episode": 10,
+      "rows": 322,
+      "frames": 161,
+      "issues": []
+    },
+    {
+      "episode": 14,
+      "rows": 316,
+      "frames": 158,
+      "issues": []
+    },
+    {
+      "episode": 15,
+      "rows": 332,
+      "frames": 166,
+      "issues": []
+    },
+    {
+      "episode": 16,
+      "rows": 346,
+      "frames": 173,
+      "issues": []
+    },
+    {
+      "episode": 19,
+      "rows": 470,
+      "frames": 235,
+      "issues": []
+    },
+    {
+      "episode": 20,
+      "rows": 404,
+      "frames": 202,
+      "issues": []
+    },
+    {
+      "episode": 25,
+      "rows": 712,
+      "frames": 356,
+      "issues": []
+    },
+    {
+      "episode": 28,
+      "rows": 440,
+      "frames": 220,
+      "issues": []
+    },
+    {
+      "episode": 30,
+      "rows": 526,
+      "frames": 263,
+      "issues": []
+    },
+    {
+      "episode": 32,
+      "rows": 518,
+      "frames": 259,
+      "issues": []
+    },
+    {
+      "episode": 33,
+      "rows": 696,
+      "frames": 348,
+      "issues": []
+    },
+    {
+      "episode": 35,
+      "rows": 421,
+      "frames": 421,
+      "issues": []
+    },
+    {
+      "episode": 36,
+      "rows": 407,
+      "frames": 407,
+      "issues": []
+    },
+    {
+      "episode": 37,
+      "rows": 151,
+      "frames": 151,
+      "issues": []
+    },
+    {
+      "episode": 38,
+      "rows": 263,
+      "frames": 263,
+      "issues": []
+    }
+  ],
+  "excluded": [
+    [
+      "ep25_kenCbp_s44_nj1024",
+      "missing scene mesh",
+      "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000025/ken_c_scored_bp_attach",
+      [
+        "wooden_piece_1",
+        "wooden_piece_2"
+      ]
+    ],
+    [
+      "ep25_kenC_s43",
+      "missing scene mesh",
+      "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000025/ken_c_scored_attach",
+      [
+        "wooden_piece_1",
+        "wooden_piece_2"
+      ]
+    ],
+    [
+      "ep25_kenCbp_s42_nj1024",
+      "missing scene mesh",
+      "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000025/ken_c_scored_bp_attach",
+      [
+        "wooden_piece_1",
+        "wooden_piece_2"
+      ]
+    ],
+    [
+      "ep25_kenC_s44",
+      "missing scene mesh",
+      "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000025/ken_c_scored_attach",
+      [
+        "wooden_piece_1",
+        "wooden_piece_2"
+      ]
+    ],
+    [
+      "ep25_kenCbp_s43_nj1024",
+      "missing scene mesh",
+      "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000025/ken_c_scored_bp_attach",
+      [
+        "wooden_piece_1",
+        "wooden_piece_2"
+      ]
+    ],
+    [
+      "ep25_kenC_s42",
+      "missing scene mesh",
+      "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000025/ken_c_scored_attach",
+      [
+        "wooden_piece_1",
+        "wooden_piece_2"
+      ]
+    ]
+  ],
+  "mean_own_reference_includes_still_fallback": false,
+  "offline_packer_passed": true,
+  "offline_preflight_passed": true,
+  "all_references_move": true
+}

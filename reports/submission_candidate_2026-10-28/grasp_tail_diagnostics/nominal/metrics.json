@@ -1,0 +1,75 @@
+{
+  "checkpoint": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_nominal_original/train/policy_0.safetensors",
+  "checkpoint_sha256": "835ce3b152e1d0bc0f64a4d75df00e015719ddeaac32ac9da8d0ea0ca6593842",
+  "environment_steps": 0,
+  "metrics": {
+    "add_auc": 0.021453373015873016,
+    "add_auc_per_body": [
+      0.026785714285714288,
+      0.016121031746031744
+    ],
+    "add_std_m": 0.45937464705853137,
+    "add_std_per_body_m": [
+      0.4648648865989103,
+      0.4379139193942999
+    ],
+    "chord_sr": 0.0,
+    "gated_causes": [
+      "wrist",
+      "object"
+    ],
+    "maniptrans_sr": 0.0,
+    "mean_add_m": 0.8148130525663572,
+    "mean_per_point_error_cm": 81.57243584462029,
+    "mppe_cm": 91.2828405054703,
+    "object_body_names": [
+      "ep33_ken_c_scored_attach_blue_cup",
+      "ep33_ken_c_scored_attach_wooden_spoon"
+    ],
+    "object_orientation_error_deg": 111.32552839012338,
+    "object_orientation_error_per_body_rad": [
+      1.3720932616492738,
+      2.5139007622108767
+    ],
+    "object_orientation_error_rad": 1.9429970119300752,
+    "object_orientation_error_std_deg": 0.0,
+    "object_orientation_error_std_rad": 0.0,
+    "object_position_error_m": 0.8129032399089555,
+    "object_position_error_per_body_m": [
+      0.7327398826497881,
+      0.8930665971681229
+    ],
+    "object_position_error_std_m": 0.0,
+    "position_mean_centered": false,
+    "relative_position_error_cm": 33.16653182480291,
+    "spider_position_error_centered_m": 0.42612531371019435,
+    "spider_sr_uncentered": 0.0,
+    "step_count": 252,
+    "termination_cause_fraction": {
+      "object": 1.0,
+      "wrist": 0.0
+    },
+    "world_count": 1
+  },
+  "motion_end_frame": -1,
+  "motion_start_frame": 0,
+  "non_finite_worlds": [],
+  "object_orientation_threshold_rad": 1.5,
+  "object_position_threshold_m": 0.3,
+  "parquet": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B/assets/human_motion_data/ego_recon/processed/sequence_id=ep33_ken_c_scored_attach/robot_name=sharpa_wave",
+  "reference_tracking": {
+    "failure_cause_fraction": {
+      "object": 1.0,
+      "wrist": 0.0
+    },
+    "reference_end_fraction": 1.0,
+    "success_rate": 0.0
+  },
+  "reset_mode": "explicit",
+  "settling_steps": 0,
+  "sim_control_fps": 20.254119873046875,
+  "sim_physics_fps": 101.27059936523438,
+  "start_frame": 96,
+  "step_count": 252,
+  "world_count": 1
+}

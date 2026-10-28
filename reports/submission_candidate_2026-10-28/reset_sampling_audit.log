@@ -1,0 +1,12 @@
+Warp CUDA error 100: no CUDA-capable device is detected (in function init_cuda_driver, /builds/omniverse/warp/warp/native/cuda_util.cpp:309)
+Warp 1.14.0 initialized:
+   CUDA Toolkit 12.9, CUDA driver not available (NVRTC compilation available)
+   Devices:
+     "cpu"      : "x86_64"
+   Kernel cache:
+     /tmp/v2d_reset_sampling_cache/1.14.0
+Module flash_chord.lifecycle.reset b6c861f load on device 'cpu' took 2588.58 ms  (compiled)
+{"label": "baseline_strong", "worlds": 16384, "first_frame_fraction": 0.00286865234375, "expected_fraction": 0.002881844380403458}
+{"label": "early_strong", "worlds": 16384, "first_frame_fraction": 0.4974365234375, "expected_fraction": 0.5014409221902018}
+{"label": "baseline_weak", "worlds": 16384, "first_frame_fraction": 0.10052490234375, "expected_fraction": 0.10259365994236312}
+{"label": "early_weak", "worlds": 16384, "first_frame_fraction": 0.4974365234375, "expected_fraction": 0.5014409221902018}

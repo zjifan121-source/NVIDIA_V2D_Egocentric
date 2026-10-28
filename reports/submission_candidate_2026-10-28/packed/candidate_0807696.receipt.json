@@ -1,0 +1,16 @@
+{
+  "track": "track_3",
+  "file": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/packed/candidate_0807696.parquet",
+  "message": "80.7696% moving-reference tracking; episode25 both boards lift; corrected grasp and assembly collision geometry",
+  "submissions": {
+    "add_auc": {
+      "slug": "v2d-challenge-track3-auc",
+      "state": "COMPLETE",
+      "file": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/packed/candidate_0807696.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - AUC",
+      "ref": 57729024,
+      "public_score": "0.65379",
+      "error": ""
+    }
+  }
+}

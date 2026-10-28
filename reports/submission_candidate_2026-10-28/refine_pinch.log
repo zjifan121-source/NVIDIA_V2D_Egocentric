@@ -1,0 +1,2 @@
+{'object': 'ep25_split_gripfixed3_wooden_piece_2', 'hold': [150, 333], 'anchor': 220, 'opposing_normal_dot': -0.5979893195624232, 'max_anchor_target_error_m': 0.0002264371220940193, 'targets_local': [[0.07850666148871349, 0.06198133491277912, -0.075669150319178], [0.05755448747984133, 0.06312361543216073, -0.059757572088170306]], 'robot_wrist_rigid': True}
+wrote reports/submission_candidate_2026-10-28/ep25_pinch_scene

@@ -1,0 +1,31 @@
+{
+  "source": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+  "source_parquet_sha256": "58bef9e83b7ba7ee5e078c144ddc31757b5f0501c25dbe48ebcb07353225a912",
+  "script_sha256": "ab8e947d13e97503250e260cae4c396b448b59d28e56ee9af25d1ec75fc2e552",
+  "changed_columns": [
+    "robot_right_wrist_position",
+    "robot_right_wrist_wxyz",
+    "robot_right_finger_joints",
+    "robot_right_frames"
+  ],
+  "object_references_unchanged": true,
+  "grasps": [
+    {
+      "side": "right",
+      "body": "wooden_piece_2",
+      "hold": [
+        150,
+        333
+      ],
+      "anchor": 220,
+      "compression_mm": 0.5,
+      "digits": [
+        "thumb",
+        "index"
+      ],
+      "opposing_normal_dot": -0.5979893195624232,
+      "anchor_target_error_m": 0.0005874079405045629,
+      "max_wrist_shift_m": 0.08964039815429875
+    }
+  ]
+}

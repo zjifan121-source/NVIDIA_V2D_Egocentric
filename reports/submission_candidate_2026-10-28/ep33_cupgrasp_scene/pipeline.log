@@ -1,0 +1,39 @@
+
+$ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python -m v2d.task_library_loader.lib.run_loader --dataset ego_recon --dataset_root /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/bundle_cleaned --result_subpath . --output_dir /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/intermediate/ego_recon/loaded --mano_model_dir /data/user_data/haisenk/v2d/v2d_train/baseline/reconstruction/data/weights/hand --no_ground_align --ground_z_offset 1.0 --sequence_name ep33_ken_c_scored_attach --object_name ep33_ken_c_scored_attach --sequence_id ep33_ken_c_scored_attach --device cpu --save
+Found 1 sequences
+  0%|          | 0/1 [00:00<?, ?it/s][ego_recon] right world-repose gate OK (max joint err 9.62e-08 m)
+[ego_recon] left world-repose gate OK (max joint err 1.18e-07 m)
+[ego_recon] installed object mesh asset -> /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/assets/human_motion_data/ego_recon/processed/ep33_ken_c_scored_attach_blue_cup.obj
+[ego_recon] installed object mesh asset -> /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/assets/human_motion_data/ego_recon/processed/ep33_ken_c_scored_attach_wooden_spoon.obj
+/data/user_data/haisenk/v2d/v2d_train/baseline/reconstruction/modules/v2d_task_library_loader/lib/dataset_loader_base.py:741: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:203.)
+  torch.from_numpy(hand_normals).float().to(device)
+100%|██████████| 1/1 [00:04<00:00,  4.65s/it]100%|██████████| 1/1 [00:04<00:00,  4.65s/it]
+Loaded 1/1 sequences (0 skipped)
+
+$ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/retarget/ego_recon_to_sharpa.py --input_dir /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/intermediate/ego_recon/loaded --output_dir /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/assets/human_motion_data/ego_recon/processed --sequence_id ep33_ken_c_scored_attach --device cpu --save
+Found 1 sequences in /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/intermediate/ego_recon/loaded
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:13<00:00, 13.57s/it]100%|██████████| 1/1 [00:13<00:00, 13.57s/it]
+
+$ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/generate_rigid_urdfs.py --dataset ego_recon
+
+============================================================
+Generating rigid URDFs for ego_recon
+============================================================
+
+Generated: 2, Skipped: 0
+Output directory: /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/assets/human_motion_data/ego_recon/processed
+
+$ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/reconstruct_support_surfaces.py --dataset ego_recon --input_dir /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/assets/human_motion_data/ego_recon/processed --sequence_id ep33_ken_c_scored_attach --robot_name sharpa_wave --output /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/assets/human_motion_data/ego_recon/reconstructed_stage/ep33_ken_c_scored_attach_sharpa_wave_support.usda
+Processing 1 of 1 sequence(s).
+Detected schema for ep33_ken_c_scored_attach: mano_sharpa
+
+Sequence: ep33_ken_c_scored_attach
+Frames: 348
+Object bodies: ['ep33_ken_c_scored_attach_blue_cup', 'ep33_ken_c_scored_attach_wooden_spoon']
+  ep33_ken_c_scored_attach_blue_cup: mesh vertices=11474
+  ep33_ken_c_scored_attach_wooden_spoon: mesh vertices=1537
+  ep33_ken_c_scored_attach_blue_cup: 34 still frames, 3 segment(s)
+    merged 3 disk(s) -> 1, kept 1 above ground
+  ep33_ken_c_scored_attach_wooden_spoon: 60 still frames, 1 segment(s)
+    merged 1 disk(s) -> 1, kept 1 above ground
+Wrote 2 support surface(s) to /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/assets/human_motion_data/ego_recon/reconstructed_stage/ep33_ken_c_scored_attach_sharpa_wave_support.usda

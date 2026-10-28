@@ -1,0 +1,14 @@
+[
+  {
+    "object": 0,
+    "urdf": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_full/assets/human_motion_data/ego_recon/processed/ep30_stereo_table_mini_sweeper_rigid.urdf",
+    "hulls": 44,
+    "watertight": false
+  },
+  {
+    "object": 1,
+    "urdf": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_full/assets/human_motion_data/ego_recon/processed/ep30_stereo_table_plastic_dish_rack_rigid.urdf",
+    "hulls": 68,
+    "watertight": true
+  }
+]

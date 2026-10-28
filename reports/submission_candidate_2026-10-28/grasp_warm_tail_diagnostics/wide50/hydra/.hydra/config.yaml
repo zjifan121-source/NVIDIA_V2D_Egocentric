@@ -1,0 +1,23 @@
+logging:
+  mode: disabled
+  entity: nvidia-isaac
+  project: v2d-flash-chord
+  experiment: sharpa
+  run_name: ppo
+  log_interval: 1
+  upload_checkpoints: true
+  upload_training_state: false
+evaluation:
+  _target_: flash_chord.training.flash_sac.evaluation.EvaluationConfig
+  checkpoint: /data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42/train/policy_50003968.safetensors
+  deterministic: true
+  use_checkpoint_config: true
+  validate_policy_schema: true
+  world_count: 1
+  start_frame: 0
+  reset_mode: sampled_settled
+  motion_start_frame: 96
+  motion_end_frame: null
+  metrics_output: /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/grasp_warm_tail_diagnostics/wide50/metrics.json
+  object_trajectories_output: /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/grasp_warm_tail_diagnostics/wide50/trajectory.parquet
+  source_root: null

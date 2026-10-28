@@ -1,0 +1,23 @@
+[
+  {
+    "job": "10964252",
+    "name": "ep30_table_OT1M_s42",
+    "episode": 30,
+    "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_full",
+    "radius": null
+  },
+  {
+    "job": "10964253",
+    "name": "ep5_R100_OT_s42",
+    "episode": 5,
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+    "radius": "1.0"
+  },
+  {
+    "job": "10964254",
+    "name": "ep5_R005_OT_s42",
+    "episode": 5,
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+    "radius": "0.05"
+  }
+]

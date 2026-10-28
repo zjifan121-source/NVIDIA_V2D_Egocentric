@@ -1,0 +1,8 @@
+{
+  "job": "10963758",
+  "name": "ep25_split_OT1M_s44",
+  "replaces": "10963626",
+  "seed": 44,
+  "replay_capacity": 1048576,
+  "observation_storage_dtype": "float16"
+}

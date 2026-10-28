@@ -1,0 +1,40 @@
+
+$ /data/user_data/edmondwa/v2d/venvs/retarget/bin/python -m v2d.task_library_loader.lib.run_loader --dataset ego_recon --dataset_root /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_bundle --result_subpath . --output_dir /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/intermediate/ego_recon/loaded --mano_model_dir /home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/weights/hand --no_ground_align --ground_z_offset 1.0 --sequence_name ep30_stereo_table --object_name ep30_stereo_table --sequence_id ep30_stereo_table --device cpu --save
+Found 1 sequences
+  0%|          | 0/1 [00:00<?, ?it/s][ego_recon] right world-repose gate OK (max joint err 1.03e-07 m)
+[ego_recon] left world-repose gate OK (max joint err 1.26e-07 m)
+[ego_recon] installed object mesh asset -> /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/assets/human_motion_data/ego_recon/processed/ep30_stereo_table_mini_sweeper.obj
+[ego_recon] installed object mesh asset -> /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/assets/human_motion_data/ego_recon/processed/ep30_stereo_table_plastic_dish_rack.obj
+/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/modules/v2d_task_library_loader/lib/dataset_loader_base.py:741: UserWarning: The given NumPy array is not writable, and PyTorch does not support non-writable tensors. This means writing to this tensor will result in undefined behavior. You may want to copy the array to protect its data or make it writable before converting it to a tensor. This type of warning will be suppressed for the rest of this program. (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:203.)
+  torch.from_numpy(hand_normals).float().to(device)
+100%|██████████| 1/1 [00:08<00:00,  8.94s/it]100%|██████████| 1/1 [00:08<00:00,  8.94s/it]
+Loaded 1/1 sequences (0 skipped)
+
+$ /data/user_data/edmondwa/v2d/venvs/retarget/bin/python scripts/retarget/ego_recon_to_sharpa.py --input_dir /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/intermediate/ego_recon/loaded --output_dir /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/assets/human_motion_data/ego_recon/processed --sequence_id ep30_stereo_table --device cpu --save
+Found 1 sequences in /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/intermediate/ego_recon/loaded
+  0%|          | 0/1 [00:00<?, ?it/s]100%|██████████| 1/1 [00:07<00:00,  7.89s/it]100%|██████████| 1/1 [00:07<00:00,  7.89s/it]
+
+$ /data/user_data/edmondwa/v2d/venvs/retarget/bin/python scripts/generate_rigid_urdfs.py --dataset ego_recon
+
+============================================================
+Generating rigid URDFs for ego_recon
+============================================================
+
+Generated: 2, Skipped: 0
+Output directory: /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/assets/human_motion_data/ego_recon/processed
+
+$ /data/user_data/edmondwa/v2d/venvs/retarget/bin/python scripts/reconstruct_support_surfaces.py --dataset ego_recon --input_dir /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/assets/human_motion_data/ego_recon/processed --sequence_id ep30_stereo_table --robot_name sharpa_wave --output /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/assets/human_motion_data/ego_recon/reconstructed_stage/ep30_stereo_table_sharpa_wave_support.usda
+Processing 1 of 1 sequence(s).
+Detected schema for ep30_stereo_table: mano_sharpa
+
+Sequence: ep30_stereo_table
+Frames: 263
+Object bodies: ['ep30_stereo_table_mini_sweeper', 'ep30_stereo_table_plastic_dish_rack']
+  ep30_stereo_table_mini_sweeper: mesh vertices=7467
+  ep30_stereo_table_plastic_dish_rack: mesh vertices=4568
+  ep30_stereo_table_mini_sweeper: 33 still frames, 2 segment(s)
+    merged 2 disk(s) -> 1, kept 1 above ground
+  ep30_stereo_table_plastic_dish_rack: 114 still frames, 8 segment(s)
+    merged 8 disk(s) -> 1, kept 1 above ground
+    filtered phantom support on 'ep30_stereo_table_mini_sweeper' (center=(-0.003,0.002,1.000), r=0.055) — body 'ep30_stereo_table_plastic_dish_rack' sits in xy radius for 100% of frames within 0.1 m of disk z
+Wrote 1 support surface(s) to /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_scene/assets/human_motion_data/ego_recon/reconstructed_stage/ep30_stereo_table_sharpa_wave_support.usda

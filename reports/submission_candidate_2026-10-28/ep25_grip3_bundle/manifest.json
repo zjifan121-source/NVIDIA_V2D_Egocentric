@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "n_frames": 356,
+  "result_npz": "result.npz",
+  "camera_pose_convention": "camera_to_world",
+  "mesh": {
+    "mesh": "mesh.obj",
+    "materials": [
+      "material.mtl"
+    ],
+    "textures": [
+      "material_0.png"
+    ],
+    "vertex_scale_applied": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "sources": {
+    "frames_dir": "/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/split_l/episode_000025/wooden_piece_1/frames",
+    "intrinsics_path": "/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/split_l/episode_000025/wooden_piece_1/intrinsics_stable.json",
+    "mesh_path": "/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/split_l/episode_000025/wooden_piece_1/mesh_scaled.obj",
+    "object_poses_dir": "/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/split_l/episode_000025/wooden_piece_1/poses_smoothed",
+    "object_scale": 1.0,
+    "input_object_scale_baked_into_mesh": 1.0,
+    "object_pose_scale_baked_into_mesh": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "object_mesh_vertex_scale_applied": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "object_transform_convention": "rigid_pose_no_scale",
+    "camera_to_world_dir": "/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/split_l/episode_000025/wooden_piece_1/slam_poses",
+    "input_camera_pose_convention": "camera_to_world",
+    "left_hand_dir": "/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/split_l/episode_000025/wooden_piece_1/hamer_aligned_filled/2",
+    "right_hand_dir": "/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/split_l/episode_000025/wooden_piece_1/hamer_aligned_filled/3",
+    "pipeline": "ego_wilor",
+    "variant": "no_refinement",
+    "source_run": "/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/split_l/episode_000025/wooden_piece_1"
+  },
+  "keys": [
+    "camera_intrinsics",
+    "camera_is_valid",
+    "camera_to_world_transform",
+    "gravity_alignment_applied",
+    "gravity_alignment_transform",
+    "gravity_in_world_before_alignment",
+    "gravity_target_world",
+    "hand_left_betas",
+    "hand_left_finger_pose",
+    "hand_left_is_valid",
+    "hand_left_scale",
+    "hand_left_wrist_orient_in_camera",
+    "hand_left_wrist_to_camera_transform",
+    "hand_left_wrist_to_world_transform",
+    "hand_left_wrist_trans_in_camera",
+    "hand_right_betas",
+    "hand_right_finger_pose",
+    "hand_right_is_valid",
+    "hand_right_scale",
+    "hand_right_wrist_orient_in_camera",
+    "hand_right_wrist_to_camera_transform",
+    "hand_right_wrist_to_world_transform",
+    "hand_right_wrist_trans_in_camera",
+    "object_is_valid",
+    "object_scale",
+    "object_to_camera_transform",
+    "object_to_world_transform"
+  ],
+  "gravity_alignment": {
+    "enabled": true,
+    "target": "z_up",
+    "target_gravity_world": [
+      0.0,
+      0.0,
+      -1.0
+    ],
+    "gravity_in_world_before_alignment": [
+      0.07813325406743922,
+      0.7653856921572983,
+      0.6388113468385845
+    ],
+    "alignment_transform": [
+      [
+        0.9968811273574829,
+        -0.067116878926754,
+        -0.04151345416903496,
+        0.0
+      ],
+      [
+        -0.011101222597062588,
+        -0.6400625705718994,
+        0.768242597579956,
+        0.0
+      ],
+      [
+        -0.07813325524330139,
+        -0.7653856873512268,
+        -0.6388113498687744,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "source_calibration_path": "/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/split_l/episode_000025/wooden_piece_1/geocalib/calibration.json",
+    "sample_frame_indices": [
+      0,
+      50,
+      101,
+      152,
+      202,
+      253,
+      304,
+      355
+    ],
+    "sample_gravity_vectors_world": [
+      [
+        0.07598862445216457,
+        0.7599404039316119,
+        0.6455356778878505
+      ],
+      [
+        0.08016766261225751,
+        0.7703058654459396,
+        0.6326152223357174
+      ],
+      [
+        0.08666611527113134,
+        0.7606190841018088,
+        0.6433875918635178
+      ],
+      [
+        0.06830094249674451,
+        0.7517619631286936,
+        0.65588789594484
+      ],
+      [
+        0.07876237461678369,
+        0.7813185646636062,
+        0.6191427855161746
+      ],
+      [
+        0.0750552919011764,
+        0.7664223807664654,
+        0.6379368600558307
+      ],
+      [
+        0.07656998436491506,
+        0.7635327593434966,
+        0.6412135080483433
+      ],
+      [
+        0.08349408429649884,
+        0.7685874308933235,
+        0.6342728899774054
+      ]
+    ],
+    "sample_camera_forward_vectors_world": [
+      [
+        0.00031807459897457166,
+        -8.625896620921989e-05,
+        0.9999999456939688
+      ],
+      [
+        -0.030318094070755218,
+        -0.0038859371650530102,
+        0.9995327471695293
+      ],
+      [
+        -0.017912581738086665,
+        -0.056068574056996334,
+        0.9982662242201183
+      ],
+      [
+        0.12351434041423034,
+        -0.004002793589884368,
+        0.9923347143759078
+      ],
+      [
+        0.06207178072764091,
+        -0.011877173885543888,
+        0.9980010154192192
+      ],
+      [
+        0.06668273995450905,
+        -0.007291925969876906,
+        0.9977475833134397
+      ],
+      [
+        0.06135687618574766,
+        -0.010771063345114814,
+        0.9980577728464131
+      ],
+      [
+        0.060794722533186324,
+        0.006468666073058461,
+        0.9981293293312988
+      ]
+    ],
+    "method": "geocalib_opencv_up_to_down_zup_frame",
+    "geocalib_up_vector_negated_to_gravity": true,
+    "old_alignment_transform": null,
+    "x_right_axis_in_pre_alignment_world": [
+      0.9968811150066815,
+      -0.06711688166207537,
+      -0.041513452506320346
+    ],
+    "y_forward_axis_in_pre_alignment_world": [
+      -0.011101222989767135,
+      -0.640062548847261,
+      0.7682426025750453
+    ],
+    "z_up_axis_in_pre_alignment_world": [
+      -0.07813325406743922,
+      -0.7653856921572983,
+      -0.6388113468385845
+    ],
+    "basis_pre_alignment_world_columns": [
+      [
+        0.9968811150066815,
+        -0.011101222989767135,
+        -0.07813325406743922
+      ],
+      [
+        -0.06711688166207537,
+        -0.640062548847261,
+        -0.7653856921572983
+      ],
+      [
+        -0.041513452506320346,
+        0.7682426025750453,
+        -0.6388113468385845
+      ]
+    ]
+  },
+  "world_coordinate_convention": {
+    "handedness": "right_handed",
+    "x_axis": "right",
+    "y_axis": "average_horizontal_camera_forward",
+    "z_axis": "up",
+    "gravity_axis": "negative_z"
+  }
+}
