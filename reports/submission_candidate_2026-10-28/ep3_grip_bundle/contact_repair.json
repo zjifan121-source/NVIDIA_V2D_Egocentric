@@ -1,0 +1,30 @@
+{
+  "source_scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/bm_scored_attach",
+  "source_parquet": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/bm_scored_attach/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_bm_scored_attach/robot_name=sharpa_wave/5dc8bf533ae040ee9236e535a109754f-0.parquet",
+  "source_npz_sha256": "fcfd74ccd0b10713d5c7b36afd70c4dc622a47536f99351d76bc443694c51c18",
+  "side": "left",
+  "object": "white_pot",
+  "hold": [
+    45,
+    265
+  ],
+  "anchor": 150,
+  "blend": 12,
+  "rigid_grip": true,
+  "object_local_translation_m": [
+    0.3216346041957389,
+    -0.016854294259242564,
+    0.038052352924693195
+  ],
+  "translation_cm": 32.43159993189238,
+  "pinch_normal_alignment": null,
+  "anchor_thumb_index_distance_before_cm": [
+    29.391449512022305,
+    28.3894118047077
+  ],
+  "anchor_thumb_index_distance_after_cm": [
+    0.5323370113318059,
+    0.537235240450124
+  ],
+  "object_and_camera_arrays_unchanged": true
+}

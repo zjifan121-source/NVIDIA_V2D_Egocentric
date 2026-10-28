@@ -1,0 +1,352 @@
+{
+  "ep25_assembly2_OT1M_s42/50003968": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s42",
+    "episode": 25,
+    "step": 50003968,
+    "status": "done",
+    "job": "10964997"
+  },
+  "ep33_R100_OT_s42/50003968": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R100_OT_s42",
+    "episode": 33,
+    "step": 50003968,
+    "status": "done",
+    "job": "10964998"
+  },
+  "ep33_R100_OT_s42/75005952": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R100_OT_s42",
+    "episode": 33,
+    "step": 75005952,
+    "status": "done",
+    "job": "10965003"
+  },
+  "ep33_R100_OT_s42/90005504": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R100_OT_s42",
+    "episode": 33,
+    "step": 90005504,
+    "status": "done",
+    "job": "10965011"
+  },
+  "ep33_R100_OT_s42/95006720": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R100_OT_s42",
+    "episode": 33,
+    "step": 95006720,
+    "status": "done",
+    "job": "10965019"
+  },
+  "ep25_assembly2_OT1M_s42/75005952": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s42",
+    "episode": 25,
+    "step": 75005952,
+    "status": "done",
+    "job": "10965026"
+  },
+  "ep5_R005_OT_s42/50003968": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_R005_OT_s42",
+    "episode": 5,
+    "step": 50003968,
+    "status": "done",
+    "job": "10965038"
+  },
+  "ep5_R005_OT_s42/75005952": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_R005_OT_s42",
+    "episode": 5,
+    "step": 75005952,
+    "status": "done",
+    "job": "10965045"
+  },
+  "ep5_R005_OT_s42/90005504": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_R005_OT_s42",
+    "episode": 5,
+    "step": 90005504,
+    "status": "done",
+    "job": "10965056"
+  },
+  "ep5_R005_OT_s42/95006720": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_R005_OT_s42",
+    "episode": 5,
+    "step": 95006720,
+    "status": "done",
+    "job": "10965068"
+  },
+  "ep19_ST_OT_s42/50003968": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_ST_OT_s42",
+    "episode": 19,
+    "step": 50003968,
+    "status": "done",
+    "job": "10965081"
+  },
+  "ep30_table_OT1M_s42/50003968": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_table_OT1M_s42",
+    "episode": 30,
+    "step": 50003968,
+    "status": "done",
+    "job": "10965089"
+  },
+  "ep30_table_OT1M_s42/75005952": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_table_OT1M_s42",
+    "episode": 30,
+    "step": 75005952,
+    "status": "done",
+    "job": "10965098"
+  },
+  "ep30_table_OT1M_s42/90005504": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_table_OT1M_s42",
+    "episode": 30,
+    "step": 90005504,
+    "status": "done",
+    "job": "10965101"
+  },
+  "ep30_table_OT1M_s42/95006720": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_table_OT1M_s42",
+    "episode": 30,
+    "step": 95006720,
+    "status": "done",
+    "job": "10965110"
+  },
+  "ep25_assembly2_OT1M_s42/90005504": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s42",
+    "episode": 25,
+    "step": 90005504,
+    "status": "done",
+    "job": "10965141"
+  },
+  "ep25_assembly2_OT1M_s42/95006720": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s42",
+    "episode": 25,
+    "step": 95006720,
+    "status": "done",
+    "job": "10965170"
+  },
+  "ep33_WIDE_s42/50003968": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42",
+    "episode": 33,
+    "step": 50003968,
+    "status": "done",
+    "job": "10965177"
+  },
+  "ep25_assembly2_WIDE_s42/50003968": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_s42",
+    "episode": 25,
+    "step": 50003968,
+    "status": "done",
+    "job": "10965214"
+  },
+  "ep25_assembly2_WIDE_EARLY_s42/50003968": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_EARLY_s42",
+    "episode": 25,
+    "step": 50003968,
+    "status": "done",
+    "job": "10965276"
+  },
+  "ep33_WIDE_s42/75005952": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42",
+    "episode": 33,
+    "step": 75005952,
+    "status": "done",
+    "job": "10965313"
+  },
+  "ep33_WIDE_EARLY_s42/50003968": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_s42",
+    "episode": 33,
+    "step": 50003968,
+    "status": "done",
+    "job": "10965314"
+  },
+  "ep25_assembly2_WIDE_s42/75005952": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_s42",
+    "episode": 25,
+    "step": 75005952,
+    "status": "done",
+    "job": "10965363"
+  },
+  "ep19_ST_OT_s42/75005952": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_ST_OT_s42",
+    "episode": 19,
+    "step": 75005952,
+    "status": "done",
+    "job": "10965409"
+  },
+  "ep25_assembly2_WIDE_EARLY_s42/75005952": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_EARLY_s42",
+    "episode": 25,
+    "step": 75005952,
+    "status": "done",
+    "job": "10965412"
+  },
+  "ep33_WIDE_EARLY_s42/75005952": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_s42",
+    "episode": 33,
+    "step": 75005952,
+    "status": "done",
+    "job": "10965459"
+  },
+  "ep25_assembly2_WIDE_s42/90005504": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_s42",
+    "episode": 25,
+    "step": 90005504,
+    "status": "done",
+    "job": "10965470"
+  },
+  "ep25_assembly2_WIDE_s42/95006720": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_s42",
+    "episode": 25,
+    "step": 95006720,
+    "status": "done",
+    "job": "10965495"
+  },
+  "ep33_WIDE_s42/90005504": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42",
+    "episode": 33,
+    "step": 90005504,
+    "status": "done",
+    "job": "10965502"
+  },
+  "ep25_assembly2_WIDE_EARLY_s42/90005504": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_EARLY_s42",
+    "episode": 25,
+    "step": 90005504,
+    "status": "done",
+    "job": "10965513"
+  },
+  "ep33_WIDE_s42/95006720": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42",
+    "episode": 33,
+    "step": 95006720,
+    "status": "done",
+    "job": "10965525"
+  },
+  "ep33_WIDE_EARLY_s42/90005504": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_s42",
+    "episode": 33,
+    "step": 90005504,
+    "status": "done",
+    "job": "10965531"
+  },
+  "ep25_assembly2_WIDE_EARLY_s42/95006720": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_EARLY_s42",
+    "episode": 25,
+    "step": 95006720,
+    "status": "done",
+    "job": "10965535"
+  },
+  "ep33_WIDE_EARLY_s42/95006720": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_s42",
+    "episode": 33,
+    "step": 95006720,
+    "status": "done",
+    "job": "10965548"
+  },
+  "ep25_assembly2_LOWLR_s42/100003840": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42",
+    "episode": 25,
+    "step": 100003840,
+    "status": "done",
+    "job": "10965553"
+  },
+  "ep25_assembly2_LOWLR_s42/105005056": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42",
+    "episode": 25,
+    "step": 105005056,
+    "status": "done",
+    "job": "10965585"
+  },
+  "ep19_ST_OT_s42/90005504": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_ST_OT_s42",
+    "episode": 19,
+    "step": 90005504,
+    "status": "done",
+    "job": "10965602"
+  },
+  "ep25_assembly2_LOWLR_s42/110006272": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42",
+    "episode": 25,
+    "step": 110006272,
+    "status": "done",
+    "job": "10965621"
+  },
+  "ep25_assembly2_LOWLR_s42/115007488": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42",
+    "episode": 25,
+    "step": 115007488,
+    "status": "done",
+    "job": "10965641"
+  },
+  "ep19_ST_OT_s42/95006720": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_ST_OT_s42",
+    "episode": 19,
+    "step": 95006720,
+    "status": "done",
+    "job": "10965649"
+  },
+  "ep25_assembly2_LOWLR_s42/120004608": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42",
+    "episode": 25,
+    "step": 120004608,
+    "status": "done",
+    "job": "10965662"
+  },
+  "ep25_assembly2_LOWLR_s42/125001728": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42",
+    "episode": 25,
+    "step": 125001728,
+    "status": "done",
+    "job": "10965684"
+  },
+  "ep33_WIDE_EARLY_NOUNINT_s42/50003968": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_NOUNINT_s42",
+    "episode": 33,
+    "step": 50003968,
+    "status": "done",
+    "job": "10965715"
+  },
+  "ep25_assembly2_OT1M_s43/50003968": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s43",
+    "episode": 25,
+    "step": 50003968,
+    "status": "done",
+    "job": "10965729"
+  },
+  "ep33_WIDE_EARLY_NOUNINT_s42/75005952": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_NOUNINT_s42",
+    "episode": 33,
+    "step": 75005952,
+    "status": "done",
+    "job": "10965823"
+  },
+  "ep25_assembly2_OT1M_s43/75005952": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s43",
+    "episode": 25,
+    "step": 75005952,
+    "status": "done",
+    "job": "10965831"
+  },
+  "ep33_WIDE_EARLY_NOUNINT_s42/90005504": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_NOUNINT_s42",
+    "episode": 33,
+    "step": 90005504,
+    "status": "done",
+    "job": "10965869"
+  },
+  "ep25_assembly2_OT1M_s43/90005504": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s43",
+    "episode": 25,
+    "step": 90005504,
+    "status": "done",
+    "job": "10965873"
+  },
+  "ep25_assembly2_OT1M_s43/95006720": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s43",
+    "episode": 25,
+    "step": 95006720,
+    "status": "done",
+    "job": "10965885"
+  },
+  "ep33_WIDE_EARLY_NOUNINT_s42/95006720": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_NOUNINT_s42",
+    "episode": 33,
+    "step": 95006720,
+    "status": "done",
+    "job": "10965886"
+  }
+}

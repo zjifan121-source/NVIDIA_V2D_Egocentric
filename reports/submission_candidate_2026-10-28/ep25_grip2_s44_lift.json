@@ -1,0 +1,12 @@
+[
+  {
+    "body": 0,
+    "reference_lift_cm": 17.450130462646484,
+    "achieved_lift_cm": 11.352598190307617
+  },
+  {
+    "body": 1,
+    "reference_lift_cm": 20.6761474609375,
+    "achieved_lift_cm": 6.458687782287598
+  }
+]

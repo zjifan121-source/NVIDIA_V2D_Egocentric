@@ -1,0 +1,17 @@
+[  ok  ] python 3.11
+[  ok  ] numpy 2.4.6
+[  ok  ] pandas 3.0.6
+[  ok  ] pyarrow 26.0.0
+[  ok  ] kaggle 2.2.4
+[  ok  ] trimesh 5.1.1
+[  ok  ] fast_simplification 0.2.0
+[  ok  ] running on the host
+           fine either way; only noted so a later dependency surprise makes sense
+[  ok  ] public Track 3 input found at /home/edmondwa/NVIDIA_V2D_Egocentric/assets/data/v2d_submission_kit/data/track_3_sample_submission.parquet
+[  ok  ] public Track 3 input found at /home/edmondwa/NVIDIA_V2D_Egocentric/assets/data/v2d_submission_kit/data/track_3_evaluation_objects.json
+[  ok  ] 20 trajectory parquet(s) in reports/submission_candidate_2026-10-28/packed/results
+[  ok  ] every one of the 20 scored episodes has a trajectory
+[ warn ] Kaggle checks skipped
+           --skip-kaggle was passed
+
+Ready to submit.

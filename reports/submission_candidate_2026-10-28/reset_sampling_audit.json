@@ -1,0 +1,26 @@
+[
+  {
+    "label": "baseline_strong",
+    "worlds": 16384,
+    "first_frame_fraction": 0.00286865234375,
+    "expected_fraction": 0.002881844380403458
+  },
+  {
+    "label": "early_strong",
+    "worlds": 16384,
+    "first_frame_fraction": 0.4974365234375,
+    "expected_fraction": 0.5014409221902018
+  },
+  {
+    "label": "baseline_weak",
+    "worlds": 16384,
+    "first_frame_fraction": 0.10052490234375,
+    "expected_fraction": 0.10259365994236312
+  },
+  {
+    "label": "early_weak",
+    "worlds": 16384,
+    "first_frame_fraction": 0.4974365234375,
+    "expected_fraction": 0.5014409221902018
+  }
+]

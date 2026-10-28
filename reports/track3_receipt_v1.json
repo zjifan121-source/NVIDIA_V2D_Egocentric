@@ -1,0 +1,61 @@
+{
+  "track": "track_3",
+  "file": "/data/user_data/edmondwa/v2d/submission_v1/track3_submission.parquet",
+  "message": "Still-object baseline v1 (commit 1f1b4018)",
+  "submissions": {
+    "add_auc": {
+      "slug": "v2d-challenge-track3-auc",
+      "state": "COMPLETE",
+      "file": "/data/user_data/edmondwa/v2d/submission_v1/track3_submission.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - AUC",
+      "ref": 57294703,
+      "public_score": "0.29518",
+      "error": ""
+    },
+    "spider_sr": {
+      "slug": "v2d-challenge-track3-sp-sr",
+      "state": "COMPLETE",
+      "file": "/data/user_data/edmondwa/v2d/submission_v1/track3_submission.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - SP-SR",
+      "ref": 57294705,
+      "public_score": "0.25000",
+      "error": ""
+    },
+    "maniptrans_sr": {
+      "slug": "v2d-challenge-track3-mp-sr",
+      "state": "COMPLETE",
+      "file": "/data/user_data/edmondwa/v2d/submission_v1/track3_submission.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - MP-SR",
+      "ref": 57294706,
+      "public_score": "0.00000",
+      "error": ""
+    },
+    "rpe_cm": {
+      "slug": "v2d-challenge-track3-rpe",
+      "state": "COMPLETE",
+      "file": "/data/user_data/edmondwa/v2d/submission_v1/track3_submission.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - RPE (cm)",
+      "ref": 57294707,
+      "public_score": "19.77687",
+      "error": ""
+    },
+    "mppe_cm": {
+      "slug": "v2d-challenge-track3-mppe",
+      "state": "COMPLETE",
+      "file": "/data/user_data/edmondwa/v2d/submission_v1/track3_submission.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - MPPE (cm)",
+      "ref": 57294709,
+      "public_score": "14.86842",
+      "error": ""
+    },
+    "cd_o_cm": {
+      "slug": "v2d-challenge-track3-cd-o",
+      "state": "COMPLETE",
+      "file": "/data/user_data/edmondwa/v2d/submission_v1/track3_submission.cd-o.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric (object reconstruction) - CD-O (cm)",
+      "ref": 57294713,
+      "public_score": "0.47262",
+      "error": ""
+    }
+  }
+}

@@ -1,0 +1,4 @@
+{"board": 1, "hulls": 19, "threshold": 0.05, "wall_seconds": 9.525596380233765}
+{"board": 2, "hulls": 22, "threshold": 0.05, "wall_seconds": 7.703301191329956}
+{"board": 1, "hulls": 55, "threshold": 0.02, "wall_seconds": 20.035210847854614}
+{"board": 2, "hulls": 49, "threshold": 0.02, "wall_seconds": 13.96229076385498}

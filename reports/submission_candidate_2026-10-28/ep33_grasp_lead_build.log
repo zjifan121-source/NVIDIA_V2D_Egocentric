@@ -1,0 +1,1 @@
+{"side": "right", "body": "wooden_spoon", "hold": [40, 300], "anchor": 133, "compression_mm": 0.5, "digits": ["thumb", "index", "middle"], "opposing_normal_dot": -0.7892670074920565, "anchor_target_error_m": 3.6070444018693306e-06, "max_wrist_shift_m": 0.06823000294563922}

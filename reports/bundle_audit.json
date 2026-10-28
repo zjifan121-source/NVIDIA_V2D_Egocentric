@@ -1,0 +1,2045 @@
+[
+ {
+  "episode": 1,
+  "split": "evaluation",
+  "object": "white_pot",
+  "objects_in_episode": 2,
+  "num_frames": 335,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 1,
+  "split": "evaluation",
+  "object": "white_pot_lid",
+  "objects_in_episode": 2,
+  "num_frames": 335,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 335,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 0.9510344862937927,
+    "right": 0.8223084211349487
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 3.21,
+   "object_step_median_cm": 0.41,
+   "first_still_frame": 0,
+   "mesh_vertices": 7355,
+   "mesh_extents_cm": [
+    24.5,
+    16.2,
+    10.2
+   ],
+   "rest_footprint_cm": [
+    10.4,
+    4.5
+   ],
+   "scan_extents_cm": [
+    18.9,
+    18.7,
+    4.7
+   ],
+   "mesh_to_scan_size_ratio": 1.448,
+   "warnings": [
+    "right hand scale 0.82: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "mesh is 1.448x the scanned object's size"
+   ]
+  }
+ },
+ {
+  "episode": 3,
+  "split": "evaluation",
+  "object": "white_pot",
+  "objects_in_episode": 2,
+  "num_frames": 313,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 3,
+  "split": "evaluation",
+  "object": "wooden_spoon",
+  "objects_in_episode": 2,
+  "num_frames": 313,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 313,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0746479034423828,
+    "right": 1.1913862228393555
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 2.1,
+   "object_step_median_cm": 0.63,
+   "first_still_frame": 12,
+   "mesh_vertices": 1217,
+   "mesh_extents_cm": [
+    26.4,
+    5.3,
+    2.3
+   ],
+   "rest_footprint_cm": [
+    2.0,
+    0.9
+   ],
+   "warnings": []
+  }
+ },
+ {
+  "episode": 5,
+  "split": "evaluation",
+  "object": "white_pot",
+  "objects_in_episode": 2,
+  "num_frames": 288,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 5,
+  "split": "evaluation",
+  "object": "wooden_spoon",
+  "objects_in_episode": 2,
+  "num_frames": 288,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 288,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0496788024902344,
+    "right": 1.0410155057907104
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 2.02,
+   "object_step_median_cm": 0.47,
+   "first_still_frame": null,
+   "mesh_vertices": 1224,
+   "mesh_extents_cm": [
+    24.4,
+    4.2,
+    2.9
+   ],
+   "rest_footprint_cm": [
+    4.6,
+    1.5
+   ],
+   "warnings": [
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 6,
+  "split": "evaluation",
+  "object": "white_pot",
+  "objects_in_episode": 2,
+  "num_frames": 243,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 6,
+  "split": "evaluation",
+  "object": "wooden_spoon",
+  "objects_in_episode": 2,
+  "num_frames": 243,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 243,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0566670894622803,
+    "right": 1.1397438049316406
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 7.36,
+   "object_step_median_cm": 0.42,
+   "first_still_frame": null,
+   "mesh_vertices": 1313,
+   "mesh_extents_cm": [
+    25.5,
+    5.0,
+    2.4
+   ],
+   "rest_footprint_cm": [
+    1.8,
+    1.4
+   ],
+   "warnings": [
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 8,
+  "split": "evaluation",
+  "object": "beige_cup",
+  "objects_in_episode": 2,
+  "num_frames": 219,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 219,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.2453250885009766,
+    "right": 1.2610663175582886
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 0.88,
+   "object_step_median_cm": 0.47,
+   "first_still_frame": 0,
+   "mesh_vertices": 16053,
+   "mesh_extents_cm": [
+    15.5,
+    10.1,
+    10.0
+   ],
+   "rest_footprint_cm": [
+    7.2,
+    7.0
+   ],
+   "scan_extents_cm": [
+    16.9,
+    10.5,
+    9.9
+   ],
+   "mesh_to_scan_size_ratio": 0.962,
+   "warnings": []
+  }
+ },
+ {
+  "episode": 8,
+  "split": "evaluation",
+  "object": "white_pot",
+  "objects_in_episode": 2,
+  "num_frames": 219,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 10,
+  "split": "evaluation",
+  "object": "blue_cup",
+  "objects_in_episode": 2,
+  "num_frames": 161,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 10,
+  "split": "evaluation",
+  "object": "beige_cup",
+  "objects_in_episode": 2,
+  "num_frames": 161,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 161,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.1270331144332886,
+    "right": 1.0127954483032227
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 2.67,
+   "object_step_median_cm": 0.21,
+   "first_still_frame": 12,
+   "mesh_vertices": 18663,
+   "mesh_extents_cm": [
+    17.6,
+    13.1,
+    12.3
+   ],
+   "rest_footprint_cm": [
+    9.1,
+    8.6
+   ],
+   "scan_extents_cm": [
+    16.9,
+    10.5,
+    9.9
+   ],
+   "mesh_to_scan_size_ratio": 1.177,
+   "warnings": []
+  }
+ },
+ {
+  "episode": 14,
+  "split": "evaluation",
+  "object": "blue_cup",
+  "objects_in_episode": 2,
+  "num_frames": 158,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 158,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 0.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": NaN,
+    "right": 0.9138627052307129
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 11.07,
+   "object_step_median_cm": 0.37,
+   "first_still_frame": 149,
+   "mesh_vertices": 13362,
+   "mesh_extents_cm": [
+    18.2,
+    9.2,
+    9.1
+   ],
+   "rest_footprint_cm": [
+    10.9,
+    6.6
+   ],
+   "scan_extents_cm": [
+    17.1,
+    10.6,
+    9.3
+   ],
+   "mesh_to_scan_size_ratio": 0.971,
+   "warnings": [
+    "hand_left valid on only 0% of frames",
+    "left hand scale nan: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 14,
+  "split": "evaluation",
+  "object": "plastic_dish_rack",
+  "objects_in_episode": 2,
+  "num_frames": 158,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 15,
+  "split": "evaluation",
+  "object": "plastic_dish_rack",
+  "objects_in_episode": 2,
+  "num_frames": 166,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 15,
+  "split": "evaluation",
+  "object": "wooden_spoon",
+  "objects_in_episode": 2,
+  "num_frames": 166,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 166,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0393304824829102,
+    "right": 1.207926630973816
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 2.6,
+   "object_step_median_cm": 0.47,
+   "first_still_frame": 141,
+   "mesh_vertices": 1249,
+   "mesh_extents_cm": [
+    40.0,
+    8.3,
+    3.7
+   ],
+   "rest_footprint_cm": [
+    8.9,
+    3.5
+   ],
+   "warnings": [
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 16,
+  "split": "evaluation",
+  "object": "plastic_dish_rack",
+  "objects_in_episode": 2,
+  "num_frames": 173,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 16,
+  "split": "evaluation",
+  "object": "wooden_spoon",
+  "objects_in_episode": 2,
+  "num_frames": 173,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 173,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 0.7745664739884393,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0211859941482544,
+    "right": 1.6983095407485962
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 1.86,
+   "object_step_median_cm": 0.47,
+   "first_still_frame": 0,
+   "mesh_vertices": 1645,
+   "mesh_extents_cm": [
+    36.0,
+    8.2,
+    4.4
+   ],
+   "rest_footprint_cm": [
+    27.9,
+    3.9
+   ],
+   "warnings": [
+    "hand_left valid on only 77% of frames",
+    "right hand scale 1.70: world may be off by that factor",
+    "rest footprint 27.9x3.9 cm is a strip: object may sit on an edge (level it)"
+   ]
+  }
+ },
+ {
+  "episode": 19,
+  "split": "evaluation",
+  "object": "mini_sweeper",
+  "objects_in_episode": 2,
+  "num_frames": 235,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 235,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 0.9456396698951721,
+    "right": 1.2903190851211548
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 7.38,
+   "object_step_median_cm": 0.33,
+   "first_still_frame": 189,
+   "mesh_vertices": 5883,
+   "mesh_extents_cm": [
+    19.6,
+    15.1,
+    2.3
+   ],
+   "rest_footprint_cm": [
+    14.8,
+    2.7
+   ],
+   "scan_extents_cm": [
+    14.1,
+    10.9,
+    4.7
+   ],
+   "mesh_to_scan_size_ratio": 1.087,
+   "warnings": [
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation",
+    "rest footprint 14.8x2.7 cm is a strip: object may sit on an edge (level it)"
+   ]
+  }
+ },
+ {
+  "episode": 19,
+  "split": "evaluation",
+  "object": "mini_dust_pan",
+  "objects_in_episode": 2,
+  "num_frames": 235,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 20,
+  "split": "evaluation",
+  "object": "blue_cup",
+  "objects_in_episode": 2,
+  "num_frames": 202,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 20,
+  "split": "evaluation",
+  "object": "water_pitcher",
+  "objects_in_episode": 2,
+  "num_frames": 202,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 202,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 0.7227722772277227
+   },
+   "hand_scale_mean": {
+    "left": 1.1310021877288818,
+    "right": 0.9314252138137817
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 6.82,
+   "object_step_median_cm": 0.39,
+   "first_still_frame": 8,
+   "mesh_vertices": 7690,
+   "mesh_extents_cm": [
+    41.3,
+    26.0,
+    15.3
+   ],
+   "rest_footprint_cm": [
+    7.6,
+    3.5
+   ],
+   "scan_extents_cm": [
+    39.7,
+    25.5,
+    13.4
+   ],
+   "mesh_to_scan_size_ratio": 1.066,
+   "warnings": [
+    "hand_right valid on only 72% of frames",
+    "object moves in the first 30 frames (rest contract expects mm-cm)"
+   ]
+  }
+ },
+ {
+  "episode": 25,
+  "split": "evaluation",
+  "object": "wooden_piece_1",
+  "objects_in_episode": 2,
+  "num_frames": 356,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 25,
+  "split": "evaluation",
+  "object": "wooden_piece_2",
+  "objects_in_episode": 2,
+  "num_frames": 356,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 356,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 0.9157303370786517,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0865811109542847,
+    "right": 1.0697020292282104
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 5.4,
+   "object_step_median_cm": 0.15,
+   "first_still_frame": 121,
+   "mesh_vertices": 10817,
+   "mesh_extents_cm": [
+    68.5,
+    68.4,
+    68.2
+   ],
+   "rest_footprint_cm": [
+    37.0,
+    3.6
+   ],
+   "scan_extents_cm": [
+    22.7,
+    13.9,
+    2.6
+   ],
+   "mesh_to_scan_size_ratio": 11.377,
+   "warnings": [
+    "hand_left valid on only 92% of frames",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation",
+    "rest footprint 37.0x3.6 cm is a strip: object may sit on an edge (level it)",
+    "mesh is 11.377x the scanned object's size"
+   ]
+  }
+ },
+ {
+  "episode": 28,
+  "split": "evaluation",
+  "object": "plastic_dish_rack",
+  "objects_in_episode": 2,
+  "num_frames": 220,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 28,
+  "split": "evaluation",
+  "object": "white_pot",
+  "objects_in_episode": 2,
+  "num_frames": 220,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 220,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.1675925254821777,
+    "right": 1.1276140213012695
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 25.06,
+   "object_step_median_cm": 0.61,
+   "first_still_frame": 184,
+   "mesh_vertices": 10869,
+   "mesh_extents_cm": [
+    23.2,
+    21.0,
+    8.5
+   ],
+   "rest_footprint_cm": [
+    13.3,
+    5.2
+   ],
+   "scan_extents_cm": [
+    34.9,
+    19.0,
+    10.9
+   ],
+   "mesh_to_scan_size_ratio": 0.849,
+   "warnings": [
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 30,
+  "split": "evaluation",
+  "object": "mini_sweeper",
+  "objects_in_episode": 2,
+  "num_frames": 263,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 263,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.4186102151870728,
+    "right": 1.3839136362075806
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 2.93,
+   "object_step_median_cm": 0.08,
+   "first_still_frame": 26,
+   "mesh_vertices": 6013,
+   "mesh_extents_cm": [
+    69.1,
+    22.2,
+    16.4
+   ],
+   "rest_footprint_cm": [
+    66.0,
+    7.8
+   ],
+   "scan_extents_cm": [
+    14.1,
+    10.9,
+    4.7
+   ],
+   "mesh_to_scan_size_ratio": 3.482,
+   "warnings": [
+    "left hand scale 1.42: world may be off by that factor",
+    "right hand scale 1.38: world may be off by that factor",
+    "rest footprint 66.0x7.8 cm is a strip: object may sit on an edge (level it)",
+    "mesh is 3.482x the scanned object's size"
+   ]
+  }
+ },
+ {
+  "episode": 30,
+  "split": "evaluation",
+  "object": "plastic_dish_rack",
+  "objects_in_episode": 2,
+  "num_frames": 263,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 32,
+  "split": "evaluation",
+  "object": "blue_cup",
+  "objects_in_episode": 2,
+  "num_frames": 259,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 32,
+  "split": "evaluation",
+  "object": "wooden_spoon",
+  "objects_in_episode": 2,
+  "num_frames": 259,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 259,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.056209683418274,
+    "right": 1.0995891094207764
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 5.0,
+   "object_step_median_cm": 0.84,
+   "first_still_frame": null,
+   "mesh_vertices": 1292,
+   "mesh_extents_cm": [
+    29.8,
+    5.3,
+    2.8
+   ],
+   "rest_footprint_cm": [
+    1.3,
+    0.9
+   ],
+   "warnings": [
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 33,
+  "split": "evaluation",
+  "object": "blue_cup",
+  "objects_in_episode": 2,
+  "num_frames": 348,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 348,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0346945524215698,
+    "right": 1.1801670789718628
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 4.76,
+   "object_step_median_cm": 0.38,
+   "first_still_frame": 5,
+   "mesh_vertices": 15062,
+   "mesh_extents_cm": [
+    23.2,
+    12.8,
+    12.8
+   ],
+   "rest_footprint_cm": [
+    9.1,
+    5.8
+   ],
+   "scan_extents_cm": [
+    17.1,
+    10.6,
+    9.3
+   ],
+   "mesh_to_scan_size_ratio": 1.311,
+   "warnings": [
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "mesh is 1.311x the scanned object's size"
+   ]
+  }
+ },
+ {
+  "episode": 33,
+  "split": "evaluation",
+  "object": "wooden_spoon",
+  "objects_in_episode": 2,
+  "num_frames": 348,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 348,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 0.9244751334190369,
+    "right": 1.101872444152832
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 6.32,
+   "object_step_median_cm": 0.94,
+   "first_still_frame": 1,
+   "mesh_vertices": 1370,
+   "mesh_extents_cm": [
+    26.0,
+    5.1,
+    3.2
+   ],
+   "rest_footprint_cm": [
+    4.5,
+    1.3
+   ],
+   "warnings": [
+    "object moves in the first 30 frames (rest contract expects mm-cm)"
+   ]
+  }
+ },
+ {
+  "episode": 35,
+  "split": "evaluation",
+  "object": "wooden_spoon",
+  "objects_in_episode": 1,
+  "num_frames": 421,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 421,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.2386738061904907,
+    "right": 1.4479140043258667
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 3.05,
+   "object_step_median_cm": 0.59,
+   "first_still_frame": null,
+   "mesh_vertices": 1327,
+   "mesh_extents_cm": [
+    34.8,
+    7.7,
+    4.2
+   ],
+   "rest_footprint_cm": [
+    5.8,
+    1.7
+   ],
+   "warnings": [
+    "right hand scale 1.45: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 36,
+  "split": "evaluation",
+  "object": "wooden_spoon",
+  "objects_in_episode": 1,
+  "num_frames": 407,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 407,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.2117090225219727,
+    "right": 1.1488161087036133
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 8.09,
+   "object_step_median_cm": 0.82,
+   "first_still_frame": 391,
+   "mesh_vertices": 1265,
+   "mesh_extents_cm": [
+    39.6,
+    6.6,
+    4.4
+   ],
+   "rest_footprint_cm": [
+    1.2,
+    1.1
+   ],
+   "warnings": [
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 37,
+  "split": "evaluation",
+  "object": "wooden_spoon",
+  "objects_in_episode": 1,
+  "num_frames": 151,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 151,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.3961840867996216,
+    "right": 1.4687159061431885
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 4.07,
+   "object_step_median_cm": 0.65,
+   "first_still_frame": null,
+   "mesh_vertices": 1370,
+   "mesh_extents_cm": [
+    50.6,
+    10.7,
+    7.5
+   ],
+   "rest_footprint_cm": [
+    1.9,
+    1.9
+   ],
+   "warnings": [
+    "left hand scale 1.40: world may be off by that factor",
+    "right hand scale 1.47: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 38,
+  "split": "evaluation",
+  "object": "mini_dust_pan",
+  "objects_in_episode": 1,
+  "num_frames": 263,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 263,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.578407883644104,
+    "right": 2.6180529594421387
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 1.72,
+   "object_step_median_cm": 0.63,
+   "first_still_frame": 12,
+   "mesh_vertices": 6997,
+   "mesh_extents_cm": [
+    25.7,
+    23.5,
+    3.5
+   ],
+   "rest_footprint_cm": [
+    7.0,
+    3.0
+   ],
+   "scan_extents_cm": [
+    17.7,
+    17.0,
+    3.9
+   ],
+   "mesh_to_scan_size_ratio": 1.241,
+   "warnings": [
+    "left hand scale 1.58: world may be off by that factor",
+    "right hand scale 2.62: world may be off by that factor"
+   ]
+  }
+ },
+ {
+  "episode": 0,
+  "split": "public",
+  "object": "white_pot",
+  "objects_in_episode": 2,
+  "num_frames": 373,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 0,
+  "split": "public",
+  "object": "white_pot_lid",
+  "objects_in_episode": 2,
+  "num_frames": 373,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 373,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 0.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": NaN,
+    "right": 0.8916962146759033
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 3.68,
+   "object_step_median_cm": 0.28,
+   "first_still_frame": 14,
+   "mesh_vertices": 6889,
+   "mesh_extents_cm": [
+    22.2,
+    14.1,
+    10.8
+   ],
+   "rest_footprint_cm": [
+    10.3,
+    3.1
+   ],
+   "scan_extents_cm": [
+    18.9,
+    18.7,
+    4.7
+   ],
+   "mesh_to_scan_size_ratio": 1.411,
+   "warnings": [
+    "hand_left valid on only 0% of frames",
+    "left hand scale nan: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "mesh is 1.411x the scanned object's size"
+   ]
+  }
+ },
+ {
+  "episode": 2,
+  "split": "public",
+  "object": "white_pot",
+  "objects_in_episode": 2,
+  "num_frames": 343,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 2,
+  "split": "public",
+  "object": "white_pot_lid",
+  "objects_in_episode": 2,
+  "num_frames": 343,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 343,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 0.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": NaN,
+    "right": 0.8673418760299683
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 4.42,
+   "object_step_median_cm": 0.55,
+   "first_still_frame": null,
+   "mesh_vertices": 8046,
+   "mesh_extents_cm": [
+    21.6,
+    15.3,
+    9.8
+   ],
+   "rest_footprint_cm": [
+    11.2,
+    4.9
+   ],
+   "scan_extents_cm": [
+    18.9,
+    18.7,
+    4.7
+   ],
+   "mesh_to_scan_size_ratio": 1.35,
+   "warnings": [
+    "hand_left valid on only 0% of frames",
+    "left hand scale nan: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation",
+    "mesh is 1.35x the scanned object's size"
+   ]
+  }
+ },
+ {
+  "episode": 11,
+  "split": "public",
+  "object": "blue_cup",
+  "objects_in_episode": 2,
+  "num_frames": 137,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 11,
+  "split": "public",
+  "object": "beige_cup",
+  "objects_in_episode": 2,
+  "num_frames": 137,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 137,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0406912565231323,
+    "right": 0.968025267124176
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 6.52,
+   "object_step_median_cm": 0.43,
+   "first_still_frame": null,
+   "mesh_vertices": 13559,
+   "mesh_extents_cm": [
+    21.6,
+    11.9,
+    11.9
+   ],
+   "rest_footprint_cm": [
+    8.2,
+    8.2
+   ],
+   "scan_extents_cm": [
+    16.9,
+    10.5,
+    9.9
+   ],
+   "mesh_to_scan_size_ratio": 1.201,
+   "warnings": [
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 12,
+  "split": "public",
+  "object": "blue_cup",
+  "objects_in_episode": 2,
+  "num_frames": 181,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 181,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0894840955734253,
+    "right": 1.130739450454712
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 4.39,
+   "object_step_median_cm": 0.5,
+   "first_still_frame": 149,
+   "mesh_vertices": 15087,
+   "mesh_extents_cm": [
+    20.4,
+    12.3,
+    10.9
+   ],
+   "rest_footprint_cm": [
+    8.1,
+    8.0
+   ],
+   "scan_extents_cm": [
+    17.1,
+    10.6,
+    9.3
+   ],
+   "mesh_to_scan_size_ratio": 1.176,
+   "warnings": [
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 12,
+  "split": "public",
+  "object": "plastic_dish_rack",
+  "objects_in_episode": 2,
+  "num_frames": 181,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 13,
+  "split": "public",
+  "object": "blue_cup",
+  "objects_in_episode": 2,
+  "num_frames": 190,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 190,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 0.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0463857650756836,
+    "right": NaN
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 12.25,
+   "object_step_median_cm": 0.42,
+   "first_still_frame": null,
+   "mesh_vertices": 13139,
+   "mesh_extents_cm": [
+    16.4,
+    8.6,
+    8.5
+   ],
+   "rest_footprint_cm": [
+    8.1,
+    6.5
+   ],
+   "scan_extents_cm": [
+    17.1,
+    10.6,
+    9.3
+   ],
+   "mesh_to_scan_size_ratio": 0.896,
+   "warnings": [
+    "hand_right valid on only 0% of frames",
+    "right hand scale nan: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 13,
+  "split": "public",
+  "object": "plastic_dish_rack",
+  "objects_in_episode": 2,
+  "num_frames": 190,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 18,
+  "split": "public",
+  "object": "mini_sweeper",
+  "objects_in_episode": 2,
+  "num_frames": 353,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 353,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 0.9811133146286011,
+    "right": 1.4531898498535156
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 5.91,
+   "object_step_median_cm": 0.22,
+   "first_still_frame": 0,
+   "mesh_vertices": 6280,
+   "mesh_extents_cm": [
+    16.0,
+    13.1,
+    2.3
+   ],
+   "rest_footprint_cm": [
+    17.0,
+    4.6
+   ],
+   "scan_extents_cm": [
+    14.1,
+    10.9,
+    4.7
+   ],
+   "mesh_to_scan_size_ratio": 0.939,
+   "warnings": [
+    "right hand scale 1.45: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)"
+   ]
+  }
+ },
+ {
+  "episode": 18,
+  "split": "public",
+  "object": "mini_dust_pan",
+  "objects_in_episode": 2,
+  "num_frames": 353,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 21,
+  "split": "public",
+  "object": "blue_cup",
+  "objects_in_episode": 2,
+  "num_frames": 186,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 21,
+  "split": "public",
+  "object": "water_pitcher",
+  "objects_in_episode": 2,
+  "num_frames": 186,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 186,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 0.7741935483870968
+   },
+   "hand_scale_mean": {
+    "left": 1.148534893989563,
+    "right": 1.0806788206100464
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 8.25,
+   "object_step_median_cm": 0.29,
+   "first_still_frame": 115,
+   "mesh_vertices": 7744,
+   "mesh_extents_cm": [
+    46.2,
+    24.6,
+    17.7
+   ],
+   "rest_footprint_cm": [
+    7.5,
+    2.8
+   ],
+   "scan_extents_cm": [
+    39.7,
+    25.5,
+    13.4
+   ],
+   "mesh_to_scan_size_ratio": 1.149,
+   "warnings": [
+    "hand_right valid on only 77% of frames",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+   ]
+  }
+ },
+ {
+  "episode": 22,
+  "split": "public",
+  "object": "blue_cup",
+  "objects_in_episode": 2,
+  "num_frames": 189,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 22,
+  "split": "public",
+  "object": "water_pitcher",
+  "objects_in_episode": 2,
+  "num_frames": 189,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 189,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0396811962127686,
+    "right": 0.971167266368866
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 3.75,
+   "object_step_median_cm": 0.23,
+   "first_still_frame": 27,
+   "mesh_vertices": 7905,
+   "mesh_extents_cm": [
+    45.0,
+    24.7,
+    15.4
+   ],
+   "rest_footprint_cm": [
+    9.0,
+    7.5
+   ],
+   "scan_extents_cm": [
+    39.7,
+    25.5,
+    13.4
+   ],
+   "mesh_to_scan_size_ratio": 1.083,
+   "warnings": [
+    "object moves in the first 30 frames (rest contract expects mm-cm)"
+   ]
+  }
+ },
+ {
+  "episode": 23,
+  "split": "public",
+  "object": "wooden_piece_1",
+  "objects_in_episode": 2,
+  "num_frames": 325,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 23,
+  "split": "public",
+  "object": "wooden_piece_2",
+  "objects_in_episode": 2,
+  "num_frames": 325,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 325,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 0.8461538461538461,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 0.796887218952179,
+    "right": 1.022868037223816
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 12.83,
+   "object_step_median_cm": 0.2,
+   "first_still_frame": 172,
+   "mesh_vertices": 8207,
+   "mesh_extents_cm": [
+    72.0,
+    71.3,
+    70.8
+   ],
+   "rest_footprint_cm": [
+    22.2,
+    3.0
+   ],
+   "scan_extents_cm": [
+    22.7,
+    13.9,
+    2.6
+   ],
+   "mesh_to_scan_size_ratio": 11.835,
+   "warnings": [
+    "hand_left valid on only 85% of frames",
+    "left hand scale 0.80: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation",
+    "rest footprint 22.2x3.0 cm is a strip: object may sit on an edge (level it)",
+    "mesh is 11.835x the scanned object's size"
+   ]
+  }
+ },
+ {
+  "episode": 24,
+  "split": "public",
+  "object": "wooden_piece_1",
+  "objects_in_episode": 2,
+  "num_frames": 275,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 24,
+  "split": "public",
+  "object": "wooden_piece_2",
+  "objects_in_episode": 2,
+  "num_frames": 275,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 275,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 0.0
+   },
+   "hand_scale_mean": {
+    "left": 1.206273078918457,
+    "right": NaN
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 4.67,
+   "object_step_median_cm": 0.39,
+   "first_still_frame": 185,
+   "mesh_vertices": 6935,
+   "mesh_extents_cm": [
+    52.7,
+    52.4,
+    39.4
+   ],
+   "rest_footprint_cm": [
+    2.1,
+    2.1
+   ],
+   "scan_extents_cm": [
+    22.7,
+    13.9,
+    2.6
+   ],
+   "mesh_to_scan_size_ratio": 7.075,
+   "warnings": [
+    "hand_right valid on only 0% of frames",
+    "right hand scale nan: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation",
+    "mesh is 7.075x the scanned object's size"
+   ]
+  }
+ },
+ {
+  "episode": 26,
+  "split": "public",
+  "object": "plastic_dish_rack",
+  "objects_in_episode": 2,
+  "num_frames": 158,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 26,
+  "split": "public",
+  "object": "white_pot",
+  "objects_in_episode": 2,
+  "num_frames": 158,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 158,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 0.9676275849342346,
+    "right": 1.296830177307129
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 2.54,
+   "object_step_median_cm": 0.29,
+   "first_still_frame": 22,
+   "mesh_vertices": 8370,
+   "mesh_extents_cm": [
+    23.6,
+    17.9,
+    9.6
+   ],
+   "rest_footprint_cm": [
+    20.4,
+    5.3
+   ],
+   "scan_extents_cm": [
+    34.9,
+    19.0,
+    10.9
+   ],
+   "mesh_to_scan_size_ratio": 0.834,
+   "warnings": []
+  }
+ },
+ {
+  "episode": 27,
+  "split": "public",
+  "object": "plastic_dish_rack",
+  "objects_in_episode": 2,
+  "num_frames": 246,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 27,
+  "split": "public",
+  "object": "white_pot",
+  "objects_in_episode": 2,
+  "num_frames": 246,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 246,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.2536355257034302,
+    "right": 1.046187400817871
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 6.05,
+   "object_step_median_cm": 0.7,
+   "first_still_frame": 9,
+   "mesh_vertices": 5692,
+   "mesh_extents_cm": [
+    44.6,
+    25.4,
+    13.1
+   ],
+   "rest_footprint_cm": [
+    15.5,
+    11.7
+   ],
+   "scan_extents_cm": [
+    34.9,
+    19.0,
+    10.9
+   ],
+   "mesh_to_scan_size_ratio": 1.27,
+   "warnings": [
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "mesh is 1.27x the scanned object's size"
+   ]
+  }
+ },
+ {
+  "episode": 31,
+  "split": "public",
+  "object": "mini_sweeper",
+  "objects_in_episode": 2,
+  "num_frames": 290,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 290,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 0.7480497360229492,
+    "right": 1.3163328170776367
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 9.46,
+   "object_step_median_cm": 0.08,
+   "first_still_frame": 25,
+   "mesh_vertices": 5673,
+   "mesh_extents_cm": [
+    78.8,
+    28.2,
+    21.1
+   ],
+   "rest_footprint_cm": [
+    24.6,
+    11.8
+   ],
+   "scan_extents_cm": [
+    14.1,
+    10.9,
+    4.7
+   ],
+   "mesh_to_scan_size_ratio": 4.231,
+   "warnings": [
+    "left hand scale 0.75: world may be off by that factor",
+    "right hand scale 1.32: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)",
+    "mesh is 4.231x the scanned object's size"
+   ]
+  }
+ },
+ {
+  "episode": 31,
+  "split": "public",
+  "object": "plastic_dish_rack",
+  "objects_in_episode": 2,
+  "num_frames": 290,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 39,
+  "split": "public",
+  "object": "mini_dust_pan",
+  "objects_in_episode": 1,
+  "num_frames": 319,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 40,
+  "split": "public",
+  "object": "mini_dust_pan",
+  "objects_in_episode": 1,
+  "num_frames": 260,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 41,
+  "split": "public",
+  "object": "white_pot",
+  "objects_in_episode": 1,
+  "num_frames": 299,
+  "uploaded": true,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": [],
+  "check": {
+   "frames": 299,
+   "nan_arrays": [],
+   "valid_fraction": {
+    "camera": 1.0,
+    "object": 1.0,
+    "hand_left": 1.0,
+    "hand_right": 1.0
+   },
+   "hand_scale_mean": {
+    "left": 1.0990267992019653,
+    "right": 0.8264488577842712
+   },
+   "gravity_alignment_applied": true,
+   "object_drift_first_30_frames_cm": 3.61,
+   "object_step_median_cm": 0.6,
+   "first_still_frame": 0,
+   "mesh_vertices": 8746,
+   "mesh_extents_cm": [
+    33.5,
+    24.3,
+    13.8
+   ],
+   "rest_footprint_cm": [
+    11.3,
+    3.4
+   ],
+   "scan_extents_cm": [
+    34.9,
+    19.0,
+    10.9
+   ],
+   "mesh_to_scan_size_ratio": 1.168,
+   "warnings": [
+    "right hand scale 0.83: world may be off by that factor",
+    "object moves in the first 30 frames (rest contract expects mm-cm)"
+   ]
+  }
+ },
+ {
+  "episode": 42,
+  "split": "public",
+  "object": "white_pot",
+  "objects_in_episode": 1,
+  "num_frames": 257,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 43,
+  "split": "public",
+  "object": "white_pot",
+  "objects_in_episode": 1,
+  "num_frames": 326,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 44,
+  "split": "public",
+  "object": "white_pot",
+  "objects_in_episode": 1,
+  "num_frames": 249,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ },
+ {
+  "episode": 45,
+  "split": "public",
+  "object": "white_pot",
+  "objects_in_episode": 1,
+  "num_frames": 290,
+  "uploaded": false,
+  "run_json": false,
+  "overlay": false,
+  "missing_files": []
+ }
+]

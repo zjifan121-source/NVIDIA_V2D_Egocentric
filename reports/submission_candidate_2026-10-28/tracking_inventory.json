@@ -1,0 +1,3768 @@
+{
+  "episodes": 20,
+  "mean_own_reference": 0.8273545719419101,
+  "all_references_move": true,
+  "checks": [
+    {
+      "episode": 1,
+      "rows": 670,
+      "frames": 335,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 3,
+      "rows": 626,
+      "frames": 313,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 5,
+      "rows": 576,
+      "frames": 288,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 6,
+      "rows": 486,
+      "frames": 243,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 8,
+      "rows": 438,
+      "frames": 219,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 10,
+      "rows": 322,
+      "frames": 161,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 14,
+      "rows": 316,
+      "frames": 158,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 15,
+      "rows": 332,
+      "frames": 166,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 16,
+      "rows": 346,
+      "frames": 173,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 19,
+      "rows": 470,
+      "frames": 235,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 20,
+      "rows": 404,
+      "frames": 202,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 25,
+      "rows": 712,
+      "frames": 356,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": [
+        0.10978418006869717,
+        0.11902271100955963
+      ]
+    },
+    {
+      "episode": 28,
+      "rows": 440,
+      "frames": 220,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 30,
+      "rows": 526,
+      "frames": 263,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 32,
+      "rows": 518,
+      "frames": 259,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 33,
+      "rows": 696,
+      "frames": 348,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 35,
+      "rows": 421,
+      "frames": 421,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 36,
+      "rows": 407,
+      "frames": 407,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 37,
+      "rows": 151,
+      "frames": 151,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    },
+    {
+      "episode": 38,
+      "rows": 263,
+      "frames": 263,
+      "issues": [],
+      "actual_mesh_bottom_lifts_m": null
+    }
+  ],
+  "exclusions": [
+    [
+      "ep25_kenCbp_s44_nj1024",
+      "missing scoring meshes"
+    ],
+    [
+      "ep25_kenC_s43",
+      "missing scoring meshes"
+    ],
+    [
+      "ep25_kenCbp_s42_nj1024",
+      "missing scoring meshes"
+    ],
+    [
+      "ep25_kenC_s44",
+      "missing scoring meshes"
+    ],
+    [
+      "ep25_kenCbp_s43_nj1024",
+      "missing scoring meshes"
+    ],
+    [
+      "ep25_kenC_s42",
+      "missing scoring meshes"
+    ]
+  ],
+  "candidates": {
+    "33": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42/early_95006720",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.7913074712643678,
+        "name": "ep33_WIDE_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.7895114942528736,
+        "name": "ep33_WIDE_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.7511673850574713,
+        "name": "ep33_WIDE_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.5114044540229885,
+        "name": "ep33_WIDE_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.49353448275862066,
+        "name": "ep33_WIDE_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.4630028735632184,
+        "name": "kv_ep33_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s42/early_95006720",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.4594109195402299,
+        "name": "kv_ep33_OT_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_NOUNINT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.45725574712643674,
+        "name": "ep33_WIDE_EARLY_NOUNINT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.44324712643678166,
+        "name": "kv_ep33_OT_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_NOUNINT_s42/early_95006720",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.4176544540229885,
+        "name": "ep33_WIDE_EARLY_NOUNINT_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_NOUNINT_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.4061602011494253,
+        "name": "ep33_WIDE_EARLY_NOUNINT_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.3983477011494253,
+        "name": "ep33_WIDE_EARLY_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_NF_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.39493534482758624,
+        "name": "kv_ep33_NF_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s42/early_60002304",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.3714080459770115,
+        "name": "kv_ep33_OT_s42/early_60002304"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_T_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_T",
+        "kind": "policy",
+        "tracking": 0.360003591954023,
+        "name": "kv_ep33_T_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep33_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000033/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3169001436781609,
+        "name": "ep33_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_F0_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.3095366379310345,
+        "name": "kv_ep33_F0_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_NF_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.3055854885057471,
+        "name": "kv_ep33_NF_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep33_kenC_s45",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000033/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3017241379310345,
+        "name": "ep33_kenC_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_attach",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000033/merged_attach",
+        "kind": "policy",
+        "tracking": 0.29956896551724144,
+        "name": "ep33_attach"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.296875,
+        "name": "kv_ep33_OT_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s42/early_80003072",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.29103807471264365,
+        "name": "kv_ep33_OT_s42/early_80003072"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep33_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000033/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.2739762931034483,
+        "name": "ep33_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.27218031609195403,
+        "name": "ep33_WIDE_EARLY_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000033/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.2697557471264368,
+        "name": "ep33_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_NFS",
+        "kind": "policy",
+        "tracking": 0.2685883620689655,
+        "name": "kv_ep33_OT_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_merged_level",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000033/merged_level",
+        "kind": "policy",
+        "tracking": 0.2641882183908046,
+        "name": "ep33_merged_level"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s42/early_85004288",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.26239224137931033,
+        "name": "kv_ep33_OT_s42/early_85004288"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s42/early_65003520",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.2484734195402299,
+        "name": "kv_ep33_OT_s42/early_65003520"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R005_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.2478448275862069,
+        "name": "ep33_R005_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000033/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.24263649425287354,
+        "name": "ep33_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R100_OT_s42/early_95006720",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.24119971264367815,
+        "name": "ep33_R100_OT_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000033/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.23733836206896552,
+        "name": "ep33_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep33_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000033/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.2357219827586207,
+        "name": "ep33_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000033/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.23213002873563218,
+        "name": "ep33_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_H8_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.21237428160919541,
+        "name": "kv_ep33_H8_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R005_OT_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.20824353448275862,
+        "name": "ep33_R005_OT_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000033/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.20545977011494254,
+        "name": "ep33_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R100_OT_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.20545977011494254,
+        "name": "ep33_R100_OT_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.2036637931034483,
+        "name": "kv_ep33_OT_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000033/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.20231681034482757,
+        "name": "ep33_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42/early_20000768",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.1989942528735632,
+        "name": "ep33_WIDE_s42/early_20000768"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R100_OT_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.19701867816091956,
+        "name": "ep33_R100_OT_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R100_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.1957614942528736,
+        "name": "ep33_R100_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_S",
+        "kind": "policy",
+        "tracking": 0.19576149425287356,
+        "name": "kv_ep33_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_LT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_LT",
+        "kind": "policy",
+        "tracking": 0.19567169540229887,
+        "name": "kv_ep33_LT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_S_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_S",
+        "kind": "policy",
+        "tracking": 0.19486350574712644,
+        "name": "kv_ep33_S_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000033/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.1924389367816092,
+        "name": "ep33_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_L",
+        "kind": "policy",
+        "tracking": 0.19127155172413793,
+        "name": "kv_ep33_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R100_OT_s42/early_20000768",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.1903735632183908,
+        "name": "ep33_R100_OT_s42/early_20000768"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R005_OT_s42/early_20000768",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.18974497126436785,
+        "name": "ep33_R005_OT_s42/early_20000768"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s42/early_70004736",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.18758979885057472,
+        "name": "kv_ep33_OT_s42/early_70004736"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_SL_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_SL",
+        "kind": "policy",
+        "tracking": 0.18426724137931036,
+        "name": "kv_ep33_SL_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_OT_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_NFS",
+        "kind": "policy",
+        "tracking": 0.18363864942528735,
+        "name": "kv_ep33_OT_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_NOUNINT_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.18292025862068967,
+        "name": "ep33_WIDE_EARLY_NOUNINT_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_R100_OT_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.17151580459770116,
+        "name": "ep33_R100_OT_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_nominal_original",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.17043821839080459,
+        "name": "ep33_nominal_original"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep33_TE_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_TE",
+        "kind": "policy",
+        "tracking": 0.16478089080459768,
+        "name": "kv_ep33_TE_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_s42/early_95006720",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.16056034482758622,
+        "name": "ep33_WIDE_EARLY_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_NOUNINT_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.15867456896551724,
+        "name": "ep33_WIDE_EARLY_NOUNINT_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_nominal_grasp",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep33_grasp_scene",
+        "kind": "policy",
+        "tracking": 0.1421515804597701,
+        "name": "ep33_nominal_grasp"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.13146551724137934,
+        "name": "ep33_WIDE_EARLY_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_EARLY_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+        "kind": "policy",
+        "tracking": 0.11476293103448276,
+        "name": "ep33_WIDE_EARLY_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_nominal_grasp_lead",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep33_grasp_lead_scene",
+        "kind": "policy",
+        "tracking": 0.11036278735632184,
+        "name": "ep33_nominal_grasp_lead"
+      }
+    ],
+    "3": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43/early_85004288",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.7397164536741214,
+        "name": "ep3_grip_OT1M_s43/early_85004288"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43/early_80003072",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.7241413738019169,
+        "name": "ep3_grip_OT1M_s43/early_80003072"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43/early_90005504",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.7163538338658146,
+        "name": "ep3_grip_OT1M_s43/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.7061701277955272,
+        "name": "ep3_grip_OT1M_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_bm_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.669129392971246,
+        "name": "ep3_bm_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43/early_95006720",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.6642372204472844,
+        "name": "ep3_grip_OT1M_s43/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s42/early_90005504",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.6630391373801917,
+        "name": "ep3_grip_OT1M_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43/early_65003520",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.6600439297124601,
+        "name": "ep3_grip_OT1M_s43/early_65003520"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43/early_70004736",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.646964856230032,
+        "name": "ep3_grip_OT1M_s43/early_70004736"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6258985623003195,
+        "name": "ep3_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_bm_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6202076677316294,
+        "name": "ep3_bm_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep3_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep3_B",
+        "kind": "policy",
+        "tracking": 0.608426517571885,
+        "name": "kv_ep3_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_bm_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5991413738019169,
+        "name": "ep3_bm_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep3_OT_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep3_NFS",
+        "kind": "policy",
+        "tracking": 0.5831669329073482,
+        "name": "kv_ep3_OT_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep3_NF_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep3_B",
+        "kind": "policy",
+        "tracking": 0.5692891373801917,
+        "name": "kv_ep3_NF_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43/early_50003968",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.5657947284345047,
+        "name": "ep3_grip_OT1M_s43/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43/early_60002304",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.5547124600638977,
+        "name": "ep3_grip_OT1M_s43/early_60002304"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s42/early_75005952",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.5530151757188498,
+        "name": "ep3_grip_OT1M_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s42",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.5311501597444089,
+        "name": "ep3_grip_OT1M_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep3_kenC_s45",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000003/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.48732028753993617,
+        "name": "ep3_kenC_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s42/early_50003968",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.45117811501597443,
+        "name": "ep3_grip_OT1M_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep3_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000003/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3856829073482428,
+        "name": "ep3_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep3_NF_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep3_B",
+        "kind": "policy",
+        "tracking": 0.37200479233226835,
+        "name": "kv_ep3_NF_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep3_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep3_L",
+        "kind": "policy",
+        "tracking": 0.3523362619808307,
+        "name": "kv_ep3_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep3_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000003/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.34674520766773165,
+        "name": "ep3_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep3_F0_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep3_B",
+        "kind": "policy",
+        "tracking": 0.33696086261980834,
+        "name": "kv_ep3_F0_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep3_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000003/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3156948881789137,
+        "name": "ep3_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43/early_75005952",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.2994209265175719,
+        "name": "ep3_grip_OT1M_s43/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.26936900958466453,
+        "name": "ep3_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep3_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep3_S",
+        "kind": "policy",
+        "tracking": 0.26687300319488816,
+        "name": "kv_ep3_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.24600638977635783,
+        "name": "ep3_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.23901757188498401,
+        "name": "ep3_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.22553913738019168,
+        "name": "ep3_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.22394169329073482,
+        "name": "ep3_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_nominal_grip",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+        "kind": "policy",
+        "tracking": 0.2123602236421725,
+        "name": "ep3_nominal_grip"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000003/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.1420726837060703,
+        "name": "ep3_bm_s43"
+      }
+    ],
+    "10": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep10_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000010/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6904114906832298,
+        "name": "ep10_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep10_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000010/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.686917701863354,
+        "name": "ep10_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep10_kenC_s45_nj1024",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000010/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6789596273291925,
+        "name": "ep10_kenC_s45_nj1024"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep10_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000010/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6754658385093169,
+        "name": "ep10_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep10_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep10_NFS",
+        "kind": "policy",
+        "tracking": 0.6321816770186335,
+        "name": "kv_ep10_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep10_v5_obj2x_s45/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000010/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5300854037267081,
+        "name": "ep10_v5_obj2x_s45/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep10_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000010/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5211568322981366,
+        "name": "ep10_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep10_v5_obj2x_s45/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000010/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5161102484472051,
+        "name": "ep10_v5_obj2x_s45/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep10_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000010/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5143633540372671,
+        "name": "ep10_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep10_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000010/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5128105590062112,
+        "name": "ep10_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep10_v5_obj2x_s45/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000010/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5106754658385093,
+        "name": "ep10_v5_obj2x_s45/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep10_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000010/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5048524844720498,
+        "name": "ep10_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep10_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000010/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.36665372670807456,
+        "name": "ep10_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep10_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep10_S",
+        "kind": "policy",
+        "tracking": 0.28843167701863354,
+        "name": "kv_ep10_S_s42"
+      }
+    ],
+    "8": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep8_kenC_s45",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000008/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.8909817351598173,
+        "name": "ep8_kenC_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep8_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep8_NFS",
+        "kind": "policy",
+        "tracking": 0.877425799086758,
+        "name": "kv_ep8_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep8_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000008/fs_hands_attach",
+        "kind": "policy",
+        "tracking": 0.7464326484018264,
+        "name": "ep8_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep8_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000008/fs_hands_attach",
+        "kind": "policy",
+        "tracking": 0.7391552511415524,
+        "name": "ep8_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep8_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000008/fs_hands_attach",
+        "kind": "policy",
+        "tracking": 0.7255993150684932,
+        "name": "ep8_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep8_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000008/fs_hands_attach",
+        "kind": "policy",
+        "tracking": 0.7128995433789954,
+        "name": "ep8_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep8_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000008/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5669235159817352,
+        "name": "ep8_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep8_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000008/fs_hands_attach",
+        "kind": "policy",
+        "tracking": 0.5402397260273972,
+        "name": "ep8_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep8_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep8_S",
+        "kind": "policy",
+        "tracking": 0.360445205479452,
+        "name": "kv_ep8_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep8_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000008/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.24215182648401826,
+        "name": "ep8_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep8_TE_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep8_TE",
+        "kind": "policy",
+        "tracking": 0.2363013698630137,
+        "name": "kv_ep8_TE_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep8_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000008/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.22246004566210043,
+        "name": "ep8_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep8_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000008/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.20248287671232879,
+        "name": "ep8_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep8_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000008/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.16481164383561642,
+        "name": "ep8_bm_s42"
+      }
+    ],
+    "20": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+        "kind": "policy",
+        "tracking": 0.7073019801980198,
+        "name": "kv_ep20_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42/early_95006720",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+        "kind": "policy",
+        "tracking": 0.6909034653465347,
+        "name": "kv_ep20_OT_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+        "kind": "policy",
+        "tracking": 0.6783725247524752,
+        "name": "kv_ep20_OT_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_bm_s43/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000020/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6740408415841584,
+        "name": "ep20_bm_s43/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_NFS",
+        "kind": "policy",
+        "tracking": 0.6717202970297029,
+        "name": "kv_ep20_OT_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000020/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6641398514851485,
+        "name": "ep20_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42/early_70004736",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+        "kind": "policy",
+        "tracking": 0.6635210396039604,
+        "name": "kv_ep20_OT_s42/early_70004736"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42/early_85004288",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+        "kind": "policy",
+        "tracking": 0.6547029702970297,
+        "name": "kv_ep20_OT_s42/early_85004288"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_bm_s43/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000020/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6444925742574258,
+        "name": "ep20_bm_s43/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+        "kind": "policy",
+        "tracking": 0.6214418316831684,
+        "name": "kv_ep20_OT_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42/early_65003520",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+        "kind": "policy",
+        "tracking": 0.5994740099009901,
+        "name": "kv_ep20_OT_s42/early_65003520"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+        "kind": "policy",
+        "tracking": 0.5601794554455446,
+        "name": "kv_ep20_OT_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42/early_60002304",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+        "kind": "policy",
+        "tracking": 0.45219678217821785,
+        "name": "kv_ep20_OT_s42/early_60002304"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep20_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000020/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.44446163366336633,
+        "name": "ep20_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000020/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.44152227722772286,
+        "name": "ep20_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_F0_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+        "kind": "policy",
+        "tracking": 0.38830445544554454,
+        "name": "kv_ep20_F0_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep20_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000020/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3725247524752475,
+        "name": "ep20_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep20_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000020/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3641707920792079,
+        "name": "ep20_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep20_kenC_s45",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000020/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3604579207920792,
+        "name": "ep20_kenC_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42/early_80003072",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+        "kind": "policy",
+        "tracking": 0.3466893564356436,
+        "name": "kv_ep20_OT_s42/early_80003072"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_bm_s43/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000020/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.33616955445544555,
+        "name": "ep20_bm_s43/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000020/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.22462871287128713,
+        "name": "ep20_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000020/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.18966584158415842,
+        "name": "ep20_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000020/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.1181930693069307,
+        "name": "ep20_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000020/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.1129331683168317,
+        "name": "ep20_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_S",
+        "kind": "policy",
+        "tracking": 0.06946163366336634,
+        "name": "kv_ep20_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000020/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.05909653465346535,
+        "name": "ep20_v2_250M"
+      }
+    ],
+    "5": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42/early_60002304",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.6024305555555556,
+        "name": "kv_ep5_OT_s42/early_60002304"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.5832248263888888,
+        "name": "kv_ep5_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42/early_65003520",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.5787760416666667,
+        "name": "kv_ep5_OT_s42/early_65003520"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42/early_70004736",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.5743272569444444,
+        "name": "kv_ep5_OT_s42/early_70004736"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.5621744791666666,
+        "name": "kv_ep5_OT_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.5567491319444444,
+        "name": "kv_ep5_OT_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.550564236111111,
+        "name": "kv_ep5_OT_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_R100_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.5502387152777778,
+        "name": "ep5_R100_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42/early_95006720",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.5472005208333334,
+        "name": "kv_ep5_OT_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42/early_80003072",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.5036892361111112,
+        "name": "kv_ep5_OT_s42/early_80003072"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42/early_85004288",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.49750434027777773,
+        "name": "kv_ep5_OT_s42/early_85004288"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_NFS",
+        "kind": "policy",
+        "tracking": 0.4205729166666667,
+        "name": "kv_ep5_OT_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000005/fs_sam3d_attach",
+        "kind": "policy",
+        "tracking": 0.32649739583333337,
+        "name": "ep5_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000005/fs_sam3d_attach",
+        "kind": "policy",
+        "tracking": 0.3166232638888889,
+        "name": "ep5_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000005/fs_sam3d_attach",
+        "kind": "policy",
+        "tracking": 0.3042534722222222,
+        "name": "ep5_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000005/fs_sam3d_attach",
+        "kind": "policy",
+        "tracking": 0.3034939236111111,
+        "name": "ep5_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000005/fs_sam3d_attach",
+        "kind": "policy",
+        "tracking": 0.3031684027777778,
+        "name": "ep5_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep5_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000005/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.29654947916666663,
+        "name": "ep5_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_NF_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.2667100694444444,
+        "name": "kv_ep5_NF_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000005/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.2569444444444444,
+        "name": "ep5_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_dgCH_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_CH",
+        "kind": "policy",
+        "tracking": 0.234375,
+        "name": "kv_ep5_dgCH_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep5_kenC_s45",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000005/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.22428385416666669,
+        "name": "ep5_kenC_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_LT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_LT",
+        "kind": "policy",
+        "tracking": 0.2228732638888889,
+        "name": "kv_ep5_LT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_S",
+        "kind": "policy",
+        "tracking": 0.21419270833333334,
+        "name": "kv_ep5_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_NFS",
+        "kind": "policy",
+        "tracking": 0.20789930555555552,
+        "name": "kv_ep5_OT_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep5_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000005/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.2062717013888889,
+        "name": "ep5_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_R005_OT_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.19943576388888887,
+        "name": "ep5_R005_OT_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_R005_OT_s42/early_95006720",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.19759114583333334,
+        "name": "ep5_R005_OT_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_R005_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.19628906249999997,
+        "name": "ep5_R005_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_L",
+        "kind": "policy",
+        "tracking": 0.1921657986111111,
+        "name": "kv_ep5_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_R005_OT_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.17686631944444442,
+        "name": "ep5_R005_OT_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_dgB_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.16937934027777776,
+        "name": "kv_ep5_dgB_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_R005_OT_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.1535373263888889,
+        "name": "ep5_R005_OT_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000005/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.15082465277777776,
+        "name": "ep5_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep5_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000005/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.13313802083333334,
+        "name": "ep5_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_F0_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+        "kind": "policy",
+        "tracking": 0.12554253472222224,
+        "name": "kv_ep5_F0_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_dgSH_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_SH",
+        "kind": "policy",
+        "tracking": 0.11197916666666669,
+        "name": "kv_ep5_dgSH_s42"
+      }
+    ],
+    "14": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_bm_s43/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.8269382911392404,
+        "name": "ep14_bm_s43/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep14_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000014/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.8267405063291139,
+        "name": "ep14_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.8214003164556962,
+        "name": "ep14_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_bm_s43/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.8126977848101267,
+        "name": "ep14_bm_s43/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.7470332278481013,
+        "name": "ep14_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6774129746835443,
+        "name": "ep14_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep14_B_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep14_B",
+        "kind": "policy",
+        "tracking": 0.671875,
+        "name": "kv_ep14_B_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep14_NF_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep14_NFS",
+        "kind": "policy",
+        "tracking": 0.6465585443037974,
+        "name": "kv_ep14_NF_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep14_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000014/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6402294303797469,
+        "name": "ep14_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep14_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000014/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6325158227848101,
+        "name": "ep14_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep14_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep14_NFS",
+        "kind": "policy",
+        "tracking": 0.6012658227848101,
+        "name": "kv_ep14_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep14_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep14_S",
+        "kind": "policy",
+        "tracking": 0.5860363924050633,
+        "name": "kv_ep14_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_bm_s43/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5777294303797469,
+        "name": "ep14_bm_s43/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5761471518987342,
+        "name": "ep14_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5727848101265822,
+        "name": "ep14_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.568631329113924,
+        "name": "ep14_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.3134889240506329,
+        "name": "ep14_v5_obj2x_s42"
+      }
+    ],
+    "32": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep32_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000032/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.8824806949806949,
+        "name": "ep32_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep32_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000032/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.847972972972973,
+        "name": "ep32_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_B",
+        "kind": "policy",
+        "tracking": 0.757480694980695,
+        "name": "kv_ep32_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_OT_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_NFS",
+        "kind": "policy",
+        "tracking": 0.7550675675675675,
+        "name": "kv_ep32_OT_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep32_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000032/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.2702702702702703,
+        "name": "ep32_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep32_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000032/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.24179536679536678,
+        "name": "ep32_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_OT_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_NFS",
+        "kind": "policy",
+        "tracking": 0.23636583011583012,
+        "name": "kv_ep32_OT_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_SL_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_SL",
+        "kind": "policy",
+        "tracking": 0.23576254826254828,
+        "name": "kv_ep32_SL_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_dgB_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_B",
+        "kind": "policy",
+        "tracking": 0.22321428571428575,
+        "name": "kv_ep32_dgB_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep32_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000032/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.22164575289575292,
+        "name": "ep32_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep32_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000032/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.2125965250965251,
+        "name": "ep32_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_LT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_LT",
+        "kind": "policy",
+        "tracking": 0.20439189189189189,
+        "name": "kv_ep32_LT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_L",
+        "kind": "policy",
+        "tracking": 0.2040299227799228,
+        "name": "kv_ep32_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep32_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000032/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.18496621621621623,
+        "name": "ep32_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_F0_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_B",
+        "kind": "policy",
+        "tracking": 0.17615830115830117,
+        "name": "kv_ep32_F0_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep32_kenC_s46",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000032/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.17290057915057913,
+        "name": "ep32_kenC_s46"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_T_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_T",
+        "kind": "policy",
+        "tracking": 0.16795366795366795,
+        "name": "kv_ep32_T_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_NF_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_B",
+        "kind": "policy",
+        "tracking": 0.1656611969111969,
+        "name": "kv_ep32_NF_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_dgSH_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_SH",
+        "kind": "policy",
+        "tracking": 0.16541988416988418,
+        "name": "kv_ep32_dgSH_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep32_kenC_s45",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000032/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.16324806949806947,
+        "name": "ep32_kenC_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_H8_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_B",
+        "kind": "policy",
+        "tracking": 0.16264478764478765,
+        "name": "kv_ep32_H8_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_S",
+        "kind": "policy",
+        "tracking": 0.1620415057915058,
+        "name": "kv_ep32_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep32_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000032/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.16011100386100385,
+        "name": "ep32_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_NF_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_B",
+        "kind": "policy",
+        "tracking": 0.15878378378378377,
+        "name": "kv_ep32_NF_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_S_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_S",
+        "kind": "policy",
+        "tracking": 0.15854247104247104,
+        "name": "kv_ep32_S_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep32_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000032/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.15854247104247102,
+        "name": "ep32_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_dgCH_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_CH",
+        "kind": "policy",
+        "tracking": 0.1557673745173745,
+        "name": "kv_ep32_dgCH_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_TE_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_TE",
+        "kind": "policy",
+        "tracking": 0.15492277992277992,
+        "name": "kv_ep32_TE_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep32_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000032/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.1274131274131274,
+        "name": "ep32_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep32_B250_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep32_B",
+        "kind": "policy",
+        "tracking": 0.10569498069498068,
+        "name": "kv_ep32_B250_s42"
+      }
+    ],
+    "1": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.7730410447761193,
+        "name": "ep1_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.7714552238805971,
+        "name": "ep1_bm_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42/early_85004288",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.7530783582089552,
+        "name": "ep1_bm_s42/early_85004288"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep1_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep1_B",
+        "kind": "policy",
+        "tracking": 0.5519589552238806,
+        "name": "kv_ep1_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep1_OT_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep1_NFS",
+        "kind": "policy",
+        "tracking": 0.5510261194029851,
+        "name": "kv_ep1_OT_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep1_OT_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep1_NFS",
+        "kind": "policy",
+        "tracking": 0.5083955223880597,
+        "name": "kv_ep1_OT_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42/early_80003072",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3917910447761194,
+        "name": "ep1_bm_s42/early_80003072"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42/early_60002304",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3416044776119403,
+        "name": "ep1_bm_s42/early_60002304"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s43/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.30447761194029854,
+        "name": "ep1_bm_s43/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42/early_70004736",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.2690298507462686,
+        "name": "ep1_bm_s42/early_70004736"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep1_kenC_s46_nj1024",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000001/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.24169776119402986,
+        "name": "ep1_kenC_s46_nj1024"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42/early_65003520",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.23544776119402983,
+        "name": "ep1_bm_s42/early_65003520"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep1_kenC_s45_nj1024",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000001/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.23376865671641792,
+        "name": "ep1_kenC_s45_nj1024"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep1_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000001/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.22742537313432837,
+        "name": "ep1_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.21651119402985075,
+        "name": "ep1_bm_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_mcprobe250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/mcprobe_attach",
+        "kind": "policy",
+        "tracking": 0.21277985074626865,
+        "name": "ep1_mcprobe250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.21156716417910448,
+        "name": "ep1_bm_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep1_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000001/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.20027985074626864,
+        "name": "ep1_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.1796641791044776,
+        "name": "ep1_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep1_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000001/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.1710820895522388,
+        "name": "ep1_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.16632462686567162,
+        "name": "ep1_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep1_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep1_S",
+        "kind": "policy",
+        "tracking": 0.1638992537313433,
+        "name": "kv_ep1_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.16296641791044775,
+        "name": "ep1_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42/early_95006720",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.15643656716417909,
+        "name": "ep1_bm_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s43/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.14291044776119405,
+        "name": "ep1_bm_s43/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s43/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.14188432835820894,
+        "name": "ep1_bm_s43/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.13069029850746267,
+        "name": "ep1_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.12779850746268656,
+        "name": "ep1_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.11007462686567165,
+        "name": "ep1_v5_obj2x_s42"
+      }
+    ],
+    "25": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.8618328651685394,
+        "name": "ep25_assembly2_LOWLR_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42/early_125001728",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.8574438202247192,
+        "name": "ep25_assembly2_LOWLR_s42/early_125001728"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42/early_120004608",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.857004915730337,
+        "name": "ep25_assembly2_LOWLR_s42/early_120004608"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42/early_110006272",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.8384831460674157,
+        "name": "ep25_assembly2_LOWLR_s42/early_110006272"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42/early_115007488",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.8273349719101123,
+        "name": "ep25_assembly2_LOWLR_s42/early_115007488"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s42/early_90005504",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.8270716292134832,
+        "name": "ep25_assembly2_OT1M_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s42/early_95006720",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.8234726123595506,
+        "name": "ep25_assembly2_OT1M_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42/early_105005056",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.8072331460674157,
+        "name": "ep25_assembly2_LOWLR_s42/early_105005056"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42/early_100003840",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.8002984550561797,
+        "name": "ep25_assembly2_LOWLR_s42/early_100003840"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s42/early_75005952",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.7969627808988764,
+        "name": "ep25_assembly2_OT1M_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s42/early_50003968",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.7926615168539326,
+        "name": "ep25_assembly2_OT1M_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s42/early_65003520",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.6654669943820225,
+        "name": "ep25_grip2_OT1M_s42/early_65003520"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s42",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.6554599719101124,
+        "name": "ep25_grip2_OT1M_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s43/early_95006720",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.6531776685393258,
+        "name": "ep25_assembly2_OT1M_s43/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s43",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.6519487359550562,
+        "name": "ep25_assembly2_OT1M_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s42/early_95006720",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.6492275280898876,
+        "name": "ep25_grip2_OT1M_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s42/early_80003072",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.6487886235955056,
+        "name": "ep25_grip2_OT1M_s42/early_80003072"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s43/early_90005504",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.6461551966292135,
+        "name": "ep25_assembly2_OT1M_s43/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s42/early_85004288",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.6416783707865168,
+        "name": "ep25_grip2_OT1M_s42/early_85004288"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_s42/early_95006720",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.634129213483146,
+        "name": "ep25_assembly2_WIDE_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_s42",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.633690308988764,
+        "name": "ep25_assembly2_WIDE_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s42",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.6317591292134832,
+        "name": "ep25_assembly2_OT1M_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_s42/early_90005504",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.6259655898876404,
+        "name": "ep25_assembly2_WIDE_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s43/early_75005952",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.6249122191011236,
+        "name": "ep25_assembly2_OT1M_s43/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_transfer_s42",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.6091116573033708,
+        "name": "ep25_assembly2_transfer_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_EARLY_s42/early_95006720",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.6036692415730337,
+        "name": "ep25_assembly2_WIDE_EARLY_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_EARLY_s42/early_75005952",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.602440308988764,
+        "name": "ep25_assembly2_WIDE_EARLY_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_EARLY_s42",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.6021769662921348,
+        "name": "ep25_assembly2_WIDE_EARLY_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s44/early_75005952",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.5941011235955056,
+        "name": "ep25_grip2_OT1M_s44/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_pinch2_transfer_s42",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_pinch2_scene",
+        "kind": "policy",
+        "tracking": 0.5926966292134832,
+        "name": "ep25_pinch2_transfer_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s44",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.5917310393258427,
+        "name": "ep25_grip2_OT1M_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_EARLY_s42/early_50003968",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.5832162921348314,
+        "name": "ep25_assembly2_WIDE_EARLY_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_s42/early_75005952",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.5721558988764045,
+        "name": "ep25_assembly2_WIDE_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s44/early_90005504",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.5714536516853932,
+        "name": "ep25_grip2_OT1M_s44/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_s42/early_50003968",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.5581987359550562,
+        "name": "ep25_assembly2_WIDE_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s44/early_60002304",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.5574087078651685,
+        "name": "ep25_grip2_OT1M_s44/early_60002304"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v5_obj2x_s44/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5460849719101123,
+        "name": "ep25_v5_obj2x_s44/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5086025280898876,
+        "name": "ep25_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s42/early_60002304",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.484375,
+        "name": "ep25_grip2_OT1M_s42/early_60002304"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_pinch_transfer_s44",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_pinch_scene",
+        "kind": "policy",
+        "tracking": 0.46795997191011235,
+        "name": "ep25_pinch_transfer_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+        "kind": "policy",
+        "tracking": 0.44399578651685395,
+        "name": "ep25_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_WIDE_EARLY_s42/early_90005504",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.4003686797752809,
+        "name": "ep25_assembly2_WIDE_EARLY_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v5_obj2x_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+        "kind": "policy",
+        "tracking": 0.3811446629213483,
+        "name": "ep25_v5_obj2x_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_r5_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+        "kind": "policy",
+        "tracking": 0.36472963483146065,
+        "name": "ep25_r5_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+        "kind": "policy",
+        "tracking": 0.36402738764044945,
+        "name": "ep25_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+        "kind": "policy",
+        "tracking": 0.3613061797752809,
+        "name": "ep25_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s44/early_50003968",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.3535814606741573,
+        "name": "ep25_grip2_OT1M_s44/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v5_obj2x_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+        "kind": "policy",
+        "tracking": 0.3530547752808989,
+        "name": "ep25_v5_obj2x_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v5_obj2x_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+        "kind": "policy",
+        "tracking": 0.3513869382022472,
+        "name": "ep25_v5_obj2x_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v5_obj2x_s44/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+        "kind": "policy",
+        "tracking": 0.29810393258426965,
+        "name": "ep25_v5_obj2x_s44/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s43/early_50003968",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.29784058988764045,
+        "name": "ep25_assembly2_OT1M_s43/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s44/early_20000768",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.2974894662921348,
+        "name": "ep25_grip2_OT1M_s44/early_20000768"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v5_obj2x_s44/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+        "kind": "policy",
+        "tracking": 0.296875,
+        "name": "ep25_v5_obj2x_s44/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_nominal_assembly2",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+        "kind": "policy",
+        "tracking": 0.29669943820224715,
+        "name": "ep25_nominal_assembly2"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_nominal_grip2",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.29634831460674155,
+        "name": "ep25_nominal_grip2"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_nominal_press",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_press_scene",
+        "kind": "policy",
+        "tracking": 0.2955582865168539,
+        "name": "ep25_nominal_press"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_nominal_pinch2",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_pinch2_scene",
+        "kind": "policy",
+        "tracking": 0.2917837078651685,
+        "name": "ep25_nominal_pinch2"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip3_OT1M_s42",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip3_scene",
+        "kind": "policy",
+        "tracking": 0.29169592696629215,
+        "name": "ep25_grip3_OT1M_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.28212780898876405,
+        "name": "ep25_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.2306004213483146,
+        "name": "ep25_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.21839887640449437,
+        "name": "ep25_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_grip2_OT1M_s42/early_70004736",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+        "kind": "policy",
+        "tracking": 0.07628160112359551,
+        "name": "ep25_grip2_OT1M_s42/early_70004736"
+      }
+    ],
+    "36": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep36_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000036/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.9216830466830467,
+        "name": "ep36_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep36_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000036/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.8029791154791155,
+        "name": "ep36_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep36_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep36_S",
+        "kind": "policy",
+        "tracking": 0.683046683046683,
+        "name": "kv_ep36_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep36_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep36_NFS",
+        "kind": "policy",
+        "tracking": 0.6696867321867321,
+        "name": "kv_ep36_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep36_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000036/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.6495700245700247,
+        "name": "ep36_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep36_S_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep36_S",
+        "kind": "policy",
+        "tracking": 0.606879606879607,
+        "name": "kv_ep36_S_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep36_TE_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep36_TE",
+        "kind": "policy",
+        "tracking": 0.5909090909090908,
+        "name": "kv_ep36_TE_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep36_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000036/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5861486486486487,
+        "name": "ep36_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep36_kenC_s45",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000036/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.57002457002457,
+        "name": "ep36_kenC_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep36_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000036/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5618857493857494,
+        "name": "ep36_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep36_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000036/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.27549140049140053,
+        "name": "ep36_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep36_clean",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000036/wooden_spoon",
+        "kind": "policy",
+        "tracking": 0.09167690417690418,
+        "name": "ep36_clean"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep36_level2",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000036/wooden_spoon_level2",
+        "kind": "policy",
+        "tracking": 0.08952702702702703,
+        "name": "ep36_level2"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep36_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep36_L",
+        "kind": "policy",
+        "tracking": 0.08875921375921375,
+        "name": "kv_ep36_L_s42"
+      }
+    ],
+    "19": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_NFS",
+        "kind": "policy",
+        "tracking": 0.5840425531914895,
+        "name": "kv_ep19_OT_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s43/early_85004288",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_NFS",
+        "kind": "policy",
+        "tracking": 0.5803191489361702,
+        "name": "kv_ep19_OT_s43/early_85004288"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_ST_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_S",
+        "kind": "policy",
+        "tracking": 0.5627659574468085,
+        "name": "ep19_ST_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_ST_OT_s42/early_95006720",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_S",
+        "kind": "policy",
+        "tracking": 0.5347074468085107,
+        "name": "ep19_ST_OT_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_B",
+        "kind": "policy",
+        "tracking": 0.49109042553191484,
+        "name": "kv_ep19_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s43/early_60002304",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_NFS",
+        "kind": "policy",
+        "tracking": 0.45824468085106385,
+        "name": "kv_ep19_OT_s43/early_60002304"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_L",
+        "kind": "policy",
+        "tracking": 0.4397606382978723,
+        "name": "kv_ep19_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000019/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.4280585106382978,
+        "name": "ep19_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s43/early_70004736",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_NFS",
+        "kind": "policy",
+        "tracking": 0.42406914893617026,
+        "name": "kv_ep19_OT_s43/early_70004736"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000019/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.4186170212765958,
+        "name": "ep19_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s43/early_95006720",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_NFS",
+        "kind": "policy",
+        "tracking": 0.40890957446808507,
+        "name": "kv_ep19_OT_s43/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_ST_OT_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_S",
+        "kind": "policy",
+        "tracking": 0.39747340425531913,
+        "name": "ep19_ST_OT_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s43/early_65003520",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_NFS",
+        "kind": "policy",
+        "tracking": 0.3909574468085106,
+        "name": "kv_ep19_OT_s43/early_65003520"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_bm_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000019/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.36914893617021277,
+        "name": "ep19_bm_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_bm_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000019/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3684840425531915,
+        "name": "ep19_bm_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_B",
+        "kind": "policy",
+        "tracking": 0.3671542553191489,
+        "name": "kv_ep19_OT_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_NF_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_NFS",
+        "kind": "policy",
+        "tracking": 0.3525265957446808,
+        "name": "kv_ep19_NF_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_H8_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_B",
+        "kind": "policy",
+        "tracking": 0.34986702127659575,
+        "name": "kv_ep19_H8_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep19_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000019/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.34760638297872337,
+        "name": "ep19_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_S",
+        "kind": "policy",
+        "tracking": 0.3337765957446809,
+        "name": "kv_ep19_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s43/early_80003072",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_NFS",
+        "kind": "policy",
+        "tracking": 0.33178191489361697,
+        "name": "kv_ep19_OT_s43/early_80003072"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_ST_OT_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_S",
+        "kind": "policy",
+        "tracking": 0.3299202127659574,
+        "name": "ep19_ST_OT_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_S_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_S",
+        "kind": "policy",
+        "tracking": 0.3247340425531915,
+        "name": "kv_ep19_S_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_ST_OT_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_S",
+        "kind": "policy",
+        "tracking": 0.3231382978723404,
+        "name": "ep19_ST_OT_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep19_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000019/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3212765957446808,
+        "name": "ep19_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_TE_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_TE",
+        "kind": "policy",
+        "tracking": 0.3203457446808511,
+        "name": "kv_ep19_TE_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_B",
+        "kind": "policy",
+        "tracking": 0.31835106382978723,
+        "name": "kv_ep19_OT_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_SL_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_SL",
+        "kind": "policy",
+        "tracking": 0.2875,
+        "name": "kv_ep19_SL_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000019/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.2792553191489362,
+        "name": "ep19_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep19_kenC_s45",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000019/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.27872340425531916,
+        "name": "ep19_kenC_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_bm_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000019/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.2747340425531915,
+        "name": "ep19_bm_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000019/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.269281914893617,
+        "name": "ep19_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000019/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.26835106382978724,
+        "name": "ep19_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_B",
+        "kind": "policy",
+        "tracking": 0.267686170212766,
+        "name": "kv_ep19_OT_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000019/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.2656914893617021,
+        "name": "ep19_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000019/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.1726063829787234,
+        "name": "ep19_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep19_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000019/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.1634308510638298,
+        "name": "ep19_kenC_s42"
+      }
+    ],
+    "15": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep15_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000015/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.9506777108433735,
+        "name": "ep15_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep15_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000015/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.9497364457831325,
+        "name": "ep15_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep15_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000015/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.9390060240963856,
+        "name": "ep15_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep15_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000015/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.8226656626506024,
+        "name": "ep15_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep15_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep15_NFS",
+        "kind": "policy",
+        "tracking": 0.6737575301204819,
+        "name": "kv_ep15_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep15_NF_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep15_NFS",
+        "kind": "policy",
+        "tracking": 0.6208584337349398,
+        "name": "kv_ep15_NF_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep15_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000015/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6120105421686747,
+        "name": "ep15_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep15_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000015/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5984563253012049,
+        "name": "ep15_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep15_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep15_S",
+        "kind": "policy",
+        "tracking": 0.5958207831325302,
+        "name": "kv_ep15_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep15_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep15_L",
+        "kind": "policy",
+        "tracking": 0.5920557228915663,
+        "name": "kv_ep15_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep15_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000015/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5918674698795181,
+        "name": "ep15_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep15_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000015/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5905496987951807,
+        "name": "ep15_bm_s43"
+      }
+    ],
+    "16": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.865606936416185,
+        "name": "ep16_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_v5_obj2x_s45/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.845014450867052,
+        "name": "ep16_v5_obj2x_s45/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.8415823699421965,
+        "name": "ep16_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.8332731213872833,
+        "name": "ep16_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.7902817919075145,
+        "name": "ep16_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_v5_obj2x_s45/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.7760115606936416,
+        "name": "ep16_v5_obj2x_s45/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.7727601156069364,
+        "name": "ep16_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep16_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000016/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.7272398843930635,
+        "name": "ep16_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep16_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000016/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.7243497109826589,
+        "name": "ep16_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.716221098265896,
+        "name": "ep16_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep16_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000016/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.7079118497109826,
+        "name": "ep16_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.7073699421965318,
+        "name": "ep16_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep16_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep16_NFS",
+        "kind": "policy",
+        "tracking": 0.6148843930635838,
+        "name": "kv_ep16_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep16_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep16_L",
+        "kind": "policy",
+        "tracking": 0.588692196531792,
+        "name": "kv_ep16_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep16_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep16_S",
+        "kind": "policy",
+        "tracking": 0.588692196531792,
+        "name": "kv_ep16_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_v5_obj2x_s45/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5373916184971099,
+        "name": "ep16_v5_obj2x_s45/early_75005952"
+      }
+    ],
+    "37": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep37_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000037/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.9904801324503312,
+        "name": "ep37_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep37_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000037/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.9329470198675496,
+        "name": "ep37_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep37_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000037/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.8832781456953642,
+        "name": "ep37_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep37_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000037/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.7218543046357616,
+        "name": "ep37_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep37_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep37_L",
+        "kind": "policy",
+        "tracking": 0.7156456953642384,
+        "name": "kv_ep37_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep37_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep37_S",
+        "kind": "policy",
+        "tracking": 0.7028145695364238,
+        "name": "kv_ep37_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep37_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000037/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6026490066225165,
+        "name": "ep37_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep37_clean",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000037/wooden_spoon",
+        "kind": "policy",
+        "tracking": 0.5140728476821192,
+        "name": "ep37_clean"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep37_level",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000037/wooden_spoon_level",
+        "kind": "policy",
+        "tracking": 0.5028973509933774,
+        "name": "ep37_level"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep37_attach",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000037/wooden_spoon_attach",
+        "kind": "policy",
+        "tracking": 0.5008278145695364,
+        "name": "ep37_attach"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep37_hands",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000037/wooden_spoon_hands",
+        "kind": "policy",
+        "tracking": 0.4710264900662252,
+        "name": "ep37_hands"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep37_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000037/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.2744205298013245,
+        "name": "ep37_kenC_s44"
+      }
+    ],
+    "35": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep35_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000035/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.9533847980997625,
+        "name": "ep35_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep35_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000035/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.9474465558194775,
+        "name": "ep35_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep35_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep35_B",
+        "kind": "policy",
+        "tracking": 0.9355700712589073,
+        "name": "kv_ep35_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep35_B_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep35_B",
+        "kind": "policy",
+        "tracking": 0.900979809976247,
+        "name": "kv_ep35_B_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.20576009501187648,
+        "name": "ep35_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep35_TE_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep35_TE",
+        "kind": "policy",
+        "tracking": 0.1876484560570071,
+        "name": "kv_ep35_TE_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_mcprobe250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/mcprobe_attach",
+        "kind": "policy",
+        "tracking": 0.13331353919239902,
+        "name": "ep35_mcprobe250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep35_H8_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep35_B",
+        "kind": "policy",
+        "tracking": 0.12277315914489312,
+        "name": "kv_ep35_H8_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep35_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep35_S",
+        "kind": "policy",
+        "tracking": 0.09189429928741093,
+        "name": "kv_ep35_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep35_LT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep35_LT",
+        "kind": "policy",
+        "tracking": 0.07600950118764846,
+        "name": "kv_ep35_LT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.07497030878859857,
+        "name": "ep35_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.07497030878859857,
+        "name": "ep35_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.07497030878859857,
+        "name": "ep35_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.07497030878859857,
+        "name": "ep35_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.07482185273159145,
+        "name": "ep35_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/fs_sam3d_attach",
+        "kind": "policy",
+        "tracking": 0.07482185273159145,
+        "name": "ep35_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep35_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000035/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.07482185273159145,
+        "name": "ep35_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_noref_ctrl250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.07393111638954869,
+        "name": "ep35_noref_ctrl250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep35_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep35_L",
+        "kind": "policy",
+        "tracking": 0.07348574821852732,
+        "name": "kv_ep35_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_clean",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/wooden_spoon",
+        "kind": "policy",
+        "tracking": 0.06799287410926366,
+        "name": "ep35_clean"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_hands",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000035/wooden_spoon_hands",
+        "kind": "policy",
+        "tracking": 0.06042161520190023,
+        "name": "ep35_hands"
+      }
+    ],
+    "6": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep6_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000006/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.9588477366255144,
+        "name": "ep6_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep6_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000006/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.9349279835390947,
+        "name": "ep6_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep6_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000006/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.9225823045267489,
+        "name": "ep6_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep6_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000006/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.4414866255144033,
+        "name": "ep6_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep6_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000006/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.44110082304526754,
+        "name": "ep6_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep6_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000006/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.4261831275720165,
+        "name": "ep6_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep6_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000006/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.3786008230452675,
+        "name": "ep6_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep6_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep6_L",
+        "kind": "policy",
+        "tracking": 0.3238168724279835,
+        "name": "kv_ep6_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep6_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000006/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.28125,
+        "name": "ep6_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep6_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep6_S",
+        "kind": "policy",
+        "tracking": 0.2753343621399177,
+        "name": "kv_ep6_S_s42"
+      }
+    ],
+    "38": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep38_attach",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000038/mini_dust_pan_attach",
+        "kind": "policy",
+        "tracking": 0.9878802281368821,
+        "name": "ep38_attach"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep38_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000038/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.9550855513307984,
+        "name": "ep38_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep38_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep38_L",
+        "kind": "policy",
+        "tracking": 0.9505703422053232,
+        "name": "kv_ep38_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep38_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000038/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.9489068441064639,
+        "name": "ep38_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep38_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep38_B",
+        "kind": "policy",
+        "tracking": 0.9477186311787072,
+        "name": "kv_ep38_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep38_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000038/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.941777566539924,
+        "name": "ep38_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep38_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000038/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.9377376425855513,
+        "name": "ep38_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep38_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000038/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.9344106463878327,
+        "name": "ep38_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep38_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000038/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.9325095057034221,
+        "name": "ep38_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep38_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000038/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.9196768060836502,
+        "name": "ep38_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep38_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000038/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.872861216730038,
+        "name": "ep38_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep38_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep38_S",
+        "kind": "policy",
+        "tracking": 0.20175855513307983,
+        "name": "kv_ep38_S_s42"
+      }
+    ],
+    "28": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep28_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000028/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.9227272727272727,
+        "name": "ep28_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep28_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000028/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.7164772727272728,
+        "name": "ep28_v5_obj2x_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep28_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000028/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.6768465909090909,
+        "name": "ep28_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep28_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000028/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.662784090909091,
+        "name": "ep28_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep28_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000028/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6619318181818181,
+        "name": "ep28_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep28_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000028/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6110795454545455,
+        "name": "ep28_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep28_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000028/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5522727272727272,
+        "name": "ep28_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep28_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep28_S",
+        "kind": "policy",
+        "tracking": 0.5491477272727273,
+        "name": "kv_ep28_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep28_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000028/fs_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5431818181818182,
+        "name": "ep28_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep28_B_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep28_B",
+        "kind": "policy",
+        "tracking": 0.5261363636363636,
+        "name": "kv_ep28_B_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep28_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000028/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5203125,
+        "name": "ep28_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep28_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep28_NFS",
+        "kind": "policy",
+        "tracking": 0.5164772727272727,
+        "name": "kv_ep28_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep28_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000028/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5122159090909091,
+        "name": "ep28_bm_s43"
+      }
+    ],
+    "30": [
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_S_s42/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_S",
+        "kind": "policy",
+        "tracking": 0.6453184410646388,
+        "name": "kv_ep30_S_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_S_s42/early_45002752",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_S",
+        "kind": "policy",
+        "tracking": 0.6443678707224334,
+        "name": "kv_ep30_S_s42/early_45002752"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_S_s42/early_60002304",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_S",
+        "kind": "policy",
+        "tracking": 0.6440114068441065,
+        "name": "kv_ep30_S_s42/early_60002304"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_S_s42/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_S",
+        "kind": "policy",
+        "tracking": 0.6437737642585551,
+        "name": "kv_ep30_S_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_bm_s43/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000030/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6408032319391636,
+        "name": "ep30_bm_s43/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_S_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_S",
+        "kind": "policy",
+        "tracking": 0.6398526615969582,
+        "name": "kv_ep30_S_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_bm_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000030/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6389020912547528,
+        "name": "ep30_bm_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_S_s42/early_65003520",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_S",
+        "kind": "policy",
+        "tracking": 0.6370009505703422,
+        "name": "kv_ep30_S_s42/early_65003520"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_bm_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000030/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6365256653992395,
+        "name": "ep30_bm_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_S_s42/early_40001536",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_S",
+        "kind": "policy",
+        "tracking": 0.6321292775665399,
+        "name": "kv_ep30_S_s42/early_40001536"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_bm_s43/early_90005504",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000030/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6312975285171103,
+        "name": "ep30_bm_s43/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_table_OT1M_s42/early_90005504",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_full",
+        "kind": "policy",
+        "tracking": 0.6312975285171103,
+        "name": "ep30_table_OT1M_s42/early_90005504"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_table_OT1M_s42/early_50003968",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_full",
+        "kind": "policy",
+        "tracking": 0.6308222433460076,
+        "name": "ep30_table_OT1M_s42/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_bm_s43/early_50003968",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000030/bm_scored_attach",
+        "kind": "policy",
+        "tracking": 0.6303469581749049,
+        "name": "ep30_bm_s43/early_50003968"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_table_OT1M_s42/early_95006720",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_full",
+        "kind": "policy",
+        "tracking": 0.6284458174904943,
+        "name": "ep30_table_OT1M_s42/early_95006720"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_table_OT1M_s42",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_full",
+        "kind": "policy",
+        "tracking": 0.6276140684410647,
+        "name": "ep30_table_OT1M_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_S_s42/early_55005184",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_S",
+        "kind": "policy",
+        "tracking": 0.622148288973384,
+        "name": "kv_ep30_S_s42/early_55005184"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_S_s42/early_75005952",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_S",
+        "kind": "policy",
+        "tracking": 0.621078897338403,
+        "name": "kv_ep30_S_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_v2_250M",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000030/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.6053944866920152,
+        "name": "ep30_v2_250M"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_OT_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_NFS",
+        "kind": "policy",
+        "tracking": 0.6011169201520913,
+        "name": "kv_ep30_OT_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_table_OT1M_s42/early_75005952",
+        "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_full",
+        "kind": "policy",
+        "tracking": 0.596958174904943,
+        "name": "ep30_table_OT1M_s42/early_75005952"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep30_kenC_s43",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000030/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.596601711026616,
+        "name": "ep30_kenC_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep30_kenC_s44",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000030/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5932747148288973,
+        "name": "ep30_kenC_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep30_kenC_s45",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000030/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5846007604562737,
+        "name": "ep30_kenC_s45"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep30_kenC_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000030/ken_c_scored_attach",
+        "kind": "policy",
+        "tracking": 0.5824619771863118,
+        "name": "ep30_kenC_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_L_s42",
+        "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_L",
+        "kind": "policy",
+        "tracking": 0.5792538022813688,
+        "name": "kv_ep30_L_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_v5_obj2x_s43",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000030/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5638070342205324,
+        "name": "ep30_v5_obj2x_s43"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_v5_obj2x_s42",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000030/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5609553231939164,
+        "name": "ep30_v5_obj2x_s42"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_v5_obj2x_s44",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000030/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.5493108365019012,
+        "name": "ep30_v5_obj2x_s44"
+      },
+      {
+        "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_v5_obj2x_s45",
+        "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000030/fs_hands_noref_attach",
+        "kind": "policy",
+        "tracking": 0.48823669201520914,
+        "name": "ep30_v5_obj2x_s45"
+      }
+    ]
+  },
+  "caveat": "Own-reference tracking over multiple reconstruction namespaces; not a hidden-ground-truth estimate"
+}

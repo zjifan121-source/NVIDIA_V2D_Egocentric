@@ -1,0 +1,28 @@
+{
+  "source": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_pinch2_scene",
+  "source_parquet_sha256": "20ebc455bcf5749a19b9f6e87442b3eb7cf193b1e2c928df93373c57dcce4dfb",
+  "fit": "ep25_slot_rigid_fit.json",
+  "correction": [
+    0.004826989305318273,
+    -0.007301800913507295,
+    -0.00401716549228094,
+    -0.009252258761244353,
+    0.05589606644387777,
+    0.05483364349631876
+  ],
+  "blend_frames": [
+    190,
+    220
+  ],
+  "changed_columns": [
+    "object_body_position",
+    "object_body_wxyz",
+    "robot_right_wrist_position",
+    "robot_right_wrist_wxyz",
+    "robot_right_frames"
+  ],
+  "asset_paths_localized": true,
+  "meshes_unchanged": true,
+  "object1_unchanged": true,
+  "pickup_through_frame190_unchanged": true
+}

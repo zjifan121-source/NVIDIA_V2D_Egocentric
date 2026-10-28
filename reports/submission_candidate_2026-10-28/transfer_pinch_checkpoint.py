@@ -1,0 +1,8 @@
+"""Evaluate unchanged learned weights on the repaired moving robot reference.
+
+Only checkpoint configuration/provenance changes. No evaluator code or model
+weights change; this is explicitly a reference-transfer diagnostic, not retraining.
+"""
+import struct,json,hashlib
+from pathlib import Path
+root=Path('/home/edmondwa/NVIDIA_V2D_Egocentric');runs=Path('/data/user_data/edmondwa/v2d/flash_runs/diag');run=runs/'ep25_pinch_transfer_s44';source=runs/'ep25_grip2_OT1M_s44/train/policy_100003840.safetensors';raw=source.read_bytes();n=struct.unpack('<Q',raw[:8])[0];header=json.loads(raw[8:8+n]);m=header['__metadata__'];config=json.loads(m['user.resolved_config_json']);old=config['task']['parquet'];config['task']['parquet']=str(root/'reports/submission_candidate_2026-10-28/ep25_pinch_scene/assets/human_motion_data/ego_recon/processed/sequence_id=ep25_split_gripfixed3/robot_name=sharpa_wave');m['user.resolved_config_json']=json.dumps(config,separators=(',',':'));m['user.reference_transfer_source_sha256']=hashlib.sha256(raw).hexdigest();m['user.reference_transfer_source_parquet']=old;m['user.reference_transfer_weights_unchanged']='true';h=json.dumps(header,separators=(',',':')).encode();h+=b' '*((-len(h))%8);out=run/'train/policy_100003840.safetensors';out.write_bytes(struct.pack('<Q',len(h))+h+raw[8+n:]);assert out.read_bytes()[8+len(h):]==raw[8+n:];(run/'checkpoints.json').write_text(json.dumps({'25':str(out)})+'\n');(run/'transfer_provenance.json').write_text(json.dumps(dict(source_checkpoint=str(source),source_checkpoint_sha256=hashlib.sha256(raw).hexdigest(),weights_unchanged=True,old_reference=old,new_reference=config['task']['parquet']),indent=2)+'\n')

@@ -1,0 +1,8 @@
+{
+  "job": "10965436",
+  "name": "ep33_WIDE_EARLY_NOUNINT_s42",
+  "episode": 33,
+  "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+  "extra": "reset.reset_to_first_frame_probability=0.5 reset.first_frame_voc_threshold=1.1 task.motion_speed=1.0 sim.fps=20.254119873046875 sim.njmax=1024 sim.nconmax=512 termination.wrist_position.threshold=0.3 termination.object_position.threshold=0.3 termination.object_orientation.threshold=1.5 training.checkpoint.save_interval_environment_steps=5000192 training.replay.capacity=1048576 training.replay.observation_storage_dtype=float16 action.normalized_mapping=linear training.network.initial_normalized_std=0.3 training.network.log_std_max=-0.5108256237659907 training.exploration.target_sigma=0.3",
+  "curriculum": "tracking_100m_object2x_no_unintended"
+}

@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "n_frames": 348,
+  "result_npz": "result.npz",
+  "camera_pose_convention": "camera_to_world",
+  "mesh": {
+    "mesh": "mesh.obj",
+    "materials": [
+      "material.mtl"
+    ],
+    "textures": [
+      "material_0.png"
+    ],
+    "vertex_scale_applied": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "sources": {
+    "frames_dir": "/data/user_data/haisenk/v2d/v2d_recon/baseline/reconstruction/data/outputs/ken_c_scored/episode_000033/wooden_spoon/frames",
+    "intrinsics_path": "/data/user_data/haisenk/v2d/v2d_recon/baseline/reconstruction/data/outputs/ken_c_scored/episode_000033/wooden_spoon/intrinsics_stable.json",
+    "mesh_path": "/data/user_data/haisenk/v2d/night/xkf/ep33/draws/f347s2/mesh_scaled.obj",
+    "object_poses_dir": "/data/user_data/haisenk/v2d/v2d_recon/baseline/reconstruction/data/outputs/ken_c_scored/episode_000033/wooden_spoon/poses_smoothed",
+    "object_scale": 1.0,
+    "input_object_scale_baked_into_mesh": 1.0,
+    "object_pose_scale_baked_into_mesh": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "object_mesh_vertex_scale_applied": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "object_transform_convention": "rigid_pose_no_scale",
+    "camera_to_world_dir": "/data/user_data/haisenk/v2d/v2d_recon/baseline/reconstruction/data/outputs/ken_c_scored/episode_000033/wooden_spoon/slam_poses",
+    "input_camera_pose_convention": "camera_to_world",
+    "left_hand_dir": "/data/user_data/haisenk/v2d/v2d_recon/baseline/reconstruction/data/outputs/ken_c_scored/episode_000033/wooden_spoon/hamer_aligned_filled/2",
+    "right_hand_dir": "/data/user_data/haisenk/v2d/v2d_recon/baseline/reconstruction/data/outputs/ken_c_scored/episode_000033/wooden_spoon/hamer_aligned_filled/3",
+    "pipeline": "ego_wilor",
+    "object_prompt": "wooden spoon",
+    "object_track_id": 1,
+    "hand_pose_source": "hamer",
+    "sam2_hand_prompt_source": "wilor_mask",
+    "final_hand_root": "/data/user_data/haisenk/v2d/v2d_recon/baseline/reconstruction/data/outputs/ken_c_scored/episode_000033/wooden_spoon/hamer_aligned_filled",
+    "run_geocalib": false,
+    "geocalib_calibration_path": null,
+    "gravity_align": false,
+    "gravity_align_target": "z_up"
+  },
+  "keys": [
+    "camera_intrinsics",
+    "camera_is_valid",
+    "camera_to_world_transform",
+    "gravity_alignment_applied",
+    "gravity_alignment_transform",
+    "gravity_in_world_before_alignment",
+    "gravity_target_world",
+    "hand_left_betas",
+    "hand_left_finger_pose",
+    "hand_left_is_valid",
+    "hand_left_scale",
+    "hand_left_wrist_orient_in_camera",
+    "hand_left_wrist_to_camera_transform",
+    "hand_left_wrist_to_world_transform",
+    "hand_left_wrist_trans_in_camera",
+    "hand_right_betas",
+    "hand_right_finger_pose",
+    "hand_right_is_valid",
+    "hand_right_scale",
+    "hand_right_wrist_orient_in_camera",
+    "hand_right_wrist_to_camera_transform",
+    "hand_right_wrist_to_world_transform",
+    "hand_right_wrist_trans_in_camera",
+    "object_is_valid",
+    "object_scale",
+    "object_to_camera_transform",
+    "object_to_world_transform"
+  ],
+  "gravity_alignment": {
+    "enabled": true,
+    "target": "z_up",
+    "target_gravity_world": [
+      0.0,
+      0.0,
+      -1.0
+    ],
+    "gravity_in_world_before_alignment": [
+      0.053009853296874666,
+      0.754042948667108,
+      0.6546825085633929
+    ],
+    "alignment_transform": [
+      [
+        0.998586118221283,
+        -0.042634908109903336,
+        -0.03175027668476105,
+        0.0
+      ],
+      [
+        -0.003971254453063011,
+        -0.6554399132728577,
+        0.7552368640899658,
+        0.0
+      ],
+      [
+        -0.05300985276699066,
+        -0.75404292345047,
+        -0.6546825170516968,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "source_calibration_path": "/data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/ken_c_scored/episode_000033/wooden_spoon/geocalib/calibration.json",
+    "sample_frame_indices": [
+      0,
+      49,
+      99,
+      148,
+      198,
+      247,
+      297,
+      347
+    ],
+    "sample_gravity_vectors_world": [
+      [
+        0.05306736414929584,
+        0.7330653196865579,
+        0.6780848707463476
+      ],
+      [
+        0.04913792669770491,
+        0.7361745520194903,
+        0.6750055504355157
+      ],
+      [
+        0.047983631323487964,
+        0.7571873620752139,
+        0.6514329357950752
+      ],
+      [
+        0.05938781813325424,
+        0.7451044842868197,
+        0.6642984228139067
+      ],
+      [
+        0.05218430227453736,
+        0.7488149125362596,
+        0.660721594440074
+      ],
+      [
+        0.05684081361770098,
+        0.7619078847308638,
+        0.6451864049189339
+      ],
+      [
+        0.05452835532965512,
+        0.7831459908579796,
+        0.619442503762953
+      ],
+      [
+        0.050826374289940086,
+        0.7652042624124421,
+        0.6417780897338031
+      ]
+    ],
+    "sample_camera_forward_vectors_world": [
+      [
+        0.00028656970187855395,
+        -2.9230192300860568e-05,
+        0.9999999585117001
+      ],
+      [
+        0.0355116538191247,
+        0.002270065008523064,
+        0.9993666840794162
+      ],
+      [
+        0.05009637441052604,
+        -0.0035914459150079145,
+        0.99873793098448
+      ],
+      [
+        0.030608363254207356,
+        0.02561181211884982,
+        0.9992032641954726
+      ],
+      [
+        0.02129675362222364,
+        0.05314431603373188,
+        0.9983597197195314
+      ],
+      [
+        0.03183381285929568,
+        0.04764552378863923,
+        0.9983569063324726
+      ],
+      [
+        0.03784496312742356,
+        0.06773872364127,
+        0.9969850671325703
+      ],
+      [
+        0.05844658974058173,
+        0.08896793798121717,
+        0.9943182097090782
+      ]
+    ],
+    "method": "geocalib_opencv_up_to_down_zup_frame",
+    "geocalib_up_vector_negated_to_gravity": true,
+    "old_alignment_transform": null,
+    "x_right_axis_in_pre_alignment_world": [
+      0.9985860927281689,
+      -0.0426349067326621,
+      -0.031750277759197386
+    ],
+    "y_forward_axis_in_pre_alignment_world": [
+      -0.003971254629560619,
+      -0.6554399257699446,
+      0.7552368720099389
+    ],
+    "z_up_axis_in_pre_alignment_world": [
+      -0.053009853296874666,
+      -0.754042948667108,
+      -0.6546825085633929
+    ],
+    "basis_pre_alignment_world_columns": [
+      [
+        0.9985860927281689,
+        -0.003971254629560619,
+        -0.053009853296874666
+      ],
+      [
+        -0.0426349067326621,
+        -0.6554399257699446,
+        -0.754042948667108
+      ],
+      [
+        -0.031750277759197386,
+        0.7552368720099389,
+        -0.6546825085633929
+      ]
+    ]
+  },
+  "world_coordinate_convention": {
+    "handedness": "right_handed",
+    "x_axis": "right",
+    "y_axis": "average_horizontal_camera_forward",
+    "z_axis": "up",
+    "gravity_axis": "negative_z"
+  }
+}

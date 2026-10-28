@@ -1,0 +1,32 @@
+{
+  "source": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep33_cupgrasp_scene",
+  "source_parquet_sha256": "05ca3b7d7d7d32341fa548bb50b07d059e03ba204bc970cad6c3deb0b0cf4617",
+  "script_sha256": "6a547554755708e99330907722ce7bde46b1560255de85a498830b00e0b1a71d",
+  "changed_columns": [
+    "robot_right_wrist_position",
+    "robot_right_wrist_wxyz",
+    "robot_right_finger_joints",
+    "robot_right_frames"
+  ],
+  "object_references_unchanged": true,
+  "grasps": [
+    {
+      "side": "right",
+      "body": "wooden_spoon",
+      "hold": [
+        61,
+        300
+      ],
+      "anchor": 133,
+      "compression_mm": 0.5,
+      "digits": [
+        "thumb",
+        "index",
+        "middle"
+      ],
+      "opposing_normal_dot": -0.7892670074920565,
+      "anchor_target_error_m": 3.6070444018693306e-06,
+      "max_wrist_shift_m": 0.06566090099349799
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "source_scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach",
+  "source_parquet": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000025/split_l_noref_attach/assets/human_motion_data/ego_recon/processed/sequence_id=ep25_split_l_noref_attach/robot_name=sharpa_wave/eb0f0022541a42d39745952678381c31-0.parquet",
+  "source_npz_sha256": "47ffaf4efcfdb574093e3e51e341f0f5abaa3919849973d96d0832d743fb04e9",
+  "side": "right",
+  "object": "wooden_piece_2",
+  "hold": [
+    150,
+    333
+  ],
+  "anchor": 220,
+  "blend": 12,
+  "rigid_grip": true,
+  "object_local_translation_m": [
+    -0.24887087645989886,
+    -0.08065968290800564,
+    -0.031623678408384176
+  ],
+  "translation_cm": 26.35199321357213,
+  "pinch_normal_alignment": 0.8287408519704458,
+  "anchor_thumb_index_distance_before_cm": [
+    25.60867384857116,
+    24.56202108555613
+  ],
+  "anchor_thumb_index_distance_after_cm": [
+    1.6838991148335627,
+    1.6230771119819902
+  ],
+  "object_and_camera_arrays_unchanged": true
+}

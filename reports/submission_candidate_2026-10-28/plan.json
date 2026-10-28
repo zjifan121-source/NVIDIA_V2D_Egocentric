@@ -1,0 +1,218 @@
+{
+  "1": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_bm_s42",
+    "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000001/bm_scored_attach",
+    "kind": "policy",
+    "tracking": 0.7730410447761193,
+    "name": "ep1_bm_s42",
+    "reference_max_displacement_m": [
+      0.15002110600471497,
+      0.22320696711540222
+    ]
+  },
+  "3": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_grip_OT1M_s43/early_85004288",
+    "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep3_grip_scene",
+    "kind": "policy",
+    "tracking": 0.7397164536741214,
+    "name": "ep3_grip_OT1M_s43/early_85004288",
+    "reference_max_displacement_m": [
+      0.06455216556787491,
+      0.23769912123680115
+    ]
+  },
+  "5": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep5_OT_s42/early_60002304",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep5_B",
+    "kind": "policy",
+    "tracking": 0.6024305555555556,
+    "name": "kv_ep5_OT_s42/early_60002304",
+    "reference_max_displacement_m": [
+      0.18082253634929657,
+      0.29156509041786194
+    ]
+  },
+  "6": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep6_bm_s42",
+    "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000006/bm_scored_attach",
+    "kind": "policy",
+    "tracking": 0.9588477366255144,
+    "name": "ep6_bm_s42",
+    "reference_max_displacement_m": [
+      0.09259112924337387,
+      0.24890747666358948
+    ]
+  },
+  "8": {
+    "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep8_kenC_s45",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000008/ken_c_scored_attach",
+    "kind": "policy",
+    "tracking": 0.8909817351598173,
+    "name": "ep8_kenC_s45",
+    "reference_max_displacement_m": [
+      0.203266903758049,
+      0.06728849560022354
+    ]
+  },
+  "10": {
+    "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep10_kenC_s43",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000010/ken_c_scored_attach",
+    "kind": "policy",
+    "tracking": 0.6904114906832298,
+    "name": "ep10_kenC_s43",
+    "reference_max_displacement_m": [
+      0.07750850915908813,
+      0.2403257191181183
+    ]
+  },
+  "14": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_bm_s43/early_90005504",
+    "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000014/bm_scored_attach",
+    "kind": "policy",
+    "tracking": 0.8269382911392404,
+    "name": "ep14_bm_s43/early_90005504",
+    "reference_max_displacement_m": [
+      0.26994848251342773,
+      0.007445826195180416
+    ]
+  },
+  "15": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep15_v2_250M",
+    "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000015/fs_noref_attach",
+    "kind": "policy",
+    "tracking": 0.9506777108433735,
+    "name": "ep15_v2_250M",
+    "reference_max_displacement_m": [
+      0.006538426503539085,
+      0.4008256196975708
+    ]
+  },
+  "16": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_v5_obj2x_s45",
+    "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000016/fs_hands_noref_attach",
+    "kind": "policy",
+    "tracking": 0.865606936416185,
+    "name": "ep16_v5_obj2x_s45",
+    "reference_max_displacement_m": [
+      0.012954475358128548,
+      0.35858264565467834
+    ]
+  },
+  "19": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep19_OT_s43",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_NFS",
+    "kind": "policy",
+    "tracking": 0.5840425531914895,
+    "name": "kv_ep19_OT_s43",
+    "reference_max_displacement_m": [
+      0.08448579907417297,
+      0.15085844695568085
+    ]
+  },
+  "20": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep20_OT_s42",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep20_B",
+    "kind": "policy",
+    "tracking": 0.7073019801980198,
+    "name": "kv_ep20_OT_s42",
+    "reference_max_displacement_m": [
+      0.07972335815429688,
+      0.2913314700126648
+    ]
+  },
+  "25": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_LOWLR_s42",
+    "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+    "kind": "policy",
+    "tracking": 0.8618328651685394,
+    "name": "ep25_assembly2_LOWLR_s42",
+    "reference_max_displacement_m": [
+      0.179876908659935,
+      0.24812856316566467
+    ]
+  },
+  "28": {
+    "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep28_kenC_s42",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000028/ken_c_scored_attach",
+    "kind": "policy",
+    "tracking": 0.9227272727272727,
+    "name": "ep28_kenC_s42",
+    "reference_max_displacement_m": [
+      0.0,
+      0.3975706398487091
+    ]
+  },
+  "30": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/kv_ep30_S_s42/early_50003968",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep30_S",
+    "kind": "policy",
+    "tracking": 0.6453184410646388,
+    "name": "kv_ep30_S_s42/early_50003968",
+    "reference_max_displacement_m": [
+      0.24177974462509155,
+      0.007578413933515549
+    ]
+  },
+  "32": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep32_bm_s42",
+    "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000032/bm_scored_attach",
+    "kind": "policy",
+    "tracking": 0.8824806949806949,
+    "name": "ep32_bm_s42",
+    "reference_max_displacement_m": [
+      0.10612725466489792,
+      0.23882724344730377
+    ]
+  },
+  "33": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WIDE_s42/early_95006720",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+    "kind": "policy",
+    "tracking": 0.7913074712643678,
+    "name": "ep33_WIDE_s42/early_95006720",
+    "reference_max_displacement_m": [
+      0.09540210664272308,
+      0.2588878273963928
+    ]
+  },
+  "35": {
+    "run": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/runs/ep35_kenC_s42",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/night_2026-10-24/scenes/episode_000035/ken_c_scored_attach",
+    "kind": "policy",
+    "tracking": 0.9533847980997625,
+    "name": "ep35_kenC_s42",
+    "reference_max_displacement_m": [
+      0.22289638221263885
+    ]
+  },
+  "36": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep36_v2_250M",
+    "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000036/fs_noref_attach",
+    "kind": "policy",
+    "tracking": 0.9216830466830467,
+    "name": "ep36_v2_250M",
+    "reference_max_displacement_m": [
+      0.21874018013477325
+    ]
+  },
+  "37": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep37_v5_obj2x_s43",
+    "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000037/fs_noref_attach",
+    "kind": "policy",
+    "tracking": 0.9904801324503312,
+    "name": "ep37_v5_obj2x_s43",
+    "reference_max_displacement_m": [
+      0.2919388711452484
+    ]
+  },
+  "38": {
+    "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep38_attach",
+    "scene": "/data/user_data/edmondwa/v2d/recon_data/outputs/load_retarget/episode_000038/mini_dust_pan_attach",
+    "kind": "policy",
+    "tracking": 0.9878802281368821,
+    "name": "ep38_attach",
+    "reference_max_displacement_m": [
+      0.33196574449539185
+    ]
+  }
+}

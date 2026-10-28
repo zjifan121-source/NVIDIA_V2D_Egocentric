@@ -1,0 +1,24 @@
+{
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_assembly2_OT1M_s42/early_75005952",
+  "auc": 0.7969627808988764,
+  "per_body": [
+    0.8002106741573034,
+    0.7937148876404494
+  ],
+  "bodies": [
+    {
+      "body": 0,
+      "reference_max_bottom_lift_cm": 14.48954303648964,
+      "reference_final_bottom_cm": 100.14985815266904,
+      "achieved_max_bottom_lift_cm": 14.604399741628459,
+      "achieved_final_bottom_cm": 98.80868919187962
+    },
+    {
+      "body": 1,
+      "reference_max_bottom_lift_cm": 11.560467233549321,
+      "reference_final_bottom_cm": 99.58699625409551,
+      "achieved_max_bottom_lift_cm": 11.53083658755245,
+      "achieved_final_bottom_cm": 99.12369598750278
+    }
+  ]
+}

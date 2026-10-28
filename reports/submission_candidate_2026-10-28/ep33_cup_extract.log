@@ -1,0 +1,10 @@
+Warp CUDA error 100: no CUDA-capable device is detected (in function init_cuda_driver, /builds/omniverse/warp/warp/native/cuda_util.cpp:309)
+Warp 1.14.0 initialized:
+   CUDA Toolkit 12.9, CUDA driver not available (NVRTC compilation available)
+   Devices:
+     "cpu"      : "x86_64"
+   Kernel cache:
+     /tmp/v2d_warp_cup_audit/1.14.0
+Module newton._src.geometry.inertia 019f79b load on device 'cpu' took 1.16 ms  (cached)
+cup default collision hulls 49
+wrote collision geometry

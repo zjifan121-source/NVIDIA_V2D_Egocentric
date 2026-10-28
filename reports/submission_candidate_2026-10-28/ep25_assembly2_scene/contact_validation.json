@@ -1,0 +1,125 @@
+{
+  "samples": [
+    {
+      "frame": 149,
+      "minimum_tip_distance_cm": 24.714584951624868,
+      "thumb_index_distance_cm": [
+        24.82466055460858,
+        24.74663496717732
+      ]
+    },
+    {
+      "frame": 155,
+      "minimum_tip_distance_cm": 16.72218471932239,
+      "thumb_index_distance_cm": [
+        18.564955923914496,
+        16.72218471932239
+      ]
+    },
+    {
+      "frame": 160,
+      "minimum_tip_distance_cm": 6.01156782672024,
+      "thumb_index_distance_cm": [
+        6.01156782672024,
+        7.8933451570813995
+      ]
+    },
+    {
+      "frame": 165,
+      "minimum_tip_distance_cm": 1.7253846880510662,
+      "thumb_index_distance_cm": [
+        1.7253846880510662,
+        4.326033650748888
+      ]
+    },
+    {
+      "frame": 170,
+      "minimum_tip_distance_cm": 1.9161633856909013,
+      "thumb_index_distance_cm": [
+        1.9161633856909013,
+        4.421305292640574
+      ]
+    },
+    {
+      "frame": 175,
+      "minimum_tip_distance_cm": 2.4229541006024697,
+      "thumb_index_distance_cm": [
+        2.4229541006024697,
+        5.050946382003478
+      ]
+    },
+    {
+      "frame": 180,
+      "minimum_tip_distance_cm": 2.4544763824896965,
+      "thumb_index_distance_cm": [
+        2.4544763824896965,
+        5.178465501823084
+      ]
+    },
+    {
+      "frame": 190,
+      "minimum_tip_distance_cm": 0.43662850732183306,
+      "thumb_index_distance_cm": [
+        1.6118618472848696,
+        1.6362033026819254
+      ]
+    },
+    {
+      "frame": 200,
+      "minimum_tip_distance_cm": 0.22830585689979283,
+      "thumb_index_distance_cm": [
+        2.1663251617249144,
+        2.8604089762308194
+      ]
+    },
+    {
+      "frame": 220,
+      "minimum_tip_distance_cm": 0.20873954505292233,
+      "thumb_index_distance_cm": [
+        1.6839051420229258,
+        1.6230723694556322
+      ]
+    },
+    {
+      "frame": 250,
+      "minimum_tip_distance_cm": 0.4358057219822039,
+      "thumb_index_distance_cm": [
+        1.8835390360394495,
+        1.2158267440444035
+      ]
+    },
+    {
+      "frame": 280,
+      "minimum_tip_distance_cm": 0.20877602287501762,
+      "thumb_index_distance_cm": [
+        1.8592600607931542,
+        1.7712801329048844
+      ]
+    },
+    {
+      "frame": 310,
+      "minimum_tip_distance_cm": 0.6662696398021415,
+      "thumb_index_distance_cm": [
+        1.6254047667924834,
+        1.472716000181112
+      ]
+    },
+    {
+      "frame": 330,
+      "minimum_tip_distance_cm": 18.49148956963828,
+      "thumb_index_distance_cm": [
+        20.403568900254097,
+        19.94679199510065
+      ]
+    },
+    {
+      "frame": 340,
+      "minimum_tip_distance_cm": 38.44588934679714,
+      "thumb_index_distance_cm": [
+        38.44588934679714,
+        49.809276471271566
+      ]
+    }
+  ],
+  "object_camera_left_hand_unchanged": true
+}

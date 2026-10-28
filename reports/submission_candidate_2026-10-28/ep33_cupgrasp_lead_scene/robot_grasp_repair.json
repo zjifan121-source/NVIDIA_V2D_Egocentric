@@ -1,0 +1,31 @@
+{
+  "source": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+  "source_parquet_sha256": "0b63c23ca8f03cae7c8b6b8470395eed76a47528a35bb8e5b72fdfa095f00942",
+  "script_sha256": "31de474433faab7ba3570d04d305d7f5c7ca261c6171c9a026995d128f81639a",
+  "changed_columns": [
+    "robot_left_wrist_position",
+    "robot_left_wrist_wxyz",
+    "robot_left_finger_joints",
+    "robot_left_frames"
+  ],
+  "object_references_unchanged": true,
+  "grasps": [
+    {
+      "side": "left",
+      "body": "blue_cup",
+      "hold": [
+        0,
+        314
+      ],
+      "anchor": 96,
+      "compression_mm": 0.5,
+      "digits": [
+        "thumb",
+        "index"
+      ],
+      "opposing_normal_dot": -0.690026623467395,
+      "anchor_target_error_m": 2.005499358424423e-06,
+      "max_wrist_shift_m": 0.17358663064646673
+    }
+  ]
+}

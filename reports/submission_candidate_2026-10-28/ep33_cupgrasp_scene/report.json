@@ -1,0 +1,124 @@
+{
+ "sequence_id": "ep33_ken_c_scored_attach",
+ "episode": 33,
+ "object": null,
+ "bundle": "/data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/bundle_merged",
+ "fps": 20.25411910142744,
+ "ground_z_offset": 1.0,
+ "started_utc": "2026-10-25T06:25:26+00:00",
+ "merge": {
+  "objects": [
+   "blue_cup",
+   "wooden_spoon"
+  ],
+  "world_from": "wooden_spoon",
+  "valid_fraction": {
+   "blue_cup": 1.0,
+   "wooden_spoon": 1.0
+  },
+  "camera_path_m": {
+   "blue_cup": 0.42,
+   "wooden_spoon": 0.42
+  }
+ },
+ "bundle_check": {
+  "frames": 348,
+  "nan_arrays": [],
+  "valid_fraction": {
+   "camera": 1.0,
+   "object": 1.0,
+   "hand_left": 1.0,
+   "hand_right": 1.0
+  },
+  "hand_scale_mean": {
+   "left": 0.9316246509552002,
+   "right": 0.9597418904304504
+  },
+  "gravity_alignment_applied": true,
+  "object_drift_first_30_frames_cm": 6.42,
+  "object_step_median_cm": 0.2,
+  "first_still_frame": 0,
+  "mesh_vertices": 11474,
+  "mesh_extents_cm": [
+   16.9,
+   8.7,
+   8.6
+  ],
+  "rest_footprint_cm": [
+   7.2,
+   4.2
+  ],
+  "scan_extents_cm": [
+   17.1,
+   10.6,
+   9.3
+  ],
+  "mesh_to_scan_size_ratio": 0.913,
+  "warnings": [
+   "object moves in the first 30 frames (rest contract expects mm-cm)"
+  ]
+ },
+ "cleaning": {
+  "hand_left_refilled_frames": 3,
+  "hand_right_refilled_frames": 6,
+  "hand_smooth_sigma_frames": 2.0,
+  "object_refilled_frames_blue_cup": 0,
+  "rest_hold_until_frame_blue_cup": 14,
+  "object_refilled_frames_wooden_spoon": 0,
+  "rest_hold_until_frame_wooden_spoon": 60,
+  "tilt_deg_0": 7.4,
+  "levelled_0": "world",
+  "tilt_deg_1": 6.3,
+  "levelled_1": "object",
+  "attach_rule": "nearest within reach",
+  "attached_0": [
+   [
+    "left",
+    24,
+    314,
+    2.9
+   ]
+  ],
+  "attached_1": [
+   [
+    "right",
+    61,
+    300,
+    0.1
+   ]
+  ],
+  "hand_left_attached_frames": 290,
+  "hand_right_attached_frames": 239
+ },
+ "output_check": {
+  "frames": 348,
+  "fps": 20.254119873046875,
+  "task_error_cm": {
+   "right": {
+    "mean": 2.04,
+    "max": 6.96
+   },
+   "left": {
+    "mean": 2.11,
+    "max": 5.26
+   }
+  },
+  "penetration_frames": {
+   "any": 0.799,
+   "over_1cm": 0.0,
+   "over_2cm": 0.0
+  },
+  "support_disks": 2,
+  "frame0_seating_cm": [
+   0.0,
+   0.0
+  ],
+  "warnings": [
+   "right task error 2.04 cm mean / 6.96 cm max (bar ~2.2 / 6)"
+  ]
+ },
+ "processed": "/data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/assets/human_motion_data/ego_recon/processed/sequence_id=ep33_ken_c_scored_attach/robot_name=sharpa_wave",
+ "support_usd": "/data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000033/ken_c_scored_attach/assets/human_motion_data/ego_recon/reconstructed_stage/ep33_ken_c_scored_attach_sharpa_wave_support.usda",
+ "video": null,
+ "finished_utc": "2026-10-25T06:27:48+00:00"
+}

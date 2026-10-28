@@ -1,0 +1,38 @@
+[
+  {
+    "episode": 25,
+    "name": "ep25_grip2_OT1M_s42",
+    "job": "10963903",
+    "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+    "seed": 42,
+    "radius": null,
+    "njmax": 1024
+  },
+  {
+    "episode": 25,
+    "name": "ep25_grip2_OT1M_s44",
+    "job": "10963904",
+    "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_grip2_scene",
+    "seed": 44,
+    "radius": null,
+    "njmax": 1024
+  },
+  {
+    "episode": 33,
+    "name": "ep33_R100_OT_s42",
+    "job": "10963905",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep33_B",
+    "seed": 42,
+    "radius": "1.0",
+    "njmax": 1024
+  },
+  {
+    "episode": 19,
+    "name": "ep19_ST_OT_s42",
+    "job": "10963906",
+    "scene": "/data/user_data/edmondwa/v2d/ken_night/variants/ep19_S",
+    "seed": 42,
+    "radius": null,
+    "njmax": 1024
+  }
+]

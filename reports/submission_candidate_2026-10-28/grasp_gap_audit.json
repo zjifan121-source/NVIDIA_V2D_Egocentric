@@ -1,0 +1,254 @@
+[
+  {
+    "episode": 1,
+    "object": "white_pot",
+    "hand": "left",
+    "hold": [
+      126,
+      221
+    ],
+    "median_min_tip_cm": 0.4981146734808665,
+    "p90_min_tip_cm": 0.6177840943661301,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 1,
+    "object": "white_pot_lid",
+    "hand": "right",
+    "hold": [
+      256,
+      269
+    ],
+    "median_min_tip_cm": 0.09450008638467339,
+    "p90_min_tip_cm": 0.09450008638467339,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 3,
+    "object": "wooden_spoon",
+    "hand": "right",
+    "hold": [
+      43,
+      267
+    ],
+    "median_min_tip_cm": 2.481117381410879,
+    "p90_min_tip_cm": 3.2757773760774405,
+    "over_3cm_fraction": 0.20833333333333334
+  },
+  {
+    "episode": 5,
+    "object": "white_pot",
+    "hand": "left",
+    "hold": [
+      29,
+      223
+    ],
+    "median_min_tip_cm": 1.0140825426514826,
+    "p90_min_tip_cm": 1.3106023743561936,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 5,
+    "object": "wooden_spoon",
+    "hand": "right",
+    "hold": [
+      38,
+      252
+    ],
+    "median_min_tip_cm": 0.7691754586661852,
+    "p90_min_tip_cm": 1.2387603792444772,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 10,
+    "object": "blue_cup",
+    "hand": "left",
+    "hold": [
+      45,
+      125
+    ],
+    "median_min_tip_cm": 0.3043478545282361,
+    "p90_min_tip_cm": 0.6895001850780033,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 10,
+    "object": "beige_cup",
+    "hand": "right",
+    "hold": [
+      35,
+      104
+    ],
+    "median_min_tip_cm": 0.28578112355424357,
+    "p90_min_tip_cm": 0.5019510025924979,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 19,
+    "object": "mini_sweeper",
+    "hand": "right",
+    "hold": [
+      118,
+      195
+    ],
+    "median_min_tip_cm": 0.2724889589098985,
+    "p90_min_tip_cm": 0.7539824120229052,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 19,
+    "object": "mini_sweeper",
+    "hand": "right",
+    "hold": [
+      215,
+      235
+    ],
+    "median_min_tip_cm": 1.6262442549670864,
+    "p90_min_tip_cm": 1.7877652988878678,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 19,
+    "object": "mini_dust_pan",
+    "hand": "left",
+    "hold": [
+      22,
+      38
+    ],
+    "median_min_tip_cm": 4.921379635475224,
+    "p90_min_tip_cm": 5.350362963874003,
+    "over_3cm_fraction": 1.0
+  },
+  {
+    "episode": 19,
+    "object": "mini_dust_pan",
+    "hand": "left",
+    "hold": [
+      108,
+      174
+    ],
+    "median_min_tip_cm": 0.5656768208320022,
+    "p90_min_tip_cm": 1.3185725355781928,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 20,
+    "object": "blue_cup",
+    "hand": "left",
+    "hold": [
+      37,
+      59
+    ],
+    "median_min_tip_cm": 0.2986444991476212,
+    "p90_min_tip_cm": 0.4532922405146049,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 20,
+    "object": "water_pitcher",
+    "hand": "right",
+    "hold": [
+      27,
+      50
+    ],
+    "median_min_tip_cm": 0.4767102698348319,
+    "p90_min_tip_cm": 0.5868661147333432,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 20,
+    "object": "water_pitcher",
+    "hand": "right",
+    "hold": [
+      84,
+      118
+    ],
+    "median_min_tip_cm": 3.045322984990551,
+    "p90_min_tip_cm": 5.784035433363615,
+    "over_3cm_fraction": 0.625
+  },
+  {
+    "episode": 25,
+    "object": "wooden_piece_1",
+    "hand": "left",
+    "hold": [
+      53,
+      331
+    ],
+    "median_min_tip_cm": 0.4970962891549937,
+    "p90_min_tip_cm": 0.8804160491222415,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 25,
+    "object": "wooden_piece_1",
+    "hand": "right",
+    "hold": [
+      79,
+      149
+    ],
+    "median_min_tip_cm": 26.764084012496728,
+    "p90_min_tip_cm": 27.560426178691777,
+    "over_3cm_fraction": 1.0
+  },
+  {
+    "episode": 25,
+    "object": "wooden_piece_2",
+    "hand": "right",
+    "hold": [
+      179,
+      333
+    ],
+    "median_min_tip_cm": 23.14908615264219,
+    "p90_min_tip_cm": 24.02429844672509,
+    "over_3cm_fraction": 1.0
+  },
+  {
+    "episode": 30,
+    "object": "mini_sweeper",
+    "hand": "right",
+    "hold": [
+      49,
+      64
+    ],
+    "median_min_tip_cm": 1.2101134247948186,
+    "p90_min_tip_cm": 1.365174581296704,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 30,
+    "object": "mini_sweeper",
+    "hand": "right",
+    "hold": [
+      171,
+      197
+    ],
+    "median_min_tip_cm": 1.545375333463475,
+    "p90_min_tip_cm": 1.720686705442164,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 33,
+    "object": "blue_cup",
+    "hand": "left",
+    "hold": [
+      24,
+      314
+    ],
+    "median_min_tip_cm": 1.1747958098294877,
+    "p90_min_tip_cm": 1.7376717302620739,
+    "over_3cm_fraction": 0.0
+  },
+  {
+    "episode": 33,
+    "object": "wooden_spoon",
+    "hand": "right",
+    "hold": [
+      61,
+      300
+    ],
+    "median_min_tip_cm": 0.3814408519678109,
+    "p90_min_tip_cm": 0.9031087059377104,
+    "over_3cm_fraction": 0.0
+  }
+]

@@ -1,0 +1,81 @@
+{
+  "samples": [
+    {
+      "object": "wooden_piece_1",
+      "frame": 80,
+      "min_tip_cm": 3.6643555577197424
+    },
+    {
+      "object": "wooden_piece_1",
+      "frame": 90,
+      "min_tip_cm": 0.3614603504044396
+    },
+    {
+      "object": "wooden_piece_1",
+      "frame": 100,
+      "min_tip_cm": 0.28634165369456344
+    },
+    {
+      "object": "wooden_piece_1",
+      "frame": 110,
+      "min_tip_cm": 0.03681050243601508
+    },
+    {
+      "object": "wooden_piece_1",
+      "frame": 120,
+      "min_tip_cm": 0.14510924962091776
+    },
+    {
+      "object": "wooden_piece_1",
+      "frame": 130,
+      "min_tip_cm": 0.6428601781545237
+    },
+    {
+      "object": "wooden_piece_1",
+      "frame": 140,
+      "min_tip_cm": 0.8021218305300941
+    },
+    {
+      "object": "wooden_piece_2",
+      "frame": 170,
+      "min_tip_cm": 1.9161633856909013
+    },
+    {
+      "object": "wooden_piece_2",
+      "frame": 180,
+      "min_tip_cm": 2.4544763824896965
+    },
+    {
+      "object": "wooden_piece_2",
+      "frame": 190,
+      "min_tip_cm": 0.43662850732183306
+    },
+    {
+      "object": "wooden_piece_2",
+      "frame": 200,
+      "min_tip_cm": 0.22830585689979283
+    },
+    {
+      "object": "wooden_piece_2",
+      "frame": 220,
+      "min_tip_cm": 0.20873954505292233
+    },
+    {
+      "object": "wooden_piece_2",
+      "frame": 250,
+      "min_tip_cm": 0.4358057219822039
+    },
+    {
+      "object": "wooden_piece_2",
+      "frame": 280,
+      "min_tip_cm": 0.20877602287501762
+    },
+    {
+      "object": "wooden_piece_2",
+      "frame": 310,
+      "min_tip_cm": 0.6662696398021415
+    }
+  ],
+  "objects_and_left_hand_unchanged": true,
+  "scoring_mesh_geometry_and_face_order_unchanged": true
+}

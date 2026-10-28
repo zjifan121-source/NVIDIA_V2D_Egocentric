@@ -1,0 +1,9 @@
+{
+  "job": "10965496",
+  "name": "ep25_assembly2_LOWLR_s42",
+  "extra": "task.motion_speed=1.0 sim.fps=20.254119873046875 sim.njmax=1024 sim.nconmax=512 termination.wrist_position.threshold=0.3 termination.object_position.threshold=0.3 termination.object_orientation.threshold=1.5 training.checkpoint.save_interval_environment_steps=5000192 training.replay.capacity=1048576 training.replay.observation_storage_dtype=float16 training.optimization.learning_rate_initial=0.00005 training.optimization.learning_rate_peak=0.00005 training.optimization.learning_rate_end=0.00005",
+  "scene": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene",
+  "source_step": 95006720,
+  "total_steps": 125001728,
+  "seed": 42
+}

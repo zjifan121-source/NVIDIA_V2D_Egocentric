@@ -1,0 +1,93 @@
+[2026-10-28 03:46:58,800][jax._src.xla_bridge][INFO] - Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/robotic_grounding/flash_chord/src/flash_chord/embodiments/binding.py:371: UserWarning: Inertia validation corrected 6 bodies. Set validate_inertia_detailed=True for detailed per-body warnings.
+  model = builder.finalize(device=device, skip_all_validations=True)
+/home/edmondwa/NVIDIA_V2D_Egocentric/baseline/robotic_grounding/flash_chord/src/flash_chord/scene/builder.py:508: UserWarning: Inertia validation corrected 6 bodies. Set validate_inertia_detailed=True for detailed per-body warnings.
+  model = builder.finalize()
+Warp 1.14.0 initialized:
+   CUDA Toolkit 12.9, Driver 13.3
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA L40S" (44 GiB, sm_89, mempool enabled)
+   Kernel cache:
+     /home/edmondwa/.cache/warp/1.14.0
+Module newton._src.geometry.inertia 3654b45 load on device 'cuda:0' took 23.47 ms  (cached)
+Module validate_and_correct_inertia_kernel_2d598dcb 90f14cb load on device 'cpu' took 7.17 ms  (cached)
+Module newton._src.sim.articulation a705557 load on device 'cpu' took 0.89 ms  (cached)
+Module validate_and_correct_inertia_kernel_2d598dcb 2d598dc load on device 'cuda:0' took 2.10 ms  (cached)
+Module newton._src.sim.graph_coloring 8071a9f load on device 'cpu' took 0.84 ms  (cached)
+Module newton._src.solvers.mujoco.kernels 618b13f load on device 'cuda:0' took 14.69 ms  (cached)
+Module mujoco_warp._src.io 2f253d2 load on device 'cuda:0' took 4.56 ms  (cached)
+Module mujoco_warp._src.smooth cf7a289 load on device 'cuda:0' took 4.71 ms  (cached)
+Module _solve_LD_sparse_fused__locals__kernel_15d81c78 6df44b4 load on device 'cuda:0' took 1.87 ms  (cached)
+Module flash_chord.objectives.wrench 8e5d34b load on device 'cuda:0' took 2.56 ms  (cached)
+Module flash_chord.lifecycle.reset cab254d load on device 'cuda:0' took 3.39 ms  (cached)
+Module newton._src.sim.articulation 24ff67e load on device 'cuda:0' took 6.37 ms  (cached)
+Module flash_chord.runtime.actions.hand_pose 36434de load on device 'cuda:0' took 2.78 ms  (cached)
+Module flash_chord.envs.base 7bb0f78 load on device 'cuda:0' took 1.78 ms  (cached)
+Module flash_chord.envs.rl 4c4513a load on device 'cuda:0' took 1.95 ms  (cached)
+Module flash_chord.envs.observation 335be85 load on device 'cuda:0' took 2.52 ms  (cached)
+Module flash_chord.runtime.command 768bb56 load on device 'cuda:0' took 2.12 ms  (cached)
+Module flash_chord.runtime.control a7feac7 load on device 'cuda:0' took 2.03 ms  (cached)
+Module flash_chord.runtime.object_control c5f9b6d load on device 'cuda:0' took 1.86 ms  (cached)
+Module mujoco_warp._src.collision_driver 621a3f9 load on device 'cuda:0' took 1.90 ms  (cached)
+Module _nxn_broadphase__locals__kernel_90aeac30 90aeac3 load on device 'cuda:0' took 1.64 ms  (cached)
+Module ccd_kernel_builder__locals__ccd_kernel_f48963bf f48963b load on device 'cuda:0' took 3.13 ms  (cached)
+Module ccd_kernel_builder__locals__ccd_kernel_6090cf8f 6090cf8 load on device 'cuda:0' took 3.41 ms  (cached)
+Module _primitive_narrowphase__locals__primitive_narrowphase_e85b0d64 e85b0d6 load on device 'cuda:0' took 2.71 ms  (cached)
+Module mujoco_warp._src.constraint e56f243 load on device 'cuda:0' took 3.69 ms  (cached)
+Module _efc_contact_init__locals__kernel_7561548c 7561548 load on device 'cuda:0' took 1.85 ms  (cached)
+Module _efc_contact_jac_sparse__locals__kernel_a4c07dfc a4c07df load on device 'cuda:0' took 1.71 ms  (cached)
+Module _efc_contact_update__locals__kernel_c8073923 c807392 load on device 'cuda:0' took 2.03 ms  (cached)
+Module mujoco_warp._src.forward f5bfed4 load on device 'cuda:0' took 2.72 ms  (cached)
+Module mujoco_warp._src.passive cc48b2a load on device 'cuda:0' took 2.30 ms  (cached)
+Module mujoco_warp._src.forward 46b3f78 load on device 'cuda:0' took 2.67 ms  (cached)
+Module mujoco_warp._src.support d1e71d9 load on device 'cuda:0' took 1.93 ms  (cached)
+Module mujoco_warp._src.solver d53b47b load on device 'cuda:0' took 2.96 ms  (cached)
+Module solve_init_jaref__locals__kernel_564c9326 564c932 load on device 'cuda:0' took 1.71 ms  (cached)
+Module mul_m_sparse__locals___mul_m_sparse_57bd8101 57bd810 load on device 'cuda:0' took 1.71 ms  (cached)
+Module update_constraint_efc__locals__kernel_e7fd7693 e7fd769 load on device 'cuda:0' took 1.64 ms  (cached)
+Module update_constraint_gauss_cost__locals__kernel_edc2026f edc2026 load on device 'cuda:0' took 1.68 ms  (cached)
+Module update_gradient_cholesky_blocked__locals__kernel_3cc6cc8b 40b76a7 load on device 'cuda:0' took 196.65 ms  (cached)
+Module linesearch_jv_fused__locals__kernel_809114b4 809114b load on device 'cuda:0' took 1.85 ms  (cached)
+Module linesearch_iterative__locals__kernel_6637ae6e d82a261 load on device 'cuda:0' took 2.17 ms  (cached)
+Module update_constraint_efc__locals__kernel_565f38f0 565f38f load on device 'cuda:0' took 1.69 ms  (cached)
+Module update_gradient_cholesky_blocked_skip_unchanged__locals__kernel_d277e382 40da1ba load on device 'cuda:0' took 200.78 ms  (cached)
+Module mujoco_warp._src.sensor a993087 load on device 'cuda:0' took 4.11 ms  (cached)
+Module mujoco_warp._src.derivative 212adeb load on device 'cuda:0' took 2.29 ms  (cached)
+Module flash_chord.runtime.contact 6b5b079 load on device 'cuda:0' took 2.46 ms  (cached)
+Module flash_chord.lifecycle.termination 3e3f704 load on device 'cuda:0' took 2.47 ms  (cached)
+Module flash_chord.objectives.tracking cfa9b68 load on device 'cuda:0' took 2.28 ms  (cached)
+Module flash_chord.objectives.keypoints af286eb load on device 'cuda:0' took 1.94 ms  (cached)
+Module flash_chord.objectives.joints 1436c14 load on device 'cuda:0' took 1.74 ms  (cached)
+Module flash_chord.objectives.contact e351a4c load on device 'cuda:0' took 2.82 ms  (cached)
+Module flash_chord.objectives.composition ecb0826 load on device 'cuda:0' took 2.02 ms  (cached)
+Module flash_chord.evaluation.rollout 43be27a load on device 'cuda:0' took 2.44 ms  (cached)
+evaluation step 1/252
+evaluation step 51/252
+evaluation step 101/252
+evaluation step 151/252
+evaluation step 201/252
+evaluation step 251/252
+evaluation step 252/252
+{
+  "evaluation/add_auc": 0.34387400793650796,
+  "evaluation/add_std_m": 0.05420883519092705,
+  "evaluation/cause_fraction/object": 1.0,
+  "evaluation/cause_fraction/wrist": 1.0,
+  "evaluation/chord_sr": 0.0,
+  "evaluation/environment_steps": 100003840.0,
+  "evaluation/maniptrans_sr": 0.0,
+  "evaluation/mean_add_m": 0.08011069448899505,
+  "evaluation/mean_per_point_error_cm": 7.519672844084694,
+  "evaluation/mppe_cm": 10.74148821629914,
+  "evaluation/object_orientation_error_deg": 40.29153190154361,
+  "evaluation/object_orientation_error_std_deg": 0.0,
+  "evaluation/object_position_error_m": 0.07002097348564243,
+  "evaluation/object_position_error_std_m": 0.0,
+  "evaluation/relative_position_error_cm": 13.956387498295555,
+  "evaluation/spider_position_error_centered_m": 0.060910173513478896,
+  "evaluation/spider_sr_uncentered": 0.0,
+  "evaluation/world_count": 1.0
+}
+report: /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/grasp_tail_diagnostics/trained_best/metrics.json
+object trajectories: /home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/grasp_tail_diagnostics/trained_best/trajectory.parquet

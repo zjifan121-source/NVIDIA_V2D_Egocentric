@@ -1,0 +1,59 @@
+{
+  "method": "Chebyshev radius of intersection of actual convex collision hulls; positive radius proves volumetric overlap",
+  "linear_programs": 23,
+  "frames": [
+    {
+      "frame": 190,
+      "intersection_inscribed_radius_m": 0,
+      "hull_pair": null
+    },
+    {
+      "frame": 210,
+      "intersection_inscribed_radius_m": 0.0009581878536624178,
+      "hull_pair": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 220,
+      "intersection_inscribed_radius_m": 0.0026489399577873662,
+      "hull_pair": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 250,
+      "intersection_inscribed_radius_m": 0.002656916121448437,
+      "hull_pair": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 280,
+      "intersection_inscribed_radius_m": 0.002656319049118047,
+      "hull_pair": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 310,
+      "intersection_inscribed_radius_m": 0.0026556212873919405,
+      "hull_pair": [
+        0,
+        0
+      ]
+    },
+    {
+      "frame": 354,
+      "intersection_inscribed_radius_m": 0.002655397218882971,
+      "hull_pair": [
+        0,
+        0
+      ]
+    }
+  ]
+}

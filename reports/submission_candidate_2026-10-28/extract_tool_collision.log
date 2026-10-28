@@ -1,0 +1,10 @@
+Warp CUDA error 100: no CUDA-capable device is detected (in function init_cuda_driver, /builds/omniverse/warp/warp/native/cuda_util.cpp:309)
+Warp 1.14.0 initialized:
+   CUDA Toolkit 12.9, CUDA driver not available (NVRTC compilation available)
+   Devices:
+     "cpu"      : "x86_64"
+   Kernel cache:
+     /tmp/v2d_tool_collision_cache/1.14.0
+Module newton._src.geometry.inertia 019f79b load on device 'cpu' took 20189.60 ms  (compiled)
+{"object": 0, "urdf": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_full/assets/human_motion_data/ego_recon/processed/ep30_stereo_table_mini_sweeper_rigid.urdf", "hulls": 44, "watertight": false}
+{"object": 1, "urdf": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep30_table_full/assets/human_motion_data/ego_recon/processed/ep30_stereo_table_plastic_dish_rack_rigid.urdf", "hulls": 68, "watertight": true}

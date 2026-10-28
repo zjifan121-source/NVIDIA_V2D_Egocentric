@@ -1,0 +1,16 @@
+[
+  {
+    "board": 1,
+    "hulls": 55,
+    "urdf": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene/assets/human_motion_data/ego_recon/processed/ep25_split_gripfixed2_wooden_piece_1_rigid.urdf",
+    "method": "CoACD threshold0.02, preprocessoff, original watertight scoring mesh; each emitted piece convex",
+    "scoring_mesh_unchanged": true
+  },
+  {
+    "board": 2,
+    "hulls": 49,
+    "urdf": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/ep25_assembly2_scene/assets/human_motion_data/ego_recon/processed/ep25_split_gripfixed2_wooden_piece_2_rigid.urdf",
+    "method": "CoACD threshold0.02, preprocessoff, original watertight scoring mesh; each emitted piece convex",
+    "scoring_mesh_unchanged": true
+  }
+]

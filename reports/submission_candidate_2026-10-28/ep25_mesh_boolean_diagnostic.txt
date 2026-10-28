@@ -1,0 +1,11 @@
+0 watertight True volume 0.00022737377692882274 vertices/faces 3833 7666 pcaextents [0.22786555 0.14426894 0.02370121] thickness percentiles [-0.01197492 -0.01031314 -0.00807589 -0.00292186 -0.00046682  0.00645351
+  0.00797815  0.00813483  0.0096273 ]
+1 watertight True volume 0.00014253456862974105 vertices/faces 3083 6158 pcaextents [0.24151587 0.15040905 0.02351236] thickness percentiles [-0.01020943 -0.00744197 -0.00445349 -0.00226012 -0.00081848  0.00268783
+  0.00448407  0.00681026  0.01028174]
+/data/user_data/edmondwa/v2d/venvs/retarget/lib/python3.11/site-packages/trimesh/triangles.py:302: RuntimeWarning: invalid value encountered in divide
+  center_mass = integrated[1:4] / volume
+frame 190 actual mesh intersection cm3 0.0 faces 0
+frame 210 actual mesh intersection cm3 0.03160609692167038 faces 144
+frame 250 actual mesh intersection cm3 1.5503605836954337 faces 638
+frame 310 actual mesh intersection cm3 1.957385582692402 faces 842
+frame 354 actual mesh intersection cm3 2.2735096671544968 faces 1002
