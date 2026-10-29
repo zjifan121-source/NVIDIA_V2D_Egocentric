@@ -4,7 +4,7 @@ solves each of S3b's segments by its own rule, in the canonical mesh's frame.
 In: S3b's segments.json (fingertip sets per grasp), s3a2_register's canonical_to_world (the first
 static segment's start), the canonical mesh (s3a_mesh/<object>/mesh.obj), the object's observed
 depth inside its P1b mask (pathb/observe.py), the silhouette of its and the hands' masks, a TSDF of
-each static segment's masked depth (pathb/scan.py, at most TSDF_FRAMES frames), P1d's world hands
+each static segment's masked depth (pathb/scan.py, at most TSDF_FRAMES frames; its largest piece above the table), P1d's world hands
 (p4_export/hands/), its symmetry group (pathb/symmetry.py).
 Out per object: object_to_world.npz (N, 4, 4), invert_report.json (per segment: kind, frames, start
 it came from, residuals, drift, refinement, failed), bundle/ (P4's bundle with this track and the
@@ -33,10 +33,32 @@ from ..observe import View
 from ..paths import TRACK3_FPS
 from ..report import Metric, StageResult
 from ..runner import write_json
+from .s3a2_fuse_scan import BELOW_TABLE_M
 from .s4b_reference import write_bundle
 
 PIXELS = 1500  # observed mask pixels kept per frame (each residual evaluation draws invert.RAYS of them)
 TSDF_FRAMES = 30  # default: frames fused per static segment
+
+
+def largest_above_table(mesh):
+    """The TSDF's largest connected piece among those whose median height is not under the table (P4's world:
+    the table at z = 0; s3a2_fuse_scan.BELOW_TABLE_M): stray far depth in the mask fuses into a slab under it.
+    ep21's cup: the floor 75 cm down, seen through the mask's edge, was the largest piece, and the static fit
+    went 1.06 m off onto it (rays missed 0.86). Filtering the depth itself instead moved fits that were right
+    (ep0, ep2, ep27's pot turned on its rests), so a segment whose largest piece is above the table is unchanged."""
+    import open3d as o3d
+    if len(mesh.triangles) == 0:
+        return mesh
+    labels, counts, _ = mesh.cluster_connected_triangles()
+    labels, counts = np.asarray(labels), np.asarray(counts)
+    height = np.asarray(mesh.vertices)[np.asarray(mesh.triangles)][:, :, 2].mean(axis=1)
+    keep = next((c for c in np.argsort(-counts, kind="stable")
+                 if np.median(height[labels == c]) >= -BELOW_TABLE_M), None)
+    out = o3d.geometry.TriangleMesh(mesh)
+    out.remove_triangles_by_mask(labels != keep if keep is not None else np.ones(len(labels), bool))
+    out.remove_unreferenced_vertices()
+    out.compute_vertex_normals()
+    return out
 
 
 def clip(ctx, view: View, k: int, name: str, mesh: trimesh.Trimesh) -> I.Clip:
@@ -61,7 +83,7 @@ def clip(ctx, view: View, k: int, name: str, mesh: trimesh.Trimesh) -> I.Clip:
                 fused.append(S.Frame(t, depth, view.K, view.c2w[t]))
         if not fused:
             return None
-        surface = S.largest_part(S.integrate(fused))
+        surface = largest_above_table(S.integrate(fused))
         return S.mesh_points(surface, 5000) if len(surface.triangles) else None
 
     return I.Clip(K=view.K, c2w=view.c2w, obs=obs, tips=tips["tips"], wrist=wrist, valid=tips["valid"],
