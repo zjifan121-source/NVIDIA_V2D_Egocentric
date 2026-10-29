@@ -104,6 +104,7 @@ def numbered(folder: Path, pattern: str) -> list[Path]:
 
 def train(partition, run: Path, name: str, long: bool = False, seed: int = 42) -> dict:
     """Train on one task partition into run/train; resumable; run/train.json when done."""
+    run = Path(run).resolve()  # FlashCHORD runs in its own folder: a relative output_dir would land there
     done = run / "train.json"
     if done.is_file():
         return json.loads(done.read_text())
@@ -136,6 +137,7 @@ def train(partition, run: Path, name: str, long: bool = False, seed: int = 42) -
 
 def evaluate(checkpoint, number: int, run: Path) -> Path:
     """The kit's evaluator on one checkpoint: run/results/episode_XXXXXX.{parquet,json}."""
+    run = Path(run).resolve()
     results = run / "results"
     if (run / "eval.done").is_file():
         return results
