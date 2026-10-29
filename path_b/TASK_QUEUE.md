@@ -12,7 +12,7 @@ Numbers in two columns: playback / submitted (rollout ≈ playback − 0.07…0.
 | L5 | Carry-only joint refinement (if L1 says carries) | 0–1.5 days | mid MPPE, MP-SR | +0.03–0.05 | todo |
 | L6 | Hand-mesh non-penetration (hand scale ≥ 0.85 or inflated) | 0.5 day | no regression 41/44 | with L5 | todo |
 | L7 | Tracked bridge for in-hand turns (clip 5 mm / 3°, end terms, no wrist prior); ep0 lid grasp by hand mesh | 0.5 day | ep43 up, 41/45 not down | ep43, ep0 → ≈ 0.5 | todo |
-| L8 | Boards / sweeper at 1–2 mm voxels; scorer registration 10×; stop if flips remain | 0.5 day | flip rate | ≤ +0.02 | todo |
+| L8 | Boards / sweeper at 1–2 mm voxels; scorer registration 10×; stop if flips remain | 0.5 day | flip rate | ≤ +0.02 | stopped: boards flip 1-8 of 10 at 2 mm, sweepers and every other object 0/10 |
 | L9 | Six metrics in every checkpoint compare | 1 h | — | — | done `982c3f6e` |
 | L10 | Evaluation CPU chain S3b → S5 on 20 episodes (method frozen at the lift), GT-free signals | 3–4 h | firewall | submission possible | **paused** |
 | L11 | Kit packer for S7; dry-pack public today | 2 h | preflight | — | done `a7219a86`: dry pack of 40/26/18 on the VM, kit preflight "Ready to submit." |

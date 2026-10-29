@@ -22,7 +22,7 @@ Checks (stage23.check) on the partition S6 trains on (frames, no robot link > 2 
 frame-0 seating gap < 1 cm, a support disk); mode B also the hand-over: every DaiD contact's robot-side
 point, carried by the task file's robot (fk.py), within 1 cm of the object surface on >= 90 % of
 contact frames. FlashCHORD's kinematic replay (scripts/debug/replay.py) is the GPU check (VM).
-Candidates: S4b's moving one (s4b_reference/moving.json: inverted, or keyframe when it fell back) and
+Candidates: S4b's moving one (s4b_reference/moving.json: inverted, or keyframe without a solved track) and
 still (V4 S6: two policies); every candidate with a bundle when S4b wrote no choice (v3 runs).
 Out: s5_task/<candidate>/run/ (stages 2-3), task.json {mode, partition, sequence_id, support_usd, ...}.
 """

@@ -11,8 +11,10 @@ re-solve) marked `failed`, S4a's phases.
             go/no-go compares `inverted` with, and the fallback
   still     the first static pose on every frame
 The moving candidate an episode trains (s4b_reference/moving.json, S5 reads it): `inverted`, or
-`keyframe` when any object has a failed grasp segment or no solved track; $PATHB_MOVING (inverted or
-keyframe) sets it for a whole run (the go/no-go's verdict).
+`keyframe` when an object has no solved track; $PATHB_MOVING (inverted or keyframe) sets it for a whole run
+(the go/no-go's verdict). A failed grasp no longer falls back (2026-10-29): S3c bridges its frames inside
+`inverted` (invert.BRIDGE_FAILED), and on the 9 public episodes with one inverted plays back at or above
+keyframe (mean 0.535 against 0.411; ep41 0.831 / 0.406, ep43 0.435 / 0.132, ep0 0.353 / 0.354).
 v3 runs (s3c_fuse/, cached) keep their old inputs: the fused track, its anchors, S3b's trusted frames.
 Hands: the bundle's, with Path B's own repair of wrist spikes (pathb/stage23.py clean_hands).
 Each candidate is a complete bundle (BUNDLES.md layout) in s4b_reference/<object>/<candidate>/; the
@@ -130,9 +132,8 @@ def moving_candidate(ctx, found: dict) -> dict:
     failed = {n: v["failed"] for n, v in found.items() if v and v["failed"]}
     if missing:
         return {"candidate": "keyframe", "why": f"no solved track for {missing}"}
-    if failed:
-        return {"candidate": "keyframe", "why": f"failed grasp segments: {failed}"}
-    return {"candidate": "inverted", "why": "every grasp segment solved"}
+    return {"candidate": "inverted", "why": f"failed grasp segments bridged inside it: {failed}" if failed
+            else "every grasp segment solved"}
 
 
 def write_bundle(src: Path, dest: Path, data: dict) -> Path:
