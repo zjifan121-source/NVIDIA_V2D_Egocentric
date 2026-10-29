@@ -21,7 +21,7 @@ Numbers in two columns: playback / submitted (rollout ≈ playback − 0.07…0.
 | # | Task | GPU-h | Check | Status |
 |---|---|---|---|---|
 | G1 | F2 on public continues; `njmax`/`nconmax` ≥ 1024 before two-object episodes | — | no overflow lines | done `24793d99`: njmax 1024 / nconmax 512 (1024 / 1024 out of memory); F2 resumed at ep41 06:15 UTC |
-| G2 | Selector decision after the first four rollouts | 0 | accuracy on four | in progress: the GT-free rollout-vs-reference pick matched the GT pick on 40, 26, 18, 41 (keyframe); always-inverted would lose ep18 (0.331 against still's 0.387); ep41's inverted rollout pending |
+| G2 | Selector decision after the first four rollouts | 0 | accuracy on four | done: the GT-free rollout-vs-reference pick = the GT pick on 4 of 4 (40, 26, 18, 41: 0.842 / 0.770 / still 0.387 / 0.689); always-inverted loses ep18 (−0.056) ⇒ keep the gate |
 | G3 | Swap improved public references per episode; retrain those | ≈ 1 h/ep | rollout vs playback | in progress: S4b's moving rule now trains inverted on 9 episodes that fell back to keyframe (`7eff21e7`); ep0 takes v4_i1's references; ep41 retrained from S5 |
 | G4 | Evaluation: 60M × 2 × 20, then 250M on the chosen reference | ≈ 48 h | GT-free gate | **paused** |
 | G5 | Pack (kit packer), preflight, first evaluation submission (James's go); resubmit by Nov 3 | 0.5 h | preflight | **paused** |
@@ -33,7 +33,7 @@ Schedule: Oct 29 L1 L2 G1 L11 L9 L3-start · Oct 30 L3 L4 L5/L6 · Oct 31 L7 L8 
 |---|---|---|---|---|---|
 | R0 | ep21 cause corrected: depth is fine (median 0.44 m in the pitcher mask); the pitcher has no rest-before window because the hand track is the same-hand failure, and the cup anchor registers ambiguously. Re-seed hands on ep21/22/44 (E1), rerun ep21; B2 margin for the cup | L40S 15 min/ep + Mac | ep21 up; 22/44 not down | ep21 → ≈ 0.5 | todo |
 | L3' | Silhouette term stays as a low-weight pass-2 term and as the static residual where the held-out depth check fails; no longer the ep21 fix | Mac | no episode down | small | todo |
-| R1 | FoundationPose refinement from the inverted trajectory (baseline container, no new licence): per frame `track_one` iterations from the inverted pose, canonical mesh, RGB-D, mask; keep only where depth residual and silhouette IoU improve | L40S ≈ 3 min/ep + Mac driver | mid group MPPE −1 cm; MP-SR flips on 2 12 13 22 27 45 | +0.03–0.05; MP-SR 0.40 → 0.55+ | todo |
+| R1 | FoundationPose refinement from the inverted trajectory (baseline container, no new licence): per frame `track_one` iterations from the inverted pose, canonical mesh, RGB-D, mask; keep only where depth residual and silhouette IoU improve | L40S ≈ 3 min/ep + Mac driver | mid group MPPE −1 cm; MP-SR flips on 2 12 13 22 27 45 | +0.03–0.05; MP-SR 0.40 → 0.55+ | built `5faf526a` (S3e refine); waits for James's yes to the FoundationPose weights' NVIDIA Open Model License on this instance (`ACCEPT_NVIDIA_MODEL_EULA=1`); frames restored on the VM |
 | R2 | GoTrack refiner (RGB flow render-and-compare, HOT3D ADD-S ≈ 90) — CC BY-NC 4.0, James decides; only if R1 underdelivers; needs R3 | L40S | as R1 | as R1 | hold |
 | R3 | Textured canonical mesh (colour TSDF) for RGB refiners | Mac | — | — | hold |
 
