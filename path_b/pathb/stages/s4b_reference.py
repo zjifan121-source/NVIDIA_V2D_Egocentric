@@ -1,7 +1,7 @@
 """S4b reference: the kinematic references inverted, keyframe and still, per object (V4_BUILD_SPEC.md
 S4b; pathb/reference.py).
 
-Inputs per object (V4): S3d's settled track (s3d_settle/<object>/object_to_world.npz; S3c's when S3d
+Inputs per object (V4): S3e's refined track when it ran (GPU), else S3d's settled track (s3d_settle/<object>/object_to_world.npz; S3c's when S3d
 has not run) and its bundle (the canonical mesh), S3b's segments, the grasp segments S3c (or S3d's
 re-solve) marked `failed`, S4a's phases.
   inverted  that track; static segments held exactly; a failed grasp segment replaced by the keyframe
@@ -76,18 +76,20 @@ def inputs(ctx, name: str, data: dict) -> tuple[np.ndarray, np.ndarray, np.ndarr
 
 
 def solved(ctx, name: str) -> dict | None:
-    """V4's solved track: S3d's (else S3c's), its bundle, S3b's segments and the failed grasps."""
-    for stage in ("s3d_settle", "s3c_invert"):
+    """V4's solved track: S3e's refined one (GPU, §14.4 R1), else S3d's, else S3c's; its bundle (S3e writes none:
+    S3d's), S3b's segments and the failed grasps."""
+    for stage in ("s3e_refine", "s3d_settle", "s3c_invert"):
         f = ctx.root / f"{stage}/{name}/object_to_world.npz"
         if not f.is_file():
             continue
         rows = []
         settle = ctx.root / f"s3d_settle/{name}/settle_report.json"
-        if stage == "s3d_settle" and settle.is_file():
+        if stage in ("s3e_refine", "s3d_settle") and settle.is_file():
             rows = json.loads(settle.read_text()).get("resolved") or []
         if not rows:
             rows = json.loads((ctx.root / f"s3c_invert/{name}/invert_report.json").read_text())["segments"]
-        return {"track": np.load(f)["object_to_world"].astype(np.float64), "bundle": ctx.root / f"{stage}/{name}/bundle",
+        bundle = ctx.root / f"{'s3d_settle' if stage == 's3e_refine' else stage}/{name}/bundle"
+        return {"track": np.load(f)["object_to_world"].astype(np.float64), "bundle": bundle,
                 "segments": json.loads((ctx.root / f"s3b_segments/{name}/segments.json").read_text()),
                 "failed": [(r["start"], r["end"]) for r in rows if r["kind"] == "grasp" and r.get("failed")],
                 "source": stage}

@@ -178,7 +178,8 @@ def test_s4b_inverted_holds_statics_and_interpolates_failed_grasps(monkeypatch):
     assert np.allclose(before, noisy[0]) and np.allclose(after, noisy[71])
     monkeypatch.delenv("PATHB_MOVING", raising=False)
     assert B.moving_candidate(None, {"a": v4})["candidate"] == "inverted"
-    assert B.moving_candidate(None, {"a": v4 | {"failed": [(30, 70)]}})["candidate"] == "keyframe"
+    assert B.moving_candidate(None, {"a": v4 | {"failed": [(30, 70)]}})["candidate"] == "inverted"  # bridged inside it
+    assert B.moving_candidate(None, {"a": v4, "b": None})["candidate"] == "keyframe"  # an object without a solved track
     assert B.moving_candidate(None, {"a": None})["candidate"] == "keyframe"
     monkeypatch.setenv("PATHB_MOVING", "keyframe")
     assert B.moving_candidate(None, {"a": v4})["candidate"] == "keyframe"

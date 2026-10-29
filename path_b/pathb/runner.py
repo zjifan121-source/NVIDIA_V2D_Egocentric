@@ -37,6 +37,7 @@ STAGES = ("p0_ingest", "p1_calibrate", "p2_depth",  # S1
           "s3b_segments",  # S3b
           "s3b_track",  # FoundationPose: seed only, when s3a2_register is WARN/FAIL
           "s3c_invert", "s3d_settle",  # S3c/S3d
+          "s3e_refine",  # S3e: FoundationPose's refiner from S3d's track (GPU; skipped without one, §14.4 R1)
           "s4a_phases", "s4b_reference", "s4c_retarget",  # S4 (s4c gated, off by default)
           "s5_task",  # S5
           "s6_train", "s6_eval", "s6_select",  # S6

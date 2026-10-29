@@ -6,9 +6,9 @@ Numbers in two columns: playback / submitted (rollout ≈ playback − 0.07…0.
 | # | Task | Effort | Check | Expected (playback) | Status |
 |---|---|---|---|---|---|
 | L1 | `run.py analysis` on the 8 mid episodes (12 2 42 45 13 22 27 31): rests vs carries | 0.5 h | timelines | scopes L5 | done: AUC loss carries 49 %, rests after a carry 28 %, still second objects 15 %, initial rests 9 % ⇒ L5 in scope |
-| L2 | ep21 depth check: masked depth vs table depth on 20 rest frames | 0.5 h | behind-table ⇒ L3 | gate | done: not see-through (88-90 % in front, heights match the scans); cause = S3c's TSDF target without the below-table filter (cup fitted to the floor, 1.06 m off); fix on all 20 running (`v4_j1`) |
-| L3 | Silhouette term (static fit when the held-out depth check fails; pass 2 at low weight) | 1 day | ep21 up; 22/12/13 not down; silhouette IoU | ep21 → ≈ 0.5 | todo |
-| L4 | Upright prior + concentric stacking for revolution objects at rest; log overrides | 0.5 day | ep11 up, none down | ep11 → ≈ 0.6 | todo |
+| L2 | ep21 depth check: masked depth vs table depth on 20 rest frames | 0.5 h | behind-table ⇒ L3 | gate | done: not see-through (88-90 % of the masked depth in front of the table, heights match the scans); the cause was S3c's TSDF target (the floor 75 cm down as its largest piece); fixed `8714bd03`: inverted 0.598 → **0.622**, 4 up (ep21 0.007 → 0.387, ep11 +0.038, ep2 +0.031, ep22 +0.018), 0 down |
+| L3 | Silhouette term (static fit when the held-out depth check fails; pass 2 at low weight) | 1 day | ep21 up; 22/12/13 not down; silhouette IoU | ep21 → ≈ 0.5 | not built: L2's gate (no see-through signature); ep21's loss was the floor fit |
+| L4 | Upright prior + concentric stacking for revolution objects at rest; log overrides | 0.5 day | ep11 up, none down | ep11 → ≈ 0.6 | in progress: upright prior in S3c's static fit (ep0 0.353 → 0.654 in the first run; ep2 fell to 0.106 on a poor upright fit: start fixed, rerun on the 14 episodes with a body of revolution) |
 | L5 | Carry-only joint refinement (if L1 says carries) | 0–1.5 days | mid MPPE, MP-SR | +0.03–0.05 | todo |
 | L6 | Hand-mesh non-penetration (hand scale ≥ 0.85 or inflated) | 0.5 day | no regression 41/44 | with L5 | todo |
 | L7 | Tracked bridge for in-hand turns (clip 5 mm / 3°, end terms, no wrist prior); ep0 lid grasp by hand mesh | 0.5 day | ep43 up, 41/45 not down | ep43, ep0 → ≈ 0.5 | todo |
@@ -21,8 +21,8 @@ Numbers in two columns: playback / submitted (rollout ≈ playback − 0.07…0.
 | # | Task | GPU-h | Check | Status |
 |---|---|---|---|---|
 | G1 | F2 on public continues; `njmax`/`nconmax` ≥ 1024 before two-object episodes | — | no overflow lines | done `24793d99`: njmax 1024 / nconmax 512 (1024 / 1024 out of memory); F2 resumed at ep41 06:15 UTC |
-| G2 | Selector decision after the first four rollouts | 0 | accuracy on four | todo |
-| G3 | Swap improved public references per episode; retrain those | ≈ 1 h/ep | rollout vs playback | todo |
+| G2 | Selector decision after the first four rollouts | 0 | accuracy on four | in progress: the GT-free rollout-vs-reference pick matched the GT pick on 40, 26, 18, 41 (keyframe); always-inverted would lose ep18 (0.331 against still's 0.387); ep41's inverted rollout pending |
+| G3 | Swap improved public references per episode; retrain those | ≈ 1 h/ep | rollout vs playback | in progress: S4b's moving rule now trains inverted on 9 episodes that fell back to keyframe (`7eff21e7`); ep0 takes v4_i1's references; ep41 retrained from S5 |
 | G4 | Evaluation: 60M × 2 × 20, then 250M on the chosen reference | ≈ 48 h | GT-free gate | **paused** |
 | G5 | Pack (kit packer), preflight, first evaluation submission (James's go); resubmit by Nov 3 | 0.5 h | preflight | **paused** |
 
