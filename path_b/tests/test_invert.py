@@ -530,6 +530,63 @@ def test_upright_prior_on_a_revolution_rest():
     assert kept["upright"]["kept"].startswith("the free fit") and kept["pose"] is lean
 
 
+def test_a_cup_nested_in_a_cup_is_fitted_on_its_axis():
+    # ep11: a cup stands in another one of about its size; only its part above the outer cup's top shows, and the
+    # free fit lay on its side off the outer cup's axis
+    outer = trimesh.creation.cylinder(radius=0.05, height=0.175, sections=48)
+    outer.apply_translation([0, 0, 0.0875])
+    inner = trimesh.creation.cylinder(radius=0.048, height=0.169, sections=48)
+    inner.apply_translation([0, 0, 0.0845])
+    host = np.eye(4)
+    host[:3, 3] = [0.3, 0.1, 0.0]
+    truth = host.copy()
+    truth[:3, 3] += [0, 0, 0.025]  # 2.5 cm up inside it
+    pts, faces = inner.sample(8000, return_index=True)
+    world = pts @ truth[:3, :3].T + truth[:3, 3]
+    seen = (world[:, 2] > 0.176) & ((inner.face_normals[faces] @ truth[:3, :3].T)[:, 0] < 0.2)
+    world = world[seen]
+    c = I.Clip(K=np.eye(3), c2w=np.eye(4)[None], obs=[None], tips=np.full((1, 2, 5, 3), np.nan),
+               wrist=np.tile(np.eye(4), (1, 2, 1, 1)), valid=np.zeros((1, 2), bool), vertices=np.asarray(inner.vertices),
+               faces=np.asarray(inner.faces), group=np.eye(4)[None], target=None, revolution=True,
+               hosts=[{"name": "blue_cup", "P": host[None], "vertices": np.asarray(outer.vertices), "rests": [(0, 0)],
+                       "silhouette": None}])
+    side = np.eye(4)
+    side[:3, :3] = Rotation.from_euler("y", 80, degrees=True).as_matrix()
+    side[:3, 3] = [0.3, 0.2, 0.14]  # on its side, 10 cm off the axis
+    local = (world - side[:3, 3]) @ side[:3, :3]
+    res = float(np.median(np.abs(c.scene.compute_distance(o3d.core.Tensor(local.astype(np.float32))).numpy())))
+    out = I.upright(c, 0, 0, {"pose": side, "residual_m": res, "start_from": "global"}, world)
+    assert out["stacked"]["kept"] == "stacked" and out["stacked"]["host"] == "blue_cup"
+    assert I.tilt_deg(out["pose"]) < 0.5 and np.linalg.norm(out["pose"][:3, 3] - truth[:3, 3]) < 0.005
+    # beside the outer cup, or not above its top, there is no host
+    assert I.host_for(c, 0, 0, world + [0.2, 0, 0]) is None and I.host_for(c, 0, 0, world - [0, 0, 0.05]) is None
+
+
+def test_a_grasp_that_leaves_the_object_where_it_was_is_held_still():
+    # ep11's blue cup: a hand steadies it, it never moves, and the grasp's track drifted 5 cm off
+    c, _, obj, m = clip()
+    still = np.repeat(obj[:1], N, axis=0)
+    mesh = o3d.geometry.TriangleMesh(o3d.utility.Vector3dVector(m.vertices), o3d.utility.Vector3iVector(m.faces))
+    depth = S.rendered_depth(o3d.geometry.TriangleMesh(mesh).transform(still[0]), K, c.c2w[0], SHAPE)
+    ys, xs = np.nonzero(depth > 0)
+    c.obs = [(np.stack([xs, ys], 1).astype(float), depth[ys, xs], len(ys) / (4 * SHAPE[0] * SHAPE[1]))] * N
+    c.silhouette = [I.silhouette_map(depth > 0)] * N
+    a, b = GRASP
+    P = still.copy()
+    P[a:b + 1, :3, 3] += np.outer(np.sin(np.linspace(0, np.pi, b - a + 1)), [0.05, 0.0, 0.02])
+    report = [{"kind": "grasp", "start": a, "end": b}]
+    I.held_still(c, a, b, P, report)
+    assert np.abs(P[a:b + 1, :3, 3] - still[0, :3, 3]).max() < 1e-9 and "held" in report[0]
+    # a real carry that ends where it began explains its frames better than standing still: kept
+    c, _, obj, m = clip()
+    P = obj.copy()
+    P[b + 1:] = P[a - 1]
+    track = P[a:b + 1].copy()
+    report = [{"kind": "grasp", "start": a, "end": b}]
+    I.held_still(c, a, b, P, report)
+    assert np.allclose(P[a:b + 1], track) and "held" not in report[0]
+
+
 def test_a_tracked_bridge_follows_the_frames_where_interpolation_cuts_the_corner():
     # the carry's middle third bridged from its true ends while the object slips 4 cm in the hand: interpolation cuts
     # the 8 cm lift's arc; the tracked guess moves with the wrist and steps with the depth, from both ends

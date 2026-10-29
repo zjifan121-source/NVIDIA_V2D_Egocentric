@@ -5,7 +5,7 @@
 
 request: {"seconds", "timestep", "free": {"name", "pieces": [obj files, canonical frame], "pose": 4x4
 canonical -> world, "mass_kg"}, "fixed": [{"name", "pieces", "pose"}] (the support, if it is not the
-table), "table": true}. The table is the plane z = 0. The free body's frame is the canonical frame, so
+table), "table": true, "table_z" (default 0)}. The table is the plane z = table_z. The free body's frame is the canonical frame, so
 its pose after `seconds` of gravity is the settled canonical -> world pose.
 result: {"pose": 4x4, "moved_m", "turned_deg", "penetration_m" (deepest contact of the free body with
 the table or the support at the end), "contacts", "steps"}. Contacts: multiccd (several points per
@@ -48,7 +48,8 @@ def main(request: str, result: str) -> int:
     for f in req.get("fixed", []):
         a, b = body_xml(f["name"], f["pieces"], np.asarray(f["pose"], dtype=np.float64), False, None)
         assets, bodies = assets + a, bodies + b
-    table = f'<geom name="table" type="plane" size="5 5 0.1" condim="3" solref="{SOLREF}"/>' if req.get("table", True) else ""
+    table = (f'<geom name="table" type="plane" size="5 5 0.1" pos="0 0 {float(req.get("table_z", 0.0)):.9f}" condim="3" '
+             f'solref="{SOLREF}"/>' if req.get("table", True) else "")
     xml = (f'<mujoco model="settle"><compiler inertiafromgeom="true"/>'
            f'<option timestep="{req.get("timestep", 0.002)}" gravity="0 0 -9.81"><flag multiccd="enable"/></option>'
            f"<asset>{assets}</asset><worldbody>{table}{bodies}</worldbody></mujoco>")

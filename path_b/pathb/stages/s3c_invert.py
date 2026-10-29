@@ -14,6 +14,9 @@ see-through mesh); grasp segments `failed` (residual (a) within 1 cm on fewer
 than half the frames: S4b takes keyframe there) a WARN; no frame-to-frame jump > 3 cm inside a
 static or grasp segment. Public, one object: the track's playback AUC (official metric; the waterfall
 scores scenes as `ref_inverted` after S3d and S4b).
+Bodies of revolution (invert.STACK): each is solved with the ones solved before it as hosts (`hosts`); then one
+solved before a body of revolution that may hold one of its rests (invert.host_for at its pass-1 poses) is solved
+once more with every other one as a host, so the order of episodes.json does not decide a nesting.
 """
 from __future__ import annotations
 
@@ -62,7 +65,38 @@ def largest_above_table(mesh):
     return out
 
 
-def clip(ctx, view: View, k: int, name: str, mesh: trimesh.Trimesh) -> I.Clip:
+def occluded(view: View, k: int, j: int):
+    """t -> the silhouette map of object k's allowed mask with object j's added (j in front of it hides it)."""
+    cache = {}
+
+    def at(t):
+        if t not in cache:
+            mine, theirs = view.allowed(k, t), view.allowed(j, t)
+            m = mine if theirs is None else theirs if mine is None else mine | theirs
+            cache[t] = I.silhouette_map(m) if m is not None else None
+        return cache[t]
+    return at
+
+
+def hosts(ctx, view: View, k: int, solved: dict) -> list[dict]:
+    """invert.STACK's hosts for object k: the other bodies of revolution in `solved` (name -> (N, 4, 4) poses and
+    their static segments [(a, b)]), with their canonical meshes."""
+    out = []
+    for j, other in enumerate(ctx.objects):
+        if j == k or other not in REVOLUTION or other not in solved:
+            continue
+        P, rests = solved[other]
+        mesh = trimesh.load(ctx.root / f"s3a_mesh/{other}/mesh.obj", force="mesh", process=False)
+        out.append({"name": other, "P": P, "vertices": np.asarray(mesh.vertices, np.float64), "rests": rests,
+                    "silhouette": occluded(view, k, j)})
+    return out
+
+
+def rests(report: list[dict]) -> list[tuple[int, int]]:
+    return [(r["start"], r["end"]) for r in report if r["kind"] == "static"]
+
+
+def clip(ctx, view: View, k: int, name: str, mesh: trimesh.Trimesh, hosts: list = ()) -> I.Clip:
     n = int(ctx.episode["num_frames"])
     rng = np.random.default_rng(k)
     obs = [view.pixels(k, t, PIXELS, rng) for t in range(n)]
@@ -90,25 +124,43 @@ def clip(ctx, view: View, k: int, name: str, mesh: trimesh.Trimesh) -> I.Clip:
     return I.Clip(K=view.K, c2w=view.c2w, obs=obs, tips=tips["tips"], wrist=wrist, valid=tips["valid"],
                   vertices=np.asarray(mesh.vertices, np.float64), faces=np.asarray(mesh.faces),
                   group=symmetry.group(name, np.asarray(mesh.vertices)), target=target, silhouette=sil, seed=k,
-                  revolution=name in REVOLUTION)
+                  revolution=name in REVOLUTION, hosts=list(hosts))
 
 
 def run(ctx) -> StageResult:
     d = ctx.dir("s3c_invert")
     view = View(ctx)
-    metrics, outputs = [], {}
-    for k, name in enumerate(ctx.objects):
+    metrics, outputs, solved, seconds, regs = [], {}, {}, {}, {}
+
+    def solve(k, name, others):
         t0 = time.time()
         mesh = trimesh.load(ctx.root / f"s3a_mesh/{name}/mesh.obj", force="mesh", process=False)
         segs = json.loads((ctx.root / f"s3b_segments/{name}/segments.json").read_text())
-        reg = json.loads((ctx.root / f"s3a2_register/{name}/registration.json").read_text())
-        c = clip(ctx, view, k, name, mesh)
+        reg = regs[name] = json.loads((ctx.root / f"s3a2_register/{name}/registration.json").read_text())
+        c = clip(ctx, view, k, name, mesh, hosts(ctx, view, k, others))
         P, report = I.solve(c, segs, np.asarray(reg["canonical_to_world"], dtype=np.float64), TRACK3_FPS)
+        seconds[name] = seconds.get(name, 0.0) + time.time() - t0
+        return P, report
+
+    for k, name in enumerate(ctx.objects):
+        solved[name] = solve(k, name, {o: (P, rests(r)) for o, (P, r) in solved.items()})
+    for k, name in enumerate(ctx.objects):  # STACK's second pass: a later body of revolution as a host
+        later = {o: (solved[o][0], rests(solved[o][1])) for o in ctx.objects[k + 1:] if o in REVOLUTION}
+        if not (I.STACK and name in REVOLUTION and later):
+            continue
+        mesh = trimesh.load(ctx.root / f"s3a_mesh/{name}/mesh.obj", force="mesh", process=False)
+        c = clip(ctx, view, k, name, mesh, hosts(ctx, view, k, later))
+        targets = [c.target(a, b) for a, b in rests(solved[name][1])]
+        if any(I.host_for(c, a, b, np.asarray(t.points)) for (a, b), t in zip(rests(solved[name][1]), targets)
+               if t is not None and len(t.points) >= 50):
+            solved[name] = solve(k, name, {o: (P, rests(r)) for o, (P, r) in solved.items() if o != name})
+    for k, name in enumerate(ctx.objects):
+        P, report = solved[name]
+        reg = regs[name]
         out = d / name
         out.mkdir(parents=True, exist_ok=True)
         np.savez(out / "object_to_world.npz", object_to_world=P)
-        seconds = time.time() - t0
-        write_json(out / "invert_report.json", {"object": name, "seconds": seconds, "segments": report,
+        write_json(out / "invert_report.json", {"object": name, "seconds": seconds[name], "segments": report,
                                                 "start_pose": reg["canonical_to_world"], "start_window": reg["window"]})
         src = p4_bundle(ctx, name)
         base = dict(np.load(src / "result.npz"))
@@ -142,8 +194,14 @@ def run(ctx) -> StageResult:
                                   f"{(r['residual_a_median_m'] or 0) * 100:.2f} cm, drift {r['drift_max_m'] * 100:.1f} cm / "
                                   f"{r['drift_max_deg']:.1f} deg" for r in grasps) or "no grasp"),
             Metric(f"{name}: largest frame-to-frame jump inside static and grasp segments", jump * 100, "cm", ok=(0, 3)),
-            Metric(f"{name}: solving time", seconds / 60, "min"),
+            Metric(f"{name}: solving time", seconds[name] / 60, "min"),
         ]
+        stacked = [r for r in statics if r.get("stacked")]
+        if stacked:
+            metrics.append(Metric(f"{name}: rests on another body of revolution's axis (stacked / looked at)",
+                                  f"{sum(r['stacked']['kept'] == 'stacked' for r in stacked)} / {len(stacked)}", "",
+                                  note="; ".join(f"{r['start']}-{r['end']} on {r['stacked']['host']}: "
+                                                 f"{r['stacked']['kept']}" for r in stacked)))
         if ctx.public and len(ctx.objects) == 1:
             poses = np.concatenate([P[:, :3, 3], Rotation.from_matrix(P[:, :3, :3]).as_quat()], axis=1)[:, None]
             scores = gt.score(ctx.episode, poses, {name: ctx.root / f"s3a_mesh/{name}/mesh.obj"}, ctx.files_read)

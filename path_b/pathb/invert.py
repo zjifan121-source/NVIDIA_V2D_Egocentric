@@ -87,6 +87,18 @@ UPRIGHT_FLIP = 4.0  # default: units by which upside down must beat upright (a c
 # upside down in the rack by 5.1)
 UPRIGHT_LIFT_M = 0.05  # default: a rest whose fitted lowest point is higher than this above the table is not resting
 # on it (ep21's pitcher paused 26 cm up mid-pour, tilted on purpose): no prior
+STACK = True  # default (spec §14 L4, concentric stacking): a body of revolution's rest over another one's (a cup
+# nested in a cup, a lid on its pot; `Clip.hosts`) is also fitted on that host's axis, the canonical z along it, over
+# its height and its turn about the axis (`stacked_fit`); kept unless the free fit beats it by one unit of evidence,
+# both judged with the host's mask allowed (it hides the nested part); logged (`stacked`). A host: a body of revolution
+# at rest over at least STACK_OVERLAP of the rest's frames, within STACK_TILT_DEG of vertical, with STACK_INSIDE of
+# the rest's fused points inside its footprint circle (95th percentile radius about its axis plus STACK_MARGIN_M) and
+# reaching above its top. Public ep11 (v4_j10): the beige cup nested in the blue cup fitted on its side, 80 degrees
+# off vertical and 10.5 cm off the blue cup's axis (its fused surface is the rim above the blue cup's); the lift
+# guard (UPRIGHT_LIFT_M) kept the upright prior off it
+STACK_TILT_DEG = 10.0  # default: a host stands within this of vertical
+STACK_OVERLAP = 0.5  # default: share of the rest's frames the host rests over
+STACK_INSIDE, STACK_MARGIN_M = 0.8, 0.01  # default: share of the fused points inside the host's circle, its margin
 EARLIER = (5, 10)  # default: a static fit also starts from the previous segment this many frames before its end
 # (a grasp's last frames, the hand letting go, are its least sure: ep40's track flipped 140 degrees at the release
 # and the rest after it fitted upside down, 2.4 mm against 1.0 from five frames earlier)
@@ -118,6 +130,12 @@ TRACKED_BRIDGES = False  # spec §14 L7 (under test): a bridge also tries the ob
 CARRIED_BRIDGES = True  # default: a bridge over frames S3b saw a hand holding also tries the object moved with that
 # wrist (`carried`) and keeps whichever guess explains the frames better (`explains`). Public, 20 episodes, on top of
 # the gap anchor: best of three 0.546 -> 0.554 (12, 13, 26, 41, 42 up 0.02-0.05; ep45 -0.008)
+HELD = False  # under test: an S3b grasp between two rests that leave the object within HELD_M / HELD_DEG of where it was
+# (up to its symmetry; a body of revolution: its axis) is also tried as held still (the rest before interpolated to the rest after) and takes that
+# where it explains the grasp's frames (`explains`) no worse than the solved track; logged (`held`). Public ep11
+# (v4_j10): one hand steadies the blue cup while the other nests the beige cup in it, frames 8-107: GT moves it
+# 0.5 cm, our track up to 18.6 cm (4.0 cm mean error, 39 of the 100 frames lost to AUC)
+HELD_M, HELD_DEG = 0.03, 10.0  # default: two fits of one rest differ by up to ~2 cm (ep11's blue cup: 1.9 cm)
 REACH_MARGIN = 0.10  # default (m): a rest may lie this much beyond the reach of the hands that moved it before it
 # keeps the previous rest instead (`beyond_reach`; public, flagged 7 rests: 6 fitted 0.8-1.9 m off a move of
 # 0-24 cm, ep0 / ep11 / ep21 / ep22, and ep21's pitcher once, whose wrist track reached 3.8 cm of its 34 cm move)
@@ -165,6 +183,9 @@ class Clip:
     silhouette: list | None = None  # per frame: silhouette_map(...) of the object's and hands' masks, or None
     seed: int = 0
     revolution: bool = False  # a body of revolution whose canonical z is its axis (canonical.REVOLUTION): `upright`
+    hosts: list = field(default_factory=list)  # other bodies of revolution it may rest in or on (STACK): {"name", "P"
+    # (N, 4, 4), "vertices" (canonical), "rests" [(a, b)], "silhouette": t -> silhouette_map of this object's allowed
+    # mask with the host's added}
     scene: o3d.t.geometry.RaycastingScene = field(init=False)
     surface: o3d.geometry.PointCloud = field(init=False)
 
@@ -213,14 +234,15 @@ class Clip:
         hit = self.scene.cast_rays(o3d.core.Tensor(rays))["t_hit"].numpy()
         return np.where(np.isfinite(hit), hit - d, MISS)
 
-    def silhouette_residual(self, pose: np.ndarray, t: int) -> np.ndarray:
+    def silhouette_residual(self, pose: np.ndarray, t: int, sil=None) -> np.ndarray:
         """(M,) metres: how far outside the allowed mask (the object's and the hands') each projected
         canonical surface point falls (0 inside), at its depth. The depth term (a) looks only inside
         the observed mask, so an estimate that overhangs it, or slides along a flat face, costs
-        nothing there; this term is the other direction."""
-        if self.silhouette is None or self.silhouette[t] is None:
+        nothing there; this term is the other direction. sil: another silhouette_map for frame t."""
+        sil = sil if sil is not None else self.silhouette[t] if self.silhouette is not None else None
+        if sil is None:
             return np.zeros(0)
-        (x0, y0), dist = self.silhouette[t]
+        (x0, y0), dist = sil
         world = self.samples @ pose[:3, :3].T + pose[:3, 3]
         cam = (world - self.c2w[t, :3, 3]) @ self.c2w[t, :3, :3]
         z = np.maximum(cam[:, 2], 0.05)  # a point behind the camera counts as far outside (fixed length)
@@ -388,9 +410,113 @@ def vertical_fit(clip: Clip, a: int, b: int, free: dict, pts: np.ndarray, up: bo
     return min(near, key=lambda f: Rotation.from_matrix(f["pose"][:3, :3] @ ref.T).magnitude())
 
 
+def host_for(clip: Clip, a: int, b: int, pts: np.ndarray) -> dict | None:
+    """The first of clip.hosts the rest over [a, b] with fused points pts rests in or on (STACK), with its pose and
+    its axis there; None without one."""
+    for h in clip.hosts:
+        for ha, hb in h["rests"]:
+            lo, hi = max(a, ha), min(b, hb)
+            if hi < lo or hi - lo + 1 < STACK_OVERLAP * (b - a + 1):
+                continue
+            T = h["P"][hi]
+            if not np.isfinite(T).all() or tilt_deg(T) > STACK_TILT_DEG:
+                continue
+            u = T[:3, 2]  # its axis: the canonical z through the mesh's centre (S3a's origin is its footprint's)
+            o = T[:3, :3] @ np.r_[h["vertices"][:, :2].mean(axis=0), h["vertices"][:, 2].min()] + T[:3, 3]
+
+            def off_axis(x):
+                d = x - o
+                return np.linalg.norm(d - np.outer(d @ u, u), axis=1)
+
+            v = h["vertices"] @ T[:3, :3].T + T[:3, 3]
+            radius = float(np.percentile(off_axis(v), 95)) + STACK_MARGIN_M
+            inside = float(np.mean(off_axis(pts) <= radius))
+            if inside >= STACK_INSIDE and float(np.percentile((pts - o) @ u, 95)) > float(((v - o) @ u).max()):
+                return {"name": h["name"], "pose": T, "base": o, "inside": inside, "silhouette": h.get("silhouette")}
+    return None
+
+
+def stacked_fit(clip: Clip, a: int, b: int, free: dict, pts: np.ndarray, host: dict, init: np.ndarray | None = None,
+                rest: np.ndarray | None = None) -> dict:
+    """The best rest on the host's axis, the canonical z along it: least squares on the fused surface's distances
+    to the mesh over the height along the axis and the turn about it, its lowest point not below the host's base.
+    Each axis is the canonical z through the mesh's centre (S3a's origin is the footprint centre on the table, not
+    always on the axis: a lid fused on its pot sits 8.6 cm up its own frame). Starts: the height of the free fit's
+    mesh centroid, and the height that puts the mesh's top at the fused points' 95th percentile (the part above the
+    host is what shows); headings as vertical_fit's. Picked as vertical_fit picks, its disagreement with the host's
+    mask allowed. height_m: its lowest point above the host's base."""
+    T = host["pose"]
+    base, o, u = T[:3, :3], host["base"], T[:3, 2]
+    c_mesh = np.asarray(clip.surface.points).mean(axis=0)
+    centre = np.r_[c_mesh[:2], 0.0]  # where its axis crosses its canonical z = 0
+    low, top = float(clip.vertices[:, 2].min()), float(clip.vertices[:, 2].max())
+    R = free["pose"][:3, :3]
+    c_world = R @ c_mesh + free["pose"][:3, 3]
+    heights = [float((c_world - o) @ u - c_mesh[2]), float(np.percentile((pts - o) @ u, 95)) - top]
+
+    def heading(M):  # yaw of M's x axis about the host's axis
+        L = base.T @ M
+        return float(np.arctan2(L[1, 0], L[0, 0]))
+
+    yaws = [heading(R)] if len(clip.group) > 1 else [heading(R) + np.radians(d) for d in range(0, 360, YAW_STEP)]
+    for ref in (init, rest):
+        if ref is not None and len(clip.group) == 1:
+            yaws.append(heading(ref[:3, :3]))
+
+    def pose(p):  # p: (height of its canonical z = 0 along the axis above the host's base, turn)
+        P = np.eye(4)
+        P[:3, :3] = base @ Rotation.from_euler("z", p[1]).as_matrix()
+        P[:3, 3] = o + p[0] * u - P[:3, :3] @ centre
+        return P
+
+    def dist(p):
+        P = pose(p)
+        local = (pts - P[:3, 3]) @ P[:3, :3]
+        return clip.scene.compute_distance(o3d.core.Tensor(local.astype(np.float32))).numpy().astype(np.float64)
+
+    found = []
+    for h0 in heights:
+        for y in yaws:
+            x0 = np.array([max(h0, -low), y])
+            sol = least_squares(dist, x0, loss="soft_l1", f_scale=0.005, max_nfev=200, x_scale=[0.01, 0.1],
+                                bounds=([-low, -np.inf], [np.inf, np.inf]))
+            for x in (x0, sol.x):
+                found.append({"pose": pose(x), "residual_m": float(np.median(np.abs(dist(x)))),
+                              "height_m": float(x[0]) + low})
+    for f in found:
+        f["rays_missed"] = rays_missed(clip, a, b, f["pose"])
+        f["overhang"] = overhang(clip, a, b, f["pose"], silhouette=host["silhouette"])
+    best = min(evidence(f) for f in found)
+    near = [f for f in found if evidence(f) <= best + 1.0]
+    ref = (rest if rest is not None else init if init is not None else free["pose"])[:3, :3]
+    return min(near, key=lambda f: Rotation.from_matrix(f["pose"][:3, :3] @ ref.T).magnitude())
+
+
+def stack(clip: Clip, a: int, b: int, free: dict, pts: np.ndarray, host: dict, init: np.ndarray | None = None,
+          rest: np.ndarray | None = None) -> dict:
+    """STACK on a rest with a host: the stacked fit unless the free fit beats it by one unit of evidence, both
+    judged with the host's mask allowed."""
+    judged = dict(free, overhang=overhang(clip, a, b, free["pose"], silhouette=host["silhouette"]))
+    if judged.get("rays_missed") is None:
+        judged["rays_missed"] = rays_missed(clip, a, b, free["pose"])
+    s = stacked_fit(clip, a, b, free, pts, host, init, rest)
+    log = {"host": host["name"], "inside": round(host["inside"], 2), "free_tilt_deg": round(tilt_deg(free["pose"]), 1),
+           "free": round(evidence(judged), 2), "stacked_fit": round(evidence(s), 2),
+           "height_cm": round(s["height_m"] * 100, 1)}
+    if evidence(judged) < evidence(s) - 1.0:
+        return free | {"stacked": log | {"kept": "the free fit (its evidence beats the stacked)"}}
+    return free | {k: v for k, v in s.items() if k != "height_m"} | {
+        "symmetry_index": free.get("symmetry_index", 0), "stacked": log | {"kept": "stacked"},
+        "start_from": f"{free.get('start_from', '')}; then stacked on {host['name']} (its axis)"}
+
+
 def upright(clip: Clip, a: int, b: int, free: dict, pts: np.ndarray, init: np.ndarray | None = None,
             rest: np.ndarray | None = None) -> dict:
-    """L4's prior on a body of revolution's rest (UPRIGHT): the vertical pose unless the evidence beats it."""
+    """L4's prior on a body of revolution's rest (UPRIGHT): the vertical pose unless the evidence beats it; on a
+    host (STACK), the host's axis."""
+    host = host_for(clip, a, b, pts) if STACK and clip.hosts else None
+    if host is not None:
+        return stack(clip, a, b, free, pts, host, init, rest)
     tilt = tilt_deg(free["pose"])
     if min(tilt, 180.0 - tilt) <= UPRIGHT_TILT_DEG:
         return free
@@ -415,12 +541,13 @@ def disagreement(f: dict) -> float | None:
     return f["rays_missed"] + (f.get("overhang") or 0.0)
 
 
-def overhang(clip: Clip, a: int, b: int, pose: np.ndarray, frames: int = 10) -> float | None:
+def overhang(clip: Clip, a: int, b: int, pose: np.ndarray, frames: int = 10, silhouette=None) -> float | None:
     """The share of the posed mesh's projected surface points more than OVER_M outside the allowed mask (the
     object's and the hands'), over up to `frames` frames of [a, b]: rays_missed's other direction. A cup
-    upside down on its rest misses no more rays than upright (the mask is its side) but hangs out of it."""
+    upside down on its rest misses no more rays than upright (the mask is its side) but hangs out of it.
+    silhouette: t -> another allowed mask's silhouette_map (a host's added, STACK)."""
     ts = [t for t in range(a, b + 1) if clip.obs[t] is not None]
-    r = [clip.silhouette_residual(pose, t) for t in ts[:: max(1, len(ts) // frames)]]
+    r = [clip.silhouette_residual(pose, t, silhouette(t) if silhouette else None) for t in ts[:: max(1, len(ts) // frames)]]
     r = np.concatenate(r) if r else np.zeros(0)
     return float(np.mean(r > OVER_M)) if len(r) else None
 
@@ -771,6 +898,26 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
     return {"poses": poses, "refined": refined, **how}
 
 
+def held_still(clip: Clip, a: int, b: int, P: np.ndarray, report: list[dict]) -> None:
+    """HELD on the grasp [a, b] between two rests: P[a:b+1] and its report rows changed in place when held
+    still explains its frames no worse than the track."""
+    P0, P1 = P[a - 1], P[b + 1]
+    if clip.revolution:  # its turn about the axis is free (the group's 10-degree steps leave up to 5 of it)
+        turn = float(np.arccos(np.clip(P0[:3, 2] @ P1[:3, 2], -1.0, 1.0)))
+    else:
+        turn = min(Rotation.from_matrix((P0[:3, :3] @ G[:3, :3]).T @ P1[:3, :3]).magnitude() for G in clip.group)
+    if np.linalg.norm(P1[:3, 3] - P0[:3, 3]) > HELD_M or np.degrees(turn) > HELD_DEG:
+        return
+    still = interpolate(P0, P1, b - a + 1)
+    track, held = explains(clip, P[a:b + 1], a), explains(clip, still, a)
+    if held is None or (track is not None and held > track):
+        return
+    P[a:b + 1] = still
+    for row in report:
+        if a <= row["start"] and row["end"] <= b:
+            row["held"] = {"explains_track_m": track, "explains_held_m": held}
+
+
 def beyond_reach(clip: Clip, work: list[dict], i: int, pose: np.ndarray, P: np.ndarray) -> dict:
     """A rest farther from the object's previous rest than the hands that held it in between reached (the farthest
     each S3b grasp's wrist got from where it started, summed) plus REACH_MARGIN keeps the previous rest's pose: an object
@@ -922,6 +1069,10 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
     for t in range(n - 2, -1, -1):
         if not known(t) and known(t + 1):
             P[t] = P[t + 1]
+    if HELD:
+        for i in range(1, len(work) - 1):
+            if work[i]["kind"] == "grasp" and work[i - 1]["kind"] == work[i + 1]["kind"] == "static":
+                held_still(clip, work[i]["start"], work[i]["end"], P, report)
     jumps = np.linalg.norm(np.diff(P[:, :3, 3], axis=0), axis=1)
     speed = jumps * fps
     for row in report:

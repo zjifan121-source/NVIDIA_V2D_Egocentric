@@ -177,7 +177,8 @@ def supports(usda: Path) -> list[dict]:
 
 def check(part: Path, meshes: list[Path], usda: Path, frames: int) -> dict:
     """Frames; robot frames (link origins) more than INSIDE_M inside an object; support disks; per object the
-    frame-0 gap between its lowest point and the top of the support disk under it (cm)."""
+    frame-0 gap between its lowest point and the top of what is under it (cm): a support disk, or another object
+    (a lid on its pot: its rim under the lid's footprint; NVIDIA's disks are the table's)."""
     import open3d as o3d
     import pyarrow.parquet as pq
     import trimesh
@@ -190,6 +191,10 @@ def check(part: Path, meshes: list[Path], usda: Path, frames: int) -> dict:
     robot = np.concatenate([np.asarray(row[f"robot_{s}_frames"])[:, :, :3] for s in SIDES if f"robot_{s}_frames" in row],
                            axis=1)
     deepest, disks, seating = np.zeros(n), supports(usda), {}
+    world0 = []
+    for k, mesh_path in enumerate(meshes):
+        v = np.asarray(trimesh.load(mesh_path, force="mesh", process=False).vertices)
+        world0.append(v @ Rotation.from_quat(wxyz[0, k][[1, 2, 3, 0]]).as_matrix().T + pos[0, k])
     for k, mesh_path in enumerate(meshes):
         mesh = trimesh.load(mesh_path, force="mesh", process=False)
         scene = o3d.t.geometry.RaycastingScene()
@@ -199,12 +204,17 @@ def check(part: Path, meshes: list[Path], usda: Path, frames: int) -> dict:
         local = np.einsum("nji,npj->npi", R, robot - pos[:, k][:, None])  # robot frames in the object frame
         sd = scene.compute_signed_distance(o3d.core.Tensor(local.reshape(-1, 3).astype(np.float32))).numpy()
         deepest = np.maximum(deepest, -sd.reshape(n, -1).min(axis=1))  # open3d: negative inside
-        world0 = np.asarray(mesh.vertices) @ R[0].T + pos[0, k]
-        xy = world0[:, :2].mean(axis=0)
-        under = [d for d in disks if np.hypot(*(xy - np.asarray(d["centre"][:2]))) <= d["radius"] + 0.02
-                 and d["top_z"] <= world0[:, 2].min() + 0.05]
-        top = max((d["top_z"] for d in under), default=None)
-        seating[Path(mesh_path).stem] = None if top is None else round(float(world0[:, 2].min() - top) * 100, 2)
+        mine = world0[k]
+        xy, bottom = mine[:, :2].mean(axis=0), float(mine[:, 2].min())
+        radius = float(np.percentile(np.linalg.norm(mine[:, :2] - xy, axis=1), 95))
+        tops = [d["top_z"] for d in disks if np.hypot(*(xy - np.asarray(d["centre"][:2]))) <= d["radius"] + 0.02
+                and d["top_z"] <= bottom + 0.05]
+        for j, other in enumerate(world0):
+            below = other[(np.linalg.norm(other[:, :2] - xy, axis=1) <= radius) & (other[:, 2] <= bottom + 0.05)]
+            if j != k and len(below):
+                tops.append(float(below[:, 2].max()))
+        top = max(tops, default=None)
+        seating[Path(mesh_path).stem] = None if top is None else round(float(bottom - top) * 100, 2)
     return {"frames": n, "penetration_frames": {"over_2cm": int((deepest > INSIDE_M).sum()),
                                                 "max_cm": round(float(deepest.max()) * 100, 2)},
             "support_disks": len(disks), "frame0_seating_cm": seating, "warnings": warnings}

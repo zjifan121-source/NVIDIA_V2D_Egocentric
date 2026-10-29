@@ -122,3 +122,24 @@ def test_pristine_mirror_restores_the_imported_files():
             assert not target.is_symlink() and target.read_bytes() == original
     script = root / "scripts/retarget/ego_recon_to_sharpa.py"  # unchanged files: links into baseline/
     assert script.resolve() == (nvidia.REPO / "baseline" / nvidia.ROBOTIC / "scripts/retarget/ego_recon_to_sharpa.py").resolve()
+
+
+def test_check_seats_a_lid_on_its_pot_not_on_the_table(tmp_path):
+    usda = tmp_path / "support.usda"
+    usda.write_text(USDA)  # one disk, its top at z = 1.0
+    pot, lid = trimesh.creation.cylinder(radius=0.1, height=0.12), trimesh.creation.cylinder(radius=0.1, height=0.02)
+    meshes = [tmp_path / "ep2_white_pot.obj", tmp_path / "ep2_white_pot_lid.obj"]
+    pot.export(meshes[0])
+    lid.export(meshes[1])
+    n = 3
+    pos = np.tile([[0.0, 0.0, 1.06], [0.0, 0.0, 1.13]], (n, 1, 1))  # the pot on the disk, the lid on its rim
+    wxyz = np.tile([1.0, 0, 0, 0], (n, 2, 1))
+    frames = np.full((n, 3, 7), 0.0)
+    frames[:, :, :3] = [1.0, 1.0, 1.5]
+    row = {"object_body_position": [pos.tolist()], "object_body_wxyz": [wxyz.tolist()],
+           "robot_right_frames": [frames.tolist()]}
+    part = tmp_path / "part"
+    part.mkdir()
+    pq.write_table(pa.table(row), part / "x.parquet")
+    seating = stage23.check(part, meshes, usda, n)["frame0_seating_cm"]
+    assert seating["ep2_white_pot"] == pytest.approx(0.0, abs=1e-6) and seating["ep2_white_pot_lid"] == pytest.approx(0.0, abs=0.01)

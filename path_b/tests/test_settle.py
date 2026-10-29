@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 import trimesh
+from scipy.spatial.transform import Rotation
 
 from pathb import runner
 from pathb.stages import s3d_settle
@@ -80,3 +81,26 @@ def test_floating_cylinder_settles_and_cup_settles_in_the_rack(tmp_path, monkeyp
     assert rep["statics"][0]["settled"] and rep["statics"][0]["support"] == "plastic_dish_rack"
     status = {m.name: m.status for m in r.metrics}
     assert status["blue_cup: penetration into the support after settling (worst)"] == "PASS"
+
+
+@pytest.mark.skipif(not SIM.exists(), reason="needs the sim venv (mujoco)")
+def test_a_rest_fitted_inside_the_table_drops_onto_a_table_at_its_own_bottom(tmp_path, monkeypatch):
+    monkeypatch.setenv("SETTLE_PY", str(SIM))
+    monkeypatch.setattr(s3d_settle, "TABLE_AT_REST", True)
+    root = tmp_path / "episode_000999"
+    sunk = np.eye(4)
+    sunk[:3, :3] = Rotation.from_euler("x", 2, degrees=True).as_matrix()
+    sunk[:3, 3] = [0.5, 0.0, -0.012]  # S3c's fit 1.2 cm into the table (ep22's cup: 1.1 cm)
+    write_object(root, "blue_cup", cup(), sunk, "table", 0.1)
+    e = {"episode": 999, "split": "evaluation", "num_frames": N, "objects": [{"name": "blue_cup"}]}
+    s3d_settle.run(runner.Context(e, root, {}))
+    row = json.loads((root / "s3d_settle/blue_cup/settle_report.json").read_text())["statics"][0]
+    P = np.load(root / "s3d_settle/blue_cup/object_to_world.npz")["object_to_world"]
+    assert row["settled"] and -1.6 < row["table_cm"] < -1.2 and abs(P[0, 2, 3] - sunk[2, 3]) < 0.003
+    assert np.allclose(P[0, :2, 3], [0.5, 0.0], atol=0.005)
+    monkeypatch.setattr(s3d_settle, "TABLE_AT_REST", False)  # on z = 0 MuJoCo throws it out of the table
+    root = tmp_path / "z0" / "episode_000999"
+    write_object(root, "blue_cup", cup(), sunk, "table", 0.1)
+    s3d_settle.run(runner.Context(e, root, {}))
+    row = json.loads((root / "s3d_settle/blue_cup/settle_report.json").read_text())["statics"][0]
+    assert "table_cm" not in row
