@@ -130,11 +130,13 @@ TRACKED_BRIDGES = False  # spec §14 L7 (under test): a bridge also tries the ob
 CARRIED_BRIDGES = True  # default: a bridge over frames S3b saw a hand holding also tries the object moved with that
 # wrist (`carried`) and keeps whichever guess explains the frames better (`explains`). Public, 20 episodes, on top of
 # the gap anchor: best of three 0.546 -> 0.554 (12, 13, 26, 41, 42 up 0.02-0.05; ep45 -0.008)
-HELD = False  # under test: an S3b grasp between two rests that leave the object within HELD_M / HELD_DEG of where it was
+HELD = True  # default: an S3b grasp between two rests that leave the object within HELD_M / HELD_DEG of where it was
 # (up to its symmetry; a body of revolution: its axis) is also tried as held still (the rest before interpolated to the rest after) and takes that
 # where it explains the grasp's frames (`explains`) no worse than the solved track; logged (`held`). Public ep11
 # (v4_j10): one hand steadies the blue cup while the other nests the beige cup in it, frames 8-107: GT moves it
-# 0.5 cm, our track up to 18.6 cm (4.0 cm mean error, 39 of the 100 frames lost to AUC)
+# 0.5 cm, our track up to 18.6 cm (4.0 cm mean error, 39 of the 100 frames lost to AUC). Public: the gate passes on
+# 11, 13, 21, 45; held still explains ep11's grasp better (1.06 against 1.15 cm) and the others' worse; ep11 0.752 ->
+# 0.891, the others unchanged (v4_k3)
 HELD_M, HELD_DEG = 0.03, 10.0  # default: two fits of one rest differ by up to ~2 cm (ep11's blue cup: 1.9 cm)
 REACH_MARGIN = 0.10  # default (m): a rest may lie this much beyond the reach of the hands that moved it before it
 # keeps the previous rest instead (`beyond_reach`; public, flagged 7 rests: 6 fitted 0.8-1.9 m off a move of

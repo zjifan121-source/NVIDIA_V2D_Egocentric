@@ -36,7 +36,7 @@ from .s4b_reference import write_bundle
 SECONDS, TIMESTEP = 0.5, 0.002  # spec: 0.5 s
 MAX_MOVE_M, MAX_TURN_DEG = 0.015, 10.0  # spec
 MAX_PENETRATION_M = 0.002  # spec
-TABLE_AT_REST = False  # under test: a rest on the table whose lowest point S3c fitted more than SUNK_MIN_M below
+TABLE_AT_REST = True  # default: a rest on the table whose lowest point S3c fitted more than SUNK_MIN_M below
 # z = 0 (at most MAX_SUNK_M) drops onto a table plane TABLE_GAP_M under that point instead (`table_cm` per row). MuJoCo throws a body
 # that starts inside the table (public v4_j10: rests starting over 1 cm inside z = 0 settled 3 of 22, those within
 # 5 mm 14 of 17), while the task scene the policy trains in has no table at z = 0: NVIDIA's support script puts each
