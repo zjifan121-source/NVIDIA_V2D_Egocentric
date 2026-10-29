@@ -14,8 +14,8 @@ Per episode (public only, through pathb/gt.py), on a GPU machine:
              that camera and those hands, so the merge rebuilds the scene exactly
   2. task    run_load_retarget.py (with --merge for two objects; --no-rest-hold --no-object-clean
              --no-level keep the ground truth as it is; hand cleaning stays)
-  3. train   FlashSAC with the still submission's settings (jobs/still_submit.sh: STEPS and EXTRA),
-             contact buffers as spec S6 sets them for the L40S
+  3. train   FlashSAC with our own recipe (policy.settings: FlashCHORD's curriculum scaled to ~60M,
+             the reference at its frame rate, contact buffers as spec S6 sets them for the L40S)
   4. eval    the kit's run_policy_evaluation.py (official evaluator, one world)
   5. score   the rollout with the official metrics against public ground truth (scan meshes)
 Decision rule (spec): rollout(GT) below the episode's still score -> fix the S6 recipe first; >= 0.7
@@ -35,7 +35,7 @@ import trimesh
 
 from . import gt, policy
 from .paths import PATH_B, REPO, TRACK3_FPS, episode_info
-from .policy import run_logged, still_settings  # noqa: F401 (still_settings: tests, summary)
+from .policy import run_logged, settings
 from .team import retarget_tools
 
 S02_FILE = PATH_B / "oracles/oracle_2026-10-17.json"  # Edmond's S0.2 regime split (tools/track3/playback_oracle.py)
@@ -362,7 +362,7 @@ def main(numbers: list[int], out: Path | None = None, run: Path | None = None) -
               f"{r['decision']}", flush=True)
     summary = PATH_B / f"oracles/s01_{datetime.now(timezone.utc):%Y-%m-%d}.json"
     summary.write_text(json.dumps({"created_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                                   "settings": dict(zip(("steps", "overrides"), still_settings())),
+                                   "settings": dict(zip(("steps", "overrides"), settings())),
                                    "episodes": rows}, indent=1, default=str) + "\n")
     print(f"summary: {summary}")
     return 0

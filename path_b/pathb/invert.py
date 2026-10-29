@@ -81,6 +81,10 @@ UNSTABLE_REACH_M, UNSTABLE_REACH_RAD = 0.05, np.radians(20)  # default: the refi
 # whose guess is far off otherwise wandered 0.6 m on the synthetic slip)
 FIT_FRAMES, FIT_RAYS, RAYS = 60, 150, 300  # default: pass 1 subsample; rays per frame (pass 1, pass 2)
 MIN_GRASP = 5
+SLIP_RETRY = False  # default: a grasp with both end poses whose one slip run covers it (within MIN_GRASP of each
+# end) when solved from the start pose is solved again from the end pose (pass 2 backwards), as the part after a
+# slip is (ep41's carry 144-257: slipped throughout under the mesh pooled with ep2, 215-257 tracked at 1.4 mm under
+# the one before). Under measurement
 RELEASE_M, RELEASE_FRAMES = 0.01, 10  # default: a grasp's frames next to a rest whose wrist moves more than this per
 # frame (at most this many per end) are the hand arriving or letting go: bridged, not tracked (ep41's left wrist
 # moved 2-12 cm per frame over the carry's last 6 frames, 0.1-0.4 before; the release frame anchored the whole carry)
@@ -480,6 +484,10 @@ def solve_grasp(clip: Clip, a: int, b: int, hand: int, fingers: list[int], start
     poses, p2 = pass2(clip, a, b, hand, fingers, p1["T"], backward=start is None and end is not None)
     med = p2["residual_a_median_m"]
     runs = slips(p2["residual_a_q75_m"]) if split else []
+    if (SLIP_RETRY and runs and start is not None and end is not None
+            and runs[0][0] < MIN_GRASP and b - a - runs[-1][1] < MIN_GRASP and len(runs) == 1):
+        rows = solve_grasp(clip, a, b, hand, fingers, None, end, split, T_hint, near)
+        return [r | {"retried": "slipped throughout from the start pose: solved from the end pose"} for r in rows]
     if runs:
         out, cursor = [], a
         for s0, s1 in runs:

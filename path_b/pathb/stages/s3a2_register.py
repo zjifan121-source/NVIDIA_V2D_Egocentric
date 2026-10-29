@@ -47,6 +47,7 @@ COACD_THRESHOLD = 0.05  # spec S3a
 TIE = 0.05  # default (spec §13.1 A4 "ties"): explain-shares this close are tied
 EXPLAIN_BAR = 0.8  # the stage's PASS bar on the share of the partial the mesh explains
 ORDER = ("pooled", "own")  # the more complete mesh first
+GLOBAL_SEEDS = 3  # default: FPFH + RANSAC starts when canonical.json kept no move for the clip
 B1_FLAG_M = 0.0005  # §13.2 B1, calibrated 2026-10-26: a margin this small flags an ambiguous registration (4 of 6 flips)
 
 
@@ -130,7 +131,7 @@ def canonical_move(info: dict, clip: str) -> np.ndarray | None:
 def register(mesh: o3d.geometry.TriangleMesh, partial: o3d.geometry.TriangleMesh, start: np.ndarray | None) -> dict:
     source, target = S.mesh_points(mesh, 20000), S.mesh_points(partial, 20000)
     starts = [("canonical.json", start)] if start is not None else []
-    starts += [(f"global seed {s}", S.global_start(source, target, seed=s)) for s in range(3 if start is None else 0)]
+    starts += [(f"global seed {s}", S.global_start(source, target, seed=s)) for s in range(GLOBAL_SEEDS if start is None else 0)]
     best = None
     for label, T0 in starts:
         T = S.icp(source, target, T0, max_dist=0.02, iterations=300, point_to_point=True)["T"]

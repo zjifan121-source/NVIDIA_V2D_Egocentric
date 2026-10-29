@@ -1,10 +1,13 @@
 """FlashCHORD policies (V4_BUILD_SPEC.md S0.1 and S6), shared by run.py oracle and the s6_* stages.
 
-Training: scripts/train_flash_sac.py experiment=sharpa_flash_sac with the still submission's settings
-(tools/track3/jobs/still_submit.sh: STEPS and EXTRA, Edmond's overrides), contact buffers as spec S6
-sets them for the L40S; a rerun resumes from the newest state_*.safetensors. long=True: FlashCHORD's
-own 250M schedule (curriculum tracking_250m_mixed_reset: its thresholds, Edmond's 60M compression of
-them left out; 250,003,456 steps). $PATHB_OBJECT_STOP (metres, e.g. 0.05) sets
+Training: scripts/train_flash_sac.py experiment=sharpa_flash_sac with our own recipe (`settings`; no setting
+is read from the team's job scripts, James 2026-10-29): FlashCHORD's own curriculum
+(tracking_250m_mixed_reset) with its thresholds scaled by SHORT_FRACTION and rounded to whole steps of
+the scene's worlds, the reference played at its own frame rate (task.motion_speed 1.0, sim.fps =
+TRACK3_FPS: the kit's packer numbers each evaluator step as one video frame, reference_frame = step +
+start_frame), FlashCHORD's defaults otherwise (wrist termination 0.15 m), and the contact buffers spec S6
+sets for the L40S; a rerun resumes from the newest state_*.safetensors. long=True: FlashCHORD's own 250M
+schedule unscaled (250,003,456 steps). $PATHB_OBJECT_STOP (metres, e.g. 0.05) sets
 termination.object_position.threshold (V4 S6's optional stop, adopted only after S0.1). Every run
 keeps the experiment's action and termination groups: the overrides may not name them, and the run's
 own Hydra record (hydra.run.dir = <run>/hydra) must show action=residual_hand_pose and
@@ -23,13 +26,15 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .paths import REPO
+from .paths import REPO, TRACK3_FPS
 
 FLASH_CHORD = REPO / "baseline/robotic_grounding/flash_chord"
 KIT = REPO / "assets/data/v2d_submission_kit"
-STILL_JOB = REPO / "tools/track3/jobs/still_submit.sh"
 L40S_BUFFERS = ["sim.njmax=512", "sim.nconmax=512"]  # spec S6 (James 2026-10-20: njmax 512 on the L40S)
-LONG_STEPS = 250_003_456  # the last threshold of configs/curriculum/tracking_250m_mixed_reset.yaml
+CURRICULUM = FLASH_CHORD / "src/flash_chord/configs/curriculum/tracking_250m_mixed_reset.yaml"
+SCENE = FLASH_CHORD / "src/flash_chord/configs/scene/train.yaml"
+LONG_STEPS = 250_003_456  # the last threshold of tracking_250m_mixed_reset.yaml
+SHORT_FRACTION = 0.24  # default: the short schedule is this share of the 250M one (~60M steps, ~20 min on the L40S)
 GROUPS = {"action": "residual_hand_pose", "termination": "tracking"}  # what V4 S6 relies on
 
 
@@ -37,20 +42,27 @@ def flash_venv() -> str:
     return os.environ.get("FLASH_CHORD_VENV") or "/root/v2d/venvs/flash_chord"
 
 
-def still_settings() -> tuple[int, list[str]]:
-    """(steps, Hydra overrides) of the still submission, read from jobs/still_submit.sh, with the
-    contact buffers replaced by the L40S ones."""
-    text = STILL_JOB.read_text()
-    steps = int(re.search(r"^STEPS=(\d+)", text, re.M).group(1))
-    extra = re.search(r'^export EXTRA="([^"]+)"', text, re.M).group(1).split()
-    return steps, [o for o in extra if not o.startswith(("sim.njmax=", "sim.nconmax="))] + L40S_BUFFERS
+def short_thresholds() -> list[int]:
+    """FlashCHORD's 250M curriculum thresholds times SHORT_FRACTION, each rounded to a whole number of
+    environment steps of the scene's world count (the last is the run's step count)."""
+    import yaml
+    thresholds = yaml.safe_load(CURRICULUM.read_text())["thresholds"]
+    worlds = int(yaml.safe_load(SCENE.read_text())["world_count"])
+    if thresholds[-1] != LONG_STEPS:
+        raise ValueError(f"{CURRICULUM.name} ends at {thresholds[-1]}, not {LONG_STEPS}")
+    return [max(1, round(t * SHORT_FRACTION / worlds)) * worlds for t in thresholds]
 
 
 def settings(long: bool = False) -> tuple[int, list[str]]:
-    """(steps, overrides): the still submission's (60M), or FlashCHORD's own 250M schedule."""
-    steps, overrides = still_settings()
+    """(steps, Hydra overrides): the short schedule (FlashCHORD's curriculum scaled, see `short_thresholds`)
+    or FlashCHORD's own 250M one; both play the reference at its frame rate, one step per video frame."""
+    overrides = ["task.motion_speed=1.0", f"sim.fps={TRACK3_FPS}", *L40S_BUFFERS]
     if long:
-        steps, overrides = LONG_STEPS, [o for o in overrides if not o.startswith("curriculum.thresholds=")]
+        steps = LONG_STEPS
+    else:
+        thresholds = short_thresholds()
+        steps = thresholds[-1]
+        overrides.append("curriculum.thresholds=[" + ",".join(map(str, thresholds)) + "]")
     stop = os.environ.get("PATHB_OBJECT_STOP")
     if stop:
         overrides = overrides + [f"termination.object_position.threshold={float(stop)}"]
