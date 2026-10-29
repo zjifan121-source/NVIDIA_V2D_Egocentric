@@ -1,6 +1,43 @@
-# Path B task queue (2026-10-26; mirrors V4_BUILD_SPEC.md §13; evaluation runs paused 2026-10-28, see "Paused")
+# Path B task queue (2026-10-29; mirrors V4_BUILD_SPEC.md §14)
 
-Goal (James, 2026-10-28): mean AUC 0.8 over the 20 public episodes; baselines not reported for now. No part of Edmond's work in the pipeline. Rules: push `zjifan121_pathb_v3` after every passing test or smoke test; no merge to `main_buffer` and no Kaggle upload without James. Scans are never read on evaluation. Pooling over evaluation clips is allowed. Every change is run on all 20 public episodes and checked episode by episode against the last checkpoint (`vm/score_checkpoint.py compare`; James, 2026-10-28). Every change ships with a GT-free signal (explain-share, B1 margin, B3 frame-0 consistency, P3 scale, segment agreement, settle penetration, grasps failed; primary gate for the submission = rollout error vs own reference).
+Numbers in two columns: playback / submitted (rollout ≈ playback − 0.07…0.10). Today 0.598 / ≈ 0.50; this queue 0.70–0.74 / 0.60–0.66. Public first. Evaluation runs (L10, G4, G5) stay paused until James lifts the pause (2026-10-28). Rules unchanged: push `zjifan121_pathb_v3` after every passing test; no merge to `main_buffer`, no Kaggle upload without James; no GT or scans on evaluation.
+
+## Local (Mac)
+| # | Task | Effort | Check | Expected (playback) | Status |
+|---|---|---|---|---|---|
+| L1 | `run.py analysis` on the 8 mid episodes (12 2 42 45 13 22 27 31): rests vs carries | 0.5 h | timelines | scopes L5 | done: AUC loss carries 49 %, rests after a carry 28 %, still second objects 15 %, initial rests 9 % ⇒ L5 in scope |
+| L2 | ep21 depth check: masked depth vs table depth on 20 rest frames | 0.5 h | behind-table ⇒ L3 | gate | done: not see-through (88-90 % in front, heights match the scans); cause = S3c's TSDF target without the below-table filter (cup fitted to the floor, 1.06 m off); fix on all 20 running (`v4_j1`) |
+| L3 | Silhouette term (static fit when the held-out depth check fails; pass 2 at low weight) | 1 day | ep21 up; 22/12/13 not down; silhouette IoU | ep21 → ≈ 0.5 | todo |
+| L4 | Upright prior + concentric stacking for revolution objects at rest; log overrides | 0.5 day | ep11 up, none down | ep11 → ≈ 0.6 | todo |
+| L5 | Carry-only joint refinement (if L1 says carries) | 0–1.5 days | mid MPPE, MP-SR | +0.03–0.05 | todo |
+| L6 | Hand-mesh non-penetration (hand scale ≥ 0.85 or inflated) | 0.5 day | no regression 41/44 | with L5 | todo |
+| L7 | Tracked bridge for in-hand turns (clip 5 mm / 3°, end terms, no wrist prior); ep0 lid grasp by hand mesh | 0.5 day | ep43 up, 41/45 not down | ep43, ep0 → ≈ 0.5 | todo |
+| L8 | Boards / sweeper at 1–2 mm voxels; scorer registration 10×; stop if flips remain | 0.5 day | flip rate | ≤ +0.02 | todo |
+| L9 | Six metrics in every checkpoint compare | 1 h | — | — | done `982c3f6e` |
+| L10 | Evaluation CPU chain S3b → S5 on 20 episodes (method frozen at the lift), GT-free signals | 3–4 h | firewall | submission possible | **paused** |
+| L11 | Kit packer for S7; dry-pack public today | 2 h | preflight | — | done `a7219a86`: dry pack of 40/26/18 on the VM, kit preflight "Ready to submit." |
+
+## GPU (L40S)
+| # | Task | GPU-h | Check | Status |
+|---|---|---|---|---|
+| G1 | F2 on public continues; `njmax`/`nconmax` ≥ 1024 before two-object episodes | — | no overflow lines | done `24793d99`: njmax 1024 / nconmax 512 (1024 / 1024 out of memory); F2 resumed at ep41 06:15 UTC |
+| G2 | Selector decision after the first four rollouts | 0 | accuracy on four | todo |
+| G3 | Swap improved public references per episode; retrain those | ≈ 1 h/ep | rollout vs playback | todo |
+| G4 | Evaluation: 60M × 2 × 20, then 250M on the chosen reference | ≈ 48 h | GT-free gate | **paused** |
+| G5 | Pack (kit packer), preflight, first evaluation submission (James's go); resubmit by Nov 3 | 0.5 h | preflight | **paused** |
+
+Schedule: Oct 29 L1 L2 G1 L11 L9 L3-start · Oct 30 L3 L4 L5/L6 · Oct 31 L7 L8 · L10 → G4 → G5 take ≈ 3 days once the pause is lifted (lifted Oct 30: submission Nov 2, resubmission Nov 3; lifted Nov 1: 60M only).
+
+## Research additions (2026-10-29, verified; see V4_BUILD_SPEC.md §14.4)
+| # | Task | Where | Check | Expected (playback) | Status |
+|---|---|---|---|---|---|
+| R0 | ep21 cause corrected: depth is fine (median 0.44 m in the pitcher mask); the pitcher has no rest-before window because the hand track is the same-hand failure, and the cup anchor registers ambiguously. Re-seed hands on ep21/22/44 (E1), rerun ep21; B2 margin for the cup | L40S 15 min/ep + Mac | ep21 up; 22/44 not down | ep21 → ≈ 0.5 | todo |
+| L3' | Silhouette term stays as a low-weight pass-2 term and as the static residual where the held-out depth check fails; no longer the ep21 fix | Mac | no episode down | small | todo |
+| R1 | FoundationPose refinement from the inverted trajectory (baseline container, no new licence): per frame `track_one` iterations from the inverted pose, canonical mesh, RGB-D, mask; keep only where depth residual and silhouette IoU improve | L40S ≈ 3 min/ep + Mac driver | mid group MPPE −1 cm; MP-SR flips on 2 12 13 22 27 45 | +0.03–0.05; MP-SR 0.40 → 0.55+ | todo |
+| R2 | GoTrack refiner (RGB flow render-and-compare, HOT3D ADD-S ≈ 90) — CC BY-NC 4.0, James decides; only if R1 underdelivers; needs R3 | L40S | as R1 | as R1 | hold |
+| R3 | Textured canonical mesh (colour TSDF) for RGB refiners | Mac | — | — | hold |
+
+## History (tasks 0–15 of the 2026-10-26 queue, as the coding session left them)
 
 | # | Task | Where | Check | Status |
 |---|---|---|---|---|

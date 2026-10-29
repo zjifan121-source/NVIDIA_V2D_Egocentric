@@ -283,3 +283,49 @@ Oct 27: 13.1, 13.2, 13.5 + GPU window 1 (F1, F1b, F1c, E). Oct 28: 13.3, 13.4, G
 **Dropped:** scans as meshes; "frame 0 is free" (the opposite holds); slip absorption to 3 cm; invented mesh markers; rollout splicing; the go/no-go gate; S4c; full HF re-upload of frame archives (results only).
 
 Sources: review pages "All Episodes: v4 vs Refined Baseline" and "Seven Episodes Deep Dive" (2026-10-26); `track3_scorer_guide.md` (registration recipe, frame-0 alignment, MP-SR on means, scale never corrected); `BUILD_LOG.md` 2026-10-24–26; challenge FAQ (own reconstructed meshes) and page (Nov 4 freeze); FlashCHORD `termination/tracking.yaml`; ROHIT arXiv 2512.07394; `tools/track3/episodes.json` (wooden_spoon evaluation-only).
+
+## 14. Plan from run `v4_i1` (James, 2026-10-29; supersedes §13's schedule and Task Queue items 8–13)
+
+**State.** Inverted 0.598 on the 20 public episodes (playback), MP-SR 0.40, SP-SR 0.75; best of three 0.606; GT-free pick 0.580. S0.1: a policy on the true trajectory scores 0.935 (ep41) / 0.899 (ep13), and F2's first rollout kept 0.842 of a 0.939 reference, so the policy tax is 0.07–0.10 and the reference is the problem. **Every number is stated in two columns from now on: playback and submitted (rollout ≈ playback − 0.07…0.10).** Today: 0.598 / ≈ 0.50. This plan: 0.70–0.74 / 0.60–0.66. The 0.8 playback goal is not reached by it. Freeze Nov 4, 5 pm EST; submissions open Nov 2–4. Public first (James, 2026-10-29). **Evaluation runs stay paused (James, 2026-10-28) until he lifts the pause**: L10, G4 and G5 below are written out so they can start the hour he does; the review's point stands that they are the largest schedule risk (≈ 48 GPU-h after a 3–4 h Mac chain).
+
+**Where the 0.2 is.** Lost (< 0.5): 21 (0.007), 24 (0.029), 23 (0.160), 0 (0.353), 43 (0.435), 11 (0.454) — five different failures. Mid (0.6–0.75): 12, 2, 42, 45, 13, 22, 27, 31 (MPPE 3–5 cm, SP-SR 1, MP-SR 0). Good (≥ 0.8): 18, 26, 39, 40, 41, 44.
+
+**Measured facts behind the tasks.** (1) The organiser scans' own 180° symmetry margins under a trimmed ICP (3 000 points, 90 %): wooden pieces 0.8–1.3 mm, sweeper 0.9, lid 1.8 (forgiven by the metric's half-turn rule), cups up-down 6.8–8.9, pot / dust pan / rack / pitcher 6–12 mm; our board and sweeper CD-O is 3–4 mm, and the scorer's own 4 096-face re-mesh adds ≈ 1 mm, so the board flip is at noise level even with a perfect mesh. (2) ep21's pitcher rests fit 0.3–1.8 m away and its partials failed the held-out depth check at 0.77–1.25 m: the stereo-through-a-transparent-object signature (ClearGrasp), to be confirmed by L2 before L3 is built. (3) `white_pot`'s symmetry group is `{I}`: spin is scored, and the handle hides in the hand, so an in-hand turn can only be partly recovered. (4) ep13's S0.1 overflowed MuJoCo contact buffers (needed njmax ≈ 708 at 512); overflow drops contacts silently. (5) Rank = sum of ranks over AUC, SP-SR, MP-SR, MPPE, RPE, CD-O; MP-SR (0.40 vs the leader's 0.95) is our weakest rank.
+
+### 14.1 Local (Mac), in order
+| # | Task | Effort | Check | Expected (playback) |
+|---|---|---|---|---|
+| L1 | `run.py analysis` on the 8 mid episodes: error at rests vs carries | 0.5 h | per-frame timelines | scopes L5 |
+| L2 | ep21 depth check: histogram of masked depth vs table depth on 20 rest frames (pitcher, cup) | 0.5 h | behind-table ⇒ build L3; else find the cause | gate |
+| L3 | Silhouette term: render the canonical mesh, distance transform against the SAM mask at full colour resolution. (a) The static fit's residual when the held-out depth check fails, with L4's upright prior so a table rest is (x, y, yaw); (b) in pass 2 everywhere at low weight | 1 day | ep21 up; cups 22/12/13 not down; GT-free: silhouette IoU per rest | ep21 → ≈ 0.5 |
+| L4 | Upright prior for revolution objects at rest + concentric stacking (height, spin) when a rest's footprint lies inside another revolution object's; override only when evidence beats the prior by a margin; log overrides | 0.5 day | ep11 up, none down | ep11 → ≈ 0.6 |
+| L5 | Refinement scoped by L1: carry-only joint refinement (depth + silhouette + hand non-penetration + smoothness, rests pinned) if the mid loss is in carries; dropped if at rests | 0–1.5 days | mid MPPE; MP-SR | +0.03–0.05 |
+| L6 | Hand-mesh non-penetration in pass 2 / L5, only where hand scale ≥ 0.85 (else inflate by 1/scale) | 0.5 day | no regression on 41/44 | part of L5 |
+| L7 | Tracked bridge for in-hand turns: pass-2 chain forward and backward with the 5 mm / 3° clip and end-pose terms, no wrist prior; accept only if ep43 rises and ep41/45 do not fall. ep0's lid: hand-mesh proximity to find its grasp | 0.5 day | gate as stated | ep43, ep0 → ≈ 0.5 |
+| L8 | Boards / sweeper at 1–2 mm voxels (background); then the scorer's registration 10× on our mesh with different point samples; stop if the flip rate is not ≈ 0 | 0.5 day | flip rate | +0.00–0.02 |
+| L9 | Six metrics in every checkpoint compare; tasks weighed by rank gain | 1 h | — | — |
+| L10 | **Paused until James lifts it.** Evaluation CPU chain: method frozen at the lift (proposal: after L3–L4); S3b → S5 on the 20 evaluation episodes; GT-free signals per object; later per-episode reference swaps only where the bars pass | 3–4 h Mac | firewall: no GT read | a submission exists |
+| L11 | Kit packer: S7 switches to `pack_submission.py`; dry-pack the public split today | 2 h | preflight | — |
+
+### 14.2 GPU (L40S), in order
+| # | Task | GPU-h | Check |
+|---|---|---|---|
+| G1 | F2 continues on public. Before any two-object episode: `sim.njmax` / `nconmax` ≥ 1024; check L40S memory | — | no `nefc overflow` lines |
+| G2 | After the first four public rollouts: selector decision (always-inverted vs rollout-vs-reference gate) | 0 | selection accuracy on the four |
+| G3 | Swap improved public references per episode as L3–L7 land; retrain only those | ≈ 1 h / episode | rollout vs playback |
+| G4 | **Paused until James lifts it.** Evaluation: 60M × 2 candidates × 20 (≈ 20 h), then 250M on the chosen reference (≈ 28 h) | ≈ 48 h | GT-free gate |
+| G5 | Kit packer, preflight, **first evaluation submission Nov 1–2** (James's go); resubmit Nov 3 | 0.5 h | preflight |
+
+### 14.3 Schedule
+Oct 29: L1, L2, G1, L11, L9, L3 started. Oct 30: L3 done, L4, L5/L6 as scoped. Oct 31: L7, L8. L10 → G4 → G5 need ≈ 3 days end to end once the pause is lifted; lifted on Oct 30 they end Nov 2 with a submission Nov 2 and a resubmission Nov 3; lifted on Nov 1 the 250M stage no longer fits and G4 runs 60M only.
+
+### 14.4 Research additions (2026-10-29, after the §14 plan; verified as stated)
+- **L2 answered — ep21 is not a depth problem.** Frame 0 of ep21: stereo depth inside the pitcher mask is coherent (median 0.44 m, p10–p90 0.38–0.50 m; 1.5 k of 43 k pixels bleed to 1–2 m at the mask edge), the cup 0.49 m, the table 0.62 m. The fuse report shows the real causes: the pitcher has **no rest-before window** (`rest before 0 (window None)`; its rest-after partial is fine, 65 frames, RMS 3.4 mm) because the window rule stops at the first hand touch and ep21's hand track is the same-hand failure (overlap 0.98), and the cup anchor's registration is the ambiguous one B2 made worse (−0.056). So ep21 = **E1 (second-hand seeding) + anchor registration**, not L3. L3 (silhouette term) stays as a low-weight pass-2 term and as the static residual where the held-out depth check fails; it is no longer the ep21 task. **R0**: re-seed the hands on ep21/22/44 (public, ≈ 15 GPU-min each), rerun ep21; expected ep21 → ≈ 0.5.
+- **R1 — FoundationPose refinement from the inverted trajectory (GPU, no new licence: it ships in the baseline).** Per frame, run the FoundationPose refiner (`track_one` iterations) starting from the inverted pose with the canonical mesh, RGB-D, and the mask; keep the refined pose only where its depth residual and silhouette IoU beat the inverted pose's. This is the standard render-and-compare polish that takes a roughly-right track to centimetre accuracy. Target: the mid group (MPPE 3–5 cm, MP-SR 0 on 2, 12, 13, 22, 27, 45): −1 cm MPPE flips MP-SR episodes (per-object mean < 3 cm), each worth 5 % of MP-SR. Check on public per episode against the checkpoint, both columns. Effort: 0.5 day (driver exists: `drivers/fp_track.py`), ≈ 3 GPU-min per episode.
+- **R2 — GoTrack (Meta, CV4MR 2025) as the alternative refiner**: RGB-only flow-based render-and-compare with a CAD model, ADD-S AUC ≈ 90 on HOT3D (Aria, egocentric hand-object); refiner 40 ms per iteration; needs a textured mesh and a GPU. **Licence CC BY-NC 4.0** (code and checkpoint): NC only, no SA; James decides. Only if R1 underdelivers; needs R3 first.
+- **R3 — textured canonical mesh**: integrate colour in the TSDF (Open3D does it) so refiners that render RGB (GoTrack; FoundationPose uses RGB too) see the real appearance. Half a day; also improves CD-O not at all, so low priority unless R2 is taken.
+- **Not taken**: learned transparent-object pose methods (EBFA-6D, GDR-Net + edges; need training data we do not have) — and the pitcher is opaque in any case.
+
+**Dropped or demoted:** +0.05 for board meshes (≤ +0.02); 0.65 for ep43 (≈ 0.5); S3b threshold tuning; thin-object weights; a new tracker.
+
+Sources: run `v4_i1` checkpoint; "Path B v4 Design" (rows 1–16, S0.1, F2); `BUILD_LOG.md` 2026-10-29; the symmetry-margin measurement (organiser scans, 2026-10-29); `track3_scorer_guide.md`; challenge page and FAQ; ClearGrasp (ICRA 2020); ROHIT (arXiv 2512.07394); the adversarial review of 2026-10-29.
