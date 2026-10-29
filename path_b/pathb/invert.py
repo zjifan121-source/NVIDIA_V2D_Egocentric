@@ -73,6 +73,20 @@ OVER_M, OVER_TIE = 0.005, 0.005  # default: how far outside the mask a projected
 # edges); overhang shares this close count as alike (ep42's frame-0 rest: 1.0 % at the true turn, 2.1 % kept)
 YAW_STEP = 45  # default: degrees between the start's turns about gravity in a static retry
 UNSTABLE_STEPS = 5  # spec
+UPRIGHT = True  # default (spec §14 L4): a body of revolution's rest whose axis (the canonical's z: canonical.py builds
+# these z up) is more than UPRIGHT_TILT_DEG from vertical either way also tries the vertical poses, axis up and axis
+# down, free in place and turn about gravity; upright is kept unless upside down beats it by UPRIGHT_FLIP units of
+# evidence (one unit: UPRIGHT_RES_M of residual or UPRIGHT_DIS of rays missed plus overhang), and the free fit keeps
+# its tilt only when it beats the kept vertical by one unit; a rest lifted off the table (UPRIGHT_LIFT_M) is left as
+# fitted. Every rest it looks at is logged (`upright`). Public, v4_i1: ep0's pot
+# fitted upside down (147 degrees) and ep45's (154) on rests where it stands upright; ep12's cup 30 degrees over
+UPRIGHT_TILT_DEG = 3.0  # default: rests within this of vertical are left as fitted
+UPRIGHT_RES_M, UPRIGHT_DIS = 0.002, 0.05  # default: one unit of evidence each
+UPRIGHT_FLIP = 4.0  # default: units by which upside down must beat upright (a cup's side wall and silhouette fit either
+# way up: ep11's stacked cups beat upright by 1.3 and 3.0 units upside down, where they stand upright; ep12's cup
+# upside down in the rack by 5.1)
+UPRIGHT_LIFT_M = 0.05  # default: a rest whose fitted lowest point is higher than this above the table is not resting
+# on it (ep21's pitcher paused 26 cm up mid-pour, tilted on purpose): no prior
 EARLIER = (5, 10)  # default: a static fit also starts from the previous segment this many frames before its end
 # (a grasp's last frames, the hand letting go, are its least sure: ep40's track flipped 140 degrees at the release
 # and the rest after it fitted upside down, 2.4 mm against 1.0 from five frames earlier)
@@ -95,6 +109,12 @@ ANCHOR_GAP = RELEASE_FRAMES  # default: a grasp whose S3b neighbour is an unstab
 # (or the clip's start) beyond it takes that rest's pose as its end term, as across its own trimmed frames (ep43:
 # 0-5 and 272-274 left its carry 6-271 without either end, pass 1 drifted and the slip guard took all of it). Public,
 # 20 episodes: best of three 0.536 -> 0.546 (ep31 +0.115, ep43 +0.080, ep39 +0.017; ep26 -0.012)
+TRACKED_BRIDGES = False  # spec §14 L7 (under test): a bridge also tries the object tracked on its own frames
+# (`tracked`: from both ends, moved with the carrying wrist, then an in-hand step fitted to depth and silhouette and
+# clipped to STEP_M / STEP_RAD, with no prior pulling the offset back) and keeps whichever guess explains its frames
+# best (ep43's carry: five slip-guard runs while the pot turns over in the hand). Off: on v4_j3 with it on, ep43 0.435 ->
+# 0.434 (its unsolved run 0-237 is one bridge; tracked explained it no better than the interpolation's 2.0 cm), ep45
+# 0.624 -> 0.599, ep41 0.831 -> 0.829, ep0 unchanged; spec §14 L7's gate (ep43 up, 41/45 not down) fails
 CARRIED_BRIDGES = True  # default: a bridge over frames S3b saw a hand holding also tries the object moved with that
 # wrist (`carried`) and keeps whichever guess explains the frames better (`explains`). Public, 20 episodes, on top of
 # the gap anchor: best of three 0.546 -> 0.554 (12, 13, 26, 41, 42 up 0.02-0.05; ep45 -0.008)
@@ -144,6 +164,7 @@ class Clip:
     target: object
     silhouette: list | None = None  # per frame: silhouette_map(...) of the object's and hands' masks, or None
     seed: int = 0
+    revolution: bool = False  # a body of revolution whose canonical z is its axis (canonical.REVOLUTION): `upright`
     scene: o3d.t.geometry.RaycastingScene = field(init=False)
     surface: o3d.geometry.PointCloud = field(init=False)
 
@@ -242,8 +263,10 @@ def _trimesh_watertight(v, f) -> bool:
 
 
 # ---------------------------------------------------------------- static
-def solve_static(clip: Clip, a: int, b: int, init: np.ndarray, earlier: list[np.ndarray] = ()) -> dict:
-    """One pose over [a, b] by ICP onto the segment's fused surface, best over the symmetry group."""
+def solve_static(clip: Clip, a: int, b: int, init: np.ndarray, earlier: list[np.ndarray] = (),
+                 rest: np.ndarray | None = None) -> dict:
+    """One pose over [a, b] by ICP onto the segment's fused surface, best over the symmetry group. rest: the object's
+    previous rest pose, the turn the upright prior's ties are broken towards (else init)."""
     target = clip.target(a, b)
     if target is None or len(target.points) < 50:
         return {"pose": init, "residual_m": None, "candidates": 0, "why": "no fused surface: the start pose kept"}
@@ -296,7 +319,93 @@ def solve_static(clip: Clip, a: int, b: int, init: np.ndarray, earlier: list[np.
             E[:3, :3], E[:3, 3] = Rz @ E[:3, :3], Rz @ (E[:3, 3] - mid) + mid
             turned.append((f"the best fit turned {deg} degrees about gravity", E))
         best = pick(found + fit(turned, "", clip.group[:1]))  # a cup's own group turns it about its axis
-    return best | {"candidates": len(clip.group), "points": len(pts)}
+    best = best | {"candidates": len(clip.group), "points": len(pts)}
+    if UPRIGHT and clip.revolution:
+        best = upright(clip, a, b, best, pts, init, rest)
+    return best
+
+
+def tilt_deg(pose: np.ndarray) -> float:
+    """The canonical z axis's angle from world +z."""
+    return float(np.degrees(np.arccos(np.clip(pose[2, 2], -1.0, 1.0))))
+
+
+def evidence(f: dict) -> float:
+    """A static fit's evidence in units of UPRIGHT_RES_M and UPRIGHT_DIS (lower is better)."""
+    return f["residual_m"] / UPRIGHT_RES_M + (disagreement(f) or 0.0) / UPRIGHT_DIS
+
+
+def vertical_fit(clip: Clip, a: int, b: int, free: dict, pts: np.ndarray, up: bool, init: np.ndarray | None = None,
+                 rest: np.ndarray | None = None) -> dict:
+    """The best rest with the canonical z on world +z (up) or -z: least squares on the fused surface's distances
+    to the mesh over place and turn about gravity. Starts: the free fit tilted onto the vertical about its mesh
+    centroid (the least rotation), the start pose's heading (init: the pose coming in), and for an object without a
+    symmetry axis (its turn is scored) the first start turned every YAW_STEP about gravity; a start the solver does
+    not improve on is kept as it is. Picked by evidence (residual, rays missed and overhang together: residual first
+    let ep2's lidded pot slide along its side wall, 11.7 units against 4.3 at the start), then, among fits within
+    one unit of the best, the least turned from the object's previous rest (rest; else init, the pose coming in):
+    an object is seldom turned while carried, and the carry's own turn drifts (ep45's pot: its turn ties on a rest
+    where the handle is hidden; from the carry's end it sat 12 degrees off, the truth 5 from its first rest)."""
+    flip = np.eye(3) if up else np.diag([1.0, -1.0, -1.0])
+    c_mesh = np.asarray(clip.surface.points).mean(axis=0)
+    R = free["pose"][:3, :3]
+    c_world = R @ c_mesh + free["pose"][:3, 3]
+    axis, goal = R[:, 2], np.array([0.0, 0.0, 1.0 if up else -1.0])
+    turn = np.cross(axis, goal)
+    angle = float(np.arctan2(np.linalg.norm(turn), axis @ goal))
+    if np.linalg.norm(turn) < 1e-9:
+        turn = np.array([1.0, 0.0, 0.0])
+    Rv = Rotation.from_rotvec(turn / np.linalg.norm(turn) * angle).as_matrix() @ R
+    yaw0 = float(np.arctan2(*(Rv @ flip)[1::-1, 0]))  # Rv = Rz(yaw0) @ flip
+    yaws = [yaw0] if len(clip.group) > 1 else [yaw0 + np.radians(d) for d in range(0, 360, YAW_STEP)]
+    for ref in (init, rest):  # their headings, read as Rz(yaw) @ flip
+        if ref is not None and len(clip.group) == 1:
+            yaws.append(float(np.arctan2(*(ref[:3, :3] @ flip)[1::-1, 0])))
+
+    def pose(p):
+        T = np.eye(4)
+        T[:3, :3] = Rotation.from_euler("z", p[3]).as_matrix() @ flip
+        T[:3, 3] = p[:3]
+        return T
+
+    def dist(p):
+        T = pose(p)
+        local = (pts - T[:3, 3]) @ T[:3, :3]
+        return clip.scene.compute_distance(o3d.core.Tensor(local.astype(np.float32))).numpy().astype(np.float64)
+
+    found = []
+    for y in yaws:
+        R0 = Rotation.from_euler("z", y).as_matrix() @ flip
+        x0 = np.r_[c_world - R0 @ c_mesh, y]
+        sol = least_squares(dist, x0, loss="soft_l1", f_scale=0.005, max_nfev=200, x_scale=[0.01, 0.01, 0.01, 0.1])
+        for x in (x0, sol.x):
+            found.append({"pose": pose(x), "residual_m": float(np.median(np.abs(dist(x))))})
+    for f in found:
+        f["rays_missed"], f["overhang"] = rays_missed(clip, a, b, f["pose"]), overhang(clip, a, b, f["pose"])
+    best = min(evidence(f) for f in found)
+    near = [f for f in found if evidence(f) <= best + 1.0]
+    ref = (rest if rest is not None else init if init is not None else free["pose"])[:3, :3]
+    return min(near, key=lambda f: Rotation.from_matrix(f["pose"][:3, :3] @ ref.T).magnitude())
+
+
+def upright(clip: Clip, a: int, b: int, free: dict, pts: np.ndarray, init: np.ndarray | None = None,
+            rest: np.ndarray | None = None) -> dict:
+    """L4's prior on a body of revolution's rest (UPRIGHT): the vertical pose unless the evidence beats it."""
+    tilt = tilt_deg(free["pose"])
+    if min(tilt, 180.0 - tilt) <= UPRIGHT_TILT_DEG:
+        return free
+    if float((clip.vertices @ free["pose"][:3, :3].T + free["pose"][:3, 3])[:, 2].min()) > UPRIGHT_LIFT_M:
+        return free
+    if "rays_missed" not in free:
+        free["rays_missed"], free["overhang"] = rays_missed(clip, a, b, free["pose"]), overhang(clip, a, b, free["pose"])
+    up, down = (vertical_fit(clip, a, b, free, pts, True, init, rest), vertical_fit(clip, a, b, free, pts, False, init, rest))
+    vertical, way = (down, "upside down") if evidence(down) < evidence(up) - UPRIGHT_FLIP else (up, "upright")
+    log = {"free_tilt_deg": round(tilt, 1), "free": round(evidence(free), 2), "upright_fit": round(evidence(up), 2),
+           "upside_down_fit": round(evidence(down), 2)}
+    if evidence(free) < evidence(vertical) - 1.0:
+        return free | {"upright": log | {"kept": "the free fit (its evidence beats the vertical)"}}
+    return free | vertical | {"symmetry_index": free.get("symmetry_index", 0), "upright": log | {"kept": way},
+                              "start_from": f"{free.get('start_from', '')}; then {way} (the prior: {tilt:.0f} degrees off vertical)"}
 
 
 def disagreement(f: dict) -> float | None:
@@ -568,6 +677,49 @@ def carried(clip: Clip, a: int, b: int, before: np.ndarray | None, after: np.nda
     return np.stack([blend(fwd[i], bwd[i], (i + 1) / (b - a + 2)) for i in range(b - a + 1)])
 
 
+def tracked(clip: Clip, a: int, b: int, before: np.ndarray | None, after: np.ndarray | None,
+            carrier: np.ndarray | None = None) -> np.ndarray | None:
+    """The bridge [a, b] tracked on its own frames (spec §14 L7, in-hand turns): forward from `before` (the pose at
+    a-1) and backward from `after` (the pose at b+1), each frame's pose is the one before it moved with the carrying
+    wrist (carrier[t], as `carried` moves it; no carrier: it stays) and then by the in-hand step that best explains
+    that frame's residual (a), depth and silhouette, at most STEP_M / STEP_RAD (pass 2's clip), with no prior pulling
+    the in-hand offset back to where it started (a turn in the hand accumulates); the step is kept only when it
+    explains the frame better; a frame without a mask above the bar takes no step. The two chains are blended by the
+    frame's place in the bridge, as `carried` blends, so both ends hold. None without either end."""
+    if before is None and after is None:
+        return None
+    bound = np.array([STEP_RAD] * 3 + [STEP_M] * 3)
+    n, W, ok = clip.n, clip.wrist, clip.valid
+
+    def wrist_step(t):  # frame t-1 -> t: the carrying wrist's motion, or the identity
+        c = carrier[t] if carrier is not None and 0 < t < n else -1
+        return W[t, c] @ np.linalg.inv(W[t - 1, c]) if c >= 0 and ok[t, c] and ok[t - 1, c] else np.eye(4)
+
+    def fit(Q, t):
+        o = clip.obs[t]
+        if o is None or o[2] < clip.min_share:
+            return Q
+        r = least_squares(lambda x: clip.appearance(Q @ T_of(x), t) / SIG_A, np.zeros(6), loss="soft_l1", f_scale=1.0,
+                          max_nfev=7 * UNSTABLE_STEPS, bounds=(-bound, bound))
+        Q2 = Q @ T_of(r.x)
+        return Q2 if np.median(np.abs(clip.appearance(Q2, t))) < np.median(np.abs(clip.appearance(Q, t))) else Q
+    fwd = bwd = None
+    if before is not None:
+        fwd, Q = {}, before
+        for t in range(a, b + 1):
+            Q = fit(wrist_step(t) @ Q if (t > a or a > 0) else Q, t)
+            fwd[t] = Q
+    if after is not None:
+        bwd, Q = {}, after
+        for t in range(b, a - 1, -1):
+            Q = fit(np.linalg.inv(wrist_step(t + 1)) @ Q if t + 1 < n else Q, t)
+            bwd[t] = Q
+    if fwd is None or bwd is None:
+        one = fwd if bwd is None else bwd
+        return np.stack([one[t] for t in range(a, b + 1)])
+    return np.stack([blend(fwd[t], bwd[t], (t - a + 1) / (b - a + 2)) for t in range(a, b + 1)])
+
+
 def explains(clip: Clip, poses: np.ndarray, a: int) -> float | None:
     """Mean over the frames with a mask above the bar of the mean |residual (a)| of `poses` from frame a, each
     residual capped at MISS. A median saturates at MISS once half the rays miss (ep43's 0-274 bridge: 3 cm
@@ -591,6 +743,13 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
         if how["explains_carried_m"] is not None and (how["explains_interpolated_m"] is None
                                                       or how["explains_carried_m"] < how["explains_interpolated_m"]):
             guess, how["guess"] = alt, "carried"
+    if TRACKED_BRIDGES:
+        alt = tracked(clip, a, b, before, after, carrier)
+        if alt is not None:
+            now = how.get(f"explains_{how['guess']}_m", explains(clip, guess, a))
+            how[f"explains_{how['guess']}_m"], how["explains_tracked_m"] = now, explains(clip, alt, a)
+            if how["explains_tracked_m"] is not None and (now is None or how["explains_tracked_m"] < now):
+                guess, how["guess"] = alt, "tracked"
     poses, refined = guess.copy(), np.zeros(b - a + 1, bool)
     for i, t in enumerate(range(a, b + 1)):
         o = clip.obs[t]
@@ -709,7 +868,8 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
             last = next((t for t in range(a - 1, -1, -1) if known(t)), None)
             init = P[a - 1] if known(a - 1) else P[last] if last is not None else start_pose
             earlier = [P[last - k] for k in EARLIER if last is not None and known(last - k)]
-            r = solve_static(clip, a, b, init, earlier)
+            rest = next((P[w["start"]] for w in reversed(work[:i]) if w["kind"] == "static" and known(w["start"])), None)
+            r = solve_static(clip, a, b, init, earlier, rest)
             r |= beyond_reach(clip, work, i, r["pose"], P)
             P[a:b + 1] = r["pose"]
             solved[i] = [{"kind": "static", "start": a, "end": b, **{k: v for k, v in r.items() if k != "pose"}}]
@@ -751,7 +911,8 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
                                    carrier if CARRIED_BRIDGES else None)
                 P[a:b + 1], refined[a:b + 1] = u["poses"], u["refined"]
                 row.setdefault("why", u.get("why", ""))
-                row.update({k: u[k] for k in ("guess", "explains_interpolated_m", "explains_carried_m") if k in u},
+                row.update({k: u[k] for k in ("guess", "explains_interpolated_m", "explains_carried_m", "explains_tracked_m")
+                            if k in u},
                            bridge=[a, b])
             row.update(refined=int(refined[row["start"]:row["end"] + 1].sum()), why=row.get("why", ""))
         report.append({k: v for k, v in row.items() if k not in ("poses", "T")})

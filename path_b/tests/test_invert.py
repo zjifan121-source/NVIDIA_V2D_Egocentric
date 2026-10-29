@@ -495,3 +495,58 @@ def test_slip_retry_solves_from_the_end_pose_unless_it_jumps(monkeypatch):
     calls.clear()
     monkeypatch.setattr(I, "SLIP_RETRY", False)
     assert I.solve_grasp(clip, a, b, 0, [1], start, end)[0]["why"] == "slip guard" and calls == [False]
+
+
+def test_upright_prior_on_a_revolution_rest():
+    # a pot-like body (a cylinder with a handle: its turn is scored), canonical z up, resting upright; the seen side only
+    body = trimesh.creation.cylinder(radius=0.08, height=0.12, sections=48)
+    body.apply_translation([0, 0, 0.06])
+    handle = trimesh.creation.box((0.06, 0.02, 0.02))
+    handle.apply_translation([0.11, 0, 0.09])
+    m = trimesh.util.concatenate([body, handle])
+    truth = np.eye(4)
+    truth[:3, :3] = Rotation.from_euler("z", 30, degrees=True).as_matrix()
+    truth[:3, 3] = [0.3, 0.1, 0.0]
+    pts, faces = m.sample(6000, return_index=True)
+    seen = (m.face_normals[faces] @ truth[:3, :3].T)[:, 0] < 0.2  # the camera's side
+    world = pts[seen] @ truth[:3, :3].T + truth[:3, 3]
+    c = I.Clip(K=np.eye(3), c2w=np.eye(4)[None], obs=[None], tips=np.full((1, 2, 5, 3), np.nan),
+               wrist=np.tile(np.eye(4), (1, 2, 1, 1)), valid=np.zeros((1, 2), bool), vertices=np.asarray(m.vertices),
+               faces=np.asarray(m.faces), group=np.eye(4)[None], target=None, revolution=True)
+    tilted = truth.copy()
+    tilted[:3, :3] = Rotation.from_euler("x", 25, degrees=True).as_matrix() @ truth[:3, :3]
+    local = (world - tilted[:3, 3]) @ tilted[:3, :3]
+    res = float(np.median(np.abs(c.scene.compute_distance(o3d.core.Tensor(local.astype(np.float32))).numpy())))
+    out = I.upright(c, 0, 0, {"pose": tilted, "residual_m": res, "start_from": "global"}, world)
+    assert out["upright"]["kept"] == "upright" and I.tilt_deg(out["pose"]) < 0.5
+    assert np.linalg.norm(out["pose"][:3, 3] - truth[:3, 3]) < 0.005 and out["residual_m"] < 0.001
+    assert Rotation.from_matrix(out["pose"][:3, :3].T @ truth[:3, :3]).magnitude() < np.radians(2)  # the handle's turn found again
+    # a rest already vertical is left alone; one whose evidence beats the vertical keeps its tilt
+    assert "upright" not in I.upright(c, 0, 0, {"pose": truth, "residual_m": 0.0005}, world)
+    lean = truth.copy()
+    lean[:3, :3] = Rotation.from_euler("x", 18, degrees=True).as_matrix() @ truth[:3, :3]
+    leaning = world @ (lean[:3, :3] @ truth[:3, :3].T).T + (lean[:3, 3] - lean[:3, :3] @ truth[:3, :3].T @ truth[:3, 3])
+    kept = I.upright(c, 0, 0, {"pose": lean, "residual_m": 0.0002}, leaning)
+    assert kept["upright"]["kept"].startswith("the free fit") and kept["pose"] is lean
+
+
+def test_a_tracked_bridge_follows_the_frames_where_interpolation_cuts_the_corner():
+    # the carry's middle third bridged from its true ends while the object slips 4 cm in the hand: interpolation cuts
+    # the 8 cm lift's arc; the tracked guess moves with the wrist and steps with the depth, from both ends
+    c, _, obj, m = clip(slip=(30, 0.04, 15))
+    a, b = GRASP[0] + 12, GRASP[1] - 12
+    carrier = np.full(N, -1)
+    carrier[GRASP[0]:GRASP[1] + 1] = 1
+    T = I.tracked(c, a, b, obj[a - 1], obj[b + 1], carrier)
+    err_t = add_mm(T, obj[a:b + 1], m.vertices)
+    err_i = add_mm(I.interpolate(obj[a - 1], obj[b + 1], b - a + 1), obj[a:b + 1], m.vertices)
+    assert err_t.mean() < 0.4 * err_i.mean() and err_t.max() < 20
+    assert np.allclose(I.tracked(c, a, b, obj[a - 1], None, carrier)[0][:3, 3], T[0][:3, 3], atol=0.02)  # one end only
+    # switched on, the bridge keeps whichever guess explains its frames best
+    I.TRACKED_BRIDGES = True
+    try:
+        u = I.solve_unstable(c, a, b, obj[a - 1], obj[b + 1], carrier)
+    finally:
+        I.TRACKED_BRIDGES = False
+    scores = {k[9:-2]: v for k, v in u.items() if k.startswith("explains_") and v is not None}
+    assert set(scores) == {"interpolated", "carried", "tracked"} and u["guess"] == min(scores, key=scores.get)

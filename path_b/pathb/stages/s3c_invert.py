@@ -26,6 +26,7 @@ import trimesh
 from scipy.spatial.transform import Rotation
 
 from .. import gt, symmetry
+from ..canonical import REVOLUTION
 from .. import invert as I
 from .. import scan as S
 from ..bundle import p4_bundle
@@ -88,7 +89,8 @@ def clip(ctx, view: View, k: int, name: str, mesh: trimesh.Trimesh) -> I.Clip:
 
     return I.Clip(K=view.K, c2w=view.c2w, obs=obs, tips=tips["tips"], wrist=wrist, valid=tips["valid"],
                   vertices=np.asarray(mesh.vertices, np.float64), faces=np.asarray(mesh.faces),
-                  group=symmetry.group(name, np.asarray(mesh.vertices)), target=target, silhouette=sil, seed=k)
+                  group=symmetry.group(name, np.asarray(mesh.vertices)), target=target, silhouette=sil, seed=k,
+                  revolution=name in REVOLUTION)
 
 
 def run(ctx) -> StageResult:
