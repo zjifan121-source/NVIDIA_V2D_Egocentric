@@ -17,16 +17,15 @@ from .. import phases as P
 from ..bundle import p4_bundle
 from ..report import Metric, StageResult
 from ..runner import write_json
-from ..team import retarget_tools
+from ..stage23 import object_vertices
 
 
 def fallback(ctx, name: str, read: list) -> dict:
     """The v3 rule on S3c's track (or the bundle's)."""
-    L = retarget_tools()
     bundle = p4_bundle(ctx, name)
     data = dict(np.load(bundle / "result.npz"))
     read += [bundle / "result.npz", bundle / "mesh.obj"]
-    vertices = L.object_vertices(bundle, data, "object_scale", "mesh.obj")
+    vertices = object_vertices(bundle)
     solved = ctx.root / f"s3c_invert/{name}/object_to_world.npz"
     if solved.is_file():
         data["object_to_world_transform"] = np.load(solved)["object_to_world"]

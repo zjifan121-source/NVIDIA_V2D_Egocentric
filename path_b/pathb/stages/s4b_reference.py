@@ -14,9 +14,9 @@ The moving candidate an episode trains (s4b_reference/moving.json, S5 reads it):
 `keyframe` when any object has a failed grasp segment or no solved track; $PATHB_MOVING (inverted or
 keyframe) sets it for a whole run (the go/no-go's verdict).
 v3 runs (s3c_fuse/, cached) keep their old inputs: the fused track, its anchors, S3b's trusted frames.
-Hands: the bundle's, cleaned with run_load_retarget's hand repairs (cleaned_bundle, hands only).
+Hands: the bundle's, with Path B's own repair of wrist spikes (pathb/stage23.py clean_hands).
 Each candidate is a complete bundle (BUNDLES.md layout) in s4b_reference/<object>/<candidate>/; the
-still candidate also holds the hands at frame 0 (run_load_retarget.still_scene, as --still-object).
+still candidate also holds the hands and the camera at frame 0 (pathb/stage23.py still_scene).
 Public, one object: each candidate's playback score (official metrics) is reported; scenes of
 several objects are scored in the waterfall (ref_* columns).
 """
@@ -33,10 +33,9 @@ from scipy.spatial.transform import Rotation, Slerp
 from .. import fuse, gt
 from .. import reference as R
 from ..bundle import p4_bundle
-from ..paths import TRACK3_FPS
 from ..report import Metric, StageResult
 from ..runner import write_json
-from ..team import retarget_tools
+from ..stage23 import clean_hands, still_scene
 
 
 def inputs(ctx, name: str, data: dict) -> tuple[np.ndarray, np.ndarray, np.ndarray | None, np.ndarray | None, str]:
@@ -154,8 +153,8 @@ B3_BARS = {"dt_mm": (0, 5), "dtheta_deg": (0, 1)}  # spec §13.2 B3
 def b3_objects(names: list[str]) -> list[str]:
     """The objects the scorer aligns an episode by (V4 §13.2 B3): object 0 (translation) and the first
     one without a symmetry in the kit (rotation)."""
-    from ..team import scorer
-    sym = scorer().SYMMETRY_ORDER
+    from ..symmetry import CUPS, HALF_TURN
+    sym = CUPS | HALF_TURN  # the objects the kit treats as symmetric
     return list(dict.fromkeys([names[0]] + [n for n in names if n not in sym][:1]))
 
 
@@ -173,7 +172,6 @@ def frame0_check(ctx, name: str) -> dict | None:
 
 
 def run(ctx) -> StageResult:
-    L = retarget_tools()
     d = ctx.dir("s4b_reference")
     metrics, outputs, read = [], {}, []
     prepared, found = {}, {}
@@ -181,9 +179,13 @@ def run(ctx) -> StageResult:
         found[name] = v4 = solved(ctx, name)
         src = v4["bundle"] if v4 else p4_bundle(ctx, name)
         read += [src / "result.npz"]
-        hands, cleaning = L.cleaned_bundle(src, d / name / "hands_cleaned", TRACK3_FPS, rest_hold=False,
-                                           hand_clean=True, object_clean=False)
+        hands = d / name / "hands_cleaned"
+        if hands.exists():
+            shutil.rmtree(hands)
+        shutil.copytree(src, hands)
         base = dict(np.load(hands / "result.npz"))
+        cleaning = clean_hands(base)  # Path B's own repair (pathb/stage23.py)
+        np.savez(hands / "result.npz", **base)
         if v4:
             before, after = rest_anchors(v4)
             prepared[name] = (hands, cleaning, base, (v4["track"], before, after, None, v4["source"]))
@@ -203,7 +205,7 @@ def run(ctx) -> StageResult:
             data["object_to_camera_transform"] = (np.linalg.inv(c2w) @ track).astype(
                 base["object_to_camera_transform"].dtype)
             if cand == "still":
-                L.still_scene(data)  # hands held at frame 0, as --still-object
+                still_scene(data)  # object, hands and camera held at frame 0
             bundle = write_bundle(hands, d / name / cand, data)
             counts = R.provenance(how)
             report["candidates"][cand] = {"bundle": bundle, "frames": counts, "how": how}  # how: per frame (S6 select)

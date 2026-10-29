@@ -1,11 +1,10 @@
 """S5 task file: FlashCHORD's ManoSharpa parquet per candidate (V4_BUILD_SPEC.md S5).
 
-Each candidate's scene comes from the team's runner (tools/track3/run_load_retarget.py in $RETARGET_VENV,
-through pathb/drivers/run_lr.py: no public scan on evaluation episodes, $RETARGET_DEVICE, $MANO_DIR):
-object URDF and mesh, support USD, the MANO fields and an IK robot.
-- Mode B (a candidate S4c ran on, when its gate takes the realised trajectory): the runner on S4c's
-  realised bundle with --no-rest-hold --no-object-clean --no-level (the object stays where the physics
-  left it, next to DaiD's hands); then the parquet's robot and contacts become DaiD's: wrists, the 22
+Each candidate's scene comes from Path B's stages 2-3 (pathb/stage23.py: NVIDIA's loader, retarget, URDF
+and support scripts as imported, in $RETARGET_VENV, $RETARGET_DEVICE, $MANO_DIR; our own hand repair and
+output check; no public scan read): object URDF and mesh, support USD, the MANO fields and an IK robot.
+- Mode B (a candidate S4c ran on, when its gate takes the realised trajectory): stages 2-3 on S4c's
+  realised bundle (the object stays where the physics left it, next to DaiD's hands); then the parquet's robot and contacts become DaiD's: wrists, the 22
   finger joints per hand, robot_{side}_frames by pathb/fk.py, contacts in the 16 MANO-link slots
   (object-side point, normal into the object, as contact_utils writes them; link_contact_* = the
   robot-side point). A hand DaiD did not retarget (one-hand embodiment) keeps the IK robot. The runner's
@@ -14,25 +13,22 @@ object URDF and mesh, support USD, the MANO fields and an IK robot.
   Written as a sibling partition sequence_id=<seq>_daid with the support USD linked under that name
   (FlashCHORD finds it by the sequence id); robot_{side}_frame_task_errors = distance of the 11 task
   frames to the IK robot's (how far physics moved the hands from the kinematic retarget).
-- Mode A (fallback): the runner on S4b's kinematic bundle with --no-rest-hold (v3 holds already);
-  still: S4b's still bundle with --still-object.
-- Two-object episodes: mode A on the merged scene (--merge over each object's bundle: S4c's realised
-  one where its gate says so, else S4b's); each object's DaiD run has hands of its own, so one task
+- Mode A (fallback): stages 2-3 on S4b's kinematic bundle; still: S4b's still bundle, held still
+  (stage23.still_scene).
+- Two-object episodes: mode A on one scene of every object's bundle (S4c's realised one where its gate
+  says so, else S4b's; S4b's bundles share one world, camera and hands); each object's DaiD run has hands of its own, so one task
   cannot take both (v3's phase-2 joint retarget is cached, V4 §8).
-Checks: the runner's on the partition S6 trains on (frames, no robot link > 2 cm inside an object,
+Checks (stage23.check) on the partition S6 trains on (frames, no robot link > 2 cm inside an object,
 frame-0 seating gap < 1 cm, a support disk); mode B also the hand-over: every DaiD contact's robot-side
 point, carried by the task file's robot (fk.py), within 1 cm of the object surface on >= 90 % of
 contact frames. FlashCHORD's kinematic replay (scripts/debug/replay.py) is the GPU check (VM).
 Candidates: S4b's moving one (s4b_reference/moving.json: inverted, or keyframe when it fell back) and
 still (V4 S6: two policies); every candidate with a bundle when S4b wrote no choice (v3 runs).
-Out: s5_task/<candidate>/run/ (runner), task.json {mode, partition, sequence_id, support_usd, ...}.
+Out: s5_task/<candidate>/run/ (stages 2-3), task.json {mode, partition, sequence_id, support_usd, ...}.
 """
 from __future__ import annotations
 
 import json
-import os
-import shutil
-import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -41,33 +37,17 @@ import pyarrow.parquet as pq
 import trimesh
 from scipy.spatial.transform import Rotation
 
-from .. import fk, gt
+from .. import fk
 from ..reference import CANDIDATES
-from ..paths import PATH_B, REPO, TRACK3_FPS
-from ..team import lr_command
+from .. import stage23
 from ..report import Metric, StageResult
 from ..runner import write_json
-from .s23_load_retarget import worst_seating
+from ..stage23 import worst_seating
 
-FLAGS = {"A": ["--no-rest-hold"], "B": ["--no-rest-hold", "--no-object-clean", "--no-level"],
-         "still": ["--no-rest-hold", "--still-object"]}
+FLAGS = {"A": ["hands repaired"], "B": ["hands repaired"], "still": ["hands repaired", "held still"]}  # what stage23 does
 CONTACT_M = 0.01  # hand-over bar: robot-side contact point to the object surface
 CONTACT_SHARE = 0.9
 SIDES = ("right", "left")
-
-
-def retarget_venv() -> str:
-    venv = os.environ.get("RETARGET_VENV")
-    if not venv:
-        raise RuntimeError("set RETARGET_VENV to the stages 2-3 environment (README §5.12)")
-    return venv
-
-
-def run_logged(cmd: list, log: Path, env: dict | None = None) -> None:
-    with open(log, "a") as f:
-        rc = subprocess.run([str(c) for c in cmd], cwd=REPO, env=env, stdout=f, stderr=subprocess.STDOUT).returncode
-    if rc:
-        raise RuntimeError(f"{Path(str(cmd[1])).name} failed (exit {rc}): " + "\n".join(log.read_text().splitlines()[-15:]))
 
 
 def choose(ctx, cand: str) -> dict:
@@ -98,31 +78,8 @@ def choose(ctx, cand: str) -> dict:
 
 
 def runner(ctx, bundles: dict, flags: list, seq: str, out: Path) -> dict:
-    """run_load_retarget.py on the candidate's bundle(s) (team.lr_command); its report."""
-    args = ["--episode", ctx.number, "--sequence-id", seq, "--out", out, "--skip-video", *flags]
-    if len(bundles) == 1:
-        name, bundle = next(iter(bundles.items()))
-        args += ["--object", name, "--bundle", bundle]
-    else:
-        args += ["--merge"]
-    cmd, env = lr_command(ctx.public, args)
-    if len(bundles) > 1:
-        ns = out.parent / "ns" / f"episode_{ctx.number:06d}"
-        ns.mkdir(parents=True, exist_ok=True)
-        for name, bundle in bundles.items():
-            link = ns / name
-            if link.is_symlink() or link.exists():
-                link.unlink()
-            link.symlink_to(Path(bundle).resolve())
-        env["V2D_BUNDLE_NS"] = str(ns.parent)  # run_load_retarget.bundle_dir_for: an absolute path replaces the hub
-    if out.exists():
-        shutil.rmtree(out)  # inputs changed, or this stage would have been kept
-    log = out.parent / "runner.log"
-    log.write_text("")
-    run_logged(cmd, log, env)
-    if ctx.public:
-        ctx.files_read.extend(p for p in (gt.scan(n) for n in bundles) if p)  # its bundle check reads the scans
-    return json.loads((out / "report.json").read_text())
+    """Path B's stages 2-3 on the candidate's bundle(s) (pathb/stage23.py); its report."""
+    return stage23.run(bundles, seq, out, still="held still" in flags)
 
 
 def parquet_file(partition) -> Path:
@@ -245,11 +202,10 @@ def handover(cells: dict, traj: dict, info: dict, mesh_paths: list[Path], shift:
 
 
 def lr_check(partition: Path, meshes: list, usda: Path, frames: int, out: Path) -> dict:
-    request = out.with_suffix(".request.json")
-    write_json(request, {"partition": partition, "meshes": meshes, "support_usd": usda, "frames": frames,
-                         "fps": TRACK3_FPS, "out": out})
-    run_logged([f"{retarget_venv()}/bin/python", PATH_B / "pathb/drivers/lr_check.py", request], out.with_suffix(".log"))
-    return json.loads(out.read_text())
+    """stage23.check on a partition (mode B's DaiD one), kept in out."""
+    report = stage23.check(Path(partition), [Path(m) for m in meshes], Path(usda), frames)
+    write_json(out, report)
+    return report
 
 
 def mode_b(ctx, d: Path, choice: dict, report: dict, seq: str) -> dict:
