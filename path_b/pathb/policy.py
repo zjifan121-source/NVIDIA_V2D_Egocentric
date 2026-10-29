@@ -6,7 +6,7 @@ is read from the team's job scripts, James 2026-10-29): FlashCHORD's own curricu
 the scene's worlds, the reference played at its own frame rate (task.motion_speed 1.0, sim.fps =
 TRACK3_FPS: the kit's packer numbers each evaluator step as one video frame, reference_frame = step +
 start_frame), FlashCHORD's defaults otherwise (wrist termination 0.15 m), and the contact buffers spec §14 G1
-sets for the L40S (njmax 1024, nconmax 512); a rerun resumes from the newest state_*.safetensors. long=True: FlashCHORD's own 250M
+sets for the L40S (njmax 1536, nconmax 384); a rerun resumes from the newest state_*.safetensors. long=True: FlashCHORD's own 250M
 schedule unscaled (250,003,456 steps). $PATHB_OBJECT_STOP (metres, e.g. 0.05) sets
 termination.object_position.threshold (V4 S6's optional stop, adopted only after S0.1). Every run
 keeps the experiment's action and termination groups: the overrides may not name them, and the run's
@@ -30,9 +30,11 @@ from .paths import REPO, TRACK3_FPS
 
 FLASH_CHORD = REPO / "baseline/robotic_grounding/flash_chord"
 KIT = REPO / "assets/data/v2d_submission_kit"
-L40S_BUFFERS = ["sim.njmax=1024", "sim.nconmax=512"]  # spec §14 G1: was 512 / 512 (ep13 needed njmax 708); 1024 / 1024
-# runs out of memory on the L40S at CUDA graph creation (48.5 GB); 1024 / 512 peaks at 46.5 GB with no overflow on ep13
-# (2026-10-29 probe). 512 contacts give >= 2048 pyramidal rows, so the contact buffer does not bind first
+L40S_BUFFERS = ["sim.njmax=1536", "sim.nconmax=384"]  # spec §14 G1: was 512 / 512 (ep13 needed njmax 708); 1024 / 1024
+# runs out of memory on the L40S at CUDA graph creation (48.5 GB); 1024 / 512 peaked at 46.5 GB on ep13 but ep2's pot
+# and lid asked for up to 1359 rows (972,725 overflow lines in 23 % of a run). 2026-10-29 probe on ep2's scene: 1536 / 384
+# 0 overflow lines, 44.4 GB peak (of 49.1), 23.2k env steps/s; 1536 / 512 also clean at 47.1 GB. 384 contacts give
+# 1536 pyramidal rows, so the two bind together
 CURRICULUM = FLASH_CHORD / "src/flash_chord/configs/curriculum/tracking_250m_mixed_reset.yaml"
 SCENE = FLASH_CHORD / "src/flash_chord/configs/scene/train.yaml"
 LONG_STEPS = 250_003_456  # the last threshold of tracking_250m_mixed_reset.yaml

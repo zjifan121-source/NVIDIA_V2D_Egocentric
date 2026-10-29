@@ -116,8 +116,8 @@ def test_ground_truth_reference_scores(number, tmp_path):
 def test_s01_settings_and_world_fit():
     from pathb import oracle
     steps, overrides = oracle.settings()
-    assert steps == 60_002_304 and "sim.njmax=1024" in overrides and "task.motion_speed=1.0" in overrides
-    assert "sim.nconmax=512" in overrides and not any(o.startswith("sim.njmax=512") for o in overrides)
+    assert steps == 60_002_304 and "sim.njmax=1536" in overrides and "task.motion_speed=1.0" in overrides
+    assert "sim.nconmax=384" in overrides and not any(o.startswith("sim.njmax=512") for o in overrides)
     rng = np.random.default_rng(0)
     src = rng.normal(size=(50, 3))
     yaw = np.radians(30)
