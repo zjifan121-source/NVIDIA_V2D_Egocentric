@@ -112,7 +112,7 @@ def frame_masks(ctx, k: int, t: int, shape: tuple[int, int]) -> tuple[np.ndarray
     """The object's mask at depth resolution (eroded), whether a hand touches it, and its area share
     before erosion (the spec's 1 % bar is on the mask itself)."""
     tracks = B.mask_tracks(ctx.root)
-    m = B.read_mask(tracks[f"obj_{k}"], t)
+    m = B.object_mask(ctx.root, k, t)  # None where P1b's track holds another object (B.lost_frames)
     if m is None:
         return None, False, 0.0
     obj = cv2.resize(m.astype(np.uint8), shape[::-1], interpolation=cv2.INTER_NEAREST) > 0

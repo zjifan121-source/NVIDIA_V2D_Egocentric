@@ -52,7 +52,7 @@ class View:
         import cv2
         from . import baseline as B
         tracks = B.mask_tracks(self.root)
-        m = B.read_mask(tracks[f"obj_{k}"], t)
+        m = B.object_mask(self.root, k, t)
         if m is None:
             return None
         out = m.copy()
