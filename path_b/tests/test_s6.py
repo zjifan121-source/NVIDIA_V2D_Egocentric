@@ -94,7 +94,7 @@ def test_v4_s6_settings_long_schedule_and_groups(tmp_path, monkeypatch):
     assert steps == th[-1] == 60_002_304 and long_steps == policy.LONG_STEPS == 250_003_456
     assert th[0] == 4_718_592 and all(t % 4096 == 0 for t in th) and th == sorted(th)
     assert any(o.startswith("curriculum.thresholds=") for o in short) and not any(o.startswith("curriculum.") for o in long)
-    assert "task.motion_speed=1.0" in long and "sim.njmax=1024" in long and "sim.nconmax=1024" in long
+    assert "task.motion_speed=1.0" in long and "sim.njmax=1024" in long and "sim.nconmax=512" in long
     assert not any(o.startswith("termination.wrist_position") for o in short + long)  # FlashCHORD's 0.15 m
     monkeypatch.setenv("PATHB_OBJECT_STOP", "0.05")
     assert "termination.object_position.threshold=0.05" in policy.settings()[1]

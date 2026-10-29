@@ -6,7 +6,7 @@ is read from the team's job scripts, James 2026-10-29): FlashCHORD's own curricu
 the scene's worlds, the reference played at its own frame rate (task.motion_speed 1.0, sim.fps =
 TRACK3_FPS: the kit's packer numbers each evaluator step as one video frame, reference_frame = step +
 start_frame), FlashCHORD's defaults otherwise (wrist termination 0.15 m), and the contact buffers spec §14 G1
-sets for the L40S (1024 / 1024); a rerun resumes from the newest state_*.safetensors. long=True: FlashCHORD's own 250M
+sets for the L40S (njmax 1024, nconmax 512); a rerun resumes from the newest state_*.safetensors. long=True: FlashCHORD's own 250M
 schedule unscaled (250,003,456 steps). $PATHB_OBJECT_STOP (metres, e.g. 0.05) sets
 termination.object_position.threshold (V4 S6's optional stop, adopted only after S0.1). Every run
 keeps the experiment's action and termination groups: the overrides may not name them, and the run's
@@ -30,7 +30,9 @@ from .paths import REPO, TRACK3_FPS
 
 FLASH_CHORD = REPO / "baseline/robotic_grounding/flash_chord"
 KIT = REPO / "assets/data/v2d_submission_kit"
-L40S_BUFFERS = ["sim.njmax=1024", "sim.nconmax=1024"]  # spec §14 G1 (James 2026-10-29; was 512: ep13 needed 708)
+L40S_BUFFERS = ["sim.njmax=1024", "sim.nconmax=512"]  # spec §14 G1: was 512 / 512 (ep13 needed njmax 708); 1024 / 1024
+# runs out of memory on the L40S at CUDA graph creation (48.5 GB); 1024 / 512 peaks at 46.5 GB with no overflow on ep13
+# (2026-10-29 probe). 512 contacts give >= 2048 pyramidal rows, so the contact buffer does not bind first
 CURRICULUM = FLASH_CHORD / "src/flash_chord/configs/curriculum/tracking_250m_mixed_reset.yaml"
 SCENE = FLASH_CHORD / "src/flash_chord/configs/scene/train.yaml"
 LONG_STEPS = 250_003_456  # the last threshold of tracking_250m_mixed_reset.yaml
