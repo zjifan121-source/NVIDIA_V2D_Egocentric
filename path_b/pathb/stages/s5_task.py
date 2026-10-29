@@ -271,6 +271,9 @@ def run(ctx) -> StageResult:
             Metric(f"{cand}: support disks", check["support_disks"], "", ok=(1, np.inf)),
             Metric(f"{cand}: frame-0 seating gap (worst object)", worst_seating(check["frame0_seating_cm"]), "cm",
                    ok=(-1, 1), warn=(-2, 2), note="object bottom minus the support top under it"),
+            Metric(f"{cand}: objects with no support disk under them at frame 0",
+                   sum(v is None for v in check["frame0_seating_cm"].values()), "", ok=(0, 0), warn=(0, np.inf),
+                   note=", ".join(k for k, v in check["frame0_seating_cm"].items() if v is None)),
         ]
         if choice["mode"] == "B":
             over = task["handover"]

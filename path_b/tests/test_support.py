@@ -22,3 +22,16 @@ def test_pot_in_the_rack_rests_on_it(tmp_path, monkeypatch):
     cup = support.disk(box([0.6, 0.0, 0.0], [0.68, 0.08, 0.1], seed=3))  # beside it, on the table
     assert support.supports({"plastic_dish_rack": rack, "white_pot": pot, "blue_cup": cup}, tmp_path) == {
         "plastic_dish_rack": "table", "white_pot": "plastic_dish_rack", "blue_cup": "table"}
+
+
+def test_a_dropped_disk_at_the_table_comes_back_unless_kept_disks_cover_it():
+    from pathb.drivers import support_surfaces as S
+    rack, sweeper = (-0.060, -0.003, 1.001, 0.237), (-0.040, -0.005, 0.997, 0.101)  # ep31: both dropped
+    lid = (0.0, 0.0, 1.150, 0.08)  # above the table: a real phantom, stays dropped
+    out = S.restore({}, {"rack": [rack], "sweeper": [sweeper], "lid": [lid]}, 1.0, 0.05)
+    assert out == {"rack": [rack], "sweeper": [sweeper]}
+    cup = (0.10, 0.13, 1.000, 0.05)  # ep13's still scene: NVIDIA keeps the cup's disk, drops the rack's
+    assert S.restore({"cup": [cup]}, {"cup": [cup], "rack": [rack]}, 1.0, 0.05)["rack"] == [rack]
+    pot = (-0.05, 0.0, 0.985, 0.12)  # ep26: the pot's dropped disk lies on the rack's kept one
+    assert S.restore({"rack": [rack]}, {"rack": [rack], "pot": [pot]}, 1.0, 0.05) == {"rack": [rack]}
+    assert S.covered(pot, [rack], 0.05) == 1.0 and S.covered(rack, [cup], 0.05) < 0.1

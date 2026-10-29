@@ -5,7 +5,8 @@ keyframe, still; S5 made tasks for its moving candidate and still); a finished c
 (train.json) and an interrupted one resumes from its newest checkpoint. Long pass ($PATHB_S6_LONG =
 number of seeds, 1 or 2; V4 S6: "then 250M on the selected candidate"): after a first S6 pass, the
 candidate s6_select chose is trained again on FlashCHORD's 250M schedule, as <candidate>_250m_s<seed>
-(seeds 42, 43); s6_eval and s6_select then take every rollout. Out per run: s6_train/<name>/train/
+(seeds 42, 43); s6_eval and s6_select then take every rollout. A run that fails is reported (FAIL) and
+the others still train; the stage errors only when none trained. Out per run: s6_train/<name>/train/
 (FlashCHORD's run), train.json {checkpoint, partition, steps, overrides, seed, long, groups, seconds,
 nefc_overflow_lines}.
 """
@@ -53,9 +54,14 @@ def run(ctx) -> StageResult:
     todo = jobs(ctx)
     if not todo:
         raise RuntimeError("no S5 task (s5_task/<candidate>/task.json)")
-    metrics, outputs = [], {}
+    metrics, outputs, failed = [], {}, []
     for cand, task, long, seed in todo:
-        info = policy.train(task["partition"], d / cand, f"ep{ctx.number}_{cand}", long=long, seed=seed)
+        try:
+            info = policy.train(task["partition"], d / cand, f"ep{ctx.number}_{cand}", long=long, seed=seed)
+        except RuntimeError as e:  # a scene FlashCHORD refuses (ep31's empty support stage) costs only its own run
+            failed.append(f"{cand}: {e}")
+            metrics.append(Metric(f"{cand}: trained", 0, "", ok=(1, 1), note=str(e).splitlines()[0][:300]))
+            continue
         outputs[cand] = d / cand / "train.json"
         metrics += [
             Metric(f"{cand}: training time", info["seconds"] / 3600, "h",
@@ -63,4 +69,6 @@ def run(ctx) -> StageResult:
             Metric(f"{cand}: contact-buffer overflow lines", info["nefc_overflow_lines"], "", ok=(0, 0), warn=(0, np.inf),
                    note="'nefc overflow' in train.log: constraints dropped at " + " / ".join(policy.L40S_BUFFERS)),
         ]
+    if len(failed) == len(todo):
+        raise RuntimeError("no candidate trained: " + "; ".join(failed))
     return StageResult(metrics, outputs)

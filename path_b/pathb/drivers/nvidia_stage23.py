@@ -15,7 +15,8 @@ request.json: {"loader": mirror of v2d_task_library_loader, "robotic": mirror of
            around the mesh centroid"); NVIDIA's loader leaves it out
 2. retarget scripts/retarget/ego_recon_to_sharpa.py (IK onto the Sharpa Wave hands)
 3. urdf    scripts/generate_rigid_urdfs.py --dataset ego_recon
-4. support scripts/reconstruct_support_surfaces.py
+4. support scripts/reconstruct_support_surfaces.py through drivers/support_surfaces.py (a dropped disk at the
+           table's height that the kept disks do not cover comes back)
 Writes <out>/report.json {sequence_id, processed (the partition), support_usd, meshes}; pathb/stage23.py
 checks the output in Path B's venv.
 """
@@ -187,7 +188,8 @@ def main(request: str) -> int:
     if not all((processed / f"{b}_rigid.urdf").is_file() for b in bodies):
         run([py, "scripts/generate_rigid_urdfs.py", "--dataset", "ego_recon"], rg, env, log)
     if not usda.is_file():
-        run([py, "scripts/reconstruct_support_surfaces.py", "--dataset", "ego_recon", "--input_dir", processed,
+        run([py, Path(__file__).with_name("support_surfaces.py"), req["ground_z_offset"],
+             "scripts/reconstruct_support_surfaces.py", "--dataset", "ego_recon", "--input_dir", processed,
              "--sequence_id", seq, "--robot_name", ROBOT, "--output", usda], rg, env, log)
     report = {"sequence_id": seq, "processed": str(partition(processed, seq)), "support_usd": str(usda),
               "meshes": [str(processed / f"{b}.obj") for b in bodies], "objects": req["objects"], "fps": req["fps"]}

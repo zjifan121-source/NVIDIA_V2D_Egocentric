@@ -127,6 +127,32 @@ def test_v4_s6_long_pass_trains_the_selected_candidate(tmp_path, monkeypatch):
     assert s6_select.task_of("inverted_250m_s43") == "inverted" and s6_select.task_of("still") == "still"
 
 
+def test_a_candidate_flashchord_refuses_does_not_stop_the_others(tmp_path, monkeypatch):
+    import json
+    import pytest
+    from pathb import policy, runner
+    from pathb.stages import s6_train
+    root = tmp_path / "episode_000031"
+    for cand in ("inverted", "still"):
+        (root / f"s5_task/{cand}").mkdir(parents=True)
+        (root / f"s5_task/{cand}/task.json").write_text(json.dumps({"partition": f"/p/{cand}", "mode": "A"}))
+    ctx = runner.Context({"episode": 31, "split": "public", "objects": [{"name": "mini_sweeper"}]}, root, {})
+    monkeypatch.delenv("PATHB_S6_LONG", raising=False)
+
+    def train(partition, run, name, long=False, seed=42):
+        if partition == "/p/inverted":
+            raise RuntimeError("exit 1: python scripts/train_flash_sac.py ...; see train.log")
+        return {"seconds": 3600, "steps": 60_002_304, "resumed_from": None, "nefc_overflow_lines": 0}
+
+    monkeypatch.setattr(policy, "train", train)
+    r = s6_train.run(ctx)
+    assert list(r.outputs) == ["still"]
+    assert [m.status for m in r.metrics if m.name == "inverted: trained"] == ["FAIL"]
+    monkeypatch.setattr(policy, "train", lambda *a, **k: train("/p/inverted", None, None))
+    with pytest.raises(RuntimeError, match="no candidate trained"):
+        s6_train.run(ctx)
+
+
 def test_pinned_thresholds_count_failure_frames():
     ref = moving()
     observed = np.ones(ref.shape[:2], bool)
