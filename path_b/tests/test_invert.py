@@ -462,3 +462,36 @@ def test_a_rest_beyond_the_hands_reach_keeps_the_rest_before():
     last = next(r for r in report if r["kind"] == "static" and r["start"] > GRASP[1])
     assert last["beyond_reach"]["moved_m"] > 0.9 and last["beyond_reach"]["reach_m"] < 0.5, last
     assert np.allclose(P[-1], P[GRASP[0] - 1], atol=1e-9)  # the rest before, held
+
+
+def test_slip_retry_solves_from_the_end_pose_unless_it_jumps(monkeypatch):
+    """SLIP_RETRY: a grasp that slips throughout from its start pose is solved again from its end pose (start
+    None); the retry is kept only if no grasp it yields jumps more than JUMP_M between frames."""
+    from types import SimpleNamespace
+    n, a, b = 40, 5, 30
+    clip = SimpleNamespace(wrist=np.tile(np.eye(4), (n, 2, 1, 1)), valid=np.ones((n, 2), bool))
+    calls = []
+
+    def fake_pass2(clip, a, b, hand, fingers, T, backward=False):
+        calls.append(backward)
+        poses = np.tile(np.eye(4), (b - a + 1, 1, 1))
+        poses[:, 0, 3] = np.linspace(0, jump_per_frame * (b - a), b - a + 1)
+        q75 = np.full(b - a + 1, 0.05 if not backward else 0.001)  # slips from the start pose only
+        return poses, {"residual_a_median_m": np.full(b - a + 1, 0.002), "residual_a_q75_m": q75,
+                       "drift_max_m": 0.0, "drift_max_deg": 0.0, "icp_paired_median": 1.0}
+
+    monkeypatch.setattr(I, "trimmed", lambda clip, a, b, hand, s, e: (a, b))
+    monkeypatch.setattr(I, "pass1", lambda *args: {"T": np.eye(4)})
+    monkeypatch.setattr(I, "pass2", fake_pass2)
+    monkeypatch.setattr(I, "SLIP_RETRY", True)
+    start, end = np.eye(4), np.eye(4)
+    jump_per_frame = 0.005
+    rows = I.solve_grasp(clip, a, b, 0, [1], start, end)
+    assert calls == [False, True] and [r["kind"] for r in rows] == ["grasp"] and rows[0]["retried"]
+    calls.clear()
+    jump_per_frame = 0.05  # 5 cm a frame: the retry is dropped, the slip split stands
+    rows = I.solve_grasp(clip, a, b, 0, [1], start, end)
+    assert calls == [False, True] and not any(r.get("retried") for r in rows) and rows[0]["why"] == "slip guard"
+    calls.clear()
+    monkeypatch.setattr(I, "SLIP_RETRY", False)
+    assert I.solve_grasp(clip, a, b, 0, [1], start, end)[0]["why"] == "slip guard" and calls == [False]

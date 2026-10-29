@@ -116,9 +116,12 @@ def retarget_venv() -> str:
     return venv
 
 
-def run(bundles: dict[str, Path], seq: str, out: Path, still: bool = False, device: str | None = None) -> dict:
+def run(bundles: dict[str, Path], seq: str, out: Path, still: bool = False, device: str | None = None,
+        episode: int | None = None) -> dict:
     """One scene through drivers/nvidia_stage23.py: hands cleaned (and the still scene) in copies of the
-    bundles under out/bundles/, then load, retarget, URDF, support, check. Returns its report."""
+    bundles under out/bundles/, then load, retarget, URDF, support, check. With `episode`, each object's
+    mesh (times object_scale) also goes to out/score_input/meshes/episode_XXXXXX/<object>.obj, where
+    S6 select, the waterfall and the pack preflight read the scene's meshes. Returns its report."""
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
@@ -132,6 +135,12 @@ def run(bundles: dict[str, Path], seq: str, out: Path, still: bool = False, devi
             still_scene(data)
         np.savez(dst / "result.npz", **data)
         objects.append({"name": name, "bundle": str(dst)})
+        if episode is not None:
+            import trimesh
+            mesh = trimesh.load(dst / "mesh.obj", force="mesh", process=False)
+            mesh.apply_scale(float(data["object_scale"]))
+            (out / f"score_input/meshes/episode_{episode:06d}").mkdir(parents=True, exist_ok=True)
+            mesh.export(out / f"score_input/meshes/episode_{episode:06d}/{name}.obj")
     request = {"loader": str(nvidia.pristine(nvidia.LOADER)), "robotic": str(nvidia.pristine(nvidia.ROBOTIC)),
                "mano_dir": str(mano_dir()), "device": device or os.environ.get("RETARGET_DEVICE") or "cuda:0",
                "fps": TRACK3_FPS, "ground_z_offset": GROUND_Z, "sequence_id": seq, "objects": objects, "out": str(out)}

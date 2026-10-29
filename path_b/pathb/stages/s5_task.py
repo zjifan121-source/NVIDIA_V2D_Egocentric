@@ -79,7 +79,7 @@ def choose(ctx, cand: str) -> dict:
 
 def runner(ctx, bundles: dict, flags: list, seq: str, out: Path) -> dict:
     """Path B's stages 2-3 on the candidate's bundle(s) (pathb/stage23.py); its report."""
-    return stage23.run(bundles, seq, out, still="held still" in flags)
+    return stage23.run(bundles, seq, out, still="held still" in flags, episode=ctx.number)
 
 
 def parquet_file(partition) -> Path:

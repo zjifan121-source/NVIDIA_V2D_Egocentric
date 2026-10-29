@@ -16,6 +16,7 @@
 #           the other public ones, then the evaluation ones
 # FRAMES    1 (default): the upload includes each episode's per-frame archive (masks, depth, hand stages),
 #           which the CPU stages on the Mac and the next instance restore; 0: results only
+# UPLOAD    1 (default): upload each episode to Hugging Face; 0: none (the team repo's storage is full)
 # After each episode: hf_outputs.py upload --episodes <n> (3 tries); a failed episode or upload is
 # logged and the run goes on. Code reaches the VM from GitHub (git pull) or the bare repo; never edited here.
 set -uo pipefail
@@ -73,6 +74,6 @@ failed=() unsent=()
 for n in $EPISODES; do
   echo "== episode $n ($(date -u +%FT%TZ))"
   "${RUNPY[@]}" run --episodes "$n" --out "$OUT" --stages "${stages[@]}" "${force[@]}" || failed+=("$n")
-  upload "$n" || unsent+=("$n")
+  [ "${UPLOAD:-1}" = 1 ] && { upload "$n" || unsent+=("$n"); }
 done
 echo "== run $RUN done ($(date -u +%FT%TZ)); run.py failed on: ${failed[*]:-none}; not uploaded: ${unsent[*]:-none}"
