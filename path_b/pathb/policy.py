@@ -5,8 +5,8 @@ is read from the team's job scripts, James 2026-10-29): FlashCHORD's own curricu
 (tracking_250m_mixed_reset) with its thresholds scaled by SHORT_FRACTION and rounded to whole steps of
 the scene's worlds, the reference played at its own frame rate (task.motion_speed 1.0, sim.fps =
 TRACK3_FPS: the kit's packer numbers each evaluator step as one video frame, reference_frame = step +
-start_frame), FlashCHORD's defaults otherwise (wrist termination 0.15 m), and the contact buffers spec S6
-sets for the L40S; a rerun resumes from the newest state_*.safetensors. long=True: FlashCHORD's own 250M
+start_frame), FlashCHORD's defaults otherwise (wrist termination 0.15 m), and the contact buffers spec §14 G1
+sets for the L40S (1024 / 1024); a rerun resumes from the newest state_*.safetensors. long=True: FlashCHORD's own 250M
 schedule unscaled (250,003,456 steps). $PATHB_OBJECT_STOP (metres, e.g. 0.05) sets
 termination.object_position.threshold (V4 S6's optional stop, adopted only after S0.1). Every run
 keeps the experiment's action and termination groups: the overrides may not name them, and the run's
@@ -30,7 +30,7 @@ from .paths import REPO, TRACK3_FPS
 
 FLASH_CHORD = REPO / "baseline/robotic_grounding/flash_chord"
 KIT = REPO / "assets/data/v2d_submission_kit"
-L40S_BUFFERS = ["sim.njmax=512", "sim.nconmax=512"]  # spec S6 (James 2026-10-20: njmax 512 on the L40S)
+L40S_BUFFERS = ["sim.njmax=1024", "sim.nconmax=1024"]  # spec §14 G1 (James 2026-10-29; was 512: ep13 needed 708)
 CURRICULUM = FLASH_CHORD / "src/flash_chord/configs/curriculum/tracking_250m_mixed_reset.yaml"
 SCENE = FLASH_CHORD / "src/flash_chord/configs/scene/train.yaml"
 LONG_STEPS = 250_003_456  # the last threshold of tracking_250m_mixed_reset.yaml

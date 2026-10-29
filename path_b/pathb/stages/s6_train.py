@@ -1,6 +1,6 @@
 """S6 train: one FlashSAC policy per S5 task (V4_BUILD_SPEC.md S6), by pathb/policy.py: our own
 recipe (policy.settings: FlashCHORD's curriculum scaled to ~60M steps, the reference at its frame rate,
-FlashCHORD's defaults otherwise, sim.njmax / sim.nconmax 512 for the L40S). Candidates in S4b's order (inverted,
+FlashCHORD's defaults otherwise, sim.njmax / sim.nconmax 1024 for the L40S). Candidates in S4b's order (inverted,
 keyframe, still; S5 made tasks for its moving candidate and still); a finished candidate is kept
 (train.json) and an interrupted one resumes from its newest checkpoint. Long pass ($PATHB_S6_LONG =
 number of seeds, 1 or 2; V4 S6: "then 250M on the selected candidate"): after a first S6 pass, the
@@ -61,6 +61,6 @@ def run(ctx) -> StageResult:
             Metric(f"{cand}: training time", info["seconds"] / 3600, "h",
                    note=f"{info['steps']:,} steps; mode {task['mode']}" + (", resumed" if info["resumed_from"] else "")),
             Metric(f"{cand}: contact-buffer overflow lines", info["nefc_overflow_lines"], "", ok=(0, 0), warn=(0, np.inf),
-                   note="'nefc overflow' in train.log: contacts dropped at njmax 512"),
+                   note="'nefc overflow' in train.log: constraints dropped at " + " / ".join(policy.L40S_BUFFERS)),
         ]
     return StageResult(metrics, outputs)
