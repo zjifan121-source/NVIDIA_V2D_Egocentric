@@ -10,7 +10,9 @@ episode, chosen without ground truth) and `best of three` (inverted / keyframe /
 by AUC against ground truth: an upper bound) and `selected` (selection.pick_reference: inverted, or still where
 selection.reference_trust says the inverted reference lost an object; no ground truth). The goal is a mean of GOAL
 (0.8) over the 20 public episodes. `compare` prints the
-same means and the per-episode AUC change of a run against a checkpoint; it reads only the episodes both
+same means, the six leaderboard metrics of ref_inverted before and now (spec §14 L9: rank = sum of the six
+ranks; playback, with the submitted AUC as playback less the policy tax) and the per-episode AUC change of a run
+against a checkpoint; it reads only the episodes both
 have, and says so when they differ. It ends with the consistency check run after every change: episodes up,
 down and unchanged, and each one that fell, marked HIGH when it scored at least HIGH before.
 Compare only repeatable runs: S3c runs Open3D on one thread since 2026-10-28 (pathb/invert.solve); before that the
@@ -33,6 +35,9 @@ GOAL = 0.8  # James, 2026-10-28: the public mean AUC to reach (the baselines are
 DROP = 0.005  # default: an episode's best-of-three change smaller than this counts as unchanged
 FALLBACK = "v4"  # the S1 run: baselines of an episode a run has no waterfall for
 HIGH = 0.7  # default: an episode at or above this before the change is a high scorer (its drop is flagged HIGH)
+# the six leaderboard metrics and their better direction (spec §14 L9: the rank is the sum of the six ranks)
+SIX = (("AUC", 1), ("SP-SR", 1), ("MP-SR", 1), ("MPPE cm", -1), ("RPE cm", -1), ("CD-O cm", -1))
+POLICY_TAX = (0.07, 0.10)  # spec §14: a rollout scores its reference's playback AUC less 0.07-0.10 (S0.1, F2's ep40)
 
 
 def rows(run: Path) -> dict[int, dict]:
@@ -71,7 +76,7 @@ def means(eps: dict[int, dict]) -> dict:
     out |= {f"{c} AUC": mean([e["scores"].get(c, {}).get("AUC", 0.0) for e in eps.values()]) for c in CANDIDATES}
     out["best of three AUC"] = mean([best(e)[1] for e in eps.values()])  # an episode without candidates: 0
     out["selected (GT-free) AUC"] = mean([e.get("selected", [None, 0.0])[1] for e in eps.values()])
-    for k in ("MPPE cm", "MP-SR", "SP-SR"):
+    for k, _ in SIX[1:]:
         out[f"ref_inverted {k}"] = mean([e["scores"]["ref_inverted"][k] for e in eps.values()
                                          if "ref_inverted" in e["scores"] and e["scores"]["ref_inverted"].get(k) is not None])
     single = {n: e for n, e in eps.items() if len(e["objects"]) == 1}
@@ -113,18 +118,37 @@ def compare(name: str, run_name: str, episodes: list[int] | None) -> None:
     for k in mo:
         d = f" ({mn[k] - mo[k]:+.4f})" if isinstance(mo[k], float) and isinstance(mn[k], float) else ""
         print(f"  {k:36s} {mo[k]} -> {mn[k]}{d}")
+    print("six metrics, ref_inverted: playback (submitted AUC = playback less "
+          f"{POLICY_TAX[0]:.2f}-{POLICY_TAX[1]:.2f}, spec §14)")
+    print(f"  {'metric':10s} {'before':>8} {'now':>8} {'change':>8}")
+    for k, sign in SIX:
+        a, b = mo[f"ref_inverted {k}"], mn[f"ref_inverted {k}"]
+        if a is None or b is None:
+            continue
+        verdict = "better" if sign * (b - a) > 1e-9 else "worse" if sign * (b - a) < -1e-9 else "same"
+        print(f"  {k:10s} {a:>8.4f} {b:>8.4f} {b - a:>+8.4f}  {verdict}")
+    a = mn["ref_inverted AUC"]
+    print(f"  {'AUC':10s} submitted ~ {a - POLICY_TAX[1]:.3f}-{a - POLICY_TAX[0]:.3f} (playback {a:.3f})")
+    moved = [n for n in both if any(abs((new[n]["scores"].get("ref_inverted") or {}).get(k, 0) -
+                                        (old[n]["scores"].get("ref_inverted") or {}).get(k, 0)) > 1e-6 for k, _ in SIX)]
+    if moved:
+        print("  per episode, ref_inverted before -> now: " + "  ".join(f"{k}" for k, _ in SIX))
+    for n in moved:
+        o, w = old[n]["scores"].get("ref_inverted") or {}, new[n]["scores"].get("ref_inverted") or {}
+        print(f"  ep{n:<3}" + "  ".join(f"{o.get(k, float('nan')):.3g}->{w.get(k, float('nan')):.3g}" for k, _ in SIX))
     # consistency across episodes (James, 2026-10-28): every change is run on all public episodes, and a drop on
     # an episode that already scored high is named even when the mean rises
-    change = {n: best(new[n])[1] - best(old[n])[1] for n in both}
-    up = [n for n in both if change[n] > DROP]
-    down = [n for n in both if change[n] < -DROP]
-    print(f"consistency: {len(up)} up, {len(down)} down, {len(both) - len(up) - len(down)} within {DROP} "
-          f"(best of three)")
-    for n in down:
-        high = " HIGH" if best(old[n])[1] >= HIGH else ""
-        print(f"  regression{high}: ep{n} {best(old[n])[1]:.3f} -> {best(new[n])[1]:.3f} ({change[n]:+.3f})")
-    if not down:
-        print("  no episode fell")
+    inv = lambda e: (e["scores"].get("ref_inverted") or {}).get("AUC", 0.0)  # noqa: E731
+    for label, score in (("ref_inverted, the GT-free candidate", inv), ("best of three", lambda e: best(e)[1])):
+        change = {n: score(new[n]) - score(old[n]) for n in both}
+        up = [n for n in both if change[n] > DROP]
+        down = [n for n in both if change[n] < -DROP]
+        print(f"consistency ({label}): {len(up)} up, {len(down)} down, {len(both) - len(up) - len(down)} within {DROP}")
+        for n in down:
+            high = " HIGH" if score(old[n]) >= HIGH else ""
+            print(f"  regression{high}: ep{n} {score(old[n]):.3f} -> {score(new[n]):.3f} ({change[n]:+.3f})")
+        if not down:
+            print("  no episode fell")
     print(f"goal {GOAL}: best of three {mn['best of three AUC']} ({mn['best of three AUC'] - GOAL:+.3f}), "
           f"selected without ground truth {mn['selected (GT-free) AUC']} ({mn['selected (GT-free) AUC'] - GOAL:+.3f}), "
           f"inverted {mn['ref_inverted AUC']} ({mn['ref_inverted AUC'] - GOAL:+.3f})")
