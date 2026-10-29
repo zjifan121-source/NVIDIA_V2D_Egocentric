@@ -3,7 +3,7 @@ mesh (run.py canonical: <run>/canonical/<object>/) placed on this clip's rest-be
 (s3a2_fuse_scan; on the rest-after one when rest-before has no frame), scale fixed; and the episode's
 mesh files under the names the later stages read.
 
-Start: the move canonical.json recorded for this clip's partial, else FPFH + RANSAC (3 seeds); then
+Start: the move canonical.json recorded for this clip's partial, else FPFH + RANSAC (GLOBAL_SEEDS seeds); then
 point-to-point ICP (outlines) and point-to-plane ICP, as canonical.py registers clips.
 Out: s3a2_register/<object>/registration.json {canonical_to_world (the canonical mesh's pose in that
 window: the frame-0 pose for rest-before), window, frame, fitness, rmse_m, partial_explained, start};
@@ -47,7 +47,9 @@ COACD_THRESHOLD = 0.05  # spec S3a
 TIE = 0.05  # default (spec §13.1 A4 "ties"): explain-shares this close are tied
 EXPLAIN_BAR = 0.8  # the stage's PASS bar on the share of the partial the mesh explains
 ORDER = ("pooled", "own")  # the more complete mesh first
-GLOBAL_SEEDS = 3  # default: FPFH + RANSAC starts when canonical.json kept no move for the clip
+GLOBAL_SEEDS = 12  # default: FPFH + RANSAC starts when canonical.json kept no move for the clip, the best share kept
+# (3 until 2026-10-29: ep43's pot came out 80 degrees off upright at share 0.807 under the mesh pooled with ep2; seed 4
+# explains 0.843. Public, 20 episodes: inverted 0.560 -> 0.576, ep43 0.115 -> 0.435, the other five global starts unchanged)
 B1_FLAG_M = 0.0005  # §13.2 B1, calibrated 2026-10-26: a margin this small flags an ambiguous registration (4 of 6 flips)
 
 

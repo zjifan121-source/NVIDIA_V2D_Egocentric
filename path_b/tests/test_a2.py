@@ -436,3 +436,18 @@ def test_b3_is_the_settle_of_the_static_segment_from_frame_0(tmp_path):
     assert S4B.frame0_check(ctx, "cup") is None
     statics({"segment": [5, 14], "settled": True, "moved_cm": 0.1, "turned_deg": 0.1, "contacts": 4})
     assert S4B.frame0_check(ctx, "cup") is None
+
+
+def test_register_tries_every_global_seed_without_a_pooled_move(monkeypatch):
+    """No move in canonical.json: GLOBAL_SEEDS FPFH + RANSAC starts, the best share kept; with a move, none."""
+    from pathb.stages import s3a2_register as REG
+    seeds, real = [], S.global_start
+    monkeypatch.setattr(S, "global_start", lambda s, t, seed=0: seeds.append(seed) or real(s, t, seed=seed))
+    mesh = o3d.geometry.TriangleMesh(box())
+    part = o3d.geometry.TriangleMesh(box()).transform(pose(0))
+    for m in (mesh, part):
+        m.compute_vertex_normals()
+    r = REG.register(mesh, part, None)
+    assert seeds == list(range(REG.GLOBAL_SEEDS)) and r["start"].startswith("global seed") and r["partial_explained"] > 0.8
+    seeds.clear()
+    assert REG.register(mesh, part, pose(0))["start"] == "canonical.json" and seeds == []
