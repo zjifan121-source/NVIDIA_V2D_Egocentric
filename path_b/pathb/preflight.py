@@ -10,17 +10,22 @@ Preflight, every failure listed (any one stops the pack):
 3. no evaluation episode's report.json lists a ground-truth or scan file in files_read (GT firewall);
 4. git: the working tree is clean and HEAD is on origin (the code commit URL must resolve);
 5. the kit's own tools/preflight.py --track track_3 --results <packed results> --skip-kaggle passes.
-Pack: the team's tools/track3/pack_submission.py with a plan per episode (run = the selected
-candidate's s6_eval folder, scene = its s5_task runner folder), the code commit of HEAD; every packer
-line with "MESH WARNING" is collected. Writes <run>/pack/{plan.json, preflight.json, pack.log,
+Pack (spec §14 L11): the kit's own tools/pack_submission.py, run in the kit, on <pack>/results (each
+selected rollout, its bodies renamed to the roster's object names: our scene names them
+<sequence>[_<object>], the packer wants the roster's) and <pack>/meshes (each object's S5 score mesh,
+in the rollout's body coordinates), with the code commit of HEAD; every packer line with "MESH
+WARNING" is collected. Writes <run>/pack/{plan.json, preflight.json, pack.log, results/, meshes/,
 track3_submission.parquet}. Never uploads (Kaggle stays on hold until James says go).
---split public is the dry pack (spec task 16's test): the same checks without the GT firewall (public
-episodes are scored against ground truth by design), written to <run>/pack_dry/.
+--split public is the dry pack: the same checks without the GT firewall (public episodes are scored
+against ground truth by design), in <run>/pack_dry/ and through a copy of the kit (pack_dry/kit/) whose
+roster, row grid and scored episodes are the packed public episodes' (the kit's own lists only the
+evaluation split; the kit itself is never changed).
 """
 from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -30,6 +35,7 @@ import trimesh
 from . import gt
 from .paths import REPO, manifest
 
+KIT = REPO / "assets/data/v2d_submission_kit"
 REPO_URL = "https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric"
 
 
@@ -95,8 +101,77 @@ def git_state() -> tuple[str, list[str]]:
     return head, problems
 
 
+def relabel(src: Path, dst: Path, names: list[str]) -> list[str]:
+    """Copy a rollout with object_body_name set to the roster's names by object_id. Each body must sit
+    in its roster slot: named <sequence>_<object> (or, alone in its scene, ending in its object's name)."""
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+    table = pq.read_table(src)
+    ids, bodies = table.column("object_id").to_pylist(), table.column("object_body_name").to_pylist()
+    if sorted(set(ids)) != list(range(len(names))):
+        return [f"{src.name}: object ids {sorted(set(ids))} for roster {names}"]
+    wrong = sorted({b for i, b in zip(ids, bodies) if not b.endswith("_" + names[i])})
+    if wrong:
+        return [f"{src.name}: bodies {wrong} do not match roster {names} by slot"]
+    i = table.schema.get_field_index("object_body_name")
+    field = table.schema.field(i)
+    pq.write_table(table.set_column(i, field, pa.array([names[k] for k in ids]).cast(field.type)), dst)
+    return []
+
+
+def gather(pack: Path, plan: dict, names: dict[str, list[str]]) -> list[str]:
+    """<pack>/results/episode_XXXXXX.{parquet,json} (relabelled) and <pack>/meshes/episode_XXXXXX/<object>.obj."""
+    problems = []
+    for sub in ("results", "meshes"):
+        shutil.rmtree(pack / sub, ignore_errors=True)
+        (pack / sub).mkdir(parents=True)
+    for n, p in plan.items():
+        e = f"episode_{int(n):06d}"
+        results = Path(p["run"]) / "results"
+        problems += relabel(results / f"{e}.parquet", pack / f"results/{e}.parquet", names[n])
+        shutil.copy2(results / f"{e}.json", pack / f"results/{e}.json")
+        (pack / f"meshes/{e}").mkdir()
+        for name in names[n]:
+            src = Path(p["scene"]) / f"score_input/meshes/{e}/{name}.obj"
+            if src.is_file():
+                shutil.copy2(src, pack / f"meshes/{e}/{name}.obj")
+            else:
+                problems.append(f"{e}/{name}: no score mesh {src}")
+    return problems
+
+
+def dry_kit(pack: Path, numbers: list[int]) -> Path:
+    """A copy of the kit whose Track 3 roster, row grid (world 0, every frame, every object) and scored
+    episodes are these public episodes'; its tools are copied (they find the kit at their own parent),
+    the rest linked."""
+    import pandas as pd
+    kit = pack / "kit"
+    shutil.rmtree(kit, ignore_errors=True)
+    kit.mkdir(parents=True)
+    for f in KIT.iterdir():
+        if f.name not in ("config", "data", "tools"):
+            (kit / f.name).symlink_to(f)
+    shutil.copytree(KIT / "tools", kit / "tools")
+    (kit / "config").mkdir()
+    (kit / "data").mkdir()
+    config = json.loads((KIT / "config/tracks.json").read_text())
+    config["tracks"]["track_3"]["scored_episodes"] = sorted(numbers)
+    (kit / "config/tracks.json").write_text(json.dumps(config, indent=1) + "\n")
+    m = manifest()
+    roster = {str(n): [o["name"] for o in m[n]["objects"]] for n in sorted(numbers)}
+    (kit / "data/track_3_evaluation_objects.json").write_text(json.dumps({"episodes": roster}, indent=1) + "\n")
+    sample = pd.read_parquet(KIT / "data/track_3_sample_submission.parquet")
+    row = sample.iloc[0]
+    ids = [f"track_3/e{n:06d}/w000/f{f:06d}/o{o}" for n in sorted(numbers) for f in range(int(m[n]["num_frames"]))
+           for o in range(len(roster[str(n)]))]
+    pd.DataFrame({c: [row[c]] * len(ids) for c in sample.columns} | {"row_id": ids}).to_parquet(
+        kit / "data/track_3_sample_submission.parquet", index=False)
+    return kit
+
+
 def main(out: Path, numbers: list[int]) -> Path:
-    pack = out / ("pack" if all(manifest()[n]["split"] == "evaluation" for n in numbers) else "pack_dry")
+    evaluation = all(manifest()[n]["split"] == "evaluation" for n in numbers)
+    pack = out / ("pack" if evaluation else "pack_dry")
     pack.mkdir(parents=True, exist_ok=True)
     plan, details, problems = {}, {}, []
     for n in numbers:
@@ -117,11 +192,15 @@ def main(out: Path, numbers: list[int]) -> Path:
     (pack / "plan.json").write_text(json.dumps(plan, indent=1) + "\n")
     report = {"head": head, "episodes": details, "problems": problems, "packed": False, "mesh_warnings": []}
     if not problems:
-        tools_py = str(REPO / "tools/.venv/bin/python")
+        problems += gather(pack, plan, {str(n): [o["name"] for o in manifest()[n]["objects"]] for n in numbers if str(n) in plan})
+    if not problems:
+        tools_py = str(REPO / "tools/.venv/bin/python")  # an interpreter with the kit's requirements.txt
+        kit = KIT if evaluation else dry_kit(pack, [int(n) for n in plan])
+        report["kit"] = str(kit)
         with open(pack / "pack.log", "w") as log:
-            rc = subprocess.run([tools_py, str(REPO / "tools/track3/pack_submission.py"), "--plan", str(pack / "plan.json"),
-                                 "--work", str(pack), "--code-commit", f"{REPO_URL}/commit/{head}", "--python", tools_py,
-                                 "-o", str(pack / "track3_submission.parquet")], cwd=REPO, stdout=log,
+            rc = subprocess.run([tools_py, "tools/pack_submission.py", "--track", "track_3", "--results", str(pack / "results"),
+                                 "--meshes", str(pack / "meshes"), "--code-commit", f"{REPO_URL}/commit/{head}",
+                                 "-o", str(pack / "track3_submission.parquet")], cwd=kit, stdout=log,
                                 stderr=subprocess.STDOUT).returncode
         text = (pack / "pack.log").read_text()
         report["mesh_warnings"] = [ln for ln in text.splitlines() if "MESH WARNING" in ln]
@@ -129,10 +208,10 @@ def main(out: Path, numbers: list[int]) -> Path:
             report["problems"].append(f"packer exit {rc} (pack.log)")
         else:
             report["packed"] = True
-            kit = subprocess.run([tools_py, "tools/preflight.py", "--track", "track_3", "--results", str(pack / "results"),
-                                  "--skip-kaggle"], cwd=REPO / "assets/data/v2d_submission_kit", capture_output=True, text=True)
-            report["kit_preflight"] = {"exit": kit.returncode, "tail": kit.stdout.splitlines()[-15:]}
-            if kit.returncode:
+            pre = subprocess.run([tools_py, "tools/preflight.py", "--track", "track_3", "--results", str(pack / "results"),
+                                  "--skip-kaggle"], cwd=kit, capture_output=True, text=True)
+            report["kit_preflight"] = {"exit": pre.returncode, "tail": pre.stdout.splitlines()[-15:]}
+            if pre.returncode:
                 report["problems"].append("the kit's preflight failed (preflight.json: kit_preflight)")
     (pack / "preflight.json").write_text(json.dumps(report, indent=1) + "\n")
     return pack / "preflight.json"
