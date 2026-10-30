@@ -1,0 +1,80 @@
+{
+  "units": "metres",
+  "pose_convention": "T_camera_from_original_provided_mesh; column vectors",
+  "scale_already_baked": true,
+  "additional_scale": 1.0,
+  "episodes": [
+    {
+      "episode": 3,
+      "object": "wooden_spoon",
+      "mesh": "wooden_spoon/mesh.obj",
+      "poses": "ep03_poses.npz",
+      "frames": 313,
+      "mesh_sha256": "054900cbfcb4719306464da651fb2bcd2b8d483ca0eca6f7ef3b877c28ee5094",
+      "poses_sha256": "bdcccb26e0738dfc47789f66155e53cd5f678ad96b504b2b61820a4bb58c0132"
+    },
+    {
+      "episode": 6,
+      "object": "wooden_spoon",
+      "mesh": "wooden_spoon/mesh.obj",
+      "poses": "ep06_poses.npz",
+      "frames": 243,
+      "mesh_sha256": "054900cbfcb4719306464da651fb2bcd2b8d483ca0eca6f7ef3b877c28ee5094",
+      "poses_sha256": "3fccd291ca867e543c974db910e250b90cef517683aa4a6abffef6eef788034d"
+    },
+    {
+      "episode": 15,
+      "object": "wooden_spoon",
+      "mesh": "wooden_spoon/mesh.obj",
+      "poses": "ep15_poses.npz",
+      "frames": 166,
+      "mesh_sha256": "054900cbfcb4719306464da651fb2bcd2b8d483ca0eca6f7ef3b877c28ee5094",
+      "poses_sha256": "747621be624e8edecffeca6ed48d9ef073026a3c5543007ab6157ee732d1083e"
+    },
+    {
+      "episode": 16,
+      "object": "wooden_spoon",
+      "mesh": "wooden_spoon/mesh.obj",
+      "poses": "ep16_poses.npz",
+      "frames": 173,
+      "mesh_sha256": "054900cbfcb4719306464da651fb2bcd2b8d483ca0eca6f7ef3b877c28ee5094",
+      "poses_sha256": "cbc47853c9dd9a40007f57de4a1a7ba68807e89dc06c80cba26a83f26d102f24"
+    },
+    {
+      "episode": 19,
+      "object": "mini_sweeper",
+      "mesh": "mini_sweeper/mesh.obj",
+      "poses": "ep19_poses.npz",
+      "frames": 235,
+      "mesh_sha256": "2e714c1efc30d357ce54ebcc34a3391aae6d387b5b3845b9e2c69fa9bf9760cb",
+      "poses_sha256": "341755124805e379e6854a42239535e7f302228bf58be711e7cd0f12f5332fd6"
+    },
+    {
+      "episode": 30,
+      "object": "mini_sweeper",
+      "mesh": "mini_sweeper/mesh.obj",
+      "poses": "ep30_poses.npz",
+      "frames": 263,
+      "mesh_sha256": "2e714c1efc30d357ce54ebcc34a3391aae6d387b5b3845b9e2c69fa9bf9760cb",
+      "poses_sha256": "175105d840e555bf9df33c99d6348aff0ef3dfe14f027fff75dda291493b201f"
+    },
+    {
+      "episode": 35,
+      "object": "wooden_spoon",
+      "mesh": "wooden_spoon/mesh.obj",
+      "poses": "ep35_poses.npz",
+      "frames": 421,
+      "mesh_sha256": "054900cbfcb4719306464da651fb2bcd2b8d483ca0eca6f7ef3b877c28ee5094",
+      "poses_sha256": "09d36c9b19664c124540fb125aa797a98bfe2d11874f6de508ab5ea0b6a7ee56"
+    },
+    {
+      "episode": 36,
+      "object": "wooden_spoon",
+      "mesh": "wooden_spoon/mesh.obj",
+      "poses": "ep36_poses.npz",
+      "frames": 407,
+      "mesh_sha256": "054900cbfcb4719306464da651fb2bcd2b8d483ca0eca6f7ef3b877c28ee5094",
+      "poses_sha256": "efed3ba3098a732247373d64aeafc4d793bf95726e7268d60115407c4d0a4744"
+    }
+  ]
+}
