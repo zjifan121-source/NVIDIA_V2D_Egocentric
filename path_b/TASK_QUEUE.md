@@ -1,6 +1,24 @@
 # Path B task queue (2026-10-29; mirrors V4_BUILD_SPEC.md §14)
 
-Numbers in two columns: playback / submitted (rollout ≈ playback − 0.07…0.10). Today 0.598 / ≈ 0.50; this queue 0.70–0.74 / 0.60–0.66. Public first. Evaluation runs (L10, G4, G5) stay paused until James lifts the pause (2026-10-28). Rules unchanged: push `zjifan121_pathb_v3` after every passing test; no merge to `main_buffer`, no Kaggle upload without James; no GT or scans on evaluation.
+Numbers in two columns: playback / submitted (rollout ≈ playback − 0.07…0.10). Latest checkpoint `public_2026-10-29_k7`: inverted **0.690** playback / ≈ 0.59–0.62 submitted (was 0.598 on 10-29). Public first. Evaluation runs (L10, G4, G5) stay paused until James lifts the pause (2026-10-28). Rules unchanged: push `zjifan121_pathb_v3` after every passing test; no merge to `main_buffer`, no Kaggle upload without James; no GT or scans on evaluation.
+
+## Refinement round (2026-10-30) — HIGHEST PRIORITY; see V4_BUILD_SPEC.md §14.5
+Push rule (James): work on local branch `zjifan121_pathb_v4ref`; after each task run all 20 public episodes vs the latest checkpoint, six metrics, two columns; push to `zjifan121_pathb_v3` only when the overall score is higher (inverted mean AUC up, no episode ≥ 0.7 down, rank-sum proxy not worse); otherwise the commit stays local and BUILD_LOG says "tried, not adopted".
+
+| # | Task | Where | GPU-h | Check | GT-free signal | Expected | Status |
+|---|---|---|---|---|---|---|---|
+| G-A | P2 hands: distinct tracks (IoU < 0.1, opposite handedness) else re-seed the second hand at first appearance; rerun P1b/P1d on ep21 22 44, then phases → S4b | L40S + Mac | 0.75 | ep21 up (rest-before ≥ 10 frames); 22/44 not down | hand overlap ≈ 0 | ep21 → ≈ 0.5 | todo |
+| G-E | P3 lid stable-pose snap (rotation only, nearest stable pose on table / pot rim; snap < 50°, mask IoU not down) | Mac | 0 | ep0, ep2 up | tilt < 5°, gap < 5 mm | MP-SR +2 ep | todo |
+| G-C | P1 board half-turn resolver: textured mesh (colour TSDF) + NCC vs image + wrist-yaw consistency; flip only when both agree; objects with half-turn margin < 2 mm only | Mac + L40S render | 0.5 | ep24, ep23 up; none ≥ 0.7 down | NCC margin > 0, yaw residual < 30° | +0.13–0.27 mean | todo |
+| G-D | P4 ROHIT stable-grasp carry: wrist ∘ fixed offset ∘ R(φ) about the axis, drift residual; motion-triggered grasp for pours; closure check at release, fallback when worse | Mac (+L40S if rendering) | 0–2 | 43 42 45 27 up; 41/44/18 not down | closure error, contact area, mask IoU | +0.08–0.18 mean | todo |
+| G-B | P5 FoundationPose refiner from inverted (ONNX weights under NVIDIA Open Model License + Apache runner, nvdiffrast off) — **waits for James's licence yes**; per-frame gate by score-net and render-vs-mask IoU | L40S | 2 | mid-group MPPE −1 cm; MP-SR flips 2 12 13 22 27 45 | score-net, IoU, closure | +0.03–0.05; MP-SR → 0.55 | hold |
+| G-F | Retrain F2 candidates for changed episodes only; rollout vs playback | L40S | ≈ 1/ep | rollout keeps ≥ 0.9 of the gain | rollout-vs-reference | — | after G-A…E |
+| G-G | Same-hand sweep on the 20 evaluation episodes | L40S | 1 | — | hand overlap | — | **paused** |
+
+| G-0 | **GPU access**: the L40S has been unreachable since 2026-10-30 (host key changed; not replaced, waiting for James). James confirms the key or gives a new instance; `new_instance.sh`; restore frames | James + L40S | 2 | ssh works; F2/g3d tmux state recovered or restarted | — | — | **blocked on James** |
+| G-H | **Rollout loss, not in the research scope but now the largest gap**: F2 rollouts vs playback — ep18 0.885 → still 0.387, ep41 0.831 → 0.689, ep39 0.816 → 0.594, ep27 0.746 → 0.526, ep22 0.719 → 0.315, ep42 0.620 → 0.219, ep45 0.624 → 0.258, ep12 0.718 → 0.449 (S0.1's 0.07–0.10 tax held only on 40, 26, 44). Diagnose on 18, 42, 45 first: termination cause fractions and the object-error timeline in the evaluator JSON; S5 seating / support of the still vs inverted scene; hand reference quality in the carry (wrist speed, finger closure). Then one controlled test on ep18: 250M steps, and separately a reference with the hands smoothed, to see which closes the gap | L40S + Mac | 3–4 | ep18 rollout ≥ 0.7 | rollout-vs-reference error; termination fractions | submitted +0.05–0.10 if the cause is shared | todo, after G-0 |
+
+Dropped by the research: GoTrack (CC BY-NC 4.0), 4D-HOF (no code), ComPose code (idea only).
 
 ## Local (Mac)
 | # | Task | Effort | Check | Expected (playback) | Status |
