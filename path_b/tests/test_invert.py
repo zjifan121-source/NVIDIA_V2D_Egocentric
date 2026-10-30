@@ -607,3 +607,39 @@ def test_a_tracked_bridge_follows_the_frames_where_interpolation_cuts_the_corner
         I.TRACKED_BRIDGES = False
     scores = {k[9:-2]: v for k, v in u.items() if k.startswith("explains_") and v is not None}
     assert set(scores) == {"interpolated", "carried", "tracked"} and u["guess"] == min(scores, key=scores.get)
+
+
+def test_a_joint_bridge_fits_the_carry_the_interpolation_cuts(monkeypatch):
+    # spec §14 L5: the carry bridged from its true ends (all but two frames at each) while the object slips 4 cm in
+    # the hand; the interpolation cuts the lift's arc and lags the turn; the joint fit (ICP of every other frame onto
+    # the mesh, its correction smooth between knots and zero at both ends) follows the frames, and the bridge keeps it
+    c, _, obj, m = clip(slip=(30, 0.04, 15))
+    a, b = GRASP[0] + 2, GRASP[1] - 2
+    guess = I.interpolate(obj[a - 1], obj[b + 1], b - a + 1)
+    J = I.joint_bridge(c, a, b, guess)
+    err_j, err_i = add_mm(J["poses"], obj[a:b + 1], m.vertices), add_mm(guess, obj[a:b + 1], m.vertices)
+    assert err_j.mean() < 0.3 * err_i.mean() and err_j.max() < 10, (err_j.mean(), err_i.mean(), err_j.max())
+    monkeypatch.setattr(I, "JOINT_BRIDGES", True)
+    u = I.solve_unstable(c, a, b, obj[a - 1], obj[b + 1])
+    assert u["joint"]["kept"] and u["joint"]["explains_joint_m"] < u["joint"]["explains_before_m"], u["joint"]
+    assert add_mm(u["poses"], obj[a:b + 1], m.vertices).mean() < 0.3 * err_i.mean()
+
+
+def test_the_fits_on_a_move_only_with_the_smooth_residual_and_a_resolved_step(monkeypatch):
+    # residual (a) has steps (a ray that misses costs MISS, the silhouette is read at whole pixels) and its raycasts are
+    # float32, so at scipy's default difference step the Jacobian is mostly noise (on public frames a fit moved 0.1 mm or
+    # less; this box's flat faces leave it some); the smooth residual (point-to-mesh distance, bilinear silhouette) with
+    # DIFF_STEP 1e-4 recovers a 4 mm / 2 degree offset
+    c, _, obj, m = clip()
+    t = 40
+    off = I.T_of(np.r_[np.radians([1.0, -1.0, 1.0]) * 2 / np.sqrt(3), 0.004, -0.002, 0.0])
+
+    def solved(smooth, step):
+        monkeypatch.setattr(I, "SMOOTH_FIT", smooth)
+        monkeypatch.setattr(I, "DIFF_STEP", step)
+        r = I.lsq(lambda x: c.fit_appearance(obj[t] @ off @ I.T_of(x), t) / I.SIG_A, np.zeros(6), c.carry_step,
+                  loss="soft_l1", f_scale=1.0, max_nfev=60, x_scale=[0.05] * 3 + [0.005] * 3)
+        return add_mm((obj[t] @ off @ I.T_of(r.x))[None], obj[t][None], m.vertices)[0]
+    start = add_mm((obj[t] @ off)[None], obj[t][None], m.vertices)[0]
+    stepped, smooth = solved(False, None), solved(True, 1e-4)
+    assert smooth < 0.3 * start and smooth < 0.5 * stepped, (smooth, stepped, start)

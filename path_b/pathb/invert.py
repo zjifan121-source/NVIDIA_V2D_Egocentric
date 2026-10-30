@@ -127,6 +127,20 @@ TRACKED_BRIDGES = False  # spec §14 L7 (under test): a bridge also tries the ob
 # best (ep43's carry: five slip-guard runs while the pot turns over in the hand). Off: on v4_j3 with it on, ep43 0.435 ->
 # 0.434 (its unsolved run 0-237 is one bridge; tracked explained it no better than the interpolation's 2.0 cm), ep45
 # 0.624 -> 0.599, ep41 0.831 -> 0.829, ep0 unchanged; spec §14 L7's gate (ep43 up, 41/45 not down) fails
+JOINT_BRIDGES = False  # spec §14 L5 (under test): a bridge of at least JOINT_MIN frames is then fitted as a whole
+# (`joint_bridge`: point-to-plane ICP of every JOINT_EVERY-th frame's mask points onto the posed mesh, the correction
+# smooth between knots JOINT_KNOT frames apart and zero at the poses either side) and keeps it where it explains the
+# frames better (`explains`). The per-frame steps on (a) move a pose by 0.1 mm or less: (a) has steps (a ray that
+# misses the mesh costs MISS, the silhouette is read at whole pixels) and the float32 raycasts do not resolve the
+# solver's default difference step, so its Jacobian is noise; ICP's correspondences give a usable one. Against public
+# GT (moved into our world by the frame-0 pose), the truth explains the slip-guard bridges' frames better than our
+# bridges do (ep27 1.27 against 2.34 cm, ep39 0.80 / 1.75, ep42 0.97 / 1.50): the evidence is there, the solver was not
+JOINT_MIN = 10  # default: frames
+JOINT_KNOT, JOINT_EVERY, JOINT_POINTS = 6, 2, 400  # default: frames between knots; frames used; mask points per frame
+JOINT_REACH, JOINT_ITERS = (0.02, 0.01), (8, 6)  # default: pairing distance (m), coarse then fine, as ICP_REACH
+JOINT_SIG, JOINT_FRAME_W, JOINT_HUBER = 0.005, 50, 0.005  # default: a frame weighs as 50 points at 5 mm; Huber at 5 mm
+JOINT_PRIOR_M, JOINT_PRIOR_RAD = 0.05, np.radians(20)  # default: the correction's scale (UNSTABLE_REACH's)
+JOINT_SMOOTH_M, JOINT_SMOOTH_RAD = 0.005, np.radians(3)  # default: its second difference per knot (pass 2's box)
 CARRIED_BRIDGES = True  # default: a bridge over frames S3b saw a hand holding also tries the object moved with that
 # wrist (`carried`) and keeps whichever guess explains the frames better (`explains`). Public, 20 episodes, on top of
 # the gap anchor: best of three 0.546 -> 0.554 (12, 13, 26, 41, 42 up 0.02-0.05; ep45 -0.008)
@@ -144,11 +158,29 @@ REACH_MARGIN = 0.10  # default (m): a rest may lie this much beyond the reach of
 WRIST_SMOOTH = 0  # frames either side over which the wrist track is averaged before solving (0: off). Against
 # ground truth the object turns 1-2 degrees per frame in a grasp but 3-4 against our wrist (p90 8-12): the hand
 # tracker's orientation jitters, and pass 2's 3-degree box makes the track inherit it. Under measurement
+DIFF_STEP = None  # under test (None: scipy's default, ~1.5e-8 relative): the least-squares fits' finite-difference
+# step. At the default the float32 raycasts and distance queries do not resolve the step, and the Jacobian is noise
+REST_DIFF_STEP = None  # under test: the same for the upright and stacked rest fits (`vertical_fit`, `stacked_fit`)
+SMOOTH_FIT = False  # under test: the fits on (a) (pass 1, pass 2, bridges) see Clip.fit_appearance, which has no steps
+SMOOTH_FALLBACK = False  # under test: with SMOOTH_FIT a grasp is solved with the stepped residual first and again with
+# the smooth one only when the first loses frames to the slip guard or a failed fit; the second is kept when it loses
+# fewer. Nothing else sees the smooth residual (bridges' per-frame steps: on v4_l5f they did, and ep11's steadied cup,
+# held still in k7, explained better tracked: 0.979 -> 0.775). On v4_l5m (smooth everywhere) the gains are carries k7's slip guard gave up on (ep13 46-157, ep42 50-104,
+# ep45 167-217 tracked) and the losses grasps k7 tracked well (ep22's cup 9-143 1.8 -> 2.0 cm, ep40 19-114 1.1 -> 1.3,
+# ep23's board 82-282 1.9 -> 5.7)
+SMOOTH_REVOLUTION_ONLY = False  # under test: only bodies of revolution (a flat piece slides along its face unseen by a
+# point-to-mesh distance: ep23's board 1, 82-282, 1.0 -> 5.3 cm while its residual fell 2.3 -> 1.7 mm)
 ICP_FIT = 0.3  # default: share of a frame's depth points ICP pairs (within 1 cm) for its pose to start pass 2
 ICP_REACH = (0.02, 0.01)  # default: ICP's pairing distance, coarse then fine (m)
 SIL_POINTS = 200  # default: canonical surface points projected for the silhouette term
 SIL_MARGIN = 80  # px: the distance map's crop around the allowed mask
 SIL_CAP = 80.0  # px: distances beyond the crop
+
+
+def lsq(fun, x0, step: float | None, **kwargs):
+    """scipy's least_squares with `step` as its finite-difference step (None: scipy's default): Clip.carry_step for
+    the fits on (a), REST_DIFF_STEP for the upright and stacked rest fits on the fused surface."""
+    return least_squares(fun, x0, diff_step=step, **kwargs)
 
 
 def T_of(x: np.ndarray) -> np.ndarray:
@@ -190,6 +222,7 @@ class Clip:
     # mask with the host's added}
     scene: o3d.t.geometry.RaycastingScene = field(init=False)
     surface: o3d.geometry.PointCloud = field(init=False)
+    fit_smooth: bool | None = field(default=None, init=False)  # set: overrides `smooth` (SMOOTH_FALLBACK's two solves)
 
     def __post_init__(self):
         mesh = o3d.t.geometry.TriangleMesh(o3d.core.Tensor(np.asarray(self.vertices, np.float32)),
@@ -236,7 +269,7 @@ class Clip:
         hit = self.scene.cast_rays(o3d.core.Tensor(rays))["t_hit"].numpy()
         return np.where(np.isfinite(hit), hit - d, MISS)
 
-    def silhouette_residual(self, pose: np.ndarray, t: int, sil=None) -> np.ndarray:
+    def silhouette_residual(self, pose: np.ndarray, t: int, sil=None, bilinear: bool = False) -> np.ndarray:
         """(M,) metres: how far outside the allowed mask (the object's and the hands') each projected
         canonical surface point falls (0 inside), at its depth. The depth term (a) looks only inside
         the observed mask, so an estimate that overhangs it, or slides along a flat face, costs
@@ -252,12 +285,55 @@ class Clip:
         v = self.K[1, 1] * cam[:, 1] / z + self.K[1, 2] - y0
         inside = (u >= 0) & (v >= 0) & (u < dist.shape[1] - 1) & (v < dist.shape[0] - 1) & (cam[:, 2] > 0.05)
         px = np.full(len(u), SIL_CAP)
-        px[inside] = dist[v[inside].astype(int), u[inside].astype(int)]
+        if bilinear:  # fit_appearance: the distance map between pixel centres
+            ui, vi = u[inside].astype(int), v[inside].astype(int)
+            fu, fv = u[inside] - ui, v[inside] - vi
+            px[inside] = ((1 - fu) * (1 - fv) * dist[vi, ui] + fu * (1 - fv) * dist[vi, ui + 1]
+                          + (1 - fu) * fv * dist[vi + 1, ui] + fu * fv * dist[vi + 1, ui + 1])
+        else:
+            px[inside] = dist[v[inside].astype(int), u[inside].astype(int)]
         return px * z / self.K[0, 0]
 
     def appearance(self, pose: np.ndarray, t: int, limit: int = RAYS) -> np.ndarray:
         """Residual (a), both ways: rendered vs observed depth inside the mask, and the silhouette."""
         return np.concatenate([self.depth_residual(pose, t, limit), self.silhouette_residual(pose, t)])
+
+    def point_residual(self, pose: np.ndarray, t: int, limit: int = RAYS) -> np.ndarray:
+        """(M,) metres: each of frame t's mask pixels at its stereo depth, its distance to the posed mesh (capped at
+        MISS). depth_residual's along the ray, with MISS where a ray misses; this one has no steps."""
+        r = self.rays(t, limit)
+        if r is None:
+            return np.zeros(0)
+        dirs, d, _ = r
+        world = (dirs * d[:, None]) @ self.c2w[t, :3, :3].T + self.c2w[t, :3, 3]
+        local = (world - pose[:3, 3]) @ pose[:3, :3]
+        dist = self.scene.compute_distance(o3d.core.Tensor(local.astype(np.float32))).numpy().astype(np.float64)
+        return np.minimum(dist, MISS)
+
+    @property
+    def smooth_allowed(self) -> bool:
+        """SMOOTH_FIT for this object (with SMOOTH_REVOLUTION_ONLY, bodies of revolution only)."""
+        return SMOOTH_FIT and (self.revolution or not SMOOTH_REVOLUTION_ONLY)
+
+    @property
+    def smooth(self) -> bool:
+        """The fits on (a) see the smooth residual: `smooth_allowed`, except under SMOOTH_FALLBACK, where only its
+        second solve of a grasp does (fit_smooth)."""
+        if self.fit_smooth is not None:
+            return self.fit_smooth
+        return self.smooth_allowed and not SMOOTH_FALLBACK
+
+    @property
+    def carry_step(self) -> float | None:
+        """The fits on (a)'s finite-difference step: DIFF_STEP with the smooth residual, else scipy's default."""
+        return DIFF_STEP if self.smooth else None
+
+    def fit_appearance(self, pose: np.ndarray, t: int, limit: int = RAYS) -> np.ndarray:
+        """Residual (a) as the least-squares fits see it: when `smooth`, point_residual and the silhouette read
+        bilinearly (no steps for the solver's differences to fall into); else `appearance`."""
+        if not self.smooth:
+            return self.appearance(pose, t, limit)
+        return np.concatenate([self.point_residual(pose, t, limit), self.silhouette_residual(pose, t, bilinear=True)])
 
     def tip_distance(self, pose: np.ndarray, t: int, hand: int, fingers: list[int]) -> np.ndarray:
         if not fingers or not self.valid[t, hand]:
@@ -401,7 +477,7 @@ def vertical_fit(clip: Clip, a: int, b: int, free: dict, pts: np.ndarray, up: bo
     for y in yaws:
         R0 = Rotation.from_euler("z", y).as_matrix() @ flip
         x0 = np.r_[c_world - R0 @ c_mesh, y]
-        sol = least_squares(dist, x0, loss="soft_l1", f_scale=0.005, max_nfev=200, x_scale=[0.01, 0.01, 0.01, 0.1])
+        sol = lsq(dist, x0, REST_DIFF_STEP, loss="soft_l1", f_scale=0.005, max_nfev=200, x_scale=[0.01, 0.01, 0.01, 0.1])
         for x in (x0, sol.x):
             found.append({"pose": pose(x), "residual_m": float(np.median(np.abs(dist(x))))})
     for f in found:
@@ -480,7 +556,7 @@ def stacked_fit(clip: Clip, a: int, b: int, free: dict, pts: np.ndarray, host: d
     for h0 in heights:
         for y in yaws:
             x0 = np.array([max(h0, -low), y])
-            sol = least_squares(dist, x0, loss="soft_l1", f_scale=0.005, max_nfev=200, x_scale=[0.01, 0.1],
+            sol = lsq(dist, x0, REST_DIFF_STEP, loss="soft_l1", f_scale=0.005, max_nfev=200, x_scale=[0.01, 0.1],
                                 bounds=([-low, -np.inf], [np.inf, np.inf]))
             for x in (x0, sol.x):
                 found.append({"pose": pose(x), "residual_m": float(np.median(np.abs(dist(x)))),
@@ -581,14 +657,14 @@ def pass1(clip: Clip, a: int, b: int, hand: int, fingers: list[int], start, end,
 
     def residual(x):
         T = T_of(x)
-        parts = [clip.appearance(W[t] @ T, t, FIT_RAYS) / SIG_A for t in fit]
+        parts = [clip.fit_appearance(W[t] @ T, t, FIT_RAYS) / SIG_A for t in fit]
         parts += [clip.tip_distance(W[t] @ T, t, hand, fingers) / SIG_B for t in fit]
         parts += end_terms(W[frames[0]] @ T, W[frames[-1]] @ T, start if frames[0] == a else None,
                            end if frames[-1] == b else None)
         r = np.concatenate([p for p in parts if len(p)])
         return r if len(r) else np.zeros(1)
 
-    r = least_squares(residual, x_of(T0), loss="soft_l1", f_scale=1.0, max_nfev=80, x_scale=[0.1] * 3 + [0.01] * 3)
+    r = lsq(residual, x_of(T0), clip.carry_step, loss="soft_l1", f_scale=1.0, max_nfev=80, x_scale=[0.1] * 3 + [0.01] * 3)
     return {"T": T_of(r.x), "cost": float(r.cost), "nfev": int(r.nfev), "frames": len(fit)}
 
 
@@ -644,11 +720,11 @@ def pass2(clip: Clip, a: int, b: int, hand: int, fingers: list[int], T: np.ndarr
 
         def residual(x):
             P = base @ T_of(x)
-            r = [clip.appearance(P, t) / SIG_A, clip.tip_distance(P, t, hand, fingers) / SIG_B,
+            r = [clip.fit_appearance(P, t) / SIG_A, clip.tip_distance(P, t, hand, fingers) / SIG_B,
                  np.concatenate([(x[:3] - D0[:3]) / STEP_RAD, (x[3:] - D0[3:]) / STEP_M])]
             return np.concatenate([p for p in r if len(p)])
 
-        r = least_squares(residual, D0, loss="soft_l1", f_scale=1.0,
+        r = lsq(residual, D0, clip.carry_step, loss="soft_l1", f_scale=1.0,
                           max_nfev=30, x_scale=[0.05] * 3 + [0.005] * 3, bounds=(lo, hi))
         D_prev = r.x
         poses[i] = base @ T_of(r.x)
@@ -828,8 +904,8 @@ def tracked(clip: Clip, a: int, b: int, before: np.ndarray | None, after: np.nda
         o = clip.obs[t]
         if o is None or o[2] < clip.min_share:
             return Q
-        r = least_squares(lambda x: clip.appearance(Q @ T_of(x), t) / SIG_A, np.zeros(6), loss="soft_l1", f_scale=1.0,
-                          max_nfev=7 * UNSTABLE_STEPS, bounds=(-bound, bound))
+        r = lsq(lambda x: clip.fit_appearance(Q @ T_of(x), t) / SIG_A, np.zeros(6), clip.carry_step, loss="soft_l1",
+                f_scale=1.0, max_nfev=7 * UNSTABLE_STEPS, bounds=(-bound, bound))
         Q2 = Q @ T_of(r.x)
         return Q2 if np.median(np.abs(clip.appearance(Q2, t))) < np.median(np.abs(clip.appearance(Q, t))) else Q
     fwd = bwd = None
@@ -849,6 +925,81 @@ def tracked(clip: Clip, a: int, b: int, before: np.ndarray | None, after: np.nda
     return np.stack([blend(fwd[t], bwd[t], (t - a + 1) / (b - a + 2)) for t in range(a, b + 1)])
 
 
+def joint_bridge(clip: Clip, a: int, b: int, guess: np.ndarray, ends: tuple[bool, bool] = (True, True)) -> dict | None:
+    """The bridge [a, b] fitted as a whole from `guess` (JOINT_BRIDGES): knots every JOINT_KNOT frames carry a
+    body-frame correction (rotation vector, m), linear between them; Gauss-Newton on point-to-plane ICP of every
+    JOINT_EVERY-th frame's mask points (at most JOINT_POINTS, those within JOINT_REACH of the posed mesh, Huber
+    weights) plus a prior on the correction (JOINT_PRIOR_*) and a second difference across knots (JOINT_SMOOTH_*).
+    ends: the knot at a-1 / b+1 held at zero (the pose there is known). None without a frame to fit."""
+    n = b - a + 1
+    m = max(2, int(np.ceil((n + 1) / JOINT_KNOT)))
+    kpos = np.linspace(0, n + 1, m + 1)
+    s = np.arange(1, n + 1, dtype=np.float64)
+    j = np.minimum(np.searchsorted(kpos, s, side="right") - 1, m - 1)
+    w = (s - kpos[j]) / (kpos[j + 1] - kpos[j])
+    pts = {}
+    for i in range(n):
+        o = clip.obs[a + i]
+        if o is None or o[2] < clip.min_share:
+            continue
+        uv, d, _ = o
+        if len(d) > JOINT_POINTS:
+            k = np.random.default_rng(a + i).choice(len(d), JOINT_POINTS, replace=False)
+            uv, d = uv[k], d[k]
+        K, c2w = clip.K, clip.c2w[a + i]
+        cam = np.stack([(uv[:, 0] - K[0, 2]) * d / K[0, 0], (uv[:, 1] - K[1, 2]) * d / K[1, 1], d], axis=1)
+        pts[i] = cam @ c2w[:3, :3].T + c2w[:3, 3]
+    frames = sorted(pts)[::JOINT_EVERY]
+    free = [k for k in range(m + 1) if not ((k == 0 and ends[0]) or (k == m and ends[1]))]
+    if not frames or not free:
+        return None
+    prior = 1 / np.array([JOINT_PRIOR_RAD] * 3 + [JOINT_PRIOR_M] * 3) ** 2
+    smooth = 1 / np.array([JOINT_SMOOTH_RAD] * 3 + [JOINT_SMOOTH_M] * 3) ** 2
+    P, C, steps = guess.copy(), np.zeros((m + 1, 6)), 0
+    for reach, iters in zip(JOINT_REACH, JOINT_ITERS):
+        for _ in range(iters):
+            H, g = np.zeros((6 * (m + 1), 6 * (m + 1))), np.zeros(6 * (m + 1))
+            for i in frames:
+                local = (pts[i] - P[i][:3, 3]) @ P[i][:3, :3]
+                q = clip.scene.compute_closest_points(o3d.core.Tensor(local.astype(np.float32)))
+                p = q["points"].numpy().astype(np.float64)
+                nrm = q["primitive_normals"].numpy().astype(np.float64)
+                ok = np.linalg.norm(local - p, axis=1) < reach
+                if ok.sum() < 10:
+                    continue
+                local, p, nrm = local[ok], p[ok], nrm[ok]
+                r = np.sum(nrm * (local - p), axis=1)
+                Jd = np.hstack([-np.cross(local, nrm), -nrm])  # d r / d (rotation, translation) of P[i] @ T_of(x)
+                wt = np.where(np.abs(r) < JOINT_HUBER, 1.0, JOINT_HUBER / np.maximum(np.abs(r), 1e-12))
+                wt *= JOINT_FRAME_W / len(r) / JOINT_SIG ** 2
+                h6, g6 = (Jd * wt[:, None]).T @ Jd, (Jd * wt[:, None]).T @ r
+                for ka, wa in ((j[i], 1 - w[i]), (j[i] + 1, w[i])):
+                    g[6 * ka:6 * ka + 6] += wa * g6
+                    for kb, wb in ((j[i], 1 - w[i]), (j[i] + 1, w[i])):
+                        H[6 * ka:6 * ka + 6, 6 * kb:6 * kb + 6] += wa * wb * h6
+            for k in free:
+                H[6 * k:6 * k + 6, 6 * k:6 * k + 6] += np.diag(prior)
+                g[6 * k:6 * k + 6] += prior * C[k]
+            for k in range(1, m):
+                coef = ((k - 1, 1.0), (k, -2.0), (k + 1, 1.0))
+                sd = sum(cf * C[kk] for kk, cf in coef)
+                for ka, ca in coef:
+                    g[6 * ka:6 * ka + 6] += ca * smooth * sd
+                    for kb, cb in coef:
+                        H[6 * ka:6 * ka + 6, 6 * kb:6 * kb + 6] += ca * cb * np.diag(smooth)
+            idx = np.concatenate([np.arange(6 * k, 6 * k + 6) for k in free])
+            D = np.zeros((m + 1, 6))
+            D[free] = np.linalg.solve(H[np.ix_(idx, idx)], -g[idx]).reshape(len(free), 6)
+            d = (1 - w)[:, None] * D[j] + w[:, None] * D[j + 1]
+            P = np.stack([P[i] @ T_of(d[i]) for i in range(n)])
+            C, steps = C + D, steps + 1
+            if np.abs(D[:, 3:]).max() < 1e-4 and np.abs(D[:, :3]).max() < 1e-3:
+                break
+    total = (1 - w)[:, None] * C[j] + w[:, None] * C[j + 1]
+    return {"poses": P, "steps": steps, "moved_m": float(np.abs(total[:, 3:]).max()),
+            "turned_deg": float(np.degrees(np.linalg.norm(total[:, :3], axis=1).max()))}
+
+
 def explains(clip: Clip, poses: np.ndarray, a: int) -> float | None:
     """Mean over the frames with a mask above the bar of the mean |residual (a)| of `poses` from frame a, each
     residual capped at MISS. A median saturates at MISS once half the rays miss (ep43's 0-274 bridge: 3 cm
@@ -865,6 +1016,7 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
     if P0 is None:
         return {"poses": np.full((b - a + 1, 4, 4), np.nan), "refined": np.zeros(b - a + 1, bool),
                 "why": "no neighbouring pose"}
+    ends = (before is not None, after is not None)
     guess, how = interpolate(P0, P1, b - a + 1), {"guess": "interpolated"}
     alt = carried(clip, a, b, before, after, carrier) if carrier is not None else None
     if alt is not None:
@@ -887,17 +1039,32 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
 
         def residual(x, i=i, t=t):
             P = guess[i] @ T_of(x)
-            return np.concatenate([clip.appearance(P, t) / SIG_A,
+            return np.concatenate([clip.fit_appearance(P, t) / SIG_A,
                                    np.concatenate([x[:3] / UNSTABLE_PRIOR_RAD, x[3:] / UNSTABLE_PRIOR_M])])
 
         bound = np.array([UNSTABLE_REACH_RAD] * 3 + [UNSTABLE_REACH_M] * 3)
-        r = least_squares(residual, np.zeros(6), loss="soft_l1", f_scale=1.0, max_nfev=7 * UNSTABLE_STEPS,
+        r = lsq(residual, np.zeros(6), clip.carry_step, loss="soft_l1", f_scale=1.0, max_nfev=7 * UNSTABLE_STEPS,
                           bounds=(-bound, bound))
         before = np.median(np.abs(clip.appearance(guess[i], t)))
         if np.median(np.abs(clip.appearance(guess[i] @ T_of(r.x), t))) < before:  # kept only if it explains more
             poses[i] = guess[i] @ T_of(r.x)
             refined[i] = True
+    if JOINT_BRIDGES and b - a + 1 >= JOINT_MIN:  # from the guess: the per-frame steps' jitter is not smooth
+        J = joint_bridge(clip, a, b, guess, ends)
+        if J is not None:
+            now, then = explains(clip, poses, a), explains(clip, J["poses"], a)
+            kept = then is not None and (now is None or then < now)
+            how["joint"] = {"explains_before_m": now, "explains_joint_m": then, "kept": kept, "steps": J["steps"],
+                            "moved_m": J["moved_m"], "turned_deg": J["turned_deg"]}
+            if kept:
+                poses = J["poses"]
     return {"poses": poses, "refined": refined, **how}
+
+
+def lost_frames(parts: list[dict]) -> int:
+    """Frames of a solved grasp lost to the slip guard (its runs and the short parts beside them) or to a failed fit."""
+    return sum(p["end"] - p["start"] + 1 for p in parts
+               if p.get("failed") or (p["kind"] == "unstable" and "slip" in p.get("why", "")))
 
 
 def held_still(clip: Clip, a: int, b: int, P: np.ndarray, report: list[dict]) -> None:
@@ -1004,8 +1171,19 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
         near = (P[before], True) if before is not None else (P[after], False) if after is not None else (start_pose, True)
         hand = HANDS.index(s["hand"])
         rest = [work[j]["kind"] == "static" if 0 <= j < len(work) else False for j in (s["i"] - 1, s["i"] + 1)]
-        return solve_grasp(clip, a, b, hand, [f for h, f in s["fingertips"] if h == s["hand"]], start, end, near=near,
-                           trim=tuple(rest))
+        args = (clip, a, b, hand, [f for h, f in s["fingertips"] if h == s["hand"]], start, end)
+        parts = solve_grasp(*args, near=near, trim=tuple(rest))  # SMOOTH_FALLBACK: the stepped fit
+        lost = lost_frames(parts)
+        if not (SMOOTH_FALLBACK and clip.smooth_allowed and lost):
+            return parts
+        clip.fit_smooth = True
+        try:
+            smooth = solve_grasp(*args, near=near, trim=tuple(rest))
+        finally:
+            clip.fit_smooth = None
+        if lost_frames(smooth) >= lost:
+            return parts
+        return [p | {"smooth": {"lost_stepped": lost, "lost_smooth": lost_frames(smooth)}} for p in smooth]
 
     solved: dict[int, list[dict]] = {}
     for i, s in enumerate(work):  # sweep 1: statics and grasps in clip order
@@ -1060,9 +1238,8 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
                                    carrier if CARRIED_BRIDGES else None)
                 P[a:b + 1], refined[a:b + 1] = u["poses"], u["refined"]
                 row.setdefault("why", u.get("why", ""))
-                row.update({k: u[k] for k in ("guess", "explains_interpolated_m", "explains_carried_m", "explains_tracked_m")
-                            if k in u},
-                           bridge=[a, b])
+                keys = ("guess", "explains_interpolated_m", "explains_carried_m", "explains_tracked_m", "joint")
+                row.update({k: u[k] for k in keys if k in u}, bridge=[a, b])
             row.update(refined=int(refined[row["start"]:row["end"] + 1].sum()), why=row.get("why", ""))
         report.append({k: v for k, v in row.items() if k not in ("poses", "T")})
     for t in range(n):  # a wrist gap inside a grasp left a frame unsolved: hold the last pose
