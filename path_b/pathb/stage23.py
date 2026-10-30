@@ -178,7 +178,8 @@ def supports(usda: Path) -> list[dict]:
 def check(part: Path, meshes: list[Path], usda: Path, frames: int) -> dict:
     """Frames; robot frames (link origins) more than INSIDE_M inside an object; support disks; per object the
     frame-0 gap between its lowest point and the top of what is under it (cm): a support disk, or another object
-    (a lid on its pot: its rim under the lid's footprint; NVIDIA's disks are the table's)."""
+    (a lid on its pot: its rim under the lid's footprint; NVIDIA's disks are the table's), but not one standing
+    inside its footprint and rising over its bottom (ep12's cup in the rack read as the rack's support, -5 cm)."""
     import open3d as o3d
     import pyarrow.parquet as pq
     import trimesh
@@ -210,8 +211,11 @@ def check(part: Path, meshes: list[Path], usda: Path, frames: int) -> dict:
         tops = [d["top_z"] for d in disks if np.hypot(*(xy - np.asarray(d["centre"][:2]))) <= d["radius"] + 0.02
                 and d["top_z"] <= bottom + 0.05]
         for j, other in enumerate(world0):
+            oxy = other[:, :2].mean(axis=0)
+            inside = (np.hypot(*(oxy - xy)) + np.percentile(np.linalg.norm(other[:, :2] - oxy, axis=1), 95) <= radius
+                      and other[:, 2].max() > bottom + 0.05)  # stands in this object (a cup in the rack): not under it
             below = other[(np.linalg.norm(other[:, :2] - xy, axis=1) <= radius) & (other[:, 2] <= bottom + 0.05)]
-            if j != k and len(below):
+            if j != k and len(below) and not inside:
                 tops.append(float(below[:, 2].max()))
         top = max(tops, default=None)
         seating[Path(mesh_path).stem] = None if top is None else round(float(bottom - top) * 100, 2)

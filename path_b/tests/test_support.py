@@ -35,3 +35,22 @@ def test_a_dropped_disk_at_the_table_comes_back_unless_kept_disks_cover_it():
     pot = (-0.05, 0.0, 0.985, 0.12)  # ep26: the pot's dropped disk lies on the rack's kept one
     assert S.restore({"rack": [rack]}, {"rack": [rack], "pot": [pot]}, 1.0, 0.05) == {"rack": [rack]}
     assert S.covered(pot, [rack], 0.05) == 1.0 and S.covered(rack, [cup], 0.05) < 0.1
+
+
+def test_the_table_sits_under_object_0_by_its_frame_0_bottom(tmp_path):
+    """ep12: the cup (object 0) starts in the rack 3.8 cm down in S3d's world (table at z = 0); NVIDIA's loader puts
+    its bottom at ground_z_offset, so the table is 3.8 cm higher, and the rack's dropped disk 1.1 cm under it."""
+    import trimesh
+    from pathb.drivers import nvidia_stage23 as N
+    from pathb.drivers import support_surfaces as S
+    d = tmp_path / "blue_cup"
+    d.mkdir()
+    trimesh.creation.box(extents=(0.08, 0.08, 0.1)).export(d / "mesh.obj")  # centred: bottom at -0.05
+    T = np.tile(np.eye(4), (3, 1, 1))
+    T[:, 2, 3] = 0.05 - 0.0383
+    np.savez(d / "result.npz", object_to_world_transform=T, object_scale=np.float64(1.0))
+    table = N.table_height({"objects": [{"bundle": str(d)}], "ground_z_offset": 1.0})
+    assert table == pytest.approx(1.0383, abs=1e-6)
+    rack = (-0.040, 0.160, 1.027, 0.243)
+    assert S.restore({"cup": [(0.0, 0.0, 1.0, 0.05)]}, {"rack": [rack]}, table, 0.05)["rack"] == [rack]
+    assert "rack" not in S.restore({"cup": [(0.0, 0.0, 1.0, 0.05)]}, {"rack": [rack]}, 1.0, 0.05)  # the old table height

@@ -8,7 +8,7 @@ of its height, for 90 % of the clip (a tool resting on its target). Our canonica
 footprint's centre on the table, so a dish rack with a cup or a sweeper standing in it loses its disk, and on
 ep31 both objects lose theirs (no support surface: FlashCHORD refuses the scene; the still scene's rack has
 nothing under it). A disk NVIDIA drops comes back when it is at the table's height (within TABLE_TOL_M of
-<table_z>, the scene's ground_z_offset) and less than COVERED of it lies on the disks NVIDIA kept (within
+<table_z>, the table in the task scene: drivers/nvidia_stage23.table_height) and less than COVERED of it lies on the disks NVIDIA kept (within
 support_recon's consolidation height): at the table it can only be the table, and a covered one adds nothing.
 Disks above the table stay filtered. Every restored disk is printed; NVIDIA's consolidation then merges them.
 """
@@ -43,13 +43,14 @@ def restore(filtered: dict, all_disks: dict, table_z: float, z_tol: float) -> di
     out = {b: list(d) for b, d in filtered.items()}
     for body, disks in all_disks.items():
         for d in disks:
-            if d in filtered.get(body, []) or abs(d[2] - table_z) > TABLE_TOL_M:
+            if d in filtered.get(body, []):
                 continue
             c = covered(d, kept, z_tol)
-            if c < COVERED:
+            back = abs(d[2] - table_z) <= TABLE_TOL_M and c < COVERED
+            if back:
                 out.setdefault(body, []).append(d)
-                print(f"    restored table support on '{body}' (center=({d[0]:.3f},{d[1]:.3f},{d[2]:.3f}), "
-                      f"r={d[3]:.3f}): {d[2] - table_z:+.3f} m from the table, {c:.0%} on kept disks")
+            print(f"    {'restored' if back else 'left out'} table support on '{body}' (center=({d[0]:.3f},{d[1]:.3f},"
+                  f"{d[2]:.3f}), r={d[3]:.3f}): {d[2] - table_z:+.3f} m from the table, {c:.0%} on kept disks")
     return out
 
 

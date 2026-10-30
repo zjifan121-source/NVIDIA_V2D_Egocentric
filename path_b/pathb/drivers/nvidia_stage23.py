@@ -16,7 +16,7 @@ request.json: {"loader": mirror of v2d_task_library_loader, "robotic": mirror of
 2. retarget scripts/retarget/ego_recon_to_sharpa.py (IK onto the Sharpa Wave hands)
 3. urdf    scripts/generate_rigid_urdfs.py --dataset ego_recon
 4. support scripts/reconstruct_support_surfaces.py through drivers/support_surfaces.py (a dropped disk at the
-           table's height that the kept disks do not cover comes back)
+           table's height, `table_height`, that the kept disks do not cover comes back)
 Writes <out>/report.json {sequence_id, processed (the partition), support_usd, meshes}; pathb/stage23.py
 checks the output in Path B's venv.
 """
@@ -168,6 +168,23 @@ def partition(root: Path, seq: str) -> Path:
     return root / f"sequence_id={seq}" / f"robot_name={ROBOT}"
 
 
+def table_height(req: dict) -> float:
+    """The table (z = 0 in S3d's world) in the task scene. NVIDIA's loader with --no_ground_align moves object 0's
+    frame-0 bottom to ground_z_offset (ego_recon_loader._scene_align), so the table sits that bottom's height under
+    it: the same height where object 0 starts on the table, higher where its first rest is fitted into the table
+    (public ep12: the cup in the rack 3.8 cm down, the rack's disk then 2.7 cm over ground_z_offset)."""
+    import numpy as np
+    import trimesh
+    d = Path(req["objects"][0]["bundle"])
+    with np.load(d / "result.npz") as z:
+        T0, scale = z["object_to_world_transform"][0].astype(np.float64), float(z["object_scale"])
+    mesh = trimesh.load(str(d / "mesh.obj"))
+    if isinstance(mesh, trimesh.Scene):
+        mesh = mesh.dump(concatenate=True)
+    v = np.asarray(mesh.vertices, dtype=np.float64) * scale
+    return float(req["ground_z_offset"]) - float(((T0[:3, :3] @ v.T).T + T0[:3, 3])[:, 2].min())
+
+
 def main(request: str) -> int:
     req = json.loads(Path(request).read_text())
     out = Path(req["out"])
@@ -188,7 +205,7 @@ def main(request: str) -> int:
     if not all((processed / f"{b}_rigid.urdf").is_file() for b in bodies):
         run([py, "scripts/generate_rigid_urdfs.py", "--dataset", "ego_recon"], rg, env, log)
     if not usda.is_file():
-        run([py, Path(__file__).with_name("support_surfaces.py"), req["ground_z_offset"],
+        run([py, Path(__file__).with_name("support_surfaces.py"), table_height(req),
              "scripts/reconstruct_support_surfaces.py", "--dataset", "ego_recon", "--input_dir", processed,
              "--sequence_id", seq, "--robot_name", ROBOT, "--output", usda], rg, env, log)
     report = {"sequence_id": seq, "processed": str(partition(processed, seq)), "support_usd": str(usda),

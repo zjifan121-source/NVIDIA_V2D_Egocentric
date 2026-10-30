@@ -143,3 +143,25 @@ def test_check_seats_a_lid_on_its_pot_not_on_the_table(tmp_path):
     pq.write_table(pa.table(row), part / "x.parquet")
     seating = stage23.check(part, meshes, usda, n)["frame0_seating_cm"]
     assert seating["ep2_white_pot"] == pytest.approx(0.0, abs=1e-6) and seating["ep2_white_pot_lid"] == pytest.approx(0.0, abs=0.01)
+
+
+def test_check_does_not_seat_a_rack_on_the_cup_standing_in_it(tmp_path):
+    usda = tmp_path / "support.usda"
+    usda.write_text(USDA)  # one disk, its top at z = 1.0
+    cup, rack = trimesh.creation.cylinder(radius=0.04, height=0.1), trimesh.creation.box(extents=(0.4, 0.3, 0.12))
+    meshes = [tmp_path / "ep12_blue_cup.obj", tmp_path / "ep12_plastic_dish_rack.obj"]
+    cup.export(meshes[0])
+    rack.export(meshes[1])
+    n = 3
+    pos = np.tile([[0.0, 0.0, 1.05], [0.0, 0.0, 1.087]], (n, 1, 1))  # the cup on the disk, the rack's bottom 2.7 cm over it
+    wxyz = np.tile([1.0, 0, 0, 0], (n, 2, 1))
+    frames = np.full((n, 3, 7), 0.0)
+    frames[:, :, :3] = [1.0, 1.0, 1.5]
+    row = {"object_body_position": [pos.tolist()], "object_body_wxyz": [wxyz.tolist()],
+           "robot_right_frames": [frames.tolist()]}
+    part = tmp_path / "part"
+    part.mkdir()
+    pq.write_table(pa.table(row), part / "x.parquet")
+    seating = stage23.check(part, meshes, usda, n)["frame0_seating_cm"]
+    assert seating["ep12_blue_cup"] == pytest.approx(0.0, abs=1e-6)
+    assert seating["ep12_plastic_dish_rack"] == pytest.approx(2.7, abs=0.01)  # on the disk under it, not the cup's rim
