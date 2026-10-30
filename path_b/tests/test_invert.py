@@ -636,6 +636,7 @@ def test_the_fits_on_a_move_only_with_the_smooth_residual_and_a_resolved_step(mo
 
     def solved(smooth, step):
         monkeypatch.setattr(I, "SMOOTH_FIT", smooth)
+        monkeypatch.setattr(I, "SMOOTH_FALLBACK", False)  # every fit, not only a lost grasp's second solve
         monkeypatch.setattr(I, "DIFF_STEP", step)
         r = I.lsq(lambda x: c.fit_appearance(obj[t] @ off @ I.T_of(x), t) / I.SIG_A, np.zeros(6), c.carry_step,
                   loss="soft_l1", f_scale=1.0, max_nfev=60, x_scale=[0.05] * 3 + [0.005] * 3)
@@ -643,3 +644,28 @@ def test_the_fits_on_a_move_only_with_the_smooth_residual_and_a_resolved_step(mo
     start = add_mm((obj[t] @ off)[None], obj[t][None], m.vertices)[0]
     stepped, smooth = solved(False, None), solved(True, 1e-4)
     assert smooth < 0.3 * start and smooth < 0.5 * stepped, (smooth, stepped, start)
+
+
+def test_a_lost_grasp_is_solved_again_smooth_and_kept_only_if_it_loses_less(monkeypatch):
+    # SMOOTH_FALLBACK: the grasp is solved with the stepped residual (clip.smooth False); where that loses frames to the
+    # slip guard it is solved again with the smooth one (clip.smooth True), kept when it loses fewer frames
+    c, segs, obj, m = clip()
+    a, b = GRASP
+    real = I.solve_grasp
+    seen = []
+
+    def stepped_slips(clip, a_, b_, *args, worse=False, **kwargs):
+        seen.append(clip.smooth)
+        if clip.smooth and not worse:
+            return real(clip, a_, b_, *args, **kwargs)
+        return [{"kind": "unstable", "start": a_, "end": b_, "why": "slip guard"}]
+    monkeypatch.setattr(I, "solve_grasp", stepped_slips)
+    P, report = I.solve(c, segs, start_pose(), FPS)
+    rows = [r for r in report if a <= r["start"] and r["end"] <= b]
+    assert seen[:2] == [False, True] and any(r.get("smooth") for r in rows), (seen, rows)
+    assert np.median(add_mm(P, obj, np.asarray(m.vertices))[a:b + 1]) < 10
+
+    seen.clear()
+    monkeypatch.setattr(I, "solve_grasp", lambda *args, **kwargs: stepped_slips(*args, worse=True, **kwargs))
+    P, report = I.solve(c, segs, start_pose(), FPS)
+    assert seen[:2] == [False, True] and not any(r.get("smooth") for r in report)

@@ -127,14 +127,17 @@ TRACKED_BRIDGES = False  # spec §14 L7 (under test): a bridge also tries the ob
 # best (ep43's carry: five slip-guard runs while the pot turns over in the hand). Off: on v4_j3 with it on, ep43 0.435 ->
 # 0.434 (its unsolved run 0-237 is one bridge; tracked explained it no better than the interpolation's 2.0 cm), ep45
 # 0.624 -> 0.599, ep41 0.831 -> 0.829, ep0 unchanged; spec §14 L7's gate (ep43 up, 41/45 not down) fails
-JOINT_BRIDGES = False  # spec §14 L5 (under test): a bridge of at least JOINT_MIN frames is then fitted as a whole
+JOINT_BRIDGES = False  # spec §14 L5 (tried, not adopted): a bridge of at least JOINT_MIN frames is then fitted as a whole
 # (`joint_bridge`: point-to-plane ICP of every JOINT_EVERY-th frame's mask points onto the posed mesh, the correction
 # smooth between knots JOINT_KNOT frames apart and zero at the poses either side) and keeps it where it explains the
 # frames better (`explains`). The per-frame steps on (a) move a pose by 0.1 mm or less: (a) has steps (a ray that
 # misses the mesh costs MISS, the silhouette is read at whole pixels) and the float32 raycasts do not resolve the
 # solver's default difference step, so its Jacobian is noise; ICP's correspondences give a usable one. Against public
 # GT (moved into our world by the frame-0 pose), the truth explains the slip-guard bridges' frames better than our
-# bridges do (ep27 1.27 against 2.34 cm, ep39 0.80 / 1.75, ep42 0.97 / 1.50): the evidence is there, the solver was not
+# bridges do (ep27 1.27 against 2.34 cm, ep39 0.80 / 1.75, ep42 0.97 / 1.50): the evidence is there, the solver was not.
+# Off: with SMOOTH_FALLBACK (v4_l5h against v4_l5i) 0.732 -> 0.749 (ep43 +0.088, ep45 +0.054, ep11 +0.036), but ep22
+# 0.715 -> 0.708: its pitcher's pour 27-153 explains 14.5 % better jointly and scores worse; no margin on `explains`
+# separates it from the fits that help (ep43 70-175 12.6 %, ep45 75-166 8.9 %)
 JOINT_MIN = 10  # default: frames
 JOINT_KNOT, JOINT_EVERY, JOINT_POINTS = 6, 2, 400  # default: frames between knots; frames used; mask points per frame
 JOINT_REACH, JOINT_ITERS = (0.02, 0.01), (8, 6)  # default: pairing distance (m), coarse then fine, as ICP_REACH
@@ -158,17 +161,25 @@ REACH_MARGIN = 0.10  # default (m): a rest may lie this much beyond the reach of
 WRIST_SMOOTH = 0  # frames either side over which the wrist track is averaged before solving (0: off). Against
 # ground truth the object turns 1-2 degrees per frame in a grasp but 3-4 against our wrist (p90 8-12): the hand
 # tracker's orientation jitters, and pass 2's 3-degree box makes the track inherit it. Under measurement
-DIFF_STEP = None  # under test (None: scipy's default, ~1.5e-8 relative): the least-squares fits' finite-difference
-# step. At the default the float32 raycasts and distance queries do not resolve the step, and the Jacobian is noise
-REST_DIFF_STEP = None  # under test: the same for the upright and stacked rest fits (`vertical_fit`, `stacked_fit`)
-SMOOTH_FIT = False  # under test: the fits on (a) (pass 1, pass 2, bridges) see Clip.fit_appearance, which has no steps
-SMOOTH_FALLBACK = False  # under test: with SMOOTH_FIT a grasp is solved with the stepped residual first and again with
-# the smooth one only when the first loses frames to the slip guard or a failed fit; the second is kept when it loses
-# fewer. Nothing else sees the smooth residual (bridges' per-frame steps: on v4_l5f they did, and ep11's steadied cup,
-# held still in k7, explained better tracked: 0.979 -> 0.775). On v4_l5m (smooth everywhere) the gains are carries k7's slip guard gave up on (ep13 46-157, ep42 50-104,
-# ep45 167-217 tracked) and the losses grasps k7 tracked well (ep22's cup 9-143 1.8 -> 2.0 cm, ep40 19-114 1.1 -> 1.3,
-# ep23's board 82-282 1.9 -> 5.7)
-SMOOTH_REVOLUTION_ONLY = False  # under test: only bodies of revolution (a flat piece slides along its face unseen by a
+DIFF_STEP = 1e-4  # default: the fits on (a)'s finite-difference step when they see the smooth residual (Clip.carry_step;
+# else scipy's default, ~1.5e-8 relative). At the default the float32 raycasts and distance queries do not resolve the
+# step and the Jacobian is noise: on public frames a fit moved 0.1 mm or less. Alone, on the stepped residual, it follows
+# (a)'s jumps (ep40 0.940 -> 0.694, ep42 0.613 -> 0.494; not adopted)
+REST_DIFF_STEP = None  # default: the upright and stacked rest fits' (`vertical_fit`, `stacked_fit`) as before. At 1e-4
+# they do move, and ep12's cup in the rack moved 1 cm at frame 0: the scene, aligned by the cup's axis and the
+# cup-to-rack direction, turned the rack 2.7 -> 4.1 cm (0.759 -> 0.677)
+SMOOTH_FIT = True  # default: the fits on (a) can see Clip.fit_appearance, which has no steps (point_residual, the
+# silhouette read bilinearly); SMOOTH_FALLBACK says where
+SMOOTH_FALLBACK = True  # default: a grasp is solved with the stepped residual first, as before, and again with the
+# smooth one only when the first loses frames to the slip guard or a failed fit; the second is kept when it loses fewer.
+# Nothing else sees the smooth residual. Public, 20 episodes from S3c on v4_k7's inputs (v4_l5i): inverted 0.690 ->
+# 0.732, 10 up, none down; MP-SR 0.45 -> 0.60, MPPE 4.85 -> 4.42 cm (ep42 0.613 -> 0.849, ep45 0.629 -> 0.781, ep13
+# 0.780 -> 0.916, ep41 0.831 -> 0.917, ep43 0.429 -> 0.511, ep2 0.686 -> 0.764: carries the slip guard gave up on are
+# tracked). The smooth residual everywhere (v4_l5m) scored 0.747 but lost on grasps the stepped fit tracked well
+# (ep22's cup 9-143 1.8 -> 2.0 cm, ep40 19-114 1.1 -> 1.3, ep23's board 82-282 1.9 -> 5.3: a flat piece slides along
+# its face unseen by a point-to-mesh distance) and in the bridges' per-frame steps (v4_l5f: ep11's steadied cup
+# explained better tracked than held still, 0.979 -> 0.775)
+SMOOTH_REVOLUTION_ONLY = False  # not measured: only bodies of revolution (a flat piece slides along its face unseen by a
 # point-to-mesh distance: ep23's board 1, 82-282, 1.0 -> 5.3 cm while its residual fell 2.3 -> 1.7 mm)
 ICP_FIT = 0.3  # default: share of a frame's depth points ICP pairs (within 1 cm) for its pose to start pass 2
 ICP_REACH = (0.02, 0.01)  # default: ICP's pairing distance, coarse then fine (m)
