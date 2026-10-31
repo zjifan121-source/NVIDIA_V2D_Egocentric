@@ -248,3 +248,35 @@ def test_the_carrying_hand_wins_and_a_touch_on_a_still_object_is_static():
     moving = [g for g in grasps if g["end"] >= MOVE[0] + 5]
     assert moving and moving[0]["start"] <= MOVE[0] + 2
     assert all(s["kind"] == "static" for s in segs if s["end"] < MOVE[0] - 6)  # touched but still: static
+
+
+def jittered_start(clouds, last=20, step=0.012, seed=3):
+    """A still box whose fit jumps by about `step` on frames 0..last (fit noise, not motion: ep21's pitcher)."""
+    rng = np.random.default_rng(seed)
+    return [c + (rng.choice([-1, 1], 3) * [step, step, 0] if t <= last else 0) for t, c in enumerate(clouds)]
+
+
+def test_static_until_contact_turns_the_noisy_rest_before_the_hand_static(monkeypatch):
+    clouds, tips, wrist, valid = clip()
+    clouds = jittered_start(clouds)
+    segs, report, _ = G.segment(clouds, tips, wrist, valid, {})
+    assert segs[0]["kind"] != "static" or segs[0]["end"] < 15, report["segments"]  # off: no rest at frame 0
+    assert report["static_until_contact"] is None
+    monkeypatch.setattr(G, "STATIC_UNTIL_CONTACT", True)
+    segs, report, _ = G.segment(clouds, tips, wrist, valid, {})
+    sc = report["static_until_contact"]
+    assert sc["first_contact"] == 29 and sc["votes_turned_static"] > 0 and sc["turned_without_a_hand"] == 0
+    assert segs[0]["kind"] == "static" and segs[0]["start"] == 0 and segs[0]["end"] >= 28, report["segments"]
+    g = [s for s in segs if s["kind"] == "grasp"]
+    assert len(g) == 1 and abs(g[0]["start"] - GRASP) <= 3  # the grasp from the contact on is unchanged
+
+
+def test_static_until_contact_votes():
+    d = np.full((8, 2, 5), np.nan)
+    d[5:, 1, 0] = [0.08, 0.04, 0.01]  # the right thumb comes within 5 cm at frame 6
+    v = ["unstable", None, "unstable", "static", "unstable", "unstable", "unstable", "grasp:R"]
+    out, info = G.static_until_contact(v, d)
+    assert out == ["static", None, "static", "static", "static", "static", "unstable", "grasp:R"]
+    assert info == {"first_contact": 6, "votes_turned_static": 4, "turned_without_a_hand": 3}
+    out, info = G.static_until_contact(v, np.full((8, 2, 5), np.nan))  # never a hand: all static
+    assert out == ["static", None] + ["static"] * 6 and info["first_contact"] is None

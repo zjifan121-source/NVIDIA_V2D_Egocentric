@@ -20,6 +20,12 @@ MIN_GRASP become unstable, static runs shorter than MIN_STATIC join their neighb
 split where its hand has a long gap (> 15 frames: those frames become unstable). A grasp's fingertip
 set is the fingers of its hand within near on >= half its frames (at least the two most often).
 An object never grasped is one static segment (static: true).
+Static until contact (STATIC_UNTIL_CONTACT, Recon round P2 / C1, off: under test): an object at rest
+starts to move only once a hand reaches it (the ROHIT hand-interaction timeline), so every vote before
+the first frame with a fingertip of either hand within CONTACT_M of the object's points is static; from
+that frame on the votes are unchanged (the first rest→move transition only). ep21's pitcher read 4–13 mm
+on the motion test at rest (fit noise on a still object; no fingertip within 5 cm before frame 7), so it
+had no static segment at frame 0.
 Support of a static segment (the observed points pooled over it): `table` when their lowest 5 %
 are within SUPPORT_M of z = 0; else the other object whose footprint holds this one's centre and
 whose top reaches within SUPPORT_M of this one's bottom; else `table`, flagged `floating`.
@@ -46,6 +52,8 @@ SUPPORT_BELOW_M = 0.01  # default (§13.4 D1, bottom-up): a support's lowest poi
 # object's (ep0: the pot, seen from 2.8 cm up under its lid, was put on the lid, and the lid on the pot)
 LONG_GAP = 15  # frames: P1d's tracks_interpolate limit (hands.MAX_GAP)
 QUERY = 2000  # points per frame queried for motion (spec: <= 2 000)
+STATIC_UNTIL_CONTACT = False  # Recon round P2 (C1), under test: votes before the first hand contact are static
+CONTACT_M = 0.05  # m: a fingertip of either hand this close to the object's points is a contact (Recon P2)
 
 
 def centroids(clouds: list) -> np.ndarray:
@@ -132,6 +140,24 @@ def votes(mot: np.ndarray, d_tip: np.ndarray, near: float, far: float) -> list[s
         else:
             out.append("unstable")
     return out
+
+
+def first_contact(d_tip: np.ndarray, within: float = CONTACT_M) -> int | None:
+    """The first frame with a fingertip of either hand within `within` of the object's points, or None."""
+    close = (np.nan_to_num(d_tip, nan=np.inf) < within).reshape(len(d_tip), -1).any(axis=1)
+    return int(np.argmax(close)) if close.any() else None
+
+
+def static_until_contact(v: list[str | None], d_tip: np.ndarray) -> tuple[list[str | None], dict]:
+    """Every vote before the first contact (first_contact) becomes static; frames without object points keep
+    None and the votes from the contact on are unchanged. Returns the votes and what changed: the contact
+    frame, the votes turned static, and how many of those had no valid hand (no fingertips to measure)."""
+    t = first_contact(d_tip)
+    end = len(v) if t is None else t
+    turned = [i for i in range(end) if v[i] not in (None, "static")]
+    no_hand = sum(1 for i in turned if not np.isfinite(d_tip[i]).any())
+    out = ["static" if x is not None and i < end else x for i, x in enumerate(v)]
+    return out, {"first_contact": t, "votes_turned_static": len(turned), "turned_without_a_hand": no_hand}
 
 
 def hysteresis(v: list[str | None], k: int = HYSTERESIS) -> list[str]:
@@ -259,6 +285,9 @@ def segment(clouds: list, tips: np.ndarray, wrist: np.ndarray, valid: np.ndarray
     d_tip = tip_distances(clouds, tips, valid)
     th = thresholds(d_tip, certain_contact(cent, wrist, valid))
     v = votes(mot, d_tip, th["near_m"], th["far_m"])
+    until_contact = None
+    if STATIC_UNTIL_CONTACT:
+        v, until_contact = static_until_contact(v, d_tip)
     labels = hysteresis(v)
     rs = split_at_gaps(tidy(labels), long_gaps)
     rs = carrying(rs, d_tip, th["near_m"], cent, wrist, valid, mot)
@@ -276,7 +305,8 @@ def segment(clouds: list, tips: np.ndarray, wrist: np.ndarray, valid: np.ndarray
               "votes": {k: sum(1 for x in v if x == k) for k in ("static", "grasp:L", "grasp:R", "unstable", None)},
               "frames_without_points": int(sum(1 for c in clouds if c is None or not len(c))),
               "motion_mm_median": float(np.nanmedian(mot) * 1000) if np.isfinite(mot).any() else None,
-              "segments": [[s["kind"], s["start"], s["end"], s["hand"]] for s in segs]}
+              "segments": [[s["kind"], s["start"], s["end"], s["hand"]] for s in segs],
+              "static_until_contact": until_contact}
     return segs, report, {"motion": mot, "d_tip": d_tip, "centroid": cent}
 
 
