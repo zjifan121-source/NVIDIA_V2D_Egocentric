@@ -11,6 +11,14 @@ frame), and an object's must differ from every earlier track's with the same tex
 board" tracks both seeded on the left board). Look-alikes take instances in probability order, so which
 is which is arbitrary. Writes <out>/<track>/%06d.png (255 = the object, every frame) and
 <out>/sam3_meta.json.
+
+Re-seed (V4_BUILD_SPEC.md §14.5 G-A): request.json with "reseed": {"track": "hand_R", "other": "hand_L",
+"texts": ["right hand", "hand"], "boxes": {<frame>: [x0, y0, x1, y1]} (WiLoR's best box of the track's side,
+pixels), "max_iou", "box_match", "switch_run", "max_segments"} rebuilds that one hand track: seeded on the
+first frame WiLoR sees its side where an instance fills that box (mask box IoU >= box_match) without
+repeating the other hand (mask IoU < max_iou), propagated both ways; frames that repeat the other hand are
+blanked, and a run of switch_run of them is a switch to it: the track stops there and is seeded again on
+the next such frame. Writes <out>/<track>_reseed/%06d.png and <out>/sam3_reseed_meta.json.
 Imports only the sam3 package, numpy and PIL (no pathb).
 """
 from __future__ import annotations
@@ -45,6 +53,158 @@ def best(outputs: dict, min_prob: float, min_area: float, pixels: int, avoid: li
         return None
     i = max(keep, key=lambda k: probs[k])
     return ids[i], float(probs[i]), masks[i], boxes[i]
+
+
+def iou(a: np.ndarray, b: np.ndarray) -> float:
+    return float((a & b).sum() / max((a | b).sum(), 1))
+
+
+def box_iou(a, b) -> float:
+    """IoU of two (x0, y0, x1, y1) boxes."""
+    ix, iy = max(0.0, min(a[2], b[2]) - max(a[0], b[0])), max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+    union = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - ix * iy
+    return float(ix * iy / union) if union > 0 else 0.0
+
+
+def mask_box(m: np.ndarray) -> tuple[int, int, int, int]:
+    ys, xs = np.nonzero(m)
+    return int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
+
+
+def matching(outputs: dict, min_prob: float, min_area: float, pixels: int, box, other: np.ndarray | None,
+             max_iou: float, box_match: float):
+    """(object id, prob, mask, box IoU) of the instance that best fills `box` (WiLoR's box of the hand's
+    side; mask box IoU >= box_match) without repeating `other` (the other hand's mask, IoU < max_iou),
+    or None."""
+    ids = np.asarray(outputs["out_obj_ids"]).tolist()
+    if not ids:
+        return None
+    probs = np.asarray(outputs["out_probs"]).tolist() if outputs.get("out_probs") is not None else [1.0] * len(ids)
+    masks = np.asarray(outputs["out_binary_masks"]).astype(bool)
+    found = []
+    for i in range(len(ids)):
+        m = masks[i]
+        if probs[i] < min_prob or m.sum() < min_area * pixels:
+            continue
+        if other is not None and other.any() and iou(m, other) >= max_iou:
+            continue
+        match = box_iou(mask_box(m), box)
+        if match >= box_match:
+            found.append((match, probs[i], i))
+    if not found:
+        return None
+    match, prob, i = max(found)
+    return ids[i], float(prob), masks[i], match
+
+
+def cut(masks: dict, other: dict, start: int, stop: int, step: int, max_iou: float, switch_run: int):
+    """Walk masks (frame -> mask) from start toward stop (exclusive) by step: a frame whose mask repeats
+    the other hand's (IoU >= max_iou) is blanked; a run of switch_run such frames (frames without a mask
+    do not break it) is a switch to the other hand, where the walk ends. (kept, first frame of the switch
+    or None, blanked frames)."""
+    kept, blanked, run = {}, [], []
+    for k in range(start, stop, step):
+        m = masks.get(k)
+        if m is None:
+            continue
+        o = other.get(k)
+        if o is not None and iou(m, o) >= max_iou:
+            run.append(k)
+            if len(run) >= switch_run:
+                return kept, run[0], blanked + run
+            continue
+        blanked += run
+        run = []
+        kept[k] = m
+    return kept, None, blanked + run
+
+
+def propagate(predictor, session: str, direction: str, start: int, chosen) -> dict:
+    """frame -> mask of object `chosen`, propagated from `start` in one direction."""
+    masks = {}
+    for response in predictor.handle_stream_request(dict(type="propagate_in_video", session_id=session,
+                                                          propagation_direction=direction,
+                                                          start_frame_index=start)):
+        o = response["outputs"]
+        ids = np.asarray(o["out_obj_ids"]).tolist()
+        if chosen in ids:
+            m = np.asarray(o["out_binary_masks"])[ids.index(chosen)].astype(bool)
+            if m.any():
+                masks.setdefault(response["frame_index"], m)
+    return masks
+
+
+def reseed(predictor, fresh, req: dict, n: int, out: Path, pixels: int, size: tuple[int, int]) -> dict:
+    """The "reseed" request (module docstring): rebuilds one hand track segment by segment."""
+    r = req["reseed"]
+    w, h = size
+    other = {}
+    for k in range(n):
+        p = out / r["other"] / f"{k:06d}.png"
+        if p.is_file():
+            m = np.asarray(Image.open(p)) > 0
+            if m.any():
+                other[k] = m
+    boxes = {int(k): v for k, v in r["boxes"].items()}
+    final, segments, session, start = {}, [], None, 0
+    while start < n and len(segments) < r["max_segments"]:
+        session = fresh(session)
+        seed = None
+        for f in range(start, n):  # the first frame WiLoR sees this side with an instance in its box
+            if f not in boxes:
+                continue
+            for text in r["texts"]:
+                predictor.handle_request(dict(type="reset_session", session_id=session))
+                got = predictor.handle_request(dict(type="add_prompt", session_id=session, frame_index=f,
+                                                    text=text))["outputs"]
+                pick = matching(got, req["min_prob"], req["min_area"], pixels, boxes[f], other.get(f),
+                                r["max_iou"], r["box_match"])
+                if pick is not None:
+                    seed = (f, text, *pick)
+                    break
+            if seed is not None:
+                break
+        if seed is None:
+            break
+        f, text, obj, prob, mask, match = seed
+        forward = propagate(predictor, session, "forward", f, obj)
+        forward.setdefault(f, mask)
+        kept, switch, blanked = cut(forward, other, f, n, 1, r["max_iou"], r["switch_run"])
+        low = segments[-1]["end"] + 1 if segments else 0
+        back, back_blanked, back_error = {}, [], None
+        if f > low:  # backward from a fresh prompt, as the first pass (the pinned tracker cannot go back after a forward pass)
+            try:
+                session = fresh(session)
+                again = predictor.handle_request(dict(type="add_prompt", session_id=session, frame_index=f,
+                                                      text=text))["outputs"]
+                ids = np.asarray(again["out_obj_ids"]).tolist()
+                if ids:
+                    same = np.asarray(again["out_binary_masks"]).astype(bool)
+                    back_obj = ids[int(np.argmax([iou(x, mask) for x in same]))]
+                    back, _, back_blanked = cut(propagate(predictor, session, "backward", f, back_obj), other,
+                                                f - 1, low - 1, -1, r["max_iou"], r["switch_run"])
+            except RuntimeError as err:
+                back_error = str(err)[:200]
+        final.update(back)
+        final.update(kept)
+        end = switch - 1 if switch is not None else n - 1
+        segments.append({"seed_frame": f, "text": text, "seed_prob": prob, "box_iou": round(match, 3),
+                         "start": min([*back, *kept], default=f), "end": end, "frames": len(back) + len(kept),
+                         "blanked": len(blanked) + len(back_blanked), "switch": switch, "backward_error": back_error})
+        print(f"{r['track']} segment {len(segments)}: seed {f} ({text!r}), frames {segments[-1]['start']}-{end}, "
+              f"switch {switch}", flush=True)
+        if switch is None:
+            break
+        start = switch
+    if session is not None:
+        predictor.handle_request(dict(type="close_session", session_id=session))
+    d = out / f"{r['track']}_reseed"
+    d.mkdir(parents=True, exist_ok=True)
+    for k in range(n):
+        m = final.get(k)
+        Image.fromarray(((m if m is not None else np.zeros((h, w), bool)) * 255).astype(np.uint8)).save(
+            d / f"{k:06d}.png")
+    return {"track": r["track"], "other": r["other"], "segments": segments, "present_frames": sorted(final)}
 
 
 def main(request_path: str) -> int:
@@ -83,6 +243,12 @@ def main(request_path: str) -> int:
             predictor.handle_request(dict(type="close_session", session_id=old))
         return predictor.handle_request(dict(type="start_session", resource_path=str(frames),
                                              offload_video_to_cpu=True))["session_id"]
+    if req.get("reseed"):
+        t1 = time.time()
+        meta["reseed"] = reseed(predictor, fresh, req, n, out, pixels, (w, h)) | {"seconds": round(time.time() - t1, 1)}
+        meta["gpu_peak_mib"] = round(torch.cuda.max_memory_allocated() / 2 ** 20) if torch.cuda.is_available() else None
+        (out / "sam3_reseed_meta.json").write_text(json.dumps(meta, indent=1) + "\n")
+        return 0
     session, done = None, []
     for track in req["tracks"]:
         t1 = time.time()

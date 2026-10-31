@@ -275,6 +275,9 @@ def run(ctx) -> StageResult:
     log.write_text("")
     W = B.WEIGHTS
     mano = W / "hamer/_DATA/data"
+    shared = ctx.root / "p1b_masks/wilor_raw"  # P1b's run on the same frames (§14.5 G-A's hand check)
+    if not any((d / "wilor_raw").glob("*.json")) and any(shared.glob("*.json")):
+        shutil.copytree(shared, d / "wilor_raw", dirs_exist_ok=True)
     if not any((d / "wilor_raw").glob("*.json")):
         B.call("v2d.wilor.docker.run_video_to_hands:run_video_to_hands",
                {"video_path": d / "cam_a.mp4", "output_dir": d / "wilor_raw", "weights_dir": W / "wilor"}, log)
