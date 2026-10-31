@@ -14,6 +14,9 @@ which P1d reuses). Otherwise the track whose votes favour the other side most is
 re-seed from WiLoR's boxes of its side (the late-hand path from the first frame WiLoR sees that hand,
 seeded again after each switch to the other hand); the first pass's track stays in initial_<track>/.
 ep21/22/43/44: both prompts on one hand (IoU 0.67-0.99); ep0: the right track on the left hand from frame 230.
+On an episode whose S1 exists, rerun P1b, P1d, P3 and P4, not P1c: DROID-SLAM is not repeatable (ep45 on identical
+inputs: 0.5 mm median, 6.7 mm max), and G-A's P1c rerun moved ep0's camera 22.7 mm inside its rest (0.654 -> 0.354);
+with the S1 camera kept (G-A′, v4_ga2) ep0 rises to 0.693. P3 does not read the hands (identical with old and new).
 
 Out: obj_<i>/ (roster order), hand_L/, hand_R/ (%06d.png, 255 = inside), prompts.json,
 hand_tracks.json (the baseline's track schema: object 1, hands 2 = left and 3 = right, as P1d's
@@ -43,7 +46,7 @@ HANDS = (("hand_L", "left hand"), ("hand_R", "right hand"))
 OVERLAY_FRAMES = 8
 HAND_REACH = 0.04  # share of the image width: a hand's pieces lie this close to its main blob (fingers cut by an object)
 COLORS = [(40, 200, 40), (40, 120, 255), (255, 80, 40), (220, 40, 220), (40, 220, 220)]
-HAND_RESEED = False  # default off (§14.5 G-A built, not adopted: run v4_ga1): hand tracks that are not two distinct hands are re-seeded
+HAND_RESEED = True  # default (§14.5 G-A, adopted as G-A′: run v4_ga2): hand tracks that are not two distinct hands are re-seeded
 RESEED_IOU = 0.1  # spec: two hand tracks are distinct below this median mask IoU (and per frame in the re-seed)
 RESEED_BOX = 0.3  # default: a re-seed instance's mask box against WiLoR's box of its side (P1d's handedness bar)
 SWITCH_RUN = 3  # default: frames in a row repeating the other hand that make a switch to it

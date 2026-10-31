@@ -14,8 +14,8 @@ Earlier documents and parked code (v1's framework export and Stage 1 overview; v
 scene and merge runner; v3's spec, audit and v3-only stages), v2's `run.py visualize` page, the v3 dev
 analysis, the 2026-10-26 review pages and the checkpoints before `public_2026-10-30_l5i` were removed on
 2026-10-30; they are in git at `bb6bc46f` (`git show bb6bc46f:path_b/<path>`). `oracles/` holds the two
-baselines the waterfall reads; `reports/checkpoints/` the public checkpoints from `public_2026-10-30_l5i` on
-(tracked; `data/` is not).
+baselines the waterfall reads; `reports/checkpoints/` the public checkpoints from `public_2026-10-30_gd1` on
+(tracked; `data/` is not; `public_2026-10-30_l5i` was removed on 2026-10-31, in git at `2ae4796a`).
 
 Rules: all Path B code lives here. It uses `assets/` (inputs, docs, the official evaluator), calls
 `baseline/` modules only read-only (agreed 2026-10-18), and reuses the shared `tools/track3/` code
@@ -31,7 +31,7 @@ whose module is not built yet reports SKIP and writes no report.
 | `p0_ingest` | S1 | Decodes `ego_cam_a/b/c`; frame counts and resolutions must match the manifest and calibration | `report.json` | built |
 | `p1_calibrate` | S1 | Rectifies the head stereo pair (left `ego_cam_c`, right `ego_cam_b`) and undistorts `ego_cam_a` with the 14-coefficient factory model. The calibration does not say whether its intrinsics are native or upright, so all four readings are tried on the episode's frames and the best kept | `rect_left/`, `rect_right/`, `cam_a/`, `calib.json` | built |
 | `p2_depth` | S1 | FoundationStereo (the baseline's `v2d_foundation_stereo`, read-only) on the rectified pairs; the table plane in every frame; depth reprojected into `ego_cam_a`, with its extrinsics reading chosen by feature reprojection | `depth_rect/`, `planes.json`, `alignment.json`, `depth_a_half/` | built |
-| `p1b_masks` | S1 | SAM 3.1 text-prompted masks for each roster object and both hands (SAM2 + Grounding DINO fallback, flagged) | `obj_0/`, `hand_L/`, `hand_R/`, `prompts.json` | built; ran on ep40 (L40S, 2026-10-23) |
+| `p1b_masks` | S1 | SAM 3.1 text-prompted masks for each roster object and both hands (SAM2 + Grounding DINO fallback, flagged); two hand tracks that are not two distinct hands are re-seeded from WiLoR's boxes of their side (`HAND_RESEED`, §14.5 G-A′). On an episode whose S1 exists, the fix reruns P1b, P1d, P3 and P4 and keeps P1c's camera (DROID-SLAM is not repeatable) | `obj_0/`, `hand_L/`, `hand_R/`, `prompts.json` | built; ran on ep40 (L40S, 2026-10-23) |
 | `p1c_camera` | S1 | DROID-SLAM with the stereo depth (hands and objects masked out) as its depth prior: a metric camera path | `camera_to_world/`, `trajectory.txt` | built; ran on ep40 |
 | `p1d_hands` | S1 | WiLoR → HaMeR → depth alignment on the stereo depth, late hands on | `hamer_aligned_filled/`, `hand_scale.json` | built; ran on ep40. V4 adds fingertip / vertex / wrist exports and the hand-gap rule (task 2) |
 | `p3_scale_bridge` | S2 | Stereo camera height over P1c's on the rest window: the scale check (expected 1.00), the table plane and gravity | `scale.json` | built |
