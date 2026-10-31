@@ -96,6 +96,27 @@ def rests(report: list[dict]) -> list[tuple[int, int]]:
     return [(r["start"], r["end"]) for r in report if r["kind"] == "static"]
 
 
+def anchors(objects: list[str]) -> set[int]:
+    """The objects the scorer aligns a scene by (the kit's _align_registered_scene): object 0 (its frame-0 position)
+    and the first object without a symmetry axis (its frame-0 turn; object 0 on a scene of cups and lids)."""
+    return {0} | {next((k for k, o in enumerate(objects) if o not in symmetry.CUPS | symmetry.HALF_TURN), 0)}
+
+
+def everyone(view: View, k: int, others: list[int]):
+    """t -> the silhouette map of object k's allowed mask with every other object's added (invert.ANCHOR_FIT)."""
+    cache = {}
+
+    def at(t):
+        if t not in cache:
+            m = view.allowed(k, t)
+            for j in others:
+                theirs = view.allowed(j, t)
+                m = theirs if m is None else m if theirs is None else m | theirs
+            cache[t] = I.silhouette_map(m) if m is not None else None
+        return cache[t]
+    return at
+
+
 def clip(ctx, view: View, k: int, name: str, mesh: trimesh.Trimesh, hosts: list = ()) -> I.Clip:
     n = int(ctx.episode["num_frames"])
     rng = np.random.default_rng(k)
@@ -126,10 +147,13 @@ def clip(ctx, view: View, k: int, name: str, mesh: trimesh.Trimesh, hosts: list 
         surface = largest_above_table(S.integrate(fused))
         return S.mesh_points(surface, 5000) if len(surface.triangles) else None
 
+    anchor = I.ANCHOR_FIT and k in anchors(ctx.objects)
+    others = [j for j in range(len(ctx.objects)) if j != k]
     return I.Clip(K=view.K, c2w=view.c2w, obs=obs, tips=tips["tips"], wrist=wrist, valid=tips["valid"],
                   vertices=np.asarray(mesh.vertices, np.float64), faces=np.asarray(mesh.faces),
                   group=symmetry.group(name, np.asarray(mesh.vertices)), target=target, silhouette=sil, seed=k,
-                  revolution=name in REVOLUTION, hosts=list(hosts), hand_verts=hand_verts, hand_scale=hand_scale)
+                  revolution=name in REVOLUTION, hosts=list(hosts), hand_verts=hand_verts, hand_scale=hand_scale,
+                  anchor=anchor, occluders=everyone(view, k, others) if anchor and others else None)
 
 
 def run(ctx) -> StageResult:

@@ -770,3 +770,68 @@ def test_a_smooth_grasp_fit_moves_the_object_out_of_the_hand(monkeypatch):
     inside0 = np.mean([c.hand_clearance(P0[t - a], t).sum() for t in range(a, b + 1)])
     inside1 = np.mean([c.hand_clearance(P1[t - a], t).sum() for t in range(a, b + 1)])
     assert inside0 > 0.05 and inside1 < 0.2 * inside0, (inside0, inside1)
+
+
+def test_anchor_fit_puts_a_biased_first_rest_on_its_frames(monkeypatch):
+    # ANCHOR_FIT: the first rest's static fit 1 cm and 8 degrees about gravity off (a TSDF that cannot tell); fitted on
+    # all the rest's frames at once (depth and silhouette) it lands within 2 mm / 1 degree of the truth
+    c, segs, obj, m = clip()
+    off = np.eye(4)
+    off[:3, :3] = Rotation.from_rotvec([0, 0, np.radians(8)]).as_matrix()
+    off[:3, 3] = [0.01, 0.004, 0.0]
+    fit = {"pose": off @ obj[0], "residual_m": 0.001}
+    r = I.anchor_fit(c, 0, GRASP[0] - 1, fit)
+    assert r["anchor_fit"]["kept"] == "the joint fit", r["anchor_fit"]
+    err = add_mm(r["pose"][None], obj[:1], np.asarray(m.vertices))[0]
+    turn = np.degrees(Rotation.from_matrix(r["pose"][:3, :3] @ obj[0][:3, :3].T).magnitude())
+    assert err < 2.0 and turn < 1.0, (err, turn, r["anchor_fit"])
+    assert r["anchor_fit"]["point_median_mm"][1] < r["anchor_fit"]["point_median_mm"][0]
+
+
+def test_anchor_fit_runs_only_on_an_anchor_with_the_flag(monkeypatch):
+    c, segs, obj, m = clip()
+    P, report = I.solve(c, segs, start_pose(), FPS)
+    assert "anchor_fit" not in report[0]  # off (the default)
+    monkeypatch.setattr(I, "ANCHOR_FIT", True)
+    P1, report1 = I.solve(c, segs, start_pose(), FPS)
+    assert "anchor_fit" not in report1[0] and np.allclose(P1, P)  # on, but not an anchor
+    c.anchor = True
+    P2, report2 = I.solve(c, segs, start_pose(), FPS)
+    assert "anchor_fit" in report2[0] and "anchor_fit" not in report2[2]  # the first rest only
+    assert add_mm(P2[:1], obj[:1], np.asarray(m.vertices))[0] < 3.0
+
+
+def test_anchor_fit_keeps_an_upright_body_of_revolution_vertical():
+    c, segs, obj, m = clip()
+    c.revolution = True  # the box stands with its canonical z on world z, as the upright prior leaves a body of revolution
+    off = np.eye(4)
+    off[:3, 3] = [0.008, -0.006, 0.0]
+    r = I.anchor_fit(c, 0, GRASP[0] - 1, {"pose": off @ obj[0], "residual_m": 0.001})
+    assert r["anchor_fit"]["vertical"] and r["anchor_fit"]["kept"] == "the joint fit"
+    assert abs(I.tilt_deg(r["pose"]) - I.tilt_deg(obj[0])) < 1e-6
+    assert np.linalg.norm(r["pose"][:3, 3] - obj[0][:3, 3]) < 0.002
+
+
+def test_anchors_are_the_objects_the_scorer_aligns_by():
+    from pathb.stages.s3c_invert import anchors
+    assert anchors(["blue_cup", "plastic_dish_rack"]) == {0, 1}  # the cup's place, the rack's turn
+    assert anchors(["mini_sweeper", "plastic_dish_rack"]) == {0}
+    assert anchors(["white_pot", "white_pot_lid"]) == {0}
+    assert anchors(["white_pot_lid", "white_pot"]) == {0, 1}
+    assert anchors(["blue_cup", "beige_cup"]) == {0}
+    assert anchors(["white_pot"]) == {0}
+
+
+@pytest.mark.parametrize("shift_m, kept", [(0.03, "it moved more than 2 cm"), (0.0, "a correction under 2 mm")])
+def test_anchor_fit_keeps_the_static_fit_for_another_rest_or_a_correction_within_noise(shift_m, kept, monkeypatch):
+    # a joint fit 3 cm from the static fit is another rest, not a correction of it (ep12's cup behind the rack); one
+    # under the anchor's reproducibility (ANCHOR_MIN) is noise (ep41's pot): from the true pose the joint fit settles
+    # 1.5 mm off on this box's 1 mm depth noise. The static fit stays in both. One start only (the turned ones land up to
+    # 2 mm apart here)
+    monkeypatch.setattr(I, "ANCHOR_TURNS", ())
+    c, segs, obj, m = clip()
+    off = np.eye(4)
+    off[:3, 3] = [shift_m, 0.0, 0.0]
+    fit = {"pose": off @ obj[0], "residual_m": 0.001}
+    r = I.anchor_fit(c, 0, GRASP[0] - 1, fit)
+    assert kept in r["anchor_fit"]["kept"] and np.allclose(r["pose"], fit["pose"]), r["anchor_fit"]

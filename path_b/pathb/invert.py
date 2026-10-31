@@ -205,6 +205,25 @@ SMOOTH_FALLBACK = True  # default: a grasp is solved with the stepped residual f
 # explained better tracked than held still, 0.979 -> 0.775)
 SMOOTH_REVOLUTION_ONLY = False  # not measured: only bodies of revolution (a flat piece slides along its face unseen by a
 # point-to-mesh distance: ep23's board 1, 82-282, 1.0 -> 5.3 cm while its residual fell 2.3 -> 1.7 mm)
+ANCHOR_FIT = False  # Recon round P1 (C6, under test). The scorer aligns a scene by object 0's frame-0 position and the
+# first object without a symmetry axis's frame-0 turn (the kit's _align_registered_scene), so the error of an anchor's
+# first rest, fitted on one TSDF of at most 30 frames, moves every other object (public gdp, the scene aligned on all
+# objects' frame-0 poses at once instead: ep31 0.749 -> 0.913, its sweeper 12 degrees off the rest of the scene; ep12
+# 0.759 -> 0.895, its cup 2.6 cm). On: an anchor's first rest (the static segment at frame 0; Clip.anchor) is fitted once
+# more on its frames at once (at most ANCHOR_FRAMES): each frame's mask pixels at their stereo depth against the posed
+# mesh (point_residual) and the posed mesh's silhouette against the mask with every other object's added (it may hide
+# the anchor), from the static fit and that fit turned ANCHOR_TURNS degrees about gravity (an object whose turn is scored).
+# A body of revolution standing vertical keeps its tilt (place and turn only: the upright prior); a stacked rest keeps its
+# host's axis. Kept when it explains the rest at least as well both ways (median point residual not higher, mask
+# disagreement not higher by more than RAYS_TIE), moved at most ANCHOR_MAX_MOVE_M (a correction of this rest, not another
+# rest: public run v4_p1a kept ep12's cup 8.7 cm away, behind the rack's wires, 0.759 -> 0.421, and ep26's rack with its
+# depth fit worse, 0.923 -> 0.897) and by at least ANCHOR_MIN (a correction under the anchor's own reproducibility across
+# camera runs is noise: ep41's pot 1.9 mm / 0.2 degrees, 0.917 -> 0.903)
+ANCHOR_MAX_MOVE_M = 0.02  # default: the largest move of the rest's centroid kept
+ANCHOR_MIN = (0.002, 0.5)  # default: m and degrees (the scored turn; a symmetric body's axis), P1's reproducibility bar
+ANCHOR_FRAMES = 120  # default: frames of the first rest the joint fit reads (evenly spaced)
+ANCHOR_TURNS = (-20.0, -10.0, 10.0, 20.0)  # default: degrees about gravity, extra starts for a scored turn
+ANCHOR_BOOTSTRAP = 0  # default: refits on frames drawn with replacement, for the anchor's spread (a GT-free signal; 0: none)
 ICP_FIT = 0.3  # default: share of a frame's depth points ICP pairs (within 1 cm) for its pose to start pass 2
 ICP_REACH = (0.02, 0.01)  # default: ICP's pairing distance, coarse then fine (m)
 SIL_POINTS = 200  # default: canonical surface points projected for the silhouette term
@@ -257,6 +276,8 @@ class Clip:
     # mask with the host's added}
     hand_verts: np.ndarray | None = None  # (N, 2, V, 3) the hands' MANO vertices, world (HAND_CLEAR), or None
     hand_scale: np.ndarray | None = None  # (N, 2) the bundle's per-frame hand scales (hands L, R), or None
+    anchor: bool = False  # one of the objects the scorer aligns the scene by (ANCHOR_FIT)
+    occluders: object = None  # t -> silhouette_map of the allowed mask with every other object's added (ANCHOR_FIT), or None
     scene: o3d.t.geometry.RaycastingScene = field(init=False)
     surface: o3d.geometry.PointCloud = field(init=False)
     fit_smooth: bool | None = field(default=None, init=False)  # set: overrides `smooth` (SMOOTH_FALLBACK's two solves)
@@ -672,6 +693,89 @@ def upright(clip: Clip, a: int, b: int, free: dict, pts: np.ndarray, init: np.nd
         return free | {"upright": log | {"kept": "the free fit (its evidence beats the vertical)"}}
     return free | vertical | {"symmetry_index": free.get("symmetry_index", 0), "upright": log | {"kept": way},
                               "start_from": f"{free.get('start_from', '')}; then {way} (the prior: {tilt:.0f} degrees off vertical)"}
+
+
+def anchor_fit(clip: Clip, a: int, b: int, fit: dict) -> dict:
+    """ANCHOR_FIT on an anchor's first rest [a, b]: the static fit `fit` with its pose replaced by the joint fit over
+    the rest's frames when that is kept, and an "anchor_fit" log either way (frames read, the start that won, how far
+    it moved and turned, both fits' robust cost, median point residual and mask disagreement, and with ANCHOR_BOOTSTRAP
+    the spread of refits on frames drawn with replacement)."""
+    log: dict = {"frames": 0}
+    if (fit.get("stacked") or {}).get("kept") == "stacked":
+        return fit | {"anchor_fit": log | {"kept": "the stacked fit (on its host's axis)"}}
+    ts = [t for t in range(a, b + 1) if clip.obs[t] is not None]
+    if len(ts) < 2:
+        return fit | {"anchor_fit": log | {"kept": "the static fit (fewer than 2 frames seen)"}}
+    ts = ts[:: int(np.ceil(len(ts) / ANCHOR_FRAMES))]
+    P0 = fit["pose"]
+    tilt = tilt_deg(P0)
+    vertical = clip.revolution and min(tilt, 180.0 - tilt) <= UPRIGHT_TILT_DEG
+    centre = P0[:3, :3] @ np.asarray(clip.surface.points).mean(axis=0) + P0[:3, 3]
+
+    def pose(x):
+        R = Rotation.from_euler("z", x[0]).as_matrix() if vertical else Rotation.from_rotvec(x[:3]).as_matrix()
+        T = np.eye(4)
+        T[:3, :3] = R @ P0[:3, :3]
+        T[:3, 3] = centre + R @ (P0[:3, 3] - centre) + (x[1:] if vertical else x[3:])
+        return T
+
+    def residual(x, frames=ts):
+        T = pose(x)
+        return np.concatenate([np.concatenate([clip.point_residual(T, t, FIT_RAYS), clip.silhouette_residual(
+            T, t, clip.occluders(t) if clip.occluders else None, bilinear=True)]) for t in frames])
+
+    def solve_from(x0, frames=ts):
+        return lsq(lambda x: residual(x, frames), x0, DIFF_STEP, loss="soft_l1", f_scale=0.005, max_nfev=100,
+                   x_scale=[0.1] + [0.01] * 3 if vertical else [0.1] * 3 + [0.01] * 3)
+
+    def turn(deg):
+        x = np.zeros(4 if vertical else 6)
+        x[0 if vertical else 2] = np.radians(deg)
+        return x
+
+    starts = [0.0] + (list(ANCHOR_TURNS) if len(clip.group) == 1 else [])
+    sols = [(deg, solve_from(turn(deg))) for deg in starts]
+    deg, best = min(sols, key=lambda s: s[1].cost)
+    T = pose(best.x)
+    point = lambda Q: float(np.median(np.concatenate([clip.point_residual(Q, t, FIT_RAYS) for t in ts])))  # noqa: E731
+    hang = lambda Q: overhang(clip, a, b, Q, silhouette=clip.occluders)  # noqa: E731  # as the fit reads the mask
+    before = {"pose": P0, "rays_missed": rays_missed(clip, a, b, P0), "overhang": hang(P0)}
+    after = {"pose": T, "rays_missed": rays_missed(clip, a, b, T), "overhang": hang(T)}
+    cost0 = float(0.5 * np.sum(2 * (np.sqrt(1 + (residual(np.zeros_like(best.x)) / 0.005) ** 2) - 1)) * 0.005 ** 2)
+    log |= {"frames": len(ts), "vertical": vertical, "start_turn_deg": deg,
+            "moved_mm": round(float(np.linalg.norm(T[:3, :3] @ np.asarray(clip.surface.points).mean(axis=0) + T[:3, 3]
+                                                   - centre)) * 1000, 2),
+            "turned_deg": round(float(np.degrees(Rotation.from_matrix(T[:3, :3] @ P0[:3, :3].T).magnitude())), 2),
+            "cost_static": cost0, "cost_joint": float(best.cost),
+            "point_median_mm": [round(point(P0) * 1000, 2), round(point(T) * 1000, 2)],
+            "disagreement": [disagreement(before), disagreement(after)]}
+    if ANCHOR_BOOTSTRAP:
+        rng = np.random.default_rng(clip.seed)
+        moved, turned = [], []
+        for _ in range(int(ANCHOR_BOOTSTRAP)):
+            Q = pose(solve_from(best.x, sorted(rng.choice(ts, len(ts)))).x)
+            moved.append(np.linalg.norm(Q[:3, 3] - T[:3, 3] + (Q[:3, :3] - T[:3, :3]) @ np.asarray(clip.surface.points).mean(axis=0)))
+            # a body with a symmetry axis: its axis's turn only (its spin about it is free)
+            turned.append(np.arccos(np.clip(Q[:3, 2] @ T[:3, 2], -1, 1)) if len(clip.group) > 1
+                          else Rotation.from_matrix(Q[:3, :3] @ T[:3, :3].T).magnitude())
+        log["bootstrap"] = {"n": int(ANCHOR_BOOTSTRAP), "max_mm": round(float(np.max(moved)) * 1000, 2),
+                            "max_deg": round(float(np.degrees(np.max(turned))), 2)}
+    scored = (np.degrees(np.arccos(np.clip(T[:3, 2] @ P0[:3, 2], -1, 1))) if len(clip.group) > 1
+              else log["turned_deg"])  # a body with a symmetry axis: its axis's turn (its spin about it is free)
+    log["scored_turn_deg"] = round(float(scored), 2)
+    reasons = [
+        (log["point_median_mm"][1] > STATIC_BAR_M * 1000, "its point residual misses the static bar"),
+        ((log["disagreement"][1] or 0.0) > (log["disagreement"][0] or 0.0) + RAYS_TIE, "the mask disagrees more"),
+        (log["point_median_mm"][1] > log["point_median_mm"][0], "its point residual is higher"),
+        (log["moved_mm"] > ANCHOR_MAX_MOVE_M * 1000, f"it moved more than {ANCHOR_MAX_MOVE_M * 100:.0f} cm"),
+        (log["moved_mm"] < ANCHOR_MIN[0] * 1000 and scored < ANCHOR_MIN[1],
+         f"a correction under {ANCHOR_MIN[0] * 1000:.0f} mm / {ANCHOR_MIN[1]} degrees"),
+        (best.cost >= cost0, "no lower cost")]
+    why = next((w for bad, w in reasons if bad), None)
+    if why:
+        return fit | {"anchor_fit": log | {"kept": f"the static fit ({why})"}}
+    return fit | {"pose": T, "anchor_fit": log | {"kept": "the joint fit"},
+                  "start_from": f"{fit.get('start_from', '')}; then fitted on the rest's {len(ts)} frames (anchor)"}
 
 
 def disagreement(f: dict) -> float | None:
@@ -1351,6 +1455,8 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
             earlier = [P[last - k] for k in EARLIER if last is not None and known(last - k)]
             rest = next((P[w["start"]] for w in reversed(work[:i]) if w["kind"] == "static" and known(w["start"])), None)
             r = solve_static(clip, a, b, init, earlier, rest)
+            if ANCHOR_FIT and clip.anchor and i == 0 and a == 0:
+                r = anchor_fit(clip, a, b, r)
             r |= beyond_reach(clip, work, i, r["pose"], P, moved_by)
             P[a:b + 1] = r["pose"]
             solved[i] = [{"kind": "static", "start": a, "end": b, **{k: v for k, v in r.items() if k != "pose"}}]
