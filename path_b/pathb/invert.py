@@ -154,11 +154,14 @@ MOVING_CARRIER = True  # default (§14.5 G-D's motion-triggered grasp, as a carr
 # ep27 112-139, ep43 133-140, ep44 33-48; ep22's pour 46-153 has no rigid wrist (20 cm). Public, 20 episodes, on
 # l5i: inverted 0.7322 -> 0.7329 (ep27 +0.009, ep43 +0.006, ep44 +0.001; none down)
 MOVING_PATH_M, RIGID_SPREAD_M, RIGID_REACH_M = 0.02, 0.03, 0.30  # default: m
-HAND_CLEAR = False  # under test (spec §14 L6): the grasp fits that see the smooth residual (SMOOTH_FALLBACK's second
-# solve) also keep the hands' MANO vertices out of the closed mesh: residual (d), each sampled vertex's depth inside
-# the posed object beyond HAND_CLEAR_MARGIN_M (`hand_clearance`); a hand whose scale is under HAND_CLEAR_SCALE is
-# inflated about its wrist by 1/scale first. The margin is the truth's own: on the 7 single-object public episodes the
-# truth moved into our world by frame 0 sits 0.9-7.9 mm (median; p90 <= 8.6 mm) into our hands, as deep as our poses
+HAND_CLEAR = False  # default; built, not adopted (spec §14 L6): the grasp fits that see the smooth residual
+# (SMOOTH_FALLBACK's second solve) also keep the hands' MANO vertices out of the closed mesh: residual (d), each sampled
+# vertex's depth inside the posed object beyond HAND_CLEAR_MARGIN_M (`hand_clearance`); a hand whose scale is under
+# HAND_CLEAR_SCALE is inflated about its wrist by 1/scale first. The margin is the truth's own: on the 7 single-object
+# public episodes the truth moved into our world by frame 0 sits 0.9-7.9 mm (median; p90 <= 8.6 mm) into our hands, as
+# deep as our poses. Public, 20 episodes on gd1's inputs (v4_l6a): inverted 0.7329 -> 0.7219, 1 up, 3 down (ep45
+# 0.781 -> 0.609, ep41 0.917 -> 0.870, ep13 0.916 -> 0.900): it moves whole grasps (ep45's pot up to 66 mm); the hands
+# are not that precise
 HAND_CLEAR_SCALE, HAND_CLEAR_MARGIN_M, HAND_CLEAR_POINTS, SIG_D = 0.85, 0.01, 128, 0.005  # default: -, m, per hand, m
 HELD = True  # default: an S3b grasp between two rests that leave the object within HELD_M / HELD_DEG of where it was
 # (up to its symmetry; a body of revolution: its axis) is also tried as held still (the rest before interpolated to the rest after) and takes that
