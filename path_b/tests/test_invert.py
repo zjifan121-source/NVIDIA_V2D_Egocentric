@@ -669,3 +669,20 @@ def test_a_lost_grasp_is_solved_again_smooth_and_kept_only_if_it_loses_less(monk
     monkeypatch.setattr(I, "solve_grasp", lambda *args, **kwargs: stepped_slips(*args, worse=True, **kwargs))
     P, report = I.solve(c, segs, start_pose(), FPS)
     assert seen[:2] == [False, True] and not any(r.get("smooth") for r in report)
+
+
+def test_an_unstable_run_moving_with_a_wrist_is_carried_by_it(monkeypatch):
+    # MOVING_CARRIER: S3b found no grasp (fingertips hidden: the carry is one unstable run), but the object's observed
+    # centroid moves rigidly with the right wrist; its bridge then tries the object moved with that wrist and keeps it
+    c, segs, obj, m = clip()
+    a, b = GRASP
+    unstable = [segs[0], {"kind": "unstable", "start": a, "end": b, "hand": None, "fingertips": []}, segs[2]]
+    assert I.rigid_hand(c, a, b) == 1
+    monkeypatch.setattr(I, "MOVING_CARRIER", True)
+    P, report = I.solve(c, unstable, start_pose(), FPS)
+    row = next(r for r in report if r["kind"] == "unstable" and r["start"] == a)
+    err = add_mm(P, obj, np.asarray(m.vertices))[a:b + 1]
+    monkeypatch.setattr(I, "MOVING_CARRIER", False)
+    P0, report0 = I.solve(c, unstable, start_pose(), FPS)
+    err0 = add_mm(P0, obj, np.asarray(m.vertices))[a:b + 1]
+    assert row["guess"] == "carried" and np.median(err) < 0.5 * np.median(err0), (row, np.median(err), np.median(err0))

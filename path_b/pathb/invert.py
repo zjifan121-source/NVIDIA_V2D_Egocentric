@@ -147,6 +147,12 @@ JOINT_SMOOTH_M, JOINT_SMOOTH_RAD = 0.005, np.radians(3)  # default: its second d
 CARRIED_BRIDGES = True  # default: a bridge over frames S3b saw a hand holding also tries the object moved with that
 # wrist (`carried`) and keeps whichever guess explains the frames better (`explains`). Public, 20 episodes, on top of
 # the gap anchor: best of three 0.546 -> 0.554 (12, 13, 26, 41, 42 up 0.02-0.05; ep45 -0.008)
+MOVING_CARRIER = False  # under test (§14.5 G-D's motion-triggered grasp, as a carrier only): an S3b unstable run whose
+# object moves rigidly with one wrist although no fingertips were seen near it (`rigid_hand`) is carried by that hand
+# in its bridge's `carried` guess (kept where it explains the frames better), and its wrist's travel counts in the
+# reach rule (`beyond_reach`). Public l5i: ep21 106-121 (spread 1.2 cm),
+# ep27 112-139 (2.4), ep43 133-140 (1.1), ep24 board1 52-80 (2.2-2.3); ep22's pour 46-153 has no rigid wrist (20 cm)
+MOVING_PATH_M, RIGID_SPREAD_M, RIGID_REACH_M = 0.02, 0.03, 0.30  # default: m
 HELD = True  # default: an S3b grasp between two rests that leave the object within HELD_M / HELD_DEG of where it was
 # (up to its symmetry; a body of revolution: its axis) is also tried as held still (the rest before interpolated to the rest after) and takes that
 # where it explains the grasp's frames (`explains`) no worse than the solved track; logged (`held`). Public ep11
@@ -1011,6 +1017,33 @@ def joint_bridge(clip: Clip, a: int, b: int, guess: np.ndarray, ends: tuple[bool
             "turned_deg": float(np.degrees(np.linalg.norm(total[:, :3], axis=1).max()))}
 
 
+def rigid_hand(clip: Clip, a: int, b: int) -> int | None:
+    """MOVING_CARRIER: the hand an S3b unstable run's object moves with although its fingertips were not seen near
+    (a pour, the grip hidden): the observed centroid travels >= MOVING_PATH_M over [a, b], and in that hand's wrist
+    frame it scatters <= RIGID_SPREAD_M (RMS) at <= RIGID_REACH_M from the wrist (median); the more rigid hand. None
+    without one."""
+    cent = np.full((b - a + 1, 3), np.nan)
+    for i, t in enumerate(range(a, b + 1)):
+        pc = frame_cloud(clip, t)
+        if pc is not None:
+            cent[i] = np.median(np.asarray(pc.points), axis=0)
+    ok = np.isfinite(cent).all(axis=1)
+    if ok.sum() < MIN_GRASP or np.linalg.norm(np.diff(cent[ok], axis=0), axis=1).sum() < MOVING_PATH_M:
+        return None
+    best = None
+    for h in range(2):
+        fr = [i for i in range(b - a + 1) if ok[i] and clip.valid[a + i, h]]
+        if len(fr) < MIN_GRASP:
+            continue
+        W = clip.wrist[[a + i for i in fr], h]
+        local = np.einsum("nji,nj->ni", W[:, :3, :3], cent[fr] - W[:, :3, 3])
+        spread = float(np.sqrt(((local - local.mean(axis=0)) ** 2).sum(axis=1).mean()))
+        reach = float(np.median(np.linalg.norm(local, axis=1)))
+        if spread <= RIGID_SPREAD_M and reach <= RIGID_REACH_M and (best is None or spread < best[1]):
+            best = (h, spread)
+    return best[0] if best else None
+
+
 def explains(clip: Clip, poses: np.ndarray, a: int) -> float | None:
     """Mean over the frames with a mask above the bar of the mean |residual (a)| of `poses` from frame a, each
     residual capped at MISS. A median saturates at MISS once half the rays miss (ep43's 0-274 bridge: 3 cm
@@ -1098,18 +1131,21 @@ def held_still(clip: Clip, a: int, b: int, P: np.ndarray, report: list[dict]) ->
             row["held"] = {"explains_track_m": track, "explains_held_m": held}
 
 
-def beyond_reach(clip: Clip, work: list[dict], i: int, pose: np.ndarray, P: np.ndarray) -> dict:
+def beyond_reach(clip: Clip, work: list[dict], i: int, pose: np.ndarray, P: np.ndarray,
+                 moved_by: dict | None = None) -> dict:
     """A rest farther from the object's previous rest than the hands that held it in between reached (the farthest
-    each S3b grasp's wrist got from where it started, summed) plus REACH_MARGIN keeps the previous rest's pose: an object
-    moves only with a hand. {} when it is within reach or there is no previous rest."""
+    each S3b grasp's wrist got from where it started, summed; with MOVING_CARRIER also each unstable run's rigid hand,
+    moved_by: work index -> hand) plus REACH_MARGIN keeps the previous rest's pose: an object moves only with a hand.
+    {} when it is within reach or there is no previous rest."""
     if REACH_MARGIN is None:
         return {}
     prev = next((s for s in reversed(work[:i]) if s["kind"] == "static"), None)
     if prev is None or not np.isfinite(P[prev["end"]]).all():
         return {}
     reach = 0.0
-    for g in (s for s in work if s["kind"] == "grasp" and prev["end"] < s["start"] and s["end"] < work[i]["start"]):
-        h = ("L", "R").index(g["hand"])
+    held = [(s, ("L", "R").index(s["hand"])) for s in work if s["kind"] == "grasp"]
+    held += [(work[j], h) for j, h in (moved_by or {}).items()]
+    for g, h in ((s, h) for s, h in held if prev["end"] < s["start"] and s["end"] < work[i]["start"]):
         w = clip.wrist[[t for t in range(g["start"], g["end"] + 1) if clip.valid[t, h]], h, :3, 3]
         reach += float(np.linalg.norm(w - w[0], axis=1).max()) if len(w) else 0.0
     moved = float(np.linalg.norm(pose[:3, 3] - P[prev["end"], :3, 3]))
@@ -1196,6 +1232,8 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
             return parts
         return [p | {"smooth": {"lost_stepped": lost, "lost_smooth": lost_frames(smooth)}} for p in smooth]
 
+    moved_by = {i: h for i, s in enumerate(work) if MOVING_CARRIER and s["kind"] == "unstable"
+                and s["end"] - s["start"] + 1 >= MIN_GRASP and (h := rigid_hand(clip, s["start"], s["end"])) is not None}
     solved: dict[int, list[dict]] = {}
     for i, s in enumerate(work):  # sweep 1: statics and grasps in clip order
         a, b = s["start"], s["end"]
@@ -1208,7 +1246,7 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
             earlier = [P[last - k] for k in EARLIER if last is not None and known(last - k)]
             rest = next((P[w["start"]] for w in reversed(work[:i]) if w["kind"] == "static" and known(w["start"])), None)
             r = solve_static(clip, a, b, init, earlier, rest)
-            r |= beyond_reach(clip, work, i, r["pose"], P)
+            r |= beyond_reach(clip, work, i, r["pose"], P, moved_by)
             P[a:b + 1] = r["pose"]
             solved[i] = [{"kind": "static", "start": a, "end": b, **{k: v for k, v in r.items() if k != "pose"}}]
         elif s["kind"] == "grasp":
@@ -1235,6 +1273,9 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
     for row in rows:
         if row["kind"] == "unstable" and ("arriving" in row.get("why", "") or "letting go" in row.get("why", "")):
             carrier[row["start"]:row["end"] + 1] = -1
+    for j, h in moved_by.items() if CARRIED_BRIDGES else ():
+        a, b = work[j]["start"], work[j]["end"]
+        carrier[a:b + 1] = np.where(carrier[a:b + 1] < 0, h, carrier[a:b + 1])
     # bridges: unstable segments, slip runs, failed grasps, frames left unsolved. A failed grasp (its fit within
     # 1 cm on under half its frames) is bridged like an unstable run: ep26's carry, placed 56 cm off, pulled the
     # bridges on both sides to it, and S4b's interpolation over the grasp alone then ran between those
