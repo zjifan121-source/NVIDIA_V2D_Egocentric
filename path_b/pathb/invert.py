@@ -147,11 +147,12 @@ JOINT_SMOOTH_M, JOINT_SMOOTH_RAD = 0.005, np.radians(3)  # default: its second d
 CARRIED_BRIDGES = True  # default: a bridge over frames S3b saw a hand holding also tries the object moved with that
 # wrist (`carried`) and keeps whichever guess explains the frames better (`explains`). Public, 20 episodes, on top of
 # the gap anchor: best of three 0.546 -> 0.554 (12, 13, 26, 41, 42 up 0.02-0.05; ep45 -0.008)
-MOVING_CARRIER = False  # under test (§14.5 G-D's motion-triggered grasp, as a carrier only): an S3b unstable run whose
+MOVING_CARRIER = True  # default (§14.5 G-D's motion-triggered grasp, as a carrier only): an S3b unstable run whose
 # object moves rigidly with one wrist although no fingertips were seen near it (`rigid_hand`) is carried by that hand
 # in its bridge's `carried` guess (kept where it explains the frames better), and its wrist's travel counts in the
-# reach rule (`beyond_reach`). Public l5i: ep21 106-121 (spread 1.2 cm),
-# ep27 112-139 (2.4), ep43 133-140 (1.1), ep24 board1 52-80 (2.2-2.3); ep22's pour 46-153 has no rigid wrist (20 cm)
+# reach rule (`beyond_reach`). Rigid runs on public: ep2 lid 81-106, ep21 106-121, ep24 board1 52-61 / 73-80 / 91-114,
+# ep27 112-139, ep43 133-140, ep44 33-48; ep22's pour 46-153 has no rigid wrist (20 cm). Public, 20 episodes, on
+# l5i: inverted 0.7322 -> 0.7329 (ep27 +0.009, ep43 +0.006, ep44 +0.001; none down)
 MOVING_PATH_M, RIGID_SPREAD_M, RIGID_REACH_M = 0.02, 0.03, 0.30  # default: m
 HELD = True  # default: an S3b grasp between two rests that leave the object within HELD_M / HELD_DEG of where it was
 # (up to its symmetry; a body of revolution: its axis) is also tried as held still (the rest before interpolated to the rest after) and takes that
