@@ -26,5 +26,5 @@ DINO (P1b's fallback, flagged), FlashCHORD (S5 tasks, S6 training and evaluation
 evaluator and packer. MANO (hand model): the MPI licence of each team member, files never in git.
 
 Not used: EgoFound3R (CC BY-NC-SA 4.0: its ShareAlike and non-commercial terms conflict with the
-challenge's release of winning code, spec §7); SPIDER (v2 only, `cache/v2/`); SAM 3D Objects (v3's
-S3a, `cache/v3/`).
+challenge's release of winning code, spec §7); SPIDER (v2 only); SAM 3D Objects (v3's
+S3a). Both were parked code, removed 2026-10-30 (git `bb6bc46f`).

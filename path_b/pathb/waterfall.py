@@ -8,7 +8,7 @@ the stage that makes it has run:
   realised_<cand.>   S4c's physically realised trajectories (Do as I Do; off by default)
   rollout_<cand.>    S6's evaluator rollouts of the trained policies
 v3's columns fused, stage2_clean (both on S3c's fused bundle), ref_tracking, a2_* and p2_* are gone
-with the stages that made them (cache/v3/). Every bundle column is scored twice: as submitted, and
+with the stages that made them (git bb6bc46f:path_b/cache/v3/). Every bundle column is scored twice: as submitted, and
 with the public scan as mesh, placed in our
 mesh's frame as the official metric registers it (gt.scan_in_frame): `<column>@scan`, "scan mesh -
 ceiling, not submittable", the score our poses would get with a perfect mesh.

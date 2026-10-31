@@ -432,7 +432,7 @@ def markdown(eps: list[dict], run: Path, tag: str, base: dict | None = None) -> 
     if si:
         md += [f"> **Stand-in inputs:** {', '.join(si)} come from run `4c2eac31`'s v2 bundles (the team's HF "
                "reconstructions at stereo scale), not from v3's own GPU stages; every number downstream of them is "
-               "a stand-in number. The dev cache (`vm/dev_cache.sh`) replaces them.", ""]
+               "a stand-in number. The dev cache (`vm/phase_b.sh`, EPISODES='41 13') replaces them.", ""]
     fl = flaws(eps)
     md += [f"**At a glance — biggest flaw:** {fl[0][0] if fl else ''}", ""]
     # (a)

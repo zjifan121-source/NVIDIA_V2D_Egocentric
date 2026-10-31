@@ -3,7 +3,7 @@
 Each object's support disk (centre and radius of its footprint, height of its lowest point) goes to
 tools/track3/support_stacked.py drop_stacked_supports in $RETARGET_VENV (drivers/support_relation.py):
 an object whose disk sits more than 1 cm above another's and inside its circle rests on it.
-Kept from v3's phase 2 (cache/v3/phase2.py), where S4a used it.
+Kept from v3's phase 2 (phase2.py, removed; git bb6bc46f:path_b/cache/v3/), where S4a used it.
 """
 from __future__ import annotations
 

@@ -3,7 +3,7 @@
 # soon as it finishes and before the next starts (V4_BUILD_SPEC.md §6, §9).
 #
 #     ssh -t l40s "tmux new -d -s v4 'bash /root/v2d/NVIDIA_V2D_Egocentric/path_b/vm/phase_b.sh'"
-#     EPISODES="41 13" bash path_b/vm/phase_b.sh               # the dev cache (vm/dev_cache.sh)
+#     EPISODES="41 13" bash path_b/vm/phase_b.sh               # the dev cache
 #     EPISODES="12" FROM=p1d_hands bash path_b/vm/phase_b.sh    # after a fix: that stage onward, forced
 #     STAGES="s4b_reference s5_task s6_train s6_eval s6_select" bash path_b/vm/phase_b.sh  # a later window
 #
