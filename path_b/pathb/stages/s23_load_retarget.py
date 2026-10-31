@@ -2,7 +2,7 @@
 repairs), then the reconstruction-only score of what it would hand FlashCHORD (public episodes).
 
 Needs RETARGET_VENV (README §5.12). One object: the runner on that object's bundle. Two-object
-episodes are skipped for now: v2's merge runner is parked in cache/v2/, and v3 assembles them with
+episodes are skipped for now: v2's merge runner was removed (git bb6bc46f:path_b/cache/v2/), and v3 assembles them with
 run_load_retarget.py --merge in S5 mode A (V3_BUILD_SPEC.md §5, task 15).
 """
 from __future__ import annotations
@@ -37,7 +37,7 @@ def worst_seating(value) -> float | None:
 def run(ctx) -> StageResult:
     if len(ctx.objects) > 1:
         return StageResult([], skip="two-object scene: assembled with run_load_retarget.py --merge in S5 mode A "
-                                    "(task 15); v2's merge runner is parked in cache/v2/")
+                                    "(task 15)")
     d = ctx.dir("s23_load_retarget")
     out = d / "run"
     if out.exists():

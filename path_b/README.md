@@ -10,10 +10,12 @@ stable-grasp and unstable segments, and each is solved with the rule that holds 
 static segment; over a grasp, the hand track carries the object). The build spec, `V4_BUILD_SPEC.md`,
 is the source of truth for stages, parameters, acceptance bars and the task order; `BUILD_LOG.md`
 records every task and decision (v3's rows first, then the v4 section). Dev episodes: ep41 and ep13.
-`cache/` keeps earlier documents and parked code: v1's framework export and Stage 1 overview,
-`cache/v2/` (the v2 design with its SPIDER scene and merge runner) and `cache/v3/` (the v3 spec, its
-audit and the v3-only stages: SAM 3D mesh, A2.4 point tracks, S3c fuse, phase 2, stand-ins, A2.5).
-`oracles/` holds the S0 oracle results (tracked; `data/` is not).
+Earlier documents and parked code (v1's framework export and Stage 1 overview; v2's design, SPIDER
+scene and merge runner; v3's spec, audit and v3-only stages), v2's `run.py visualize` page, the v3 dev
+analysis, the 2026-10-26 review pages and the checkpoints before `public_2026-10-30_l5i` were removed on
+2026-10-30; they are in git at `bb6bc46f` (`git show bb6bc46f:path_b/<path>`). `oracles/` holds the two
+baselines the waterfall reads; `reports/checkpoints/` the public checkpoints from `public_2026-10-30_l5i` on
+(tracked; `data/` is not).
 
 Rules: all Path B code lives here. It uses `assets/` (inputs, docs, the official evaluator), calls
 `baseline/` modules only read-only (agreed 2026-10-18), and reuses the shared `tools/track3/` code

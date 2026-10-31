@@ -4,7 +4,6 @@ Run from the repo root (README in path_b/):
     uv run --project path_b python path_b/run.py run --episodes 41
     uv run --project path_b python path_b/run.py run --split public [--stages p0_ingest p1_calibrate] [--force]
     uv run --project path_b python path_b/run.py waterfall --split public
-    uv run --project path_b python path_b/run.py visualize --episodes 13     # after run and waterfall
     uv run --project path_b python path_b/run.py oracle --episodes 41 13 --hands-from <run>  # S0.1 (GPU), our hands
     uv run --project path_b python path_b/run.py oracle --variants place_pos_rot_gt --split public  # S0.2 variants (CPU)
     uv run --project path_b python path_b/run.py wristcheck --out <run>      # S0.3 on the dev episodes (CPU)
@@ -45,7 +44,7 @@ def episodes(args) -> list[int]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", choices=("run", "waterfall", "visualize", "oracle", "pack", "canonical",
+    parser.add_argument("command", choices=("run", "waterfall", "oracle", "pack", "canonical",
                                             "analysis", "review", "wristcheck"))
     which = parser.add_mutually_exclusive_group()
     which.add_argument("--episodes", type=int, nargs="+")
@@ -129,16 +128,6 @@ def main() -> int:
     if args.command in NOT_BUILT:
         print(f"run.py {args.command} is not built yet ({NOT_BUILT[args.command]})", file=sys.stderr)
         return 2
-
-    if args.command == "visualize":
-        from pathb import visualize
-        for number in episodes(args):
-            root = out / f"episode_{number:06d}"
-            if not (root / "waterfall.json").is_file():
-                print(f"episode {number}: run and waterfall first, skipped", flush=True)
-                continue
-            print(f"page: {visualize.page(root)}", flush=True)
-        return 0
 
     from pathb import waterfall
     rows = []

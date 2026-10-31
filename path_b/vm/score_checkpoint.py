@@ -1,7 +1,7 @@
 """Public score checkpoints: freeze a run's waterfall as a reference, and compare a later run with it.
 
     uv run --project path_b python path_b/vm/score_checkpoint.py save v4_fix --name public_2026-10-28
-    uv run --project path_b python path_b/vm/score_checkpoint.py compare public_2026-10-28 v4_c1 [--episodes 41 18 43]
+    uv run --project path_b python path_b/vm/score_checkpoint.py compare public_2026-10-30_l5i <run> [--episodes 41 18 43]
 
 `save` reads each public episode's waterfall.json of the run (`run.py waterfall`; public ground truth,
 scored by the official metric code) and writes path_b/reports/checkpoints/<name>.json: per episode and
