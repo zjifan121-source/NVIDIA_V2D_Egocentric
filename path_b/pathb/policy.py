@@ -35,7 +35,8 @@ L40S_BUFFERS = ["sim.njmax=1536", "sim.nconmax=384"]  # spec §14 G1: was 512 / 
 # and lid asked for up to 1359 rows (972,725 overflow lines in 23 % of a run). 2026-10-29 probe on ep2's scene: 1536 / 384
 # 0 overflow lines, 44.4 GB peak (of 49.1), 23.2k env steps/s; 1536 / 512 also clean at 47.1 GB. 384 contacts give
 # 1536 pyramidal rows, so the two bind together
-CURRICULUM = FLASH_CHORD / "src/flash_chord/configs/curriculum/tracking_250m_mixed_reset.yaml"
+SIM_KEYS = ("sim.njmax", "sim.nconmax", "scene.world_count")  # what $PATHB_S6_SIM may set (see sim_overrides)
+CURRICULUM =FLASH_CHORD / "src/flash_chord/configs/curriculum/tracking_250m_mixed_reset.yaml"
 SCENE = FLASH_CHORD / "src/flash_chord/configs/scene/train.yaml"
 LONG_STEPS = 250_003_456  # the last threshold of tracking_250m_mixed_reset.yaml
 SHORT_FRACTION = 0.24  # default: the short schedule is this share of the 250M one (~60M steps, ~20 min on the L40S)
@@ -46,12 +47,26 @@ def flash_venv() -> str:
     return os.environ.get("FLASH_CHORD_VENV") or "/root/v2d/venvs/flash_chord"
 
 
+def sim_overrides() -> list[str]:
+    """L40S_BUFFERS with $PATHB_S6_SIM's Hydra overrides in their place (space-separated, SIM_KEYS only, e.g.
+    "sim.njmax=2560 scene.world_count=2048"): contact buffers for a scene whose contacts overflow 1536 rows (G4:
+    evaluation ep1's pot and lid asked for up to 2322). Unset or empty, they are L40S_BUFFERS unchanged."""
+    out = dict(o.split("=", 1) for o in L40S_BUFFERS)
+    for o in os.environ.get("PATHB_S6_SIM", "").split():
+        key, _, value = o.partition("=")
+        if key not in SIM_KEYS or not value:
+            raise ValueError(f"$PATHB_S6_SIM may set only {', '.join(SIM_KEYS)} (got {o!r})")
+        out[key] = value
+    return [f"{k}={v}" for k, v in out.items()]
+
+
 def short_thresholds() -> list[int]:
     """FlashCHORD's 250M curriculum thresholds times SHORT_FRACTION, each rounded to a whole number of
     environment steps of the scene's world count (the last is the run's step count)."""
     import yaml
     thresholds = yaml.safe_load(CURRICULUM.read_text())["thresholds"]
-    worlds = int(yaml.safe_load(SCENE.read_text())["world_count"])
+    worlds = int(dict(o.split("=", 1) for o in sim_overrides()).get("scene.world_count")
+                 or yaml.safe_load(SCENE.read_text())["world_count"])
     if thresholds[-1] != LONG_STEPS:
         raise ValueError(f"{CURRICULUM.name} ends at {thresholds[-1]}, not {LONG_STEPS}")
     return [max(1, round(t * SHORT_FRACTION / worlds)) * worlds for t in thresholds]
@@ -60,7 +75,7 @@ def short_thresholds() -> list[int]:
 def settings(long: bool = False) -> tuple[int, list[str]]:
     """(steps, Hydra overrides): the short schedule (FlashCHORD's curriculum scaled, see `short_thresholds`)
     or FlashCHORD's own 250M one; both play the reference at its frame rate, one step per video frame."""
-    overrides = ["task.motion_speed=1.0", f"sim.fps={TRACK3_FPS}", *L40S_BUFFERS]
+    overrides = ["task.motion_speed=1.0", f"sim.fps={TRACK3_FPS}", *sim_overrides()]
     if long:
         steps = LONG_STEPS
     else:

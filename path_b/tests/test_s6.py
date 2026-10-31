@@ -108,6 +108,30 @@ def test_v4_s6_settings_long_schedule_and_groups(tmp_path, monkeypatch):
     assert policy.chosen_groups(tmp_path) == policy.GROUPS
 
 
+def test_s6_sim_hook_is_a_no_op_unset_and_sets_only_buffers_and_worlds(monkeypatch):
+    """$PATHB_S6_SIM (G4: evaluation ep1's pot and lid overflowed 1536 rows): unset or empty, the overrides are
+    exactly the frozen ones; set, it replaces the buffer keys and the world count the short schedule is rounded
+    to, and nothing else."""
+    import pytest
+    from pathb import policy
+    monkeypatch.delenv("PATHB_OBJECT_STOP", raising=False)
+    monkeypatch.delenv("PATHB_S6_SIM", raising=False)
+    assert policy.sim_overrides() == policy.L40S_BUFFERS
+    base = policy.settings()
+    assert base[1][:4] == ["task.motion_speed=1.0", f"sim.fps={policy.TRACK3_FPS}", "sim.njmax=1536", "sim.nconmax=384"]
+    assert len(base[1]) == 5 and base[1][4].startswith("curriculum.thresholds=")
+    monkeypatch.setenv("PATHB_S6_SIM", " ")
+    assert policy.settings() == base and policy.settings(long=True)[1] == base[1][:4]
+    monkeypatch.setenv("PATHB_S6_SIM", "sim.njmax=2560 scene.world_count=2048")
+    steps, ov = policy.settings()
+    assert {"sim.njmax=2560", "sim.nconmax=384", "scene.world_count=2048"} <= set(ov) and "sim.njmax=1536" not in ov
+    assert all(t % 2048 == 0 for t in policy.short_thresholds()) and steps == policy.short_thresholds()[-1]
+    for bad in ("action=hand_pose", "sim.fps=30", "sim.njmax", "training.total_environment_steps=1"):
+        monkeypatch.setenv("PATHB_S6_SIM", bad)
+        with pytest.raises(ValueError):
+            policy.settings()
+
+
 def test_v4_s6_long_pass_trains_the_selected_candidate(tmp_path, monkeypatch):
     import json
     from pathb import runner

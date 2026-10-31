@@ -67,7 +67,8 @@ def run(ctx) -> StageResult:
             Metric(f"{cand}: training time", info["seconds"] / 3600, "h",
                    note=f"{info['steps']:,} steps; mode {task['mode']}" + (", resumed" if info["resumed_from"] else "")),
             Metric(f"{cand}: contact-buffer overflow lines", info["nefc_overflow_lines"], "", ok=(0, 0), warn=(0, np.inf),
-                   note="'nefc overflow' in train.log: constraints dropped at " + " / ".join(policy.L40S_BUFFERS)),
+                   note="'nefc overflow' in train.log: constraints dropped at "
+                   + " / ".join(o for o in info.get("overrides", policy.sim_overrides()) if o.startswith(policy.SIM_KEYS))),
         ]
     if len(failed) == len(todo):
         raise RuntimeError("no candidate trained: " + "; ".join(failed))
