@@ -37,7 +37,11 @@ FALLBACK = "v4"  # the S1 run: baselines of an episode a run has no waterfall fo
 HIGH = 0.7  # default: an episode at or above this before the change is a high scorer (its drop is flagged HIGH)
 # the six leaderboard metrics and their better direction (spec §14 L9: the rank is the sum of the six ranks)
 SIX = (("AUC", 1), ("SP-SR", 1), ("MP-SR", 1), ("MPPE cm", -1), ("RPE cm", -1), ("CD-O cm", -1))
-POLICY_TAX = (0.07, 0.10)  # spec §14: a rollout scores its reference's playback AUC less 0.07-0.10 (S0.1, F2's ep40)
+# the policy tax (spec §14, corrected 2026-10-31): a rollout scores its reference's playback AUC less this, by episode
+# type. Measured on F2 (run v4_h1: 60M-step policies on 19 public episodes; the GT-free pick's rollout AUC against the
+# playback of the references they tracked): single-object 0.729 -> 0.506 (n = 7), two-object 0.651 -> 0.363 (n = 12).
+# It replaces 0.07-0.10, which held on S0.1 and F2's ep40 alone.
+POLICY_TAX = {"single-object": 0.22, "two-object": 0.29}
 
 
 def rows(run: Path) -> dict[int, dict]:
@@ -85,6 +89,17 @@ def means(eps: dict[int, dict]) -> dict:
     return out
 
 
+def submitted(eps: dict[int, dict]) -> dict[str, float | None]:
+    """The submitted AUC estimate: per episode type, the mean ref_inverted playback AUC less that type's POLICY_TAX
+    (floored at 0), and the two combined by episode count. An episode without candidates counts 0, as in means."""
+    playback = {t: [e["scores"].get("ref_inverted", {}).get("AUC", 0.0) for e in eps.values()
+                    if (len(e["objects"]) == 1) == (t == "single-object")] for t in POLICY_TAX}
+    out = {t: round(max(0.0, sum(v) / len(v) - POLICY_TAX[t]), 4) if v else None for t, v in playback.items()}
+    n = sum(len(v) for v in playback.values())
+    out["all"] = round(sum(out[t] * len(v) for t, v in playback.items() if v) / n, 4) if n else None
+    return out
+
+
 def save(run_name: str, name: str) -> None:
     run = OUTPUTS / run_name
     eps = rows(run)
@@ -118,8 +133,8 @@ def compare(name: str, run_name: str, episodes: list[int] | None) -> None:
     for k in mo:
         d = f" ({mn[k] - mo[k]:+.4f})" if isinstance(mo[k], float) and isinstance(mn[k], float) else ""
         print(f"  {k:36s} {mo[k]} -> {mn[k]}{d}")
-    print("six metrics, ref_inverted: playback (submitted AUC = playback less "
-          f"{POLICY_TAX[0]:.2f}-{POLICY_TAX[1]:.2f}, spec §14)")
+    print("six metrics, ref_inverted: playback (submitted AUC = playback less F2's policy tax: "
+          f"{POLICY_TAX['single-object']:.2f} single-object, {POLICY_TAX['two-object']:.2f} two-object, spec §14)")
     print(f"  {'metric':10s} {'before':>8} {'now':>8} {'change':>8}")
     for k, sign in SIX:
         a, b = mo[f"ref_inverted {k}"], mn[f"ref_inverted {k}"]
@@ -127,8 +142,10 @@ def compare(name: str, run_name: str, episodes: list[int] | None) -> None:
             continue
         verdict = "better" if sign * (b - a) > 1e-9 else "worse" if sign * (b - a) < -1e-9 else "same"
         print(f"  {k:10s} {a:>8.4f} {b:>8.4f} {b - a:>+8.4f}  {verdict}")
-    a = mn["ref_inverted AUC"]
-    print(f"  {'AUC':10s} submitted ~ {a - POLICY_TAX[1]:.3f}-{a - POLICY_TAX[0]:.3f} (playback {a:.3f})")
+    a, s = mn["ref_inverted AUC"], submitted({n: new[n] for n in both})
+    f3 = lambda v: "-" if v is None else f"{v:.3f}"  # noqa: E731
+    print(f"  {'AUC':10s} submitted ~ {f3(s['all'])} (single-object {f3(s['single-object'])}, two-object "
+          f"{f3(s['two-object'])}; playback {a:.3f}; tax from F2's rollouts)")
     moved = [n for n in both if any(abs((new[n]["scores"].get("ref_inverted") or {}).get(k, 0) -
                                         (old[n]["scores"].get("ref_inverted") or {}).get(k, 0)) > 1e-6 for k, _ in SIX)]
     if moved:
