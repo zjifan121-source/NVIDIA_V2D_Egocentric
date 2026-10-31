@@ -49,6 +49,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 import open3d as o3d
+from scipy.ndimage import median_filter
 from scipy.optimize import least_squares
 from scipy.spatial.transform import Rotation, Slerp
 
@@ -154,6 +155,12 @@ MOVING_CARRIER = True  # default (§14.5 G-D's motion-triggered grasp, as a carr
 # ep27 112-139, ep43 133-140, ep44 33-48; ep22's pour 46-153 has no rigid wrist (20 cm). Public, 20 episodes, on
 # l5i: inverted 0.7322 -> 0.7329 (ep27 +0.009, ep43 +0.006, ep44 +0.001; none down)
 MOVING_PATH_M, RIGID_SPREAD_M, RIGID_REACH_M = 0.02, 0.03, 0.30  # default: m
+NEAREST_CARRIER = False  # under test (§14.5 G-D′, ep22's pour): a bridge whose object is seen away from both its ends
+# also tries the object moved, on those frames only, with the wrist nearest to it, that wrist's gaps slerped
+# (`nearest_carried`), kept where it explains the frames better (`explains`). On ga2, ep22's pitcher bridge 0-113 is
+# held by S3b's left hand (which holds the cup) and its pour 45-102 by the right one (17 cm from it, the left 41 cm),
+# unseen 53-91 while it tips
+NEAREST_AWAY_M = 0.03  # default: m, the observed centroid (median over 5 frames) this far from where it is at both ends
 HAND_CLEAR = False  # default; built, not adopted (spec §14 L6): the grasp fits that see the smooth residual
 # (SMOOTH_FALLBACK's second solve) also keep the hands' MANO vertices out of the closed mesh: residual (d), each sampled
 # vertex's depth inside the posed object beyond HAND_CLEAR_MARGIN_M (`hand_clearance`); a hand whose scale is under
@@ -917,7 +924,58 @@ def carried(clip: Clip, a: int, b: int, before: np.ndarray | None, after: np.nda
     def step(t):  # frame t-1 -> t: the carrying wrist's motion, or None
         c = carrier[t] if 0 < t < n else -1
         return W[t, c] @ np.linalg.inv(W[t - 1, c]) if c >= 0 and ok[t, c] and ok[t - 1, c] else None
-    steps = {t: step(t) for t in range(max(a, 1), min(b + 1, n - 1) + 1)}
+    return chained(a, b, before, after, {t: step(t) for t in range(max(a, 1), min(b + 1, n - 1) + 1)})
+
+
+def nearest_carried(clip: Clip, a: int, b: int, before: np.ndarray | None,
+                    after: np.ndarray | None) -> np.ndarray | None:
+    """NEAREST_CARRIER: the bridge [a, b] moved with the wrist nearest the object on the frames where its observed
+    centroid (median over 5 frames; a frame without one takes the nearest frame's) lies more than NEAREST_AWAY_M from
+    where it is at both ends (frames a-1 and b+1 where they exist); that wrist's gaps slerped between its valid frames.
+    Nearest: the smaller median distance from the wrist on those frames where it is valid, at most RIGID_REACH_M, on
+    at least MIN_GRASP of them. Chained from both ends as `carried`. None without such frames or hand."""
+    if before is None and after is None:
+        return None
+    n = clip.n
+    lo, hi = max(a - 1, 0), min(b + 1, n - 1)
+    cent = np.full((hi - lo + 1, 3), np.nan)
+    for i, t in enumerate(range(lo, hi + 1)):
+        pc = frame_cloud(clip, t)
+        if pc is not None:
+            cent[i] = np.median(np.asarray(pc.points), axis=0)
+    seen = np.flatnonzero(np.isfinite(cent).all(axis=1))
+    if len(seen) < MIN_GRASP:
+        return None
+    nearest = seen[np.abs(np.arange(len(cent))[:, None] - seen[None]).argmin(axis=1)]
+    cent = median_filter(cent[nearest], size=(5, 1), mode="nearest")
+    away = np.zeros(n, bool)
+    away[lo:hi + 1] = ((np.linalg.norm(cent - cent[0], axis=1) > NEAREST_AWAY_M)
+                       & (np.linalg.norm(cent - cent[-1], axis=1) > NEAREST_AWAY_M))
+    best = None
+    for h in range(2):
+        fr = np.array([t for t in np.flatnonzero(away) if clip.valid[t, h]], dtype=int)
+        if len(fr) < MIN_GRASP:
+            continue
+        reach = float(np.median(np.linalg.norm(cent[fr - lo] - clip.wrist[fr, h, :3, 3], axis=1)))
+        if reach <= RIGID_REACH_M and (best is None or reach < best[1]):
+            best = (h, reach)
+    if best is None:
+        return None
+    ok = np.flatnonzero(clip.valid[:, best[0]])
+    ts = np.clip(np.arange(n), ok[0], ok[-1])
+    W = np.tile(np.eye(4), (n, 1, 1))
+    W[:, :3, :3] = Slerp(ok, Rotation.from_matrix(clip.wrist[ok, best[0], :3, :3]))(ts).as_matrix()
+    for k in range(3):
+        W[:, k, 3] = np.interp(ts, ok, clip.wrist[ok, best[0], k, 3])
+    return chained(a, b, before, after, {t: W[t] @ np.linalg.inv(W[t - 1]) if away[t] or away[t - 1] else None
+                                         for t in range(max(a, 1), min(b + 1, n - 1) + 1)})
+
+
+def chained(a: int, b: int, before: np.ndarray | None, after: np.ndarray | None,
+            steps: dict[int, np.ndarray | None]) -> np.ndarray | None:
+    """[a, b] from per-frame steps (frame t-1 -> t; None: the object stays): forward from `before` (the pose at a-1; at
+    frame 0 the pose of frame 0 itself), backward from `after` (the pose at b+1), the two blended by the frame's place in
+    the bridge so both ends hold. None without a step."""
     if not any(s is not None for s in steps.values()):
         return None
     fwd = bwd = None
@@ -1107,6 +1165,13 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
         if how["explains_carried_m"] is not None and (how["explains_interpolated_m"] is None
                                                       or how["explains_carried_m"] < how["explains_interpolated_m"]):
             guess, how["guess"] = alt, "carried"
+    if NEAREST_CARRIER:
+        alt = nearest_carried(clip, a, b, before, after)
+        if alt is not None:
+            now = how.get(f"explains_{how['guess']}_m", explains(clip, guess, a))
+            how[f"explains_{how['guess']}_m"], how["explains_nearest_m"] = now, explains(clip, alt, a)
+            if how["explains_nearest_m"] is not None and (now is None or how["explains_nearest_m"] < now):
+                guess, how["guess"] = alt, "nearest"
     if TRACKED_BRIDGES:
         alt = tracked(clip, a, b, before, after, carrier)
         if alt is not None:
@@ -1329,7 +1394,8 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
                                    carrier if CARRIED_BRIDGES else None)
                 P[a:b + 1], refined[a:b + 1] = u["poses"], u["refined"]
                 row.setdefault("why", u.get("why", ""))
-                keys = ("guess", "explains_interpolated_m", "explains_carried_m", "explains_tracked_m", "joint")
+                keys = ("guess", "explains_interpolated_m", "explains_carried_m", "explains_nearest_m",
+                        "explains_tracked_m", "joint")
                 row.update({k: u[k] for k in keys if k in u}, bridge=[a, b])
             row.update(refined=int(refined[row["start"]:row["end"] + 1].sum()), why=row.get("why", ""))
         report.append({k: v for k, v in row.items() if k not in ("poses", "T")})

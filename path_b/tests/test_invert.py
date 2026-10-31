@@ -688,6 +688,31 @@ def test_an_unstable_run_moving_with_a_wrist_is_carried_by_it(monkeypatch):
     assert row["guess"] == "carried" and np.median(err) < 0.5 * np.median(err0), (row, np.median(err), np.median(err0))
 
 
+def test_a_bridge_is_carried_by_the_nearest_wrist_across_its_gap(monkeypatch):
+    # NEAREST_CARRIER (§14.5 G-D′, ep22's pour): the carry is one unstable run, the carrying right wrist unseen over its
+    # middle and the left one seen all through but 60 cm off; the bridge then tries the object moved with the right
+    # wrist (its gap slerped) on the frames the object is away from both ends, and keeps it; a bridge at rest has none
+    c, segs, obj, m = clip()
+    a, b = GRASP
+    c.valid, c.wrist = c.valid.copy(), c.wrist.copy()
+    c.valid[a + 12:b - 11, 1] = False
+    c.wrist[:, 0, :3, 3], c.valid[:, 0] = [0.3, 0.6, 0.2], True
+    G = I.nearest_carried(c, a, b, obj[a - 1], obj[b + 1])
+    err = add_mm(G, obj[a:b + 1], np.asarray(m.vertices))
+    lerp = add_mm(I.interpolate(obj[a - 1], obj[b + 1], b - a + 1), obj[a:b + 1], np.asarray(m.vertices))
+    assert np.median(err) < 0.6 * np.median(lerp), (np.median(err), np.median(lerp))  # the gap misses the lift's top
+    assert I.nearest_carried(c, 2, a - 3, obj[1], obj[a - 2]) is None
+    unstable = [segs[0], {"kind": "unstable", "start": a, "end": b, "hand": None, "fingertips": []}, segs[2]]
+    P0, report0 = I.solve(c, unstable, start_pose(), FPS)  # MOVING_CARRIER's carried guess stalls in the gap
+    monkeypatch.setattr(I, "NEAREST_CARRIER", True)
+    P, report = I.solve(c, unstable, start_pose(), FPS)
+    row, row0 = (next(r for r in rep if r["kind"] == "unstable" and r["start"] == a) for rep in (report, report0))
+    err, err0 = (add_mm(Q, obj, np.asarray(m.vertices))[a:b + 1] for Q in (P, P0))
+    assert row0["guess"] == "carried" and row["guess"] == "nearest", (row0, row)
+    assert row["explains_nearest_m"] < row["explains_carried_m"], row
+    assert np.median(err) < 0.6 * np.median(err0), (np.median(err), np.median(err0))
+
+
 def test_hand_clearance_counts_hand_vertices_inside_the_mesh_beyond_the_margin(monkeypatch):
     # HAND_CLEAR (spec §14 L6): residual (d) is each hand vertex's depth inside the posed closed mesh beyond the
     # margin; a hand under HAND_CLEAR_SCALE is inflated about its wrist by 1/scale; nothing when off or stepped
