@@ -155,11 +155,12 @@ MOVING_CARRIER = True  # default (§14.5 G-D's motion-triggered grasp, as a carr
 # ep27 112-139, ep43 133-140, ep44 33-48; ep22's pour 46-153 has no rigid wrist (20 cm). Public, 20 episodes, on
 # l5i: inverted 0.7322 -> 0.7329 (ep27 +0.009, ep43 +0.006, ep44 +0.001; none down)
 MOVING_PATH_M, RIGID_SPREAD_M, RIGID_REACH_M = 0.02, 0.03, 0.30  # default: m
-NEAREST_CARRIER = False  # under test (§14.5 G-D′, ep22's pour): a bridge whose object is seen away from both its ends
+NEAREST_CARRIER = True  # default (§14.5 G-D′, ep22's pour): a bridge whose object is seen away from both its ends
 # also tries the object moved, on those frames only, with the wrist nearest to it, that wrist's gaps slerped
 # (`nearest_carried`), kept where it explains the frames better (`explains`). On ga2, ep22's pitcher bridge 0-113 is
 # held by S3b's left hand (which holds the cup) and its pour 45-102 by the right one (17 cm from it, the left 41 cm),
-# unseen 53-91 while it tips
+# unseen 53-91 while it tips. Public, 20 episodes, on ga2 (`v4_gdp`): inverted 0.7464 -> 0.7528 (ep21 +0.063: cup
+# 28-161, ep43 +0.031: pot 158-199, ep27 +0.023: pot 30-139, ep22 +0.013: pitcher 0-113; the other 16 md5-identical)
 NEAREST_AWAY_M = 0.03  # default: m, the observed centroid (median over 5 frames) this far from where it is at both ends
 HAND_CLEAR = False  # default; built, not adopted (spec §14 L6): the grasp fits that see the smooth residual
 # (SMOOTH_FALLBACK's second solve) also keep the hands' MANO vertices out of the closed mesh: residual (d), each sampled

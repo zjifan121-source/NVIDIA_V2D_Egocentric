@@ -379,6 +379,7 @@ def test_a_carry_lost_to_the_slip_guard_is_bridged_with_the_wrist(monkeypatch):
     missing what the hand did with the object (there: turned it over; here: the 8 cm lift). With the hand S3b saw
     holding it, the bridge moves with that wrist, and keeps that guess because it explains the frames better."""
     monkeypatch.setattr(I, "CARRIED_BRIDGES", True)
+    monkeypatch.setattr(I, "NEAREST_CARRIER", False)  # this test's two guesses only
     c, segs, obj, m = clip()
 
     def slipped(clip, a, b, *args, **kwargs):
@@ -606,7 +607,7 @@ def test_a_tracked_bridge_follows_the_frames_where_interpolation_cuts_the_corner
     finally:
         I.TRACKED_BRIDGES = False
     scores = {k[9:-2]: v for k, v in u.items() if k.startswith("explains_") and v is not None}
-    assert set(scores) == {"interpolated", "carried", "tracked"} and u["guess"] == min(scores, key=scores.get)
+    assert set(scores) == {"interpolated", "carried", "nearest", "tracked"} and u["guess"] == min(scores, key=scores.get)
 
 
 def test_a_joint_bridge_fits_the_carry_the_interpolation_cuts(monkeypatch):
@@ -703,6 +704,7 @@ def test_a_bridge_is_carried_by_the_nearest_wrist_across_its_gap(monkeypatch):
     assert np.median(err) < 0.6 * np.median(lerp), (np.median(err), np.median(lerp))  # the gap misses the lift's top
     assert I.nearest_carried(c, 2, a - 3, obj[1], obj[a - 2]) is None
     unstable = [segs[0], {"kind": "unstable", "start": a, "end": b, "hand": None, "fingertips": []}, segs[2]]
+    monkeypatch.setattr(I, "NEAREST_CARRIER", False)
     P0, report0 = I.solve(c, unstable, start_pose(), FPS)  # MOVING_CARRIER's carried guess stalls in the gap
     monkeypatch.setattr(I, "NEAREST_CARRIER", True)
     P, report = I.solve(c, unstable, start_pose(), FPS)

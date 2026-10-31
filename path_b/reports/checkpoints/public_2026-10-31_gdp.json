@@ -1,8 +1,8 @@
 {
- "name": "public_2026-10-31_ga2",
- "run": "v4_ga2",
- "commit_at_save": "2ae4796a",
- "saved": "2026-10-31T10:27:19.842132+00:00",
+ "name": "public_2026-10-31_gdp",
+ "run": "v4_gdp",
+ "commit_at_save": "2894b075",
+ "saved": "2026-10-31T16:19:42.525293+00:00",
  "episodes": [
   0,
   2,
@@ -27,18 +27,18 @@
  ],
  "means": {
   "episodes scored": "20 of 20",
-  "ref_inverted AUC": 0.7464,
+  "ref_inverted AUC": 0.7528,
   "ref_keyframe AUC": 0.4647,
   "ref_still AUC": 0.3935,
-  "best of three AUC": 0.7464,
-  "selected (GT-free) AUC": 0.7284,
+  "best of three AUC": 0.7528,
+  "selected (GT-free) AUC": 0.7317,
   "ref_inverted SP-SR": 0.85,
   "ref_inverted MP-SR": 0.65,
-  "ref_inverted MPPE cm": 4.3259,
-  "ref_inverted RPE cm": 4.0289,
+  "ref_inverted MPPE cm": 4.2388,
+  "ref_inverted RPE cm": 3.9518,
   "ref_inverted CD-O cm": 0.4845,
-  "best of three AUC, single-object": 0.8486,
-  "best of three AUC, two-object": 0.6913
+  "best of three AUC, single-object": 0.853,
+  "best of three AUC, two-object": 0.6989
  },
  "per_episode": {
   "0": {
@@ -270,11 +270,11 @@
    ],
    "scores": {
     "ref_inverted": {
-     "AUC": 0.3881048387096774,
+     "AUC": 0.45094086021505375,
      "SP-SR": 0.0,
      "MP-SR": 0.0,
-     "RPE cm": 19.784810128862024,
-     "MPPE cm": 12.239530442813553,
+     "RPE cm": 20.264473790779373,
+     "MPPE cm": 11.732701616370466,
      "CD-O cm": 0.5710356133181093
     },
     "ref_keyframe": {
@@ -307,33 +307,33 @@
    ],
    "scores": {
     "ref_inverted": {
-     "AUC": 0.7123015873015872,
+     "AUC": 0.7251984126984127,
      "SP-SR": 1.0,
      "MP-SR": 0.0,
-     "RPE cm": 6.772047443053284,
-     "MPPE cm": 4.681870124686624,
+     "RPE cm": 5.613800434607126,
+     "MPPE cm": 4.117140457527819,
      "CD-O cm": 0.6052578756430917
     },
     "ref_keyframe": {
      "AUC": 0.5021494708994709,
      "SP-SR": 1.0,
      "MP-SR": 0.0,
-     "RPE cm": 8.046774013585756,
-     "MPPE cm": 6.218975418148166,
+     "RPE cm": 8.037721153138659,
+     "MPPE cm": 6.214044439299237,
      "CD-O cm": 0.6052578756430917
     },
     "ref_still": {
      "AUC": 0.48660714285714285,
      "SP-SR": 1.0,
      "MP-SR": 0.0,
-     "RPE cm": 8.663917747018862,
-     "MPPE cm": 6.500880178969004,
+     "RPE cm": 8.654289319431365,
+     "MPPE cm": 6.495925263345812,
      "CD-O cm": 0.6052578756430917
     }
    },
    "selected": [
     "inverted",
-    0.7123015873015872
+    0.7251984126984127
    ],
    "best": "ref_inverted"
   },
@@ -455,11 +455,11 @@
    ],
    "scores": {
     "ref_inverted": {
-     "AUC": 0.7615599593495935,
+     "AUC": 0.7841717479674797,
      "SP-SR": 1.0,
      "MP-SR": 0.0,
-     "RPE cm": 4.930064249191274,
-     "MPPE cm": 2.6420415490935776,
+     "RPE cm": 4.067307072492414,
+     "MPPE cm": 2.2128932943800446,
      "CD-O cm": 0.5675325347638759
     },
     "ref_keyframe": {
@@ -481,7 +481,7 @@
    },
    "selected": [
     "inverted",
-    0.7615599593495935
+    0.7841717479674797
    ],
    "best": "ref_inverted"
   },
@@ -672,11 +672,11 @@
    ],
    "scores": {
     "ref_inverted": {
-     "AUC": 0.7337039877300614,
+     "AUC": 0.7647622699386503,
      "SP-SR": 1.0,
      "MP-SR": 1.0,
      "RPE cm": 0.0,
-     "MPPE cm": 2.93458594964404,
+     "MPPE cm": 2.692693555972615,
      "CD-O cm": 0.5112116417122238
     },
     "ref_keyframe": {
@@ -698,7 +698,7 @@
    },
    "selected": [
     "inverted",
-    0.7337039877300614
+    0.7647622699386503
    ],
    "best": "ref_inverted"
   },

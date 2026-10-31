@@ -15,7 +15,8 @@ scene and merge runner; v3's spec, audit and v3-only stages), v2's `run.py visua
 analysis, the 2026-10-26 review pages and the checkpoints before `public_2026-10-30_l5i` were removed on
 2026-10-30; they are in git at `bb6bc46f` (`git show bb6bc46f:path_b/<path>`). `oracles/` holds the two
 baselines the waterfall reads; `reports/checkpoints/` the public checkpoints from `public_2026-10-30_gd1` on
-(tracked; `data/` is not; `public_2026-10-30_l5i` was removed on 2026-10-31, in git at `2ae4796a`).
+(tracked; `data/` is not; `public_2026-10-30_l5i` was removed on 2026-10-31, in git at `2ae4796a`, and
+`public_2026-10-31_ga2` the same day, in git at `2894b075`).
 
 Rules: all Path B code lives here. It uses `assets/` (inputs, docs, the official evaluator), calls
 `baseline/` modules only read-only (agreed 2026-10-18), and reuses the shared `tools/track3/` code
@@ -39,7 +40,7 @@ whose module is not built yet reports SKIP and writes no report.
 | `s3a2_fuse_scan`, `s3a2_register` | S3a | Partial scans from stereo depth at rest; the canonical mesh per object, pooled over every clip (`run.py canonical`); frame-0 registration | `partial_scan.ply`, `<run>/canonical/`, `registration.json` | built (v3 A2.1–A2.3) |
 | `s3b_segments` | S3b | Contact segmentation: static, grasp, unstable; thresholds from the data; support per static segment | `segments.json`, `phases.json` | V4 task 5 |
 | `s3b_track` | S3b_track | FoundationPose, seed orientation only, when `s3a2_register` is WARN/FAIL | `poses/`, `track_meta.json` | built (v3 S3b; demoted) |
-| `s3c_invert`, `s3d_settle` | S3c/S3d | Segment solving (static ICP; grasp: hand→object offset, then per-frame refinement; unstable bridges); MuJoCo settle of static poses | `object_to_world.npz`, `invert_report.json` | V4 tasks 6–7 |
+| `s3c_invert`, `s3d_settle` | S3c/S3d | Segment solving (static ICP; grasp: hand→object offset, then per-frame refinement; unstable bridges: interpolated, carried by S3b's hand, or, where the object is seen moving, by the nearest wrist, whichever explains the frames best); MuJoCo settle of static poses | `object_to_world.npz`, `invert_report.json` | V4 tasks 6–7 |
 | `s4a_phases` | S4 | Rest-before, carry and rest-after (V4: a view of S3b's segments; the wrist rule is the fallback) | `phases.json` | built |
 | `s4b_reference` | S4 | Kinematic references: `inverted`, `keyframe`, `still` | `<candidate>/` bundles | built (keyframe, still); `inverted` with task 8 |
 | `s4c_retarget` | S4 | Do as I Do retargeting of the Sharpa hands in MuJoCo Warp; gate realised vs kinematic. Off by default (`s4c.yaml enabled: false`), one candidate | `<candidate>/trajectory_mjwp.npz`, `bundle/` | built; FAILed on ep40 |
