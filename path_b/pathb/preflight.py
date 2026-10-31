@@ -59,11 +59,20 @@ def selected(root: Path) -> tuple[str | None, list[str]]:
     return cand, problems
 
 
+def here(path: str, root: Path) -> Path:
+    """A path S5 wrote on another host (task.json holds the L40S's absolute paths), re-rooted at this episode
+    folder when it does not exist here: its part after the episode folder's name. Packing a copy on the Mac."""
+    p = Path(path)
+    if p.exists() or root.name not in p.parts:
+        return p
+    return root.joinpath(*p.parts[p.parts.index(root.name) + 1:])
+
+
 def mesh_checks(root: Path, names: list[str], cand: str) -> tuple[dict, list[str]]:
     cand = cand.split("_250m")[0]  # a 250M run trained on its candidate's S5 task
     task = json.loads((root / f"s5_task/{cand}/task.json").read_text())
     seq = task["sequence_id"].removesuffix("_daid")
-    processed = Path(task["partition"]).parent.parent
+    processed = here(task["partition"], root).parent.parent
     out, problems = {}, []
     for name in names:
         body = seq if len(names) == 1 else f"{seq}_{name}"

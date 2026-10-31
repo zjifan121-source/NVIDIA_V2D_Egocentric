@@ -54,6 +54,25 @@ def test_episode_checks(tmp_path):
     assert preflight.firewall(root) == ["episode_000035/s3a_mesh: read /x/assets/data/track_3/public/mesh/blue_cup/blue_cup.glb"]
 
 
+def test_mesh_checks_reroot_a_path_written_on_another_host(tmp_path):
+    root = tmp_path / "v4_eval/episode_000005"
+    processed = root / "s5_task/inverted/run/assets/human_motion_data/ego_recon/processed"
+    vm = "/no_such_host_root/outputs/v4_eval/episode_000005/s5_task/inverted/run/assets/human_motion_data/ego_recon/processed"
+    write(root / "s5_task/inverted/task.json", json.dumps({"sequence_id": "ep5_inverted_daid",
+                                                           "partition": vm + "/sequence_id=ep5_inverted/robot_name=sharpa_wave"}))
+    box = trimesh.creation.box((0.02, 0.2, 0.01))
+    for name in ("white_pot", "wooden_spoon"):
+        for f in (root / f"s3a_mesh/{name}/mesh.obj", processed / f"ep5_inverted_{name}.obj",
+                  root / f"s5_task/inverted/run/score_input/meshes/episode_000005/{name}.obj"):
+            f.parent.mkdir(parents=True, exist_ok=True)
+            box.export(f)
+    hashes, problems = preflight.mesh_checks(root, ["white_pot", "wooden_spoon"], "inverted")
+    assert problems == [] and all(len(h) == 3 and len(set(h.values())) == 1 for h in hashes.values())
+    # a path that exists, or one outside any episode folder, is left as it is
+    assert preflight.here(str(processed), root) == processed
+    assert str(preflight.here("/no_such_host_root/x.obj", root)) == "/no_such_host_root/x.obj"
+
+
 def test_relabel_names_bodies_by_roster_slot(tmp_path):
     import pyarrow as pa
     import pyarrow.parquet as pq
