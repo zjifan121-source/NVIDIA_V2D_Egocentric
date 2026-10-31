@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # On the Mac, before deleting a GPU instance: copy everything on it that exists nowhere else.
 #
-#     path_b/vm/save_instance.sh [--remove-deploy-key]
+#     path_b/vm/save_instance.sh [--host ALIAS] [--remove-deploy-key]     (ALIAS: the ssh alias, default l40s)
 #
 # - code: the instance's checkout must be clean and its commit known to the Mac (code is never
 #   edited on the instance, so this is a check, not a copy)
@@ -22,7 +22,13 @@ REPO=$(cd "$(dirname "$0")/../.." && pwd)
 VM_REPO=/root/v2d/NVIDIA_V2D_Egocentric
 OUT=$VM_REPO/path_b/data/outputs
 REMOVE_KEY=""
-[ "${1:-}" = "--remove-deploy-key" ] && REMOVE_KEY=1
+while [ $# -gt 0 ]; do
+  case $1 in
+    --host) HOST=$2; shift 2 ;;
+    --remove-deploy-key) REMOVE_KEY=1; shift ;;
+    *) printf 'save_instance: unknown option %s\n' "$1" >&2; exit 1 ;;
+  esac
+done
 
 die() { printf 'save_instance: %s\n' "$*" >&2; exit 1; }
 step() { printf '\n== %s\n' "$*"; }

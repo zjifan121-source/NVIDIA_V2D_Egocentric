@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # On the Mac: turn a new Verda GPU instance into a ready Path B machine with one command.
 #
-#     path_b/vm/new_instance.sh <ip> [--restore RUN | --no-restore] [--no-frames] [--branch BRANCH] [--replace-host-key]
+#     path_b/vm/new_instance.sh <ip> [--host ALIAS] [--repoint] [--restore RUN | --no-restore] [--no-frames]
+#                                    [--branch BRANCH] [--replace-host-key] [--accept-eula]
 #
-# 1. points the ssh alias l40s at <ip> (~/.ssh/config). A stored host key for that IP that no longer
+# 1. points the ssh alias ALIAS (default l40s) at <ip> (~/.ssh/config). An alias that already names another IP
+#    stops the script unless --repoint is given: a second instance gets its own alias (--host l40s2) so that
+#    l40s keeps reaching the first one. A stored host key for that IP that no longer
 #    matches stops the script unless --replace-host-key is given (only after James confirms that the
 #    IP is his new instance: the old instance's IP may now be someone else's machine)
 # 2. waits for SSH, copies setup.sh, and puts the MANO files and path_b/.env in /root/v2d/inbox/
@@ -30,11 +33,13 @@ VM_REPO=/root/v2d/NVIDIA_V2D_Egocentric
 die() { printf 'new_instance: %s\n' "$*" >&2; exit 1; }
 step() { printf '\n== %s\n' "$*"; }
 
-[ $# -ge 1 ] || die "usage: $0 <ip> [--restore RUN | --no-restore] [--no-frames] [--branch BRANCH] [--replace-host-key] [--accept-eula]"
+[ $# -ge 1 ] || die "usage: $0 <ip> [--host ALIAS] [--repoint] [--restore RUN | --no-restore] [--no-frames] [--branch BRANCH] [--replace-host-key] [--accept-eula]"
 IP=$1; shift
-RESTORE=4c2eac31 FRAMES=1 BRANCH=$(git -C "$REPO" branch --show-current) REPLACE_KEY="" EULA=""
+RESTORE=4c2eac31 FRAMES=1 BRANCH=$(git -C "$REPO" branch --show-current) REPLACE_KEY="" EULA="" REPOINT=""
 while [ $# -gt 0 ]; do
   case $1 in
+    --host) HOST=$2; shift 2 ;;
+    --repoint) REPOINT=1; shift ;;
     --restore) RESTORE=$2; shift 2 ;;
     --no-restore) RESTORE=""; shift ;;
     --no-frames) FRAMES=""; shift ;;
@@ -58,12 +63,16 @@ fi
 echo "   branch $BRANCH (first clone: $CLONE_BRANCH); restore: ${RESTORE:-none}${RESTORE:+${FRAMES:+ with frames}}"
 
 step "ssh alias $HOST -> $IP"
-python3 - "$HOME/.ssh/config" "$HOST" "$IP" <<'EOF'
+python3 - "$HOME/.ssh/config" "$HOST" "$IP" "$REPOINT" <<'EOF'
 import re, sys
 from pathlib import Path
-path, host, ip = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
+path, host, ip, repoint = Path(sys.argv[1]), sys.argv[2], sys.argv[3], sys.argv[4]
 text = path.read_text() if path.exists() else ""
 block = re.search(rf"(?ms)^Host {re.escape(host)}\n(.*?)(?=^Host |\Z)", text)
+old = re.search(r"(?m)^\s*HostName\s+(\S+)", block.group(1)) if block else None
+if old and old.group(1) != ip and not repoint:
+    sys.exit(f"new_instance: alias {host} names {old.group(1)}; give this instance its own alias "
+             f"(--host {host}2) or pass --repoint to move {host} to {ip}")
 if block:
     body = re.sub(r"(?m)^(\s*)HostName\s+\S+", rf"\g<1>HostName {ip}", block.group(1))
     text = text[:block.start(1)] + body + text[block.end(1):]
