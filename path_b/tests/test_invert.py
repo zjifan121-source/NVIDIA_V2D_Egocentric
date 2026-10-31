@@ -686,3 +686,60 @@ def test_an_unstable_run_moving_with_a_wrist_is_carried_by_it(monkeypatch):
     P0, report0 = I.solve(c, unstable, start_pose(), FPS)
     err0 = add_mm(P0, obj, np.asarray(m.vertices))[a:b + 1]
     assert row["guess"] == "carried" and np.median(err) < 0.5 * np.median(err0), (row, np.median(err), np.median(err0))
+
+
+def test_hand_clearance_counts_hand_vertices_inside_the_mesh_beyond_the_margin(monkeypatch):
+    # HAND_CLEAR (spec §14 L6): residual (d) is each hand vertex's depth inside the posed closed mesh beyond the
+    # margin; a hand under HAND_CLEAR_SCALE is inflated about its wrist by 1/scale; nothing when off or stepped
+    c, segs, obj, m = clip()
+    t = 30
+    pose = obj[t]
+    local = np.array([[0.0, -0.04 + 0.025, 0.03], [0.0, -0.04 + 0.005, 0.03], [0.0, -0.06, 0.03]])  # 25, 5 mm in; out
+    verts = np.full((N, 2, 3, 3), np.nan)
+    verts[t, 1] = local @ pose[:3, :3].T + pose[:3, 3]
+    c.hand_verts, c.hand_scale = verts, np.ones((N, 2))
+    assert len(c.hand_clearance(pose, t)) == 0  # off by default
+    monkeypatch.setattr(I, "HAND_CLEAR", True)
+    assert len(c.hand_clearance(pose, t)) == 0  # the stepped fits do not see it
+    c.fit_smooth = True
+    r = c.hand_clearance(pose, t)
+    assert np.allclose(r, [0.025 - I.HAND_CLEAR_MARGIN_M, 0.0, 0.0], atol=1e-4), r
+    # a hand at scale 0.5 is inflated about its wrist: a vertex 1 cm outside the face, 3 cm from the wrist, goes 2 cm in
+    w = pose[:3, :3] @ np.array([0.0, -0.08, 0.03]) + pose[:3, 3]
+    c.wrist = c.wrist.copy()
+    c.wrist[t, 1, :3, 3] = w
+    verts[t, 1] = np.array([[0.0, -0.05, 0.03]] * 3) @ pose[:3, :3].T + pose[:3, 3]
+    c.hand_scale = np.full((N, 2), 0.5)
+    r = c.hand_clearance(pose, t)
+    assert np.allclose(r, 0.02 - I.HAND_CLEAR_MARGIN_M, atol=1e-4), r
+
+
+def test_a_smooth_grasp_fit_moves_the_object_out_of_the_hand(monkeypatch):
+    # HAND_CLEAR: the hand's vertices sit 25 mm inside the box's -y face all through the grasp, and no mask pins the box
+    # there (the hand hides it); the grasp's offset fit on the smooth residual (pass 1) then leaves the hand outside it,
+    # and without the flag the hand changes nothing
+    c, segs, obj, m = clip()
+    a, b = GRASP
+    c.obs = [None if a <= t <= b else o for t, o in enumerate(c.obs)]
+    c.silhouette = [None if a <= t <= b else s for t, s in enumerate(c.silhouette)]
+    xs, zs = np.meshgrid(np.linspace(-0.02, 0.02, 5), np.linspace(0.025, 0.035, 3))  # the -y face is the nearest
+    local = np.stack([xs.ravel(), np.full(xs.size, -0.04 + 0.025), zs.ravel()], axis=1)
+    verts = np.full((N, 2, len(local), 3), np.nan)
+    for t in range(N):
+        if c.valid[t, 1]:
+            verts[t, 1] = local @ obj[t][:3, :3].T + obj[t][:3, 3]
+    c.hand_verts, c.hand_scale = verts, np.ones((N, 2))
+    c.fit_smooth = True
+
+    def run():
+        T = I.pass1(c, a, b, 1, [0, 1], None, None, HAND_TO_OBJECT)["T"]
+        return [c.wrist[t, 1] @ T for t in range(a, b + 1)]
+    P0 = run()
+    c.hand_verts = None
+    assert np.allclose(run(), P0)  # off: the hand's vertices are not read
+    c.hand_verts = verts
+    monkeypatch.setattr(I, "HAND_CLEAR", True)
+    P1 = run()
+    inside0 = np.mean([c.hand_clearance(P0[t - a], t).sum() for t in range(a, b + 1)])
+    inside1 = np.mean([c.hand_clearance(P1[t - a], t).sum() for t in range(a, b + 1)])
+    assert inside0 > 0.05 and inside1 < 0.2 * inside0, (inside0, inside1)

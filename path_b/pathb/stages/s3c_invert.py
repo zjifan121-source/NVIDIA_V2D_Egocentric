@@ -107,6 +107,11 @@ def clip(ctx, view: View, k: int, name: str, mesh: trimesh.Trimesh, hosts: list 
     hd = ctx.root / "p4_export/hands"
     tips = np.load(hd / "fingertips_world.npz")
     wrist = np.load(hd / "wrist_world.npz")["wrist"]
+    hand_verts = hand_scale = None
+    if I.HAND_CLEAR:  # the hands' MANO vertices and the bundle's per-frame hand scales (L, R)
+        hand_verts = np.load(hd / "hand_verts_world.npz")["verts"]
+        r = np.load(p4_bundle(ctx, name) / "result.npz")
+        hand_scale = np.stack([r["hand_left_scale"], r["hand_right_scale"]], axis=1).astype(np.float64)
 
     def target(a, b):
         frames = [t for t in range(a, b + 1) if obs[t] is not None]
@@ -124,7 +129,7 @@ def clip(ctx, view: View, k: int, name: str, mesh: trimesh.Trimesh, hosts: list 
     return I.Clip(K=view.K, c2w=view.c2w, obs=obs, tips=tips["tips"], wrist=wrist, valid=tips["valid"],
                   vertices=np.asarray(mesh.vertices, np.float64), faces=np.asarray(mesh.faces),
                   group=symmetry.group(name, np.asarray(mesh.vertices)), target=target, silhouette=sil, seed=k,
-                  revolution=name in REVOLUTION, hosts=list(hosts))
+                  revolution=name in REVOLUTION, hosts=list(hosts), hand_verts=hand_verts, hand_scale=hand_scale)
 
 
 def run(ctx) -> StageResult:

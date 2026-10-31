@@ -154,6 +154,12 @@ MOVING_CARRIER = True  # default (§14.5 G-D's motion-triggered grasp, as a carr
 # ep27 112-139, ep43 133-140, ep44 33-48; ep22's pour 46-153 has no rigid wrist (20 cm). Public, 20 episodes, on
 # l5i: inverted 0.7322 -> 0.7329 (ep27 +0.009, ep43 +0.006, ep44 +0.001; none down)
 MOVING_PATH_M, RIGID_SPREAD_M, RIGID_REACH_M = 0.02, 0.03, 0.30  # default: m
+HAND_CLEAR = False  # under test (spec §14 L6): the grasp fits that see the smooth residual (SMOOTH_FALLBACK's second
+# solve) also keep the hands' MANO vertices out of the closed mesh: residual (d), each sampled vertex's depth inside
+# the posed object beyond HAND_CLEAR_MARGIN_M (`hand_clearance`); a hand whose scale is under HAND_CLEAR_SCALE is
+# inflated about its wrist by 1/scale first. The margin is the truth's own: on the 7 single-object public episodes the
+# truth moved into our world by frame 0 sits 0.9-7.9 mm (median; p90 <= 8.6 mm) into our hands, as deep as our poses
+HAND_CLEAR_SCALE, HAND_CLEAR_MARGIN_M, HAND_CLEAR_POINTS, SIG_D = 0.85, 0.01, 128, 0.005  # default: -, m, per hand, m
 HELD = True  # default: an S3b grasp between two rests that leave the object within HELD_M / HELD_DEG of where it was
 # (up to its symmetry; a body of revolution: its axis) is also tried as held still (the rest before interpolated to the rest after) and takes that
 # where it explains the grasp's frames (`explains`) no worse than the solved track; logged (`held`). Public ep11
@@ -238,6 +244,8 @@ class Clip:
     hosts: list = field(default_factory=list)  # other bodies of revolution it may rest in or on (STACK): {"name", "P"
     # (N, 4, 4), "vertices" (canonical), "rests" [(a, b)], "silhouette": t -> silhouette_map of this object's allowed
     # mask with the host's added}
+    hand_verts: np.ndarray | None = None  # (N, 2, V, 3) the hands' MANO vertices, world (HAND_CLEAR), or None
+    hand_scale: np.ndarray | None = None  # (N, 2) the bundle's per-frame hand scales (hands L, R), or None
     scene: o3d.t.geometry.RaycastingScene = field(init=False)
     surface: o3d.geometry.PointCloud = field(init=False)
     fit_smooth: bool | None = field(default=None, init=False)  # set: overrides `smooth` (SMOOTH_FALLBACK's two solves)
@@ -361,6 +369,31 @@ class Clip:
         q = o3d.core.Tensor(local.astype(np.float32))
         sd = self.scene.compute_signed_distance(q) if self.closed else self.scene.compute_distance(q)
         return sd.numpy().astype(np.float64)
+
+    def hand_clearance(self, pose: np.ndarray, t: int) -> np.ndarray:
+        """Residual (d) (HAND_CLEAR): (M,) metres each of frame t's sampled hand vertices (HAND_CLEAR_POINTS per
+        hand) sits inside the posed mesh beyond HAND_CLEAR_MARGIN_M, 0 elsewhere; a hand under HAND_CLEAR_SCALE is
+        inflated about its wrist by 1/scale first. Empty when off, without hands, on an open mesh (no inside), or in
+        a fit that does not see the smooth residual (the stepped fits' Jacobian is noise: DIFF_STEP)."""
+        if not (HAND_CLEAR and self.smooth and self.closed) or self.hand_verts is None:
+            return np.zeros(0)
+        V = self.hand_verts.shape[2]
+        pick = np.linspace(0, V - 1, min(HAND_CLEAR_POINTS, V)).astype(int)
+        pts = []
+        for h in range(2):
+            if not self.valid[t, h]:
+                continue
+            p = self.hand_verts[t, h, pick].astype(np.float64)
+            s = self.hand_scale[t, h] if self.hand_scale is not None else 1.0
+            if np.isfinite(s) and 0 < s < HAND_CLEAR_SCALE:
+                w = self.wrist[t, h, :3, 3]
+                p = w + (p - w) / s
+            pts.append(p[np.isfinite(p).all(axis=1)])
+        if not pts or not sum(len(p) for p in pts):
+            return np.zeros(0)
+        local = (np.concatenate(pts) - pose[:3, 3]) @ pose[:3, :3]
+        sd = self.scene.compute_signed_distance(o3d.core.Tensor(local.astype(np.float32))).numpy().astype(np.float64)
+        return np.maximum(-sd - HAND_CLEAR_MARGIN_M, 0.0)
 
 
 def silhouette_map(allowed: np.ndarray) -> tuple[tuple[int, int], np.ndarray] | None:
@@ -677,6 +710,7 @@ def pass1(clip: Clip, a: int, b: int, hand: int, fingers: list[int], start, end,
         T = T_of(x)
         parts = [clip.fit_appearance(W[t] @ T, t, FIT_RAYS) / SIG_A for t in fit]
         parts += [clip.tip_distance(W[t] @ T, t, hand, fingers) / SIG_B for t in fit]
+        parts += [clip.hand_clearance(W[t] @ T, t) / SIG_D for t in fit]
         parts += end_terms(W[frames[0]] @ T, W[frames[-1]] @ T, start if frames[0] == a else None,
                            end if frames[-1] == b else None)
         r = np.concatenate([p for p in parts if len(p)])
@@ -739,6 +773,7 @@ def pass2(clip: Clip, a: int, b: int, hand: int, fingers: list[int], T: np.ndarr
         def residual(x):
             P = base @ T_of(x)
             r = [clip.fit_appearance(P, t) / SIG_A, clip.tip_distance(P, t, hand, fingers) / SIG_B,
+                 clip.hand_clearance(P, t) / SIG_D,
                  np.concatenate([(x[:3] - D0[:3]) / STEP_RAD, (x[3:] - D0[3:]) / STEP_M])]
             return np.concatenate([p for p in r if len(p)])
 
