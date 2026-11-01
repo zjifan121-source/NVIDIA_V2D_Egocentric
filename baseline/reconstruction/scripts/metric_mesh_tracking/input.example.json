@@ -1,0 +1,15 @@
+{
+  "episode": 0,
+  "object": "object_name",
+  "frame_count": 2,
+  "anchor_frame": 1,
+  "metric_mesh_reviewed": false,
+  "anchor_selection_reviewed": false,
+  "mesh_file": "mesh/model.obj",
+  "mesh_dependencies": ["mesh/model.mtl", "mesh/texture.png"],
+  "K_file": "K.json",
+  "frames": [
+    {"frame_id": 0, "rgb": "rgb/000000.png", "depth": "depth/000000.png", "mask": "mask/000000.png"},
+    {"frame_id": 1, "rgb": "rgb/000001.png", "depth": "depth/000001.png", "mask": "mask/000001.png"}
+  ]
+}
