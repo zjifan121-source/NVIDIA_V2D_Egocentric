@@ -128,6 +128,19 @@ TRACKED_BRIDGES = False  # spec §14 L7 (under test): a bridge also tries the ob
 # best (ep43's carry: five slip-guard runs while the pot turns over in the hand). Off: on v4_j3 with it on, ep43 0.435 ->
 # 0.434 (its unsolved run 0-237 is one bridge; tracked explained it no better than the interpolation's 2.0 cm), ep45
 # 0.624 -> 0.599, ep41 0.831 -> 0.829, ep0 unchanged; spec §14 L7's gate (ep43 up, 41/45 not down) fails
+FOLLOWED_BRIDGES = True  # default (Recon round P8, C8 on the Mac): a bridge also tries the object followed on its own
+# frames (`followed`: forward from its start and backward from its end, each seen frame refined from the frame before it
+# within UNSTABLE_REACH, no wrist, no prior; per frame the chain that explains it better) and keeps it where it explains
+# the bridge better. ep21's and ep22's pitcher pours: seen on every frame, the pouring wrist on 42-45 %, 23.4 / 16.1 cm
+# ADD over the pour, while each frame is refined within 5 cm / 20 degrees of an interpolated or carried guess. Not on
+# a lone run of a hand arriving or letting go (the object at rest; the bridge ending with the run): public v4_fb, it
+# took ep11's blue cup 8-42 and ep12's 19-35 off their rest, 0.883 -> 0.806 and 0.759 -> 0.751
+FOLLOW_MIN_M = 0.014  # default: the followed track is tried only where the guesses leave more than this unexplained
+# (explains); v4_fb2: ep11's 8-42 (an arriving run and a slip run, one bridge) 1.25 cm, ep12's 19-35 1.34, the gains'
+# 1.45-2.78 (ep43 1.50-1.67, ep45 1.60, ep27 1.47-1.89, ep39 2.27, ep22 1.54, ep21's pours 2.50-2.78, ep42 1.45-1.66).
+# On since 2026-11-01 (James: "keep working on reconstruction tasks on local"): public, 20 episodes, on c1z (`v4_fb3`),
+# inverted 0.7862 -> 0.8115 (ep43 +0.096, ep39 +0.087, ep27 +0.075, ep22 +0.065, ep45 +0.065, ep42 +0.029, ep11
+# +0.023; none down)
 JOINT_BRIDGES = False  # spec §14 L5 (tried, not adopted): a bridge of at least JOINT_MIN frames is then fitted as a whole
 # (`joint_bridge`: point-to-plane ICP of every JOINT_EVERY-th frame's mask points onto the posed mesh, the correction
 # smooth between knots JOINT_KNOT frames apart and zero at the poses either side) and keeps it where it explains the
@@ -1176,6 +1189,48 @@ def tracked(clip: Clip, a: int, b: int, before: np.ndarray | None, after: np.nda
     return np.stack([blend(fwd[t], bwd[t], (t - a + 1) / (b - a + 2)) for t in range(a, b + 1)])
 
 
+def followed(clip: Clip, a: int, b: int, before: np.ndarray | None, after: np.ndarray | None) -> np.ndarray | None:
+    """The bridge [a, b] followed on the object's own frames (FOLLOWED_BRIDGES): forward from `before` (the pose at
+    a-1) and backward from `after` (the pose at b+1), each seen frame's pose refined from the frame before it on
+    residual (a) read smoothly (points, the silhouette bilinearly), within UNSTABLE_REACH and with no prior, kept only when it explains that
+    frame better; an unseen frame keeps its neighbour's pose. Per frame the chain whose pose explains it better (a
+    frame neither sees takes the forward chain's, or the one there is). None without either end."""
+    if before is None and after is None:
+        return None
+    bound = np.array([UNSTABLE_REACH_RAD] * 3 + [UNSTABLE_REACH_M] * 3)
+
+    def seen(t):
+        o = clip.obs[t]
+        return o is not None and o[2] >= clip.min_share
+
+    def smooth(P, t):  # residual (a) as the anchor fit reads it: points, and the silhouette read bilinearly
+        return np.concatenate([clip.point_residual(P, t, FIT_RAYS), clip.silhouette_residual(P, t, bilinear=True)])
+
+    def fit(Q, t):
+        if not seen(t):
+            return Q
+        r = lsq(lambda x: smooth(Q @ T_of(x), t), np.zeros(6), DIFF_STEP, loss="soft_l1", f_scale=0.005, max_nfev=60,
+                x_scale=[0.1] * 3 + [0.01] * 3, bounds=(-bound, bound))
+        Q2 = Q @ T_of(r.x)
+        return Q2 if np.median(np.abs(clip.appearance(Q2, t))) < np.median(np.abs(clip.appearance(Q, t))) else Q
+
+    chains = []
+    for start, order in ((before, range(a, b + 1)), (after, range(b, a - 1, -1))):
+        if start is None:
+            continue
+        out, Q = {}, start
+        for t in order:
+            Q = out[t] = fit(Q, t)
+        chains.append(out)
+    poses = []
+    for t in range(a, b + 1):
+        cands = [c[t] for c in chains]
+        if len(cands) == 2 and seen(t):
+            cands.sort(key=lambda Q: np.median(np.abs(clip.appearance(Q, t))))
+        poses.append(cands[0])
+    return np.stack(poses)
+
+
 def joint_bridge(clip: Clip, a: int, b: int, guess: np.ndarray, ends: tuple[bool, bool] = (True, True)) -> dict | None:
     """The bridge [a, b] fitted as a whole from `guess` (JOINT_BRIDGES): knots every JOINT_KNOT frames carry a
     body-frame correction (rotation vector, m), linear between them; Gauss-Newton on point-to-plane ICP of every
@@ -1288,7 +1343,7 @@ def explains(clip: Clip, poses: np.ndarray, a: int) -> float | None:
 
 
 def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after: np.ndarray | None,
-                   carrier: np.ndarray | None = None) -> dict:
+                   carrier: np.ndarray | None = None, follow: bool = True) -> dict:
     P0 = before if before is not None else after
     P1 = after if after is not None else before
     if P0 is None:
@@ -1316,6 +1371,13 @@ def solve_unstable(clip: Clip, a: int, b: int, before: np.ndarray | None, after:
             how[f"explains_{how['guess']}_m"], how["explains_tracked_m"] = now, explains(clip, alt, a)
             if how["explains_tracked_m"] is not None and (now is None or how["explains_tracked_m"] < now):
                 guess, how["guess"] = alt, "tracked"
+    now = how.get(f"explains_{how['guess']}_m", explains(clip, guess, a)) if FOLLOWED_BRIDGES and follow else None
+    if FOLLOWED_BRIDGES and follow and (now is None or now > FOLLOW_MIN_M):  # only where the guesses explain it poorly
+        alt = followed(clip, a, b, before, after)
+        if alt is not None:
+            how[f"explains_{how['guess']}_m"], how["explains_followed_m"] = now, explains(clip, alt, a)
+            if how["explains_followed_m"] is not None and (now is None or how["explains_followed_m"] < now):
+                guess, how["guess"] = alt, "followed"
     poses, refined = guess.copy(), np.zeros(b - a + 1, bool)
     for i, t in enumerate(range(a, b + 1)):
         o = clip.obs[t]
@@ -1531,12 +1593,14 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
                 while b + 1 < n and not known(b + 1):
                     b += 1
                 before = P[a - 1] if known(a - 1) else start_pose if a == 0 else None  # frame 0: S3a's pose
+                # a hand arriving at or letting go of an object at rest: no followed track unless the bridge runs on
+                lone = b == row["end"] and ("arriving" in row.get("why", "") or "letting go" in row.get("why", ""))
                 u = solve_unstable(clip, a, b, before, P[b + 1] if b + 1 < n and known(b + 1) else None,
-                                   carrier if CARRIED_BRIDGES else None)
+                                   carrier if CARRIED_BRIDGES else None, follow=not lone)
                 P[a:b + 1], refined[a:b + 1] = u["poses"], u["refined"]
                 row.setdefault("why", u.get("why", ""))
                 keys = ("guess", "explains_interpolated_m", "explains_carried_m", "explains_nearest_m",
-                        "explains_tracked_m", "joint")
+                        "explains_tracked_m", "explains_followed_m", "joint")
                 row.update({k: u[k] for k in keys if k in u}, bridge=[a, b])
             row.update(refined=int(refined[row["start"]:row["end"] + 1].sum()), why=row.get("why", ""))
         report.append({k: v for k, v in row.items() if k not in ("poses", "T")})

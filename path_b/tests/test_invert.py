@@ -380,6 +380,7 @@ def test_a_carry_lost_to_the_slip_guard_is_bridged_with_the_wrist(monkeypatch):
     holding it, the bridge moves with that wrist, and keeps that guess because it explains the frames better."""
     monkeypatch.setattr(I, "CARRIED_BRIDGES", True)
     monkeypatch.setattr(I, "NEAREST_CARRIER", False)  # this test's two guesses only
+    monkeypatch.setattr(I, "FOLLOWED_BRIDGES", False)
     c, segs, obj, m = clip()
 
     def slipped(clip, a, b, *args, **kwargs):
@@ -610,6 +611,26 @@ def test_a_tracked_bridge_follows_the_frames_where_interpolation_cuts_the_corner
     assert set(scores) == {"interpolated", "carried", "nearest", "tracked"} and u["guess"] == min(scores, key=scores.get)
 
 
+def test_a_followed_bridge_follows_the_object_without_its_wrist(monkeypatch):
+    # FOLLOWED_BRIDGES: the carry's middle third bridged from its true ends with no carrying wrist (ep21's and ep22's
+    # pours: the pouring hand unseen half the time); interpolation cuts the 8 cm lift's arc, the followed track keeps to the
+    # depth and silhouette from both ends
+    c, _, obj, m = clip()
+    a, b = GRASP[0] + 12, GRASP[1] - 12
+    C = I.followed(c, a, b, obj[a - 1], obj[b + 1])
+    err_c = add_mm(C, obj[a:b + 1], m.vertices)
+    err_i = add_mm(I.interpolate(obj[a - 1], obj[b + 1], b - a + 1), obj[a:b + 1], m.vertices)
+    assert err_c.mean() < 0.5 * err_i.mean() and err_c.max() < 25, (err_c.mean(), err_i.mean(), err_c.max())
+    assert I.followed(c, a, b, None, None) is None and len(I.followed(c, a, b, obj[a - 1], None)) == b - a + 1
+    monkeypatch.setattr(I, "FOLLOWED_BRIDGES", True)
+    u = I.solve_unstable(c, a, b, obj[a - 1], obj[b + 1])  # its guesses explain it within FOLLOW_MIN_M: not tried
+    assert "explains_followed_m" not in u and u["guess"] != "followed"
+    monkeypatch.setattr(I, "FOLLOW_MIN_M", 0.0)
+    u = I.solve_unstable(c, a, b, obj[a - 1], obj[b + 1])
+    scores = {k[9:-2]: v for k, v in u.items() if k.startswith("explains_") and v is not None}
+    assert "followed" in scores and u["guess"] == min(scores, key=scores.get), scores
+
+
 def test_a_joint_bridge_fits_the_carry_the_interpolation_cuts(monkeypatch):
     # spec §14 L5: the carry bridged from its true ends (all but two frames at each) while the object slips 4 cm in
     # the hand; the interpolation cuts the lift's arc and lags the turn; the joint fit (ICP of every other frame onto
@@ -679,6 +700,7 @@ def test_an_unstable_run_moving_with_a_wrist_is_carried_by_it(monkeypatch):
     a, b = GRASP
     unstable = [segs[0], {"kind": "unstable", "start": a, "end": b, "hand": None, "fingertips": []}, segs[2]]
     assert I.rigid_hand(c, a, b) == 1
+    monkeypatch.setattr(I, "FOLLOWED_BRIDGES", False)  # the carry against the interpolation (followed: 1.4 mm here)
     monkeypatch.setattr(I, "MOVING_CARRIER", True)
     P, report = I.solve(c, unstable, start_pose(), FPS)
     row = next(r for r in report if r["kind"] == "unstable" and r["start"] == a)
