@@ -205,7 +205,7 @@ SMOOTH_FALLBACK = True  # default: a grasp is solved with the stepped residual f
 # explained better tracked than held still, 0.979 -> 0.775)
 SMOOTH_REVOLUTION_ONLY = False  # not measured: only bodies of revolution (a flat piece slides along its face unseen by a
 # point-to-mesh distance: ep23's board 1, 82-282, 1.0 -> 5.3 cm while its residual fell 2.3 -> 1.7 mm)
-ANCHOR_FIT = False  # Recon round P1 (C6, under test). The scorer aligns a scene by object 0's frame-0 position and the
+ANCHOR_FIT = True  # default (Recon round P1, C6). The scorer aligns a scene by object 0's frame-0 position and the
 # first object without a symmetry axis's frame-0 turn (the kit's _align_registered_scene), so the error of an anchor's
 # first rest, fitted on one TSDF of at most 30 frames, moves every other object (public gdp, the scene aligned on all
 # objects' frame-0 poses at once instead: ep31 0.749 -> 0.913, its sweeper 12 degrees off the rest of the scene; ep12
@@ -218,12 +218,15 @@ ANCHOR_FIT = False  # Recon round P1 (C6, under test). The scorer aligns a scene
 # disagreement not higher by more than RAYS_TIE), moved at most ANCHOR_MAX_MOVE_M (a correction of this rest, not another
 # rest: public run v4_p1a kept ep12's cup 8.7 cm away, behind the rack's wires, 0.759 -> 0.421, and ep26's rack with its
 # depth fit worse, 0.923 -> 0.897) and by at least ANCHOR_MIN (a correction under the anchor's own reproducibility across
-# camera runs is noise: ep41's pot 1.9 mm / 0.2 degrees, 0.917 -> 0.903)
+# camera runs is noise: ep41's pot 1.9 mm / 0.2 degrees, 0.917 -> 0.903). On since 2026-11-01 (James): public, 20
+# episodes, on gdp (`v4_p1b`), inverted 0.7528 -> 0.7681 (ep31 +0.150, ep22 +0.059, ep44 +0.058, ep13 +0.021, ep42
+# +0.014, ep18 +0.007; none down)
 ANCHOR_MAX_MOVE_M = 0.02  # default: the largest move of the rest's centroid kept
 ANCHOR_MIN = (0.002, 0.5)  # default: m and degrees (the scored turn; a symmetric body's axis), P1's reproducibility bar
 ANCHOR_FRAMES = 120  # default: frames of the first rest the joint fit reads (evenly spaced)
 ANCHOR_TURNS = (-20.0, -10.0, 10.0, 20.0)  # default: degrees about gravity, extra starts for a scored turn
-ANCHOR_BOOTSTRAP = 0  # default: refits on frames drawn with replacement, for the anchor's spread (a GT-free signal; 0: none)
+ANCHOR_BOOTSTRAP = 5  # default (as v4_p1b): refits on frames drawn with replacement, the anchor's spread (P1's GT-free
+# signal, logged only; 0: none)
 ICP_FIT = 0.3  # default: share of a frame's depth points ICP pairs (within 1 cm) for its pose to start pass 2
 ICP_REACH = (0.02, 0.01)  # default: ICP's pairing distance, coarse then fine (m)
 SIL_POINTS = 200  # default: canonical surface points projected for the silhouette term
