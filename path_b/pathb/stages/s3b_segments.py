@@ -6,7 +6,9 @@ camera), P1d's world exports (p4_export/hands/: fingertips, wrists, valid flags,
 object: segments.json, phases.json (S4a's layout: rest-before / carry / rest-after from the first and
 last grasp), segments_report.json (thresholds used, votes, segment table, support evidence),
 coverage.json (hands.coverage: the share of grasp frames with the grasping hand's wrist; S0.3) and
-per_frame.npz (motion, d_tip, centroid: S0.3's wrist check reads them).
+per_frame.npz (motion, d_tip, centroid: S0.3's wrist check reads them). With segments.HAND_EXCLUSIVE a
+multi-object clip is segmented twice: the second pass leaves out the hand frames another object's grasp
+holds (segments.busy_hands; the report keeps the first pass).
 Support is the points rule of pathb/segments.py; the team's support_stacked rule (pathb/support.py)
 checks it when $RETARGET_VENV is set (a disagreement is a WARN, a check not run a WARN).
 Public only: grasp + unstable frames against the ground truth's moving frames (S0.2's moving_mask)
@@ -57,12 +59,19 @@ def run(ctx) -> StageResult:
     view = View(ctx)
     rng = np.random.default_rng(0)
     clouds = {name: [view.points(k, t, LIMIT, rng) for t in range(n)] for k, name in enumerate(ctx.objects)}
-    metrics, outputs, found = [], {}, {}
+    metrics, outputs, found, arrays = [], {}, {}, {}
     for k, name in enumerate(ctx.objects):
-        segs, report, arrays = G.segment(clouds[name], tips["tips"], wrist, tips["valid"], gaps)
+        segs, report, arrays[name] = G.segment(clouds[name], tips["tips"], wrist, tips["valid"], gaps)
         found[name] = (segs, report)
         (d / name).mkdir(parents=True, exist_ok=True)
-        np.savez(d / name / "per_frame.npz", **arrays)
+        np.savez(d / name / "per_frame.npz", **arrays[name])
+    if G.HAND_EXCLUSIVE and len(ctx.objects) > 1:  # a second pass: a hand carrying one object is not another's
+        first = {name: (found[name][0], arrays[name]["d_tip"]) for name in ctx.objects}
+        for name in ctx.objects:
+            busy = G.busy_hands(first[name][1], [first[o] for o in ctx.objects if o != name])
+            segs, report, _ = G.segment(clouds[name], tips["tips"], wrist, tips["valid"], gaps, busy=busy)
+            report["hand_exclusive"]["first_pass"] = found[name][1]["segments"]
+            found[name] = (segs, report)
     for k, name in enumerate(ctx.objects):  # support needs every object's segments
         segs, report = found[name]
         evidence = []
@@ -111,6 +120,11 @@ def run(ctx) -> StageResult:
             Metric(f"{name}: grasp frames with the grasping hand's wrist", cov["coverage_carry"], "share",
                    note="S0.3's coverage_carry; < 0.9 makes P1d's hand-gap rule mandatory"),
         ]
+        if report.get("hand_exclusive"):
+            busy = report["hand_exclusive"]["busy_frames"]
+            metrics.append(Metric(f"{name}: hand frames left to another object (L / R)", f"{busy['L']} / {busy['R']}", "frames",
+                                  note="segments.HAND_EXCLUSIVE; first pass: " + "; ".join(
+                                      f"{x} {a}-{b}" + (f" {h}" if h else "") for x, a, b, h in report["hand_exclusive"]["first_pass"])[:250]))
         for ev in evidence:
             if "support" not in ev:
                 continue

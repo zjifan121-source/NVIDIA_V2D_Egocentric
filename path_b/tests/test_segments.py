@@ -127,7 +127,9 @@ def test_motion_is_small_at_rest_and_large_in_the_carry(gap):
 
 def synthetic_episode(tmp_path):
     """test_a2's box (rest 0-14, moved 15-25, rest 26-39) seen through masks, stereo depth and cameras,
-    with a right hand whose thumb and index hold its sides over 15-25; P1d-style hand exports and a
+    with a right hand whose thumb and index hold its sides over 12-25 (it takes the box three frames before it
+    moves it, as on the public clips; static until contact ends the first rest at its first touch); P1d-style
+    hand exports and a
     P4-style bundle. Returns (root, episode entry, true poses (N, 4, 4))."""
     import json
     import cv2
@@ -153,7 +155,7 @@ def synthetic_episode(tmp_path):
         cv2.imwrite(str(root / f"p1b_masks/obj_0/{t:06d}.png"), big)
         for side in ("hand_L", "hand_R"):
             cv2.imwrite(str(root / f"p1b_masks/{side}/{t:06d}.png"), np.zeros_like(big))
-        held = A.REST_B[1] < t < A.REST_A[0]
+        held = A.REST_B[1] - 3 < t < A.REST_A[0]
         away = 0.004 if held else 0.2
         local = np.array([[-0.03, -0.04 - away, 0.025], [0.03, -0.04 - away, 0.025]])  # on its -y side, in the box frame
         T = A.pose(t)
@@ -259,6 +261,7 @@ def jittered_start(clouds, last=20, step=0.012, seed=3):
 def test_static_until_contact_turns_the_noisy_rest_before_the_hand_static(monkeypatch):
     clouds, tips, wrist, valid = clip()
     clouds = jittered_start(clouds)
+    monkeypatch.setattr(G, "STATIC_UNTIL_CONTACT", False)
     segs, report, _ = G.segment(clouds, tips, wrist, valid, {})
     assert segs[0]["kind"] != "static" or segs[0]["end"] < 15, report["segments"]  # off: no rest at frame 0
     assert report["static_until_contact"] is None
@@ -280,3 +283,31 @@ def test_static_until_contact_votes():
     assert info == {"first_contact": 6, "votes_turned_static": 4, "turned_without_a_hand": 3}
     out, info = G.static_until_contact(v, np.full((8, 2, 5), np.nan))  # never a hand: all static
     assert out == ["static", None] + ["static"] * 6 and info["first_contact"] is None
+
+
+def test_busy_hands_leaves_a_hand_on_one_object_to_it():
+    """The left thumb and index 1 cm from the cup they grasp (frames 2-5) and 20 cm from the pitcher: those
+    frames are busy for the pitcher. 4 cm from it (a pot and its lid, both within reach): not busy."""
+    n = 8
+    cup = np.full((n, 2, 5), 0.3)
+    cup[2:6, 0, :2] = 0.01
+    segs = [{"kind": "static", "start": 0, "end": 1, "hand": None}, {"kind": "grasp", "start": 2, "end": 5, "hand": "L"},
+            {"kind": "static", "start": 6, "end": 7, "hand": None}]
+    busy = G.busy_hands(np.full((n, 2, 5), 0.2), [(segs, cup)])
+    assert busy[:, 0].tolist() == [False, False, True, True, True, True, False, False] and not busy[:, 1].any()
+    assert not G.busy_hands(np.full((n, 2, 5), 0.04), [(segs, cup)]).any()
+
+
+def test_a_busy_hand_carries_nothing_else():
+    """HAND_EXCLUSIVE: the right hand carries the box 30-69; masked as busy (it holds another object), the box has
+    no grasp (static all clip). An all-False mask changes nothing, and the saved distances stay physical."""
+    clouds, tips, wrist, valid = clip()
+    plain, _, arrays = G.segment(clouds, tips, wrist, valid, {})
+    segs, report, _ = G.segment(clouds, tips, wrist, valid, {}, busy=np.zeros((N, 2), bool))
+    assert segs == plain and report["hand_exclusive"] == {"busy_frames": {"L": 0, "R": 0}}
+    busy = np.zeros((N, 2), bool)
+    busy[:, 1] = True
+    segs, report, masked = G.segment(clouds, tips, wrist, valid, {}, busy=busy)
+    assert not any(s["kind"] == "grasp" for s in segs), report["segments"]
+    assert report["hand_exclusive"]["busy_frames"] == {"L": 0, "R": N}
+    assert np.array_equal(arrays["d_tip"], masked["d_tip"], equal_nan=True)

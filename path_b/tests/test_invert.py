@@ -791,7 +791,7 @@ def test_anchor_fit_puts_a_biased_first_rest_on_its_frames(monkeypatch):
 def test_anchor_fit_runs_only_on_an_anchor_with_the_flag(monkeypatch):
     c, segs, obj, m = clip()
     P, report = I.solve(c, segs, start_pose(), FPS)
-    assert "anchor_fit" not in report[0]  # off (the default)
+    assert "anchor_fit" not in report[0]  # not an anchor (ANCHOR_FIT is on by default since 2026-11-01)
     monkeypatch.setattr(I, "ANCHOR_FIT", True)
     P1, report1 = I.solve(c, segs, start_pose(), FPS)
     assert "anchor_fit" not in report1[0] and np.allclose(P1, P)  # on, but not an anchor
@@ -812,6 +812,21 @@ def test_anchor_fit_keeps_an_upright_body_of_revolution_vertical():
     assert np.linalg.norm(r["pose"][:3, 3] - obj[0][:3, 3]) < 0.002
 
 
+def test_keep_start_returns_to_a_start_pose_the_static_fit_explains_no_better():
+    # CONTACT_REST_KEEPS_START: a static fit 1 cm and 8 degrees off (ep22's pitcher) explains the rest worse than the
+    # registration it began from, which is kept; a registration 5 cm off (ep21's pitcher) loses to the static fit
+    c, segs, obj, m = clip()
+    off = np.eye(4)
+    off[:3, :3] = Rotation.from_rotvec([0, 0, np.radians(8)]).as_matrix()
+    off[:3, 3] = [0.01, 0.004, 0.0]
+    r = I.keep_start(c, 0, GRASP[0] - 1, {"pose": off @ obj[0], "residual_m": 0.001}, obj[0])
+    assert r["contact_rest"]["kept"].startswith("the start pose") and np.allclose(r["pose"], obj[0]), r["contact_rest"]
+    far = np.eye(4)
+    far[:3, 3] = [0.05, 0.0, 0.0]
+    r = I.keep_start(c, 0, GRASP[0] - 1, {"pose": obj[0], "residual_m": 0.001}, far @ obj[0])
+    assert r["contact_rest"]["kept"] == "the static fit" and np.allclose(r["pose"], obj[0]), r["contact_rest"]
+
+
 def test_anchors_are_the_objects_the_scorer_aligns_by():
     from pathb.stages.s3c_invert import anchors
     assert anchors(["blue_cup", "plastic_dish_rack"]) == {0, 1}  # the cup's place, the rack's turn
@@ -820,6 +835,21 @@ def test_anchors_are_the_objects_the_scorer_aligns_by():
     assert anchors(["white_pot_lid", "white_pot"]) == {0, 1}
     assert anchors(["blue_cup", "beige_cup"]) == {0}
     assert anchors(["white_pot"]) == {0}
+
+
+def test_contact_rest_is_a_first_rest_made_mostly_by_static_until_contact(tmp_path):
+    """ANCHOR_SKIP_CONTACT_REST: ep43's pot, its first rest 0-9 all votes turned static (made by C1); ep22's cup, 1 of
+    its 9; an object S3b segmented without C1; one without a report."""
+    import json
+    from pathb.stages.s3c_invert import contact_rest
+    for name, until, first in (("pot", {"first_contact": 10, "votes_turned_static": 10}, ["static", 0, 9, None]),
+                               ("cup", {"first_contact": 7, "votes_turned_static": 1}, ["static", 0, 8, None]),
+                               ("off", None, ["static", 0, 9, None])):
+        (tmp_path / "s3b_segments" / name).mkdir(parents=True)
+        (tmp_path / "s3b_segments" / name / "segments_report.json").write_text(
+            json.dumps({"static_until_contact": until, "segments": [first, ["grasp", first[2] + 1, 50, "R"]]}))
+    assert contact_rest(tmp_path, "pot") and not contact_rest(tmp_path, "cup")
+    assert not contact_rest(tmp_path, "off") and not contact_rest(tmp_path, "missing")
 
 
 @pytest.mark.parametrize("shift_m, kept", [(0.03, "it moved more than 2 cm"), (0.0, "a correction under 2 mm")])

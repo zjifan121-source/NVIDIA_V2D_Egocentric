@@ -102,6 +102,17 @@ def anchors(objects: list[str]) -> set[int]:
     return {0} | {next((k for k, o in enumerate(objects) if o not in symmetry.CUPS | symmetry.HALF_TURN), 0)}
 
 
+def contact_rest(root, name: str) -> bool:
+    """The object's first rest (static at frame 0) is mostly S3b's static-until-contact votes: more than half its frames
+    were voted moving before the first contact made them static (invert.ANCHOR_SKIP_CONTACT_REST)."""
+    f = root / f"s3b_segments/{name}/segments_report.json"
+    if not f.is_file():
+        return False
+    report = json.loads(f.read_text())
+    until, first = report.get("static_until_contact"), report["segments"][0]
+    return bool(until) and first[0] == "static" and first[1] == 0 and until["votes_turned_static"] > (first[2] + 1) / 2
+
+
 def everyone(view: View, k: int, others: list[int]):
     """t -> the silhouette map of object k's allowed mask with every other object's added (invert.ANCHOR_FIT)."""
     cache = {}
@@ -147,13 +158,14 @@ def clip(ctx, view: View, k: int, name: str, mesh: trimesh.Trimesh, hosts: list 
         surface = largest_above_table(S.integrate(fused))
         return S.mesh_points(surface, 5000) if len(surface.triangles) else None
 
-    anchor = I.ANCHOR_FIT and k in anchors(ctx.objects)
+    made = I.ANCHOR_SKIP_CONTACT_REST and k in anchors(ctx.objects) and contact_rest(ctx.root, name)
+    anchor = I.ANCHOR_FIT and k in anchors(ctx.objects) and not made
     others = [j for j in range(len(ctx.objects)) if j != k]
     return I.Clip(K=view.K, c2w=view.c2w, obs=obs, tips=tips["tips"], wrist=wrist, valid=tips["valid"],
                   vertices=np.asarray(mesh.vertices, np.float64), faces=np.asarray(mesh.faces),
                   group=symmetry.group(name, np.asarray(mesh.vertices)), target=target, silhouette=sil, seed=k,
                   revolution=name in REVOLUTION, hosts=list(hosts), hand_verts=hand_verts, hand_scale=hand_scale,
-                  anchor=anchor, occluders=everyone(view, k, others) if anchor and others else None)
+                  anchor=anchor, contact_rest=made, occluders=everyone(view, k, others) if (anchor or made) and others else None)
 
 
 def run(ctx) -> StageResult:

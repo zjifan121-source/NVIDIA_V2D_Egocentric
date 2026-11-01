@@ -221,6 +221,17 @@ ANCHOR_FIT = True  # default (Recon round P1, C6). The scorer aligns a scene by 
 # camera runs is noise: ep41's pot 1.9 mm / 0.2 degrees, 0.917 -> 0.903). On since 2026-11-01 (James): public, 20
 # episodes, on gdp (`v4_p1b`), inverted 0.7528 -> 0.7681 (ep31 +0.150, ep22 +0.059, ep44 +0.058, ep13 +0.021, ep42
 # +0.014, ep18 +0.007; none down)
+ANCHOR_SKIP_CONTACT_REST = True  # default (Recon round P2, C1 with P1): no anchor fit on a first rest that S3b's
+# STATIC_UNTIL_CONTACT made, more than half its frames voted moving before the first contact (fit noise the joint fit
+# then follows; s3c_invert.contact_rest). Public v4_c1x (P1 + C1 + HAND_EXCLUSIVE): ep43's pot 0-9 (10 of 10 frames)
+# moved 11.3 mm, 0.800 with C1 alone -> 0.748; ep22's pitcher 0-16 (12 of 17) 16 mm and 5 degrees
+CONTACT_REST_KEEPS_START = True  # default (with ANCHOR_SKIP_CONTACT_REST): such a contact rest (Clip.contact_rest)
+# keeps its start pose, s3a2_register's frame-0 registration, where its static fit explains the rest no better
+# (keep_start). Public v4_c1y: ep22's pitcher's static fit 8.2 degrees off its registration, worse on every measure
+# (median point residual 4.62 vs 3.59 mm, mask disagreement 0.075 vs 0.057), pitcher ADD-AUC 0.618 -> 0.360; ep21's
+# pitcher's registration is 11 cm off (30 mm residual) and its static fit took it 0.45 -> 0.74. The four flags of
+# Recon round P2 (STATIC_UNTIL_CONTACT, HAND_EXCLUSIVE, these two) on since 2026-11-01: public, 20 episodes, on p1b
+# (`v4_c1z`), inverted 0.7681 -> 0.7862 (ep21 +0.290, ep23 +0.037, ep43 +0.035; none down, ep22 0.784 -> 0.780)
 ANCHOR_MAX_MOVE_M = 0.02  # default: the largest move of the rest's centroid kept
 ANCHOR_MIN = (0.002, 0.5)  # default: m and degrees (the scored turn; a symmetric body's axis), P1's reproducibility bar
 ANCHOR_FRAMES = 120  # default: frames of the first rest the joint fit reads (evenly spaced)
@@ -281,6 +292,7 @@ class Clip:
     hand_scale: np.ndarray | None = None  # (N, 2) the bundle's per-frame hand scales (hands L, R), or None
     anchor: bool = False  # one of the objects the scorer aligns the scene by (ANCHOR_FIT)
     occluders: object = None  # t -> silhouette_map of the allowed mask with every other object's added (ANCHOR_FIT), or None
+    contact_rest: bool = False  # an anchor whose first rest S3b's static-until-contact made (ANCHOR_SKIP_CONTACT_REST)
     scene: o3d.t.geometry.RaycastingScene = field(init=False)
     surface: o3d.geometry.PointCloud = field(init=False)
     fit_smooth: bool | None = field(default=None, init=False)  # set: overrides `smooth` (SMOOTH_FALLBACK's two solves)
@@ -779,6 +791,23 @@ def anchor_fit(clip: Clip, a: int, b: int, fit: dict) -> dict:
         return fit | {"anchor_fit": log | {"kept": f"the static fit ({why})"}}
     return fit | {"pose": T, "anchor_fit": log | {"kept": "the joint fit"},
                   "start_from": f"{fit.get('start_from', '')}; then fitted on the rest's {len(ts)} frames (anchor)"}
+
+
+def keep_start(clip: Clip, a: int, b: int, fit: dict, start: np.ndarray) -> dict:
+    """CONTACT_REST_KEEPS_START on an anchor's contact rest [a, b]: the static fit `fit` with its pose replaced by
+    `start` (the frame-0 registration it began from) unless it explains the rest's frames better on one measure (a
+    lower median point residual, or a mask disagreement lower by more than RAYS_TIE); a "contact_rest" log either way."""
+    ts = [t for t in range(a, b + 1) if clip.obs[t] is not None]
+    if not ts:
+        return fit | {"contact_rest": {"kept": "the static fit (no frame seen)"}}
+    point = [float(np.median(np.concatenate([clip.point_residual(Q, t, FIT_RAYS) for t in ts]))) for Q in (fit["pose"], start)]
+    mask = [disagreement({"rays_missed": rays_missed(clip, a, b, Q), "overhang": overhang(clip, a, b, Q, silhouette=clip.occluders)})
+            for Q in (fit["pose"], start)]
+    log = {"point_median_mm": [round(p * 1000, 2) for p in point], "disagreement": mask}
+    if point[0] < point[1] or (None not in mask and mask[0] < mask[1] - RAYS_TIE):
+        return fit | {"contact_rest": log | {"kept": "the static fit"}}
+    return fit | {"pose": start, "contact_rest": log | {"kept": "the start pose (the static fit explains the rest no better)"},
+                  "start_from": f"{fit.get('start_from', '')}; then its start pose kept (contact rest)"}
 
 
 def disagreement(f: dict) -> float | None:
@@ -1460,6 +1489,8 @@ def _solve(clip: Clip, segments: list[dict], start_pose: np.ndarray, fps: float,
             r = solve_static(clip, a, b, init, earlier, rest)
             if ANCHOR_FIT and clip.anchor and i == 0 and a == 0:
                 r = anchor_fit(clip, a, b, r)
+            if CONTACT_REST_KEEPS_START and clip.contact_rest and i == 0 and a == 0:
+                r = keep_start(clip, a, b, r, start_pose)
             r |= beyond_reach(clip, work, i, r["pose"], P, moved_by)
             P[a:b + 1] = r["pose"]
             solved[i] = [{"kind": "static", "start": a, "end": b, **{k: v for k, v in r.items() if k != "pose"}}]

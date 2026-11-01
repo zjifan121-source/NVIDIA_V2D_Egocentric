@@ -20,12 +20,20 @@ MIN_GRASP become unstable, static runs shorter than MIN_STATIC join their neighb
 split where its hand has a long gap (> 15 frames: those frames become unstable). A grasp's fingertip
 set is the fingers of its hand within near on >= half its frames (at least the two most often).
 An object never grasped is one static segment (static: true).
-Static until contact (STATIC_UNTIL_CONTACT, Recon round P2 / C1, off: under test): an object at rest
+Static until contact (STATIC_UNTIL_CONTACT, Recon round P2 / C1, on since 2026-11-01): an object at rest
 starts to move only once a hand reaches it (the ROHIT hand-interaction timeline), so every vote before
 the first frame with a fingertip of either hand within CONTACT_M of the object's points is static; from
 that frame on the votes are unchanged (the first rest→move transition only). ep21's pitcher read 4–13 mm
 on the motion test at rest (fit noise on a still object; no fingertip within 5 cm before frame 7), so it
 had no static segment at frame 0.
+Hand exclusivity (HAND_EXCLUSIVE, Recon round P2 / C1's fix, on since 2026-11-01): a hand that carries one
+object does not carry another. s3b_segments segments each object of a multi-object clip a second time
+with the frames of a hand masked that lie in another object's grasp of that hand, the hand's
+second-closest fingertip within CONTACT_M of that object and beyond EXCLUSIVE_FAR_M of this one
+(busy_hands): they count for neither the thresholds, the votes, the first contact nor the carrier.
+ep22 (v4_c1a): the left hand holds the cup 9-145 (0.6-2.6 cm from it, 14-33 cm from the pitcher), yet
+it was the pitcher's grasp 17-91, through a 47 cm `near` taken from the pitcher's certain-contact
+frames on that hand.
 Support of a static segment (the observed points pooled over it): `table` when their lowest 5 %
 are within SUPPORT_M of z = 0; else the other object whose footprint holds this one's centre and
 whose top reaches within SUPPORT_M of this one's bottom; else `table`, flagged `floating`.
@@ -52,8 +60,11 @@ SUPPORT_BELOW_M = 0.01  # default (§13.4 D1, bottom-up): a support's lowest poi
 # object's (ep0: the pot, seen from 2.8 cm up under its lid, was put on the lid, and the lid on the pot)
 LONG_GAP = 15  # frames: P1d's tracks_interpolate limit (hands.MAX_GAP)
 QUERY = 2000  # points per frame queried for motion (spec: <= 2 000)
-STATIC_UNTIL_CONTACT = False  # Recon round P2 (C1), under test: votes before the first hand contact are static
+STATIC_UNTIL_CONTACT = True  # default (Recon round P2, C1): votes before the first hand contact are static
 CONTACT_M = 0.05  # m: a fingertip of either hand this close to the object's points is a contact (Recon P2)
+HAND_EXCLUSIVE = True  # default (Recon round P2, C1's fix): a hand that carries one object is not another's
+EXCLUSIVE_FAR_M = 0.10  # m: a hand's second-closest fingertip this far from an object leaves it to the other object
+# it grasps within CONTACT_M (HAND_EXCLUSIVE; a pot and the lid on it, both within reach, keep the hand)
 
 
 def centroids(clouds: list) -> np.ndarray:
@@ -158,6 +169,28 @@ def static_until_contact(v: list[str | None], d_tip: np.ndarray) -> tuple[list[s
     no_hand = sum(1 for i in turned if not np.isfinite(d_tip[i]).any())
     out = ["static" if x is not None and i < end else x for i, x in enumerate(v)]
     return out, {"first_contact": t, "votes_turned_static": len(turned), "turned_without_a_hand": no_hand}
+
+
+def second_closest(d_tip: np.ndarray) -> np.ndarray:
+    """(N, 2) metres: each hand's second-closest fingertip to the object (two make a grasp); NaN without that hand."""
+    full = np.isfinite(d_tip).all(axis=2)
+    return np.where(full, np.sort(np.nan_to_num(d_tip, nan=np.inf), axis=2)[:, :, 1], np.nan)
+
+
+def busy_hands(d_tip: np.ndarray, others: list[tuple[list[dict], np.ndarray]]) -> np.ndarray:
+    """(N, 2) True where a hand carries another object instead of this one (HAND_EXCLUSIVE): inside one of that
+    object's grasp segments of this hand, its second-closest fingertip within CONTACT_M of that object and not
+    within EXCLUSIVE_FAR_M of this one. `others`: each other object's segments and d_tip (first pass)."""
+    own = second_closest(d_tip)
+    out = np.zeros(own.shape, bool)
+    for segs, d in others:
+        theirs = second_closest(d)
+        for s in segs:
+            if s["kind"] != "grasp":
+                continue
+            h, a, b = HANDS.index(s["hand"]), s["start"], s["end"] + 1
+            out[a:b, h] |= (theirs[a:b, h] < CONTACT_M) & ~(own[a:b, h] <= EXCLUSIVE_FAR_M)
+    return out
 
 
 def hysteresis(v: list[str | None], k: int = HYSTERESIS) -> list[str]:
@@ -276,21 +309,26 @@ def fingertip_set(d_tip: np.ndarray, hand: int, a: int, b: int, near: float) -> 
 
 
 def segment(clouds: list, tips: np.ndarray, wrist: np.ndarray, valid: np.ndarray,
-            long_gaps: dict[str, list[tuple[int, int]]]) -> tuple[list[dict], dict, dict]:
+            long_gaps: dict[str, list[tuple[int, int]]], busy: np.ndarray | None = None) -> tuple[list[dict], dict, dict]:
     """segments.json content (support filled by `support` later), the report, and the per-frame
-    arrays (motion, d_tip, centroid: S3b saves them for S0.3)."""
+    arrays (motion, d_tip, centroid: S3b saves them for S0.3). `busy` (N, 2): hand frames that carry
+    another object (busy_hands), masked from everything but the saved d_tip."""
     n = len(clouds)
     cent = centroids(clouds)
     mot = motion(clouds)
     d_tip = tip_distances(clouds, tips, valid)
-    th = thresholds(d_tip, certain_contact(cent, wrist, valid))
-    v = votes(mot, d_tip, th["near_m"], th["far_m"])
+    d, ok = d_tip, valid
+    if busy is not None and busy.any():
+        d, ok = d_tip.copy(), valid & ~busy
+        d[busy] = np.nan
+    th = thresholds(d, certain_contact(cent, wrist, ok))
+    v = votes(mot, d, th["near_m"], th["far_m"])
     until_contact = None
     if STATIC_UNTIL_CONTACT:
-        v, until_contact = static_until_contact(v, d_tip)
+        v, until_contact = static_until_contact(v, d)
     labels = hysteresis(v)
     rs = split_at_gaps(tidy(labels), long_gaps)
-    rs = carrying(rs, d_tip, th["near_m"], cent, wrist, valid, mot)
+    rs = carrying(rs, d, th["near_m"], cent, wrist, ok, mot)
     never = not any(x.startswith("grasp") for x, _, _ in rs)
     if never:
         rs = [["static", 0, n - 1]]
@@ -299,14 +337,15 @@ def segment(clouds: list, tips: np.ndarray, wrist: np.ndarray, valid: np.ndarray
         kind = x.split(":")[0]
         hand = x.split(":")[1] if kind == "grasp" else None
         segs.append({"kind": kind, "start": int(a), "end": int(b), "hand": hand,
-                     "fingertips": fingertip_set(d_tip, HANDS.index(hand), a, b, th["near_m"]) if hand else [],
+                     "fingertips": fingertip_set(d, HANDS.index(hand), a, b, th["near_m"]) if hand else [],
                      "support": None})
     report = {"frames": n, "thresholds": th, "static": never,
               "votes": {k: sum(1 for x in v if x == k) for k in ("static", "grasp:L", "grasp:R", "unstable", None)},
               "frames_without_points": int(sum(1 for c in clouds if c is None or not len(c))),
               "motion_mm_median": float(np.nanmedian(mot) * 1000) if np.isfinite(mot).any() else None,
               "segments": [[s["kind"], s["start"], s["end"], s["hand"]] for s in segs],
-              "static_until_contact": until_contact}
+              "static_until_contact": until_contact,
+              "hand_exclusive": None if busy is None else {"busy_frames": dict(zip(HANDS, busy.sum(axis=0).tolist()))}}
     return segs, report, {"motion": mot, "d_tip": d_tip, "centroid": cent}
 
 
