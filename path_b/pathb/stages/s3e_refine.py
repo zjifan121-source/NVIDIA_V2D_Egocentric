@@ -5,10 +5,18 @@ pathb/drivers/fp_refine.py runs in that image as S3b's tracker does (the baselin
 read-only), on ego_cam_a's frames, P1d's full-resolution stereo depth, the object's P1b mask, P1c's intrinsics and
 S3a's canonical mesh at its metric size. Frames: those with the object's mask (not a frame B.lost_frames gives to
 another object) and its depth. Start: S3d's pose (object_to_camera = camera_to_world^-1 @ object_to_world). The
-driver keeps the refined pose where both its mask IoU and its median depth residual beat the start's and it moved
-at most MAX_STEP_M / MAX_STEP_DEG; every other frame keeps S3d's pose. S4b reads this track when it exists.
-Out per object: object_to_world.npz (N, 4, 4), refine_meta.json, poses/. Without nvidia-smi (the Mac) the stage
-is skipped and S4b reads S3d's track as before. Public, one object: the refined track's playback AUC.
+driver refines every such frame once and records both poses, their mask IoU and median depth residual, and the
+scorer's logits of the two.
+Keep rule (Recon round P4, applied here to the driver's records, `keeps`): a refined pose replaces S3d's only on a
+frame of a moving segment (S3b: grasp or unstable; S4b holds each static segment at its first frame's pose, so one
+frame's polish would move the whole rest), where the mask IoU does not drop by more than IOU_DROP, the depth
+residual falls by at least MIN_GAIN_M, the scorer prefers it by SCORE_MARGIN (when set), and it moved at most
+MAX_STEP_M / MAX_STEP_DEG. S4b reads this track when it exists.
+Out per object: object_to_world.npz (N, 4, 4), refine_meta.json, poses/ (the driver's own pick), request.json.
+Without nvidia-smi (the Mac) the stage re-applies the keep rule to a GPU pass's records already in s3e_refine/
+(copied from the GPU machine), so the rule can be tuned without the GPU; a pass whose start poses are not this
+S3d's track is stale and not used. With no records it is skipped and S4b reads S3d's track as before.
+Public, one object: the refined track's playback AUC.
 """
 from __future__ import annotations
 
@@ -28,6 +36,11 @@ from .s3b_track import FP_DEV_PRESERVE
 
 ITERATIONS = 5  # default: the baseline tracker's refiner passes per frame (track_one)
 MAX_STEP_M, MAX_STEP_DEG = 0.03, 15.0  # default: the refiner polishes; a larger move is a re-registration, not kept
+MOVING_ONLY = True  # default (P4): refined poses only on S3b's grasp / unstable frames
+MIN_GAIN_M = 0.001  # default (P4): the median masked-depth residual falls by at least 1 mm
+IOU_DROP = 0.0  # default (P4): the mask IoU does not drop
+SCORE_MARGIN = None  # P4: the scorer's logit gain (refined - start) a kept pose needs; None = not used
+STALE_M = 1e-6  # a record's start pose this far from this S3d's (object_to_camera, any entry) is another track's
 
 
 def requested(ctx, k: int, name: str, P: np.ndarray, c2w: np.ndarray) -> tuple[list[int], dict]:
@@ -39,8 +52,63 @@ def requested(ctx, k: int, name: str, P: np.ndarray, c2w: np.ndarray) -> tuple[l
     return frames, {str(t): (np.linalg.inv(c2w[t]) @ P[t]).tolist() for t in frames}
 
 
+def keeps(row: dict) -> bool:
+    """P4's rule on one driver record (module docstring)."""
+    s, r = row["start"], row["refined"]
+    if r["iou"] < s["iou"] - IOU_DROP or s["residual_m"] - r["residual_m"] < MIN_GAIN_M:
+        return False
+    if row["step_m"] > MAX_STEP_M or row["step_deg"] > MAX_STEP_DEG:
+        return False
+    if SCORE_MARGIN is not None:
+        lg = row.get("logits")
+        if not lg or lg[0] is None or lg[1] is None or lg[1] - lg[0] < SCORE_MARGIN:
+            return False
+    return True
+
+
+def moving_frames(segments: list[dict], n: int) -> np.ndarray:
+    """Frames inside S3b's grasp / unstable segments."""
+    moving = np.zeros(n, bool)
+    for s in segments:
+        if s["kind"] != "static":
+            moving[s["start"]:s["end"] + 1] = True
+    return moving
+
+
+def regate(rows: list[dict], P: np.ndarray, c2w: np.ndarray, moving: np.ndarray) -> tuple[np.ndarray, list[int]]:
+    """S3d's track (object_to_world) with the refined pose on every frame the keep rule takes; those frames."""
+    R, kept = P.copy(), []
+    for row in rows:
+        t = row["frame"]
+        if (MOVING_ONLY and not moving[t]) or "refined_pose" not in row or not keeps(row):
+            continue
+        R[t] = c2w[t] @ np.asarray(row["refined_pose"], dtype=np.float64)
+        kept.append(t)
+    return R, kept
+
+
+def stale(request: dict, P: np.ndarray, c2w: np.ndarray) -> bool:
+    """Whether a GPU pass started from another track than this S3d's."""
+    for t, pose in request["poses"].items():
+        t = int(t)
+        if t >= len(P) or not np.isfinite(P[t]).all() or \
+                np.abs(np.asarray(pose) - np.linalg.inv(c2w[t]) @ P[t]).max() > STALE_M:
+            return True
+    return False
+
+
+def recorded(ctx) -> bool:
+    """Whether s3e_refine/ holds a GPU pass's records (refined poses) for any object."""
+    for name in ctx.objects:
+        f = ctx.root / f"s3e_refine/{name}/refine_meta.json"
+        if f.is_file() and any("refined_pose" in r for r in json.loads(f.read_text())["frames"]):
+            return True
+    return False
+
+
 def run(ctx) -> StageResult:
-    if not shutil.which("nvidia-smi"):
+    gpu = shutil.which("nvidia-smi") is not None
+    if not gpu and not recorded(ctx):
         return StageResult([], skip="no GPU here: S4b reads S3d's track")
     d = ctx.dir("s3e_refine")
     n = int(ctx.episode["num_frames"])
@@ -49,41 +117,60 @@ def run(ctx) -> StageResult:
     metrics, outputs = [], {}
     for k, name in enumerate(ctx.objects):
         P = np.load(ctx.root / f"s3d_settle/{name}/object_to_world.npz")["object_to_world"].astype(np.float64)
-        frames, poses = requested(ctx, k, name, P, c2w)
-        frames = [t for t in frames if have[t]]
         out = d / name
         out.mkdir(parents=True, exist_ok=True)
-        write_json(out / "request.json", {"frames": frames, "poses": poses, "iterations": ITERATIONS,
-                                          "bounds": {"max_step_m": MAX_STEP_M, "max_step_deg": MAX_STEP_DEG},
-                                          "symmetry": [np.eye(4).tolist()]})
-        log = out / "fp.log"
-        log.write_text("")
-        B.call("v2d.docker.container:run_in_container", {
-            "image": "v2d_foundation_pose", "module": "pathb.drivers.fp_refine", "gpus": True,
-            "inputs": {"request": str(out / "request.json"), "frames_dir": str(ctx.root / "p1_calibrate/cam_a"),
-                       "depth_dir": str(ctx.root / "p1d_hands/depth"), "masks_dir": str(tracks[f"obj_{k}"]),
-                       "mesh_path": str(ctx.root / f"s3a_mesh/{name}/mesh.obj"),
-                       "intrinsics_path": str(ctx.root / "p1c_camera/intrinsics.json"),
-                       "weights_dir": str(B.WEIGHTS / "foundation_pose")},
-            "outputs": {"output_dir": str(out)},
-            "dev": True, "modules_dir": str(RECON / "modules"),
-            "env": {"PYTHONPATH": "/pathb_src"}, "extra_volumes": FP_DEV_PRESERVE + [f"{PATH_B}:/pathb_src:ro"]}, log)
-        meta = json.loads((out / "refine_meta.json").read_text())["frames"]
-        Tc, got = read_transforms(out / "poses", n)
-        R = P.copy()
-        for t in np.nonzero(got)[0]:
-            R[t] = c2w[t] @ Tc[t]
+        if gpu:
+            frames, poses = requested(ctx, k, name, P, c2w)
+            frames = [t for t in frames if have[t]]
+            write_json(out / "request.json", {"frames": frames, "poses": {str(t): poses[str(t)] for t in frames},
+                                              "iterations": ITERATIONS,
+                                              "bounds": {"max_step_m": MAX_STEP_M, "max_step_deg": MAX_STEP_DEG},
+                                              "symmetry": [np.eye(4).tolist()]})
+            log = out / "fp.log"
+            log.write_text("")
+            B.call("v2d.docker.container:run_in_container", {
+                "image": "v2d_foundation_pose", "module": "pathb.drivers.fp_refine", "gpus": True,
+                "inputs": {"request": str(out / "request.json"), "frames_dir": str(ctx.root / "p1_calibrate/cam_a"),
+                           "depth_dir": str(ctx.root / "p1d_hands/depth"), "masks_dir": str(tracks[f"obj_{k}"]),
+                           "mesh_path": str(ctx.root / f"s3a_mesh/{name}/mesh.obj"),
+                           "intrinsics_path": str(ctx.root / "p1c_camera/intrinsics.json"),
+                           "weights_dir": str(B.WEIGHTS / "foundation_pose")},
+                "outputs": {"output_dir": str(out)},
+                "dev": True, "modules_dir": str(RECON / "modules"),
+                "env": {"PYTHONPATH": "/pathb_src"}, "extra_volumes": FP_DEV_PRESERVE + [f"{PATH_B}:/pathb_src:ro"]}, log)
+        meta_file, request_file = out / "refine_meta.json", out / "request.json"
+        if not gpu and (not meta_file.is_file() or not request_file.is_file()
+                        or stale(json.loads(request_file.read_text()), P, c2w)):
+            (out / "object_to_world.npz").unlink(missing_ok=True)  # S4b then reads S3d's track for this object
+            metrics.append(Metric(f"{name}: GPU pass recorded for this S3d track", 0, "", ok=(1, 1),
+                                  note="no records, or records of another track (stale): S3d's track kept"))
+            continue
+        meta = json.loads(meta_file.read_text())
+        rows = meta["frames"]
+        segments = json.loads((ctx.root / f"s3b_segments/{name}/segments.json").read_text())
+        moving = moving_frames(segments, n)
+        R, kept = regate(rows, P, c2w, moving)
         np.savez(out / "object_to_world.npz", object_to_world=R)
-        kept = [r for r in meta if r["kept"]]
+        took = set(kept)
+        pick = [r["refined"] if r["frame"] in took else r["start"] for r in rows]
+        asked_moving = sum(1 for r in rows if moving[r["frame"]])
+        scored = [r["logits"][1] - r["logits"][0] for r in rows if r.get("logits") and None not in r["logits"]]
         metrics += [
-            Metric(f"{name}: frames refined (kept / asked)", f"{len(kept)} / {len(meta)}", "",
-                   note=f"kept where mask IoU and depth residual both improve, moved <= {MAX_STEP_M * 100:.0f} cm / {MAX_STEP_DEG:.0f} deg"),
-            Metric(f"{name}: mask IoU, median over asked frames (start -> kept)",
-                   f"{np.median([r['start']['iou'] for r in meta]):.3f} -> "
-                   f"{np.median([(r['refined'] if r['kept'] else r['start'])['iou'] for r in meta]):.3f}" if meta else None, ""),
-            Metric(f"{name}: depth residual, median over asked frames (start -> kept)",
-                   f"{np.median([r['start']['residual_m'] for r in meta]) * 100:.2f} -> "
-                   f"{np.median([(r['refined'] if r['kept'] else r['start'])['residual_m'] for r in meta]) * 100:.2f}" if meta else None, "cm"),
+            Metric(f"{name}: frames refined (kept / asked, asked on moving segments)",
+                   f"{len(kept)} / {len(rows)} ({asked_moving} moving)", "",
+                   note=f"P4 rule: {'moving segments only; ' if MOVING_ONLY else ''}IoU drop <= {IOU_DROP}, depth "
+                        f"residual -{MIN_GAIN_M * 1000:.0f} mm or more, scorer margin {SCORE_MARGIN}, "
+                        f"moved <= {MAX_STEP_M * 100:.0f} cm / {MAX_STEP_DEG:.0f} deg"),
+            Metric(f"{name}: mask IoU, median over asked frames (start -> chosen)",
+                   f"{np.median([r['start']['iou'] for r in rows]):.3f} -> "
+                   f"{np.median([p['iou'] for p in pick]):.3f}" if rows else None, ""),
+            Metric(f"{name}: depth residual, median over asked frames (start -> chosen)",
+                   f"{np.median([r['start']['residual_m'] for r in rows]) * 100:.2f} -> "
+                   f"{np.median([p['residual_m'] for p in pick]) * 100:.2f}" if rows else None, "cm"),
+            Metric(f"{name}: scorer logit gain (refined - start), median over scored frames",
+                   round(float(np.median(scored)), 3) if scored else None, "",
+                   note=f"{len(scored)} of {len(rows)} frames scored" + (f"; scorer error: {meta['scorer_error']}"
+                                                                         if meta.get("scorer_error") else "")),
         ]
         if ctx.public and len(ctx.objects) == 1:
             poses7 = np.concatenate([R[:, :3, 3], Rotation.from_matrix(R[:, :3, :3]).as_quat()], axis=1)[:, None]

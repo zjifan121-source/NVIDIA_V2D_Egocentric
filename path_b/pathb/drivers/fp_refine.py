@@ -7,7 +7,10 @@ filtered as the tracker does) and both poses are measured as fp_track measures a
 with the object's P1b mask, and the median |rendered - stereo depth| inside it. The refined pose is kept only where
 its IoU is higher and its residual lower than the start's, and it moved at most `max_step_m` / `max_step_deg` from
 the start (the refiner is a local polish, not a re-registration); otherwise the start is kept.
-Writes <output_dir>/poses/%06d.json (object_to_camera Transform3d, every requested frame) and refine_meta.json.
+Writes <output_dir>/poses/%06d.json (object_to_camera Transform3d, every requested frame) and refine_meta.json,
+whose rows also hold the refined pose (object_to_camera) and FoundationPose's scorer logits of [start, refined]
+(one scorer call, so the two are comparable; null if the scorer failed), so S3e can apply another keep rule
+without the GPU (Recon round P4).
 """
 from __future__ import annotations
 
@@ -36,9 +39,14 @@ def keep(start: dict, refined: dict, step_m: float, step_deg: float, bounds: dic
 
 
 class Refine(Track):
-    def refine(self, rgb, depth, P: np.ndarray, iterations: int) -> np.ndarray:
+    scorer_error = None
+
+    def filtered(self, depth):
+        """The frame's masked depth, eroded and bilateral-filtered as the tracker does (GPU tensor)."""
         d = torch.as_tensor(depth.depth, device="cuda", dtype=torch.float)
-        d = bilateral_filter_depth(erode_depth(d, radius=2, device="cuda"), radius=2, device="cuda")
+        return bilateral_filter_depth(erode_depth(d, radius=2, device="cuda"), radius=2, device="cuda")
+
+    def refine(self, rgb, d, P: np.ndarray, iterations: int) -> np.ndarray:
         xyz = depth2xyzmap(d.cpu().numpy(), self.K)
         with torch.no_grad():
             refined, _ = self.est.refiner.predict(mesh=self.est.mesh, mesh_tensors=self.est.mesh_tensors, rgb=rgb.data,
@@ -47,6 +55,22 @@ class Refine(Track):
                                                   iteration=iterations, get_vis=False)
         return refined.data.cpu().numpy()[0] @ self.tf
 
+    def logits(self, rgb, d, poses: list) -> list | None:
+        """FoundationPose's scorer logits of caller-frame poses, scored together (as S3b's recovery scores its
+        candidates); None, logged once, if the scorer fails."""
+        try:
+            with torch.no_grad():
+                out, _ = self.est.scorer.predict(mesh=self.est.mesh, rgb=rgb.data, depth=d, K=self.K,
+                                                 ob_in_cams=np.stack([self.centred(P) for P in poses]), normal_map=None,
+                                                 mesh_tensors=self.est.mesh_tensors, glctx=self.est.glctx,
+                                                 mesh_diameter=self.est.diameter, get_vis=False)
+            return [float(x) for x in out]
+        except Exception as err:  # the refined poses are kept without scores
+            if self.scorer_error is None:
+                self.scorer_error = repr(err)[:300]
+                log.warning(f"scorer failed, logits left null: {self.scorer_error}")
+            return None
+
     def run(self) -> None:
         req, out = self.req, Path(self.a.output_dir)
         (out / "poses").mkdir(parents=True, exist_ok=True)
@@ -54,8 +78,9 @@ class Refine(Track):
         for k in req["frames"]:
             P0 = np.asarray(req["poses"][str(k)], dtype=np.float64)
             rgb, depth, mask, stereo = self.load(k)
+            d = self.filtered(depth)
             iou0, res0 = self.measure(P0, mask, stereo)
-            P1 = self.refine(rgb, depth, P0, int(req["iterations"]))
+            P1 = self.refine(rgb, d, P0, int(req["iterations"]))
             iou1, res1 = self.measure(P1, mask, stereo)
             step_m = float(np.linalg.norm(P1[:3, 3] - P0[:3, 3]))
             step_deg = float(np.degrees(Rotation.from_matrix(P0[:3, :3].T @ P1[:3, :3]).magnitude()))
@@ -63,9 +88,10 @@ class Refine(Track):
             kept = keep(start, refined, step_m, step_deg, req["bounds"])
             Transform3d.from_matrix(P1 if kept else P0).save(str(out / f"poses/{k:06d}.json"))
             rows.append({"frame": k, "start": start, "refined": refined, "step_m": step_m, "step_deg": step_deg,
-                         "kept": kept})
+                         "kept": kept, "refined_pose": P1.tolist(), "logits": self.logits(rgb, d, [P0, P1])})
         (out / "refine_meta.json").write_text(json.dumps({"iterations": req["iterations"], "bounds": req["bounds"],
-                                                          "frames": rows}, indent=1) + "\n")
+                                                          "scorer_error": self.scorer_error, "frames": rows},
+                                                         indent=1) + "\n")
 
 
 def main() -> int:
