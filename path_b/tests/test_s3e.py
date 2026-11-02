@@ -70,6 +70,26 @@ def test_refined_poses_replace_s3d_on_moving_frames_only():
     assert np.allclose(R[3], c2w[3] @ lift) and np.allclose(R[1], np.eye(4)) and np.allclose(R[4], np.eye(4))
 
 
+def test_the_scorer_picks_among_the_recorded_checkpoints(monkeypatch):
+    def hyp(it, logit, iou=0.82, step=0.005):
+        pose = np.eye(4)
+        pose[0, 3] = it / 1000
+        return {"iterations": it, "pose": pose.tolist(), "iou": iou, "residual_m": 0.009, "step_m": step,
+                "step_deg": 2.0, "logit": logit}
+    row = record(0) | {"start_logit": 100.0, "hypotheses": [hyp(5, 100.2), hyp(10, 100.6), hyp(20, 100.9, step=0.05)]}
+    monkeypatch.setattr(E, "HYPOTHESES", (5, 10, 20))
+    assert np.asarray(E.chosen(row))[0, 3] == 0.010  # 20 passes scores best but moved 5 cm: the next best, 10
+    monkeypatch.setattr(E, "HYPOTHESES", (5,))
+    assert np.asarray(E.chosen(row))[0, 3] == 0.005
+    row["hypotheses"] = [hyp(5, 99.5), hyp(10, 99.8)]
+    monkeypatch.setattr(E, "HYPOTHESES", (5, 10))
+    assert E.chosen(row) is None  # neither beats the start
+    P, c2w, moving = np.tile(np.eye(4), (1, 1, 1)), np.tile(np.eye(4), (1, 1, 1)), np.ones(1, bool)
+    monkeypatch.setattr(E, "HYPOTHESES", None)  # off: the records' ITERATIONS pose under keeps()
+    R, kept = E.regate([record(0) | {"hypotheses": []}], P, c2w, moving)
+    assert kept == [0]
+
+
 def test_smoothing_spreads_a_grasp_correction_in_the_object_frame(monkeypatch):
     monkeypatch.setattr(E, "SMOOTH_SIGMA", 2.0)
     P = np.tile(np.eye(4), (14, 1, 1))

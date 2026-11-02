@@ -37,6 +37,8 @@ from ..runner import write_json
 from .s3b_track import FP_DEV_PRESERVE
 
 ITERATIONS = 5  # default: the baseline tracker's refiner passes per frame (track_one)
+CHECKPOINTS = None  # GPU pass: also record the poses after these many passes (e.g. (5, 10, 20)); None = ITERATIONS only
+HYPOTHESES = None  # keep rule: choose among these checkpoints' poses by the scorer (`chosen`); None = ITERATIONS' pose
 MAX_STEP_M, MAX_STEP_DEG = 0.03, 15.0  # default: the refiner polishes; a larger move is a re-registration, not kept
 MOVING_ONLY = True  # default (P4): refined poses only on S3b's grasp / unstable frames
 MIN_GAIN_M = None  # P4's first rule: 0.001 (the median masked-depth residual falls by 1 mm); None = not used (default)
@@ -80,14 +82,37 @@ def moving_frames(segments: list[dict], n: int) -> np.ndarray:
     return moving
 
 
+def chosen(row: dict) -> list | None:
+    """With HYPOTHESES: among the recorded checkpoints in HYPOTHESES within the IoU and step bounds (and the depth bar
+    when set), the pose the scorer rates highest, if it beats the start by SCORE_MARGIN (0 when unset); else None."""
+    s, base = row["start"], row.get("start_logit")
+    best = None
+    for h in row.get("hypotheses") or []:
+        if h["iterations"] not in HYPOTHESES or h.get("logit") is None or base is None:
+            continue
+        if h["iou"] < s["iou"] - IOU_DROP or h["step_m"] > MAX_STEP_M or h["step_deg"] > MAX_STEP_DEG:
+            continue
+        if MIN_GAIN_M is not None and s["residual_m"] - h["residual_m"] < MIN_GAIN_M:
+            continue
+        if h["logit"] - base >= (SCORE_MARGIN or 0.0) and (best is None or h["logit"] > best["logit"]):
+            best = h
+    return None if best is None else best["pose"]
+
+
 def regate(rows: list[dict], P: np.ndarray, c2w: np.ndarray, moving: np.ndarray) -> tuple[np.ndarray, list[int]]:
     """S3d's track (object_to_world) with the refined pose on every frame the keep rule takes; those frames."""
     R, kept = P.copy(), []
     for row in rows:
         t = row["frame"]
-        if (MOVING_ONLY and not moving[t]) or "refined_pose" not in row or not keeps(row):
+        if (MOVING_ONLY and not moving[t]) or "refined_pose" not in row:
             continue
-        R[t] = c2w[t] @ np.asarray(row["refined_pose"], dtype=np.float64)
+        if HYPOTHESES and "hypotheses" in row:
+            pose = chosen(row)
+        else:
+            pose = row["refined_pose"] if keeps(row) else None
+        if pose is None:
+            continue
+        R[t] = c2w[t] @ np.asarray(pose, dtype=np.float64)
         kept.append(t)
     return R, kept
 
@@ -154,7 +179,7 @@ def run(ctx) -> StageResult:
             frames, poses = requested(ctx, k, name, P, c2w)
             frames = [t for t in frames if have[t]]
             write_json(out / "request.json", {"frames": frames, "poses": {str(t): poses[str(t)] for t in frames},
-                                              "iterations": ITERATIONS,
+                                              "iterations": ITERATIONS, "checkpoints": list(CHECKPOINTS or []),
                                               "bounds": {"max_step_m": MAX_STEP_M, "max_step_deg": MAX_STEP_DEG},
                                               "symmetry": [np.eye(4).tolist()]})
             log = out / "fp.log"

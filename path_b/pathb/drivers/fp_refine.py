@@ -10,7 +10,9 @@ the start (the refiner is a local polish, not a re-registration); otherwise the 
 Writes <output_dir>/poses/%06d.json (object_to_camera Transform3d, every requested frame) and refine_meta.json,
 whose rows also hold the refined pose (object_to_camera) and FoundationPose's scorer logits of [start, refined]
 (one scorer call, so the two are comparable; null if the scorer failed), so S3e can apply another keep rule
-without the GPU (Recon round P4).
+without the GPU (Recon round P4). With "checkpoints" in the request (refiner passes, e.g. [5, 10, 20]), the passes
+go on from one checkpoint's pose to the next and each row also holds "hypotheses" (pose, IoU, residual, step and
+logit per checkpoint) and "start_logit", all scored in one call with the start.
 """
 from __future__ import annotations
 
@@ -74,21 +76,37 @@ class Refine(Track):
     def run(self) -> None:
         req, out = self.req, Path(self.a.output_dir)
         (out / "poses").mkdir(parents=True, exist_ok=True)
+        n_iter = int(req["iterations"])
+        stops = sorted({n_iter, *[int(c) for c in req.get("checkpoints") or []]})  # refiner passes to record poses at
         rows = []
         for k in req["frames"]:
             P0 = np.asarray(req["poses"][str(k)], dtype=np.float64)
             rgb, depth, mask, stereo = self.load(k)
             d = self.filtered(depth)
             iou0, res0 = self.measure(P0, mask, stereo)
-            P1 = self.refine(rgb, d, P0, int(req["iterations"]))
-            iou1, res1 = self.measure(P1, mask, stereo)
-            step_m = float(np.linalg.norm(P1[:3, 3] - P0[:3, 3]))
-            step_deg = float(np.degrees(Rotation.from_matrix(P0[:3, :3].T @ P1[:3, :3]).magnitude()))
-            start, refined = {"iou": iou0, "residual_m": res0}, {"iou": iou1, "residual_m": res1}
-            kept = keep(start, refined, step_m, step_deg, req["bounds"])
+            poses, P, done = {}, P0, 0
+            for it in stops:  # the refiner's passes go on from the last checkpoint's pose
+                P = self.refine(rgb, d, P, it - done)
+                poses[it], done = P, it
+            hyps = []
+            for it in stops:
+                iou, res = self.measure(poses[it], mask, stereo)
+                hyps.append({"iterations": it, "pose": poses[it].tolist(), "iou": iou, "residual_m": res,
+                             "step_m": float(np.linalg.norm(poses[it][:3, 3] - P0[:3, 3])),
+                             "step_deg": float(np.degrees(Rotation.from_matrix(P0[:3, :3].T @ poses[it][:3, :3]).magnitude()))})
+            logits = self.logits(rgb, d, [P0] + [poses[it] for it in stops])  # one call: comparable logits
+            first = hyps[stops.index(n_iter)]
+            P1 = poses[n_iter]
+            start, refined = {"iou": iou0, "residual_m": res0}, {"iou": first["iou"], "residual_m": first["residual_m"]}
+            kept = keep(start, refined, first["step_m"], first["step_deg"], req["bounds"])
             Transform3d.from_matrix(P1 if kept else P0).save(str(out / f"poses/{k:06d}.json"))
-            rows.append({"frame": k, "start": start, "refined": refined, "step_m": step_m, "step_deg": step_deg,
-                         "kept": kept, "refined_pose": P1.tolist(), "logits": self.logits(rgb, d, [P0, P1])})
+            row = {"frame": k, "start": start, "refined": refined, "step_m": first["step_m"], "step_deg": first["step_deg"],
+                   "kept": kept, "refined_pose": P1.tolist(),
+                   "logits": None if logits is None else [logits[0], logits[1 + stops.index(n_iter)]]}
+            if len(stops) > 1:
+                row["start_logit"] = None if logits is None else logits[0]
+                row["hypotheses"] = [h | {"logit": None if logits is None else logits[1 + i]} for i, h in enumerate(hyps)]
+            rows.append(row)
         (out / "refine_meta.json").write_text(json.dumps({"iterations": req["iterations"], "bounds": req["bounds"],
                                                           "scorer_error": self.scorer_error, "frames": rows},
                                                          indent=1) + "\n")
