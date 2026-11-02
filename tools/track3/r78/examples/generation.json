@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "source_revision": "REPLACE_WITH_INPUT_REVISION",
+  "source_code_commit": "REPLACE_WITH_INPUT_CODE_COMMIT",
+  "frame_grid": "OpenCV RGB pinhole grid, same resolution as depth",
+  "depth_encoding": "v2d_inverse_uint16",
+  "depth_source": "frozen_team_stereo",
+  "episode": 27,
+  "object": "plastic_dish_rack",
+  "frames": [
+    {
+      "id": 0,
+      "rgb": "inputs/rgb/000000.png",
+      "depth": "inputs/depth/000000.png",
+      "validity": "inputs/validity/000000.png",
+      "mask": "inputs/mask/000000.png",
+      "K": "inputs/K.json"
+    },
+    {
+      "id": 120,
+      "rgb": "inputs/rgb/000120.png",
+      "depth": "inputs/depth/000120.png",
+      "validity": "inputs/validity/000120.png",
+      "mask": "inputs/mask/000120.png",
+      "K": "inputs/K.json"
+    }
+  ],
+  "candidate_views": [
+    {
+      "frame_id": 0,
+      "clear_visible_structure": false,
+      "no_neighbor_contamination": false,
+      "mask_review_pass": false
+    },
+    {
+      "frame_id": 120,
+      "clear_visible_structure": false,
+      "no_neighbor_contamination": false,
+      "mask_review_pass": false
+    }
+  ]
+}

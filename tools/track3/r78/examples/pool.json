@@ -1,0 +1,14 @@
+{
+  "GT_used": false,
+  "frozen_before_evaluation": true,
+  "candidates": [
+    {
+      "id": "C1",
+      "fit": "fit1"
+    },
+    {
+      "id": "C2",
+      "fit": "fit2"
+    }
+  ]
+}

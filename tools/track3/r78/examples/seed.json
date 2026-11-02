@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "source_revision": "REPLACE_WITH_INPUT_REVISION",
+  "source_code_commit": "REPLACE_WITH_INPUT_CODE_COMMIT",
+  "frame_grid": "OpenCV RGB pinhole grid, same resolution as depth",
+  "depth_encoding": "v2d_inverse_uint16",
+  "depth_source": "frozen_team_stereo",
+  "episode": 27,
+  "object": "plastic_dish_rack",
+  "mesh": "candidate1/mesh.obj",
+  "mesh_scale_baked": true,
+  "pose_convention": "original_mesh_to_camera",
+  "structure_review": "review1.json",
+  "frames": [
+    {
+      "id": 0,
+      "rgb": "inputs/rgb/000000.png",
+      "depth": "inputs/depth/000000.png",
+      "validity": "inputs/validity/000000.png",
+      "mask": "inputs/mask/000000.png",
+      "K": "inputs/K.json",
+      "role": "support"
+    },
+    {
+      "id": 15,
+      "rgb": "inputs/rgb/000015.png",
+      "depth": "inputs/depth/000015.png",
+      "validity": "inputs/validity/000015.png",
+      "mask": "inputs/mask/000015.png",
+      "K": "inputs/K.json",
+      "role": "heldout"
+    },
+    {
+      "id": 30,
+      "rgb": "inputs/rgb/000030.png",
+      "depth": "inputs/depth/000030.png",
+      "validity": "inputs/validity/000030.png",
+      "mask": "inputs/mask/000030.png",
+      "K": "inputs/K.json",
+      "role": "support"
+    },
+    {
+      "id": 100,
+      "rgb": "inputs/rgb/000100.png",
+      "depth": "inputs/depth/000100.png",
+      "validity": "inputs/validity/000100.png",
+      "mask": "inputs/mask/000100.png",
+      "K": "inputs/K.json",
+      "role": "heldout"
+    },
+    {
+      "id": 120,
+      "rgb": "inputs/rgb/000120.png",
+      "depth": "inputs/depth/000120.png",
+      "validity": "inputs/validity/000120.png",
+      "mask": "inputs/mask/000120.png",
+      "K": "inputs/K.json",
+      "role": "support"
+    }
+  ]
+}
