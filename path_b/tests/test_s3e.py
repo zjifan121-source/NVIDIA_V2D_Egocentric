@@ -70,6 +70,18 @@ def test_refined_poses_replace_s3d_on_moving_frames_only():
     assert np.allclose(R[3], c2w[3] @ lift) and np.allclose(R[1], np.eye(4)) and np.allclose(R[4], np.eye(4))
 
 
+def test_a_far_move_needs_a_clearly_better_mask(monkeypatch):
+    monkeypatch.setattr(E, "MAX_STEP_M", 0.06)
+    monkeypatch.setattr(E, "MAX_STEP_DEG", 30.0)
+    far = dict(step=(0.045, 10.0))
+    assert E.keeps(record(0, iou=(0.70, 0.72), **far))  # no extra bar by default
+    monkeypatch.setattr(E, "FAR_IOU_GAIN", 0.05)
+    assert not E.keeps(record(0, iou=(0.70, 0.72), **far))  # 4.5 cm with +0.02 IoU: not enough
+    assert E.keeps(record(0, iou=(0.70, 0.78), **far))
+    assert E.keeps(record(0, iou=(0.70, 0.72), step=(0.02, 10.0)))  # a polish needs no extra gain
+    assert not E.keeps(record(0, iou=(0.70, 0.72), step=(0.02, 20.0)))  # 20 deg is far too
+
+
 def test_the_scorer_picks_among_the_recorded_checkpoints(monkeypatch):
     def hyp(it, logit, iou=0.82, step=0.005):
         pose = np.eye(4)

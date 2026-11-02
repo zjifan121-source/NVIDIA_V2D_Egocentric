@@ -40,6 +40,8 @@ ITERATIONS = 5  # default: the baseline tracker's refiner passes per frame (trac
 CHECKPOINTS = None  # GPU pass: also record the poses after these many passes (e.g. (5, 10, 20)); None = ITERATIONS only
 HYPOTHESES = None  # keep rule: choose among these checkpoints' poses by the scorer (`chosen`); None = ITERATIONS' pose
 MAX_STEP_M, MAX_STEP_DEG = 0.03, 15.0  # default: the refiner polishes; a larger move is a re-registration, not kept
+FAR_STEP_M, FAR_STEP_DEG = 0.03, 15.0  # a move beyond these (within MAX_STEP) also needs FAR_IOU_GAIN
+FAR_IOU_GAIN = None  # the mask IoU gain such a far move needs (`far_ok`); None = no extra bar (default)
 MOVING_ONLY = True  # default (P4): refined poses only on S3b's grasp / unstable frames
 MIN_GAIN_M = None  # P4's first rule: 0.001 (the median masked-depth residual falls by 1 mm); None = not used (default)
 IOU_DROP = 0.0  # default (P4): the mask IoU does not drop
@@ -59,6 +61,13 @@ def requested(ctx, k: int, name: str, P: np.ndarray, c2w: np.ndarray) -> tuple[l
     return frames, {str(t): (np.linalg.inv(c2w[t]) @ P[t]).tolist() for t in frames}
 
 
+def far_ok(start_iou: float, iou: float, step_m: float, step_deg: float) -> bool:
+    """A move beyond FAR_STEP_M / FAR_STEP_DEG (the polish) is kept only with a mask IoU gain of FAR_IOU_GAIN: on public,
+    the far moves that made frames worse had a median gain of 0.05, the ones that made them better 0.15."""
+    far = step_m > FAR_STEP_M or step_deg > FAR_STEP_DEG
+    return not far or FAR_IOU_GAIN is None or iou - start_iou >= FAR_IOU_GAIN
+
+
 def keeps(row: dict) -> bool:
     """P4's rule on one driver record (module docstring)."""
     s, r = row["start"], row["refined"]
@@ -67,6 +76,8 @@ def keeps(row: dict) -> bool:
     if MIN_GAIN_M is not None and s["residual_m"] - r["residual_m"] < MIN_GAIN_M:
         return False
     if row["step_m"] > MAX_STEP_M or row["step_deg"] > MAX_STEP_DEG:
+        return False
+    if not far_ok(s["iou"], r["iou"], row["step_m"], row["step_deg"]):
         return False
     if SCORE_MARGIN is not None:
         lg = row.get("logits")
@@ -93,6 +104,8 @@ def chosen(row: dict) -> list | None:
         if h["iterations"] not in HYPOTHESES or h.get("logit") is None or base is None:
             continue
         if h["iou"] < s["iou"] - IOU_DROP or h["step_m"] > MAX_STEP_M or h["step_deg"] > MAX_STEP_DEG:
+            continue
+        if not far_ok(s["iou"], h["iou"], h["step_m"], h["step_deg"]):
             continue
         if MIN_GAIN_M is not None and s["residual_m"] - h["residual_m"] < MIN_GAIN_M:
             continue
