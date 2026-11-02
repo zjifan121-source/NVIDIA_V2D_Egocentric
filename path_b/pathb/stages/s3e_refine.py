@@ -9,9 +9,11 @@ driver refines every such frame once and records both poses, their mask IoU and 
 scorer's logits of the two.
 Keep rule (Recon round P4, applied here to the driver's records, `keeps`): a refined pose replaces S3d's only on a
 frame of a moving segment (S3b: grasp or unstable; S4b holds each static segment at its first frame's pose, so one
-frame's polish would move the whole rest), where the mask IoU does not drop by more than IOU_DROP, the depth
-residual falls by at least MIN_GAIN_M, the scorer prefers it by SCORE_MARGIN (when set), and it moved at most
-MAX_STEP_M / MAX_STEP_DEG. S4b reads this track when it exists.
+frame's polish would move the whole rest), where the mask IoU does not drop by more than IOU_DROP, the scorer
+prefers it by SCORE_MARGIN, the depth residual falls by MIN_GAIN_M (when set), and it moved at most
+MAX_STEP_M / MAX_STEP_DEG. The scorer, not the depth residual, since 2026-11-02: on moving frames the refiner raises
+the mask IoU but not the depth residual (ep40: median +0.049 IoU, residual 0.77 mm worse), and with the scorer in
+the depth bar's place public rose 0.8202 -> 0.8239 (BUILD_LOG). S4b reads this track when it exists.
 Out per object: object_to_world.npz (N, 4, 4), refine_meta.json, poses/ (the driver's own pick), request.json.
 Without nvidia-smi (the Mac) the stage re-applies the keep rule to a GPU pass's records already in s3e_refine/
 (copied from the GPU machine), so the rule can be tuned without the GPU; a pass whose start poses are not this
@@ -37,9 +39,9 @@ from .s3b_track import FP_DEV_PRESERVE
 ITERATIONS = 5  # default: the baseline tracker's refiner passes per frame (track_one)
 MAX_STEP_M, MAX_STEP_DEG = 0.03, 15.0  # default: the refiner polishes; a larger move is a re-registration, not kept
 MOVING_ONLY = True  # default (P4): refined poses only on S3b's grasp / unstable frames
-MIN_GAIN_M = 0.001  # default (P4): the median masked-depth residual falls by at least 1 mm
+MIN_GAIN_M = None  # P4's first rule: 0.001 (the median masked-depth residual falls by 1 mm); None = not used (default)
 IOU_DROP = 0.0  # default (P4): the mask IoU does not drop
-SCORE_MARGIN = None  # P4: the scorer's logit gain (refined - start) a kept pose needs; None = not used
+SCORE_MARGIN = 0.0  # default (P4, 2026-11-02): the scorer's logit gain (refined - start) a kept pose needs; None = not used
 STALE_M = 1e-6  # a record's start pose this far from this S3d's (object_to_camera, any entry) is another track's
 
 
@@ -55,7 +57,9 @@ def requested(ctx, k: int, name: str, P: np.ndarray, c2w: np.ndarray) -> tuple[l
 def keeps(row: dict) -> bool:
     """P4's rule on one driver record (module docstring)."""
     s, r = row["start"], row["refined"]
-    if r["iou"] < s["iou"] - IOU_DROP or s["residual_m"] - r["residual_m"] < MIN_GAIN_M:
+    if r["iou"] < s["iou"] - IOU_DROP:
+        return False
+    if MIN_GAIN_M is not None and s["residual_m"] - r["residual_m"] < MIN_GAIN_M:
         return False
     if row["step_m"] > MAX_STEP_M or row["step_deg"] > MAX_STEP_DEG:
         return False
@@ -158,8 +162,9 @@ def run(ctx) -> StageResult:
         metrics += [
             Metric(f"{name}: frames refined (kept / asked, asked on moving segments)",
                    f"{len(kept)} / {len(rows)} ({asked_moving} moving)", "",
-                   note=f"P4 rule: {'moving segments only; ' if MOVING_ONLY else ''}IoU drop <= {IOU_DROP}, depth "
-                        f"residual -{MIN_GAIN_M * 1000:.0f} mm or more, scorer margin {SCORE_MARGIN}, "
+                   note=f"P4 rule: {'moving segments only; ' if MOVING_ONLY else ''}IoU drop <= {IOU_DROP}, scorer "
+                        f"margin {SCORE_MARGIN}, depth residual "
+                        f"{'not used' if MIN_GAIN_M is None else f'-{MIN_GAIN_M * 1000:.0f} mm or more'}, "
                         f"moved <= {MAX_STEP_M * 100:.0f} cm / {MAX_STEP_DEG:.0f} deg"),
             Metric(f"{name}: mask IoU, median over asked frames (start -> chosen)",
                    f"{np.median([r['start']['iou'] for r in rows]):.3f} -> "

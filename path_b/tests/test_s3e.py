@@ -42,15 +42,17 @@ def record(frame, iou=(0.80, 0.82), res=(0.010, 0.008), step=(0.005, 2.0), logit
             "refined_pose": (np.eye(4) if pose is None else pose).tolist()}
 
 
-def test_the_keep_rule_needs_a_millimetre_no_iou_drop_and_a_small_step(monkeypatch):
+def test_the_keep_rule_needs_the_scorer_no_iou_drop_and_a_small_step(monkeypatch):
     assert E.keeps(record(0))
-    assert not E.keeps(record(0, res=(0.010, 0.0095)))  # 0.5 mm better: under MIN_GAIN_M
+    assert E.keeps(record(0, res=(0.010, 0.012)))  # the depth residual is not asked by default
     assert not E.keeps(record(0, iou=(0.80, 0.79)))  # the mask IoU drops
     assert not E.keeps(record(0, step=(0.05, 2.0)))  # a 5 cm move is a re-registration
-    assert E.keeps(record(0, logits=(100.5, 100.0)))  # the scorer is not asked by default
-    monkeypatch.setattr(E, "SCORE_MARGIN", 0.0)
-    assert not E.keeps(record(0, logits=(100.5, 100.0)))
-    assert not E.keeps(record(0, logits=(None, None)))
+    assert not E.keeps(record(0, logits=(100.5, 100.0)))  # the scorer prefers the start
+    assert not E.keeps(record(0, logits=(None, None)))  # not scored
+    monkeypatch.setattr(E, "MIN_GAIN_M", 0.001)  # P4's first rule
+    assert not E.keeps(record(0, res=(0.010, 0.0095)))  # 0.5 mm better: under the bar
+    monkeypatch.setattr(E, "SCORE_MARGIN", None)
+    assert E.keeps(record(0, logits=(100.5, 100.0)))
 
 
 def test_refined_poses_replace_s3d_on_moving_frames_only():
@@ -61,7 +63,7 @@ def test_refined_poses_replace_s3d_on_moving_frames_only():
     lift = np.eye(4)
     lift[2, 3] = 0.004
     rows = [record(t, pose=lift) for t in range(6)]
-    rows[4] = record(4, res=(0.010, 0.0099), pose=lift)  # not enough gain
+    rows[4] = record(4, logits=(100.5, 100.0), pose=lift)  # the scorer prefers the start
     R, kept = E.regate(rows, P, c2w, moving)
     assert kept == [3, 5]
     assert np.allclose(R[3], c2w[3] @ lift) and np.allclose(R[1], np.eye(4)) and np.allclose(R[4], np.eye(4))
