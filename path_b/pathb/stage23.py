@@ -7,6 +7,9 @@ in $RETARGET_VENV on NVIDIA's loader, retarget, URDF and support scripts as impo
   replaced by the pose interpolated between the nearest frames on either side that are not (position linear, rotation slerp, finger axis-angle linear; held
   at the clip's ends), and written back to the camera-frame MANO parameters the loader reads through the
   bundle's own root offset (J0: wrist_to_world = c2w (J0 + wrist_trans_in_camera), constant per hand).
+  Off by default (hand audit 2026-11-02, the baseline team's four released hand failures): FILL_INVALID also
+  fills the frames without a hand (P4 leaves gaps over P1d's MAX_GAP empty and stores zeros there, which the
+  loader poses at the camera), their scale too (stored as 1.0).
 - `still_scene`: the object at its frame-0 pose and both hands at their frame-0 pose for the whole clip.
 - `run`: one scene (one or more objects sharing S4b's world, camera and hands) through the driver, then
   `check`: frames, robot frames (link origins) inside an object, support disks, the frame-0 seating gap.
@@ -28,6 +31,7 @@ from .paths import PATH_B, REPO, TRACK3_FPS
 SIDES = ("right", "left")
 GROUND_Z = 1.0  # m: table height of the task scene (the support surface sits under the objects there)
 INSIDE_M = 0.02  # a robot frame this deep inside an object counts (S5's bar)
+FILL_INVALID = False  # frames with hand_<side>_is_valid False are filled like fast frames, their scale too (stored 1.0)
 
 
 def mano_dir() -> Path:
@@ -65,19 +69,26 @@ def fill(W: np.ndarray, fingers: np.ndarray, bad: np.ndarray) -> tuple[np.ndarra
 
 
 def clean_hands(data: dict, fps: float = TRACK3_FPS) -> dict:
-    """In place: each hand's fast frames filled (module doc); returns per side the frames replaced."""
+    """In place: each hand's fast frames filled (module doc), with FILL_INVALID also its frames without a hand; returns
+    per side the frames replaced."""
     from .stages.p1d_hands import MAX_WRIST_SPEED
     c2w = np.asarray(data["camera_to_world_transform"], np.float64)
+    n = len(c2w)
     report = {}
     for side in SIDES:
         W = wrist_world(data, side)
+        fingers = np.asarray(data[f"hand_{side}_finger_pose"])
         cam_t = np.asarray(data[f"hand_{side}_wrist_trans_in_camera"], np.float64)
-        J0 = np.median(np.einsum("nji,nj->ni", c2w[:, :3, :3], W[:, :3, 3] - c2w[:, :3, 3]) - cam_t, axis=0)
-        bad = fast_frames(W, fps, MAX_WRIST_SPEED)
+        missing = ~np.asarray(data.get(f"hand_{side}_is_valid", np.ones(n, bool)), bool) if FILL_INVALID else np.zeros(n, bool)
+        offsets = np.einsum("nji,nj->ni", c2w[:, :3, :3], W[:, :3, 3] - c2w[:, :3, 3]) - cam_t
+        J0 = np.median(offsets[~missing] if (~missing).any() else offsets, axis=0)
+        bad = fast_frames(fill(W, fingers, missing)[0] if missing.any() else W, fps, MAX_WRIST_SPEED) | missing
         report[side] = {"replaced": int(bad.sum()), "frames": np.flatnonzero(bad).tolist()[:40]}
+        if FILL_INVALID:
+            report[side]["missing"] = int(missing.sum())
         if not bad.any():
             continue
-        W2, F2 = fill(W, np.asarray(data[f"hand_{side}_finger_pose"]), bad)
+        W2, F2 = fill(W, fingers, bad)
         R_cam = np.einsum("nji,njk->nik", c2w[:, :3, :3], W2[:, :3, :3])  # camera <- wrist
         dtype = data[f"hand_{side}_wrist_trans_in_camera"].dtype
         data[f"hand_{side}_wrist_to_world_transform"] = W2.astype(data[f"hand_{side}_wrist_to_world_transform"].dtype)
@@ -88,6 +99,10 @@ def clean_hands(data: dict, fps: float = TRACK3_FPS) -> dict:
             T = np.linalg.inv(c2w) @ W2
             data[f"hand_{side}_wrist_to_camera_transform"] = T.astype(data[f"hand_{side}_wrist_to_camera_transform"].dtype)
         data[f"hand_{side}_finger_pose"] = F2
+        if missing.any() and np.ndim(data.get(f"hand_{side}_scale")) == 1 and (~missing).any():  # stored 1.0 there
+            scale = np.asarray(data[f"hand_{side}_scale"], np.float64)
+            keep = np.flatnonzero(~missing)
+            data[f"hand_{side}_scale"] = np.interp(np.arange(n), keep, scale[keep]).astype(data[f"hand_{side}_scale"].dtype)
     return report
 
 

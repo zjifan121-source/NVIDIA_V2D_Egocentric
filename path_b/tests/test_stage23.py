@@ -53,6 +53,38 @@ def test_clean_hands_fills_a_wrist_spike_and_keeps_the_rest():
     assert np.allclose(R, fixed[:, :3, :3], atol=1e-5)
 
 
+def parked(data, side, frames):
+    """Frames without a hand as P4's bundles store them: zero camera-frame parameters, scale 1, the wrist at the camera."""
+    for k in frames:
+        data[f"hand_{side}_is_valid"][k] = False
+        data[f"hand_{side}_wrist_trans_in_camera"][k] = 0.0
+        data[f"hand_{side}_wrist_orient_in_camera"][k] = 0.0
+        data[f"hand_{side}_finger_pose"][k] = 0.0
+        data[f"hand_{side}_scale"][k] = 1.0
+        data[f"hand_{side}_wrist_to_world_transform"][k] = data["camera_to_world_transform"][k]
+
+
+def test_clean_hands_fills_frames_without_a_hand_only_with_the_flag(monkeypatch):
+    data, W, J0 = bundle()
+    parked(data, "right", range(15, 26))
+    before = {k: np.copy(v) for k, v in data.items()}
+    assert stage23.clean_hands(data, TRACK3_FPS)["right"]["replaced"] == 0  # off: the parked hand stays
+    assert all(np.array_equal(data[k], before[k]) for k in before)
+    monkeypatch.setattr(stage23, "FILL_INVALID", True)
+    report = stage23.clean_hands(data, TRACK3_FPS)
+    assert report["right"]["missing"] == 11 and report["right"]["replaced"] == 11 and report["left"]["replaced"] == 0
+    fixed = data["hand_right_wrist_to_world_transform"]
+    assert np.allclose(fixed[:, :3, 3], W[:, :3, 3], atol=1e-5) and np.allclose(fixed[:, :3, :3], W[:, :3, :3], atol=1e-5)
+    assert np.allclose(data["hand_right_scale"], 0.9) and not data["hand_right_is_valid"][15:26].any()
+    assert np.allclose(data["hand_right_finger_pose"], data["hand_left_finger_pose"])  # linear in the fixture
+    c2w = data["camera_to_world_transform"].astype(np.float64)  # the camera-frame params follow the world pose
+    back = np.einsum("nij,nj->ni", c2w[:, :3, :3], data["hand_right_wrist_trans_in_camera"] + J0) + c2w[:, :3, 3]
+    assert np.allclose(back, fixed[:, :3, 3], atol=1e-5)
+    for key in before:
+        if key.startswith("object_"):
+            assert np.array_equal(data[key], before[key])
+
+
 def test_still_scene_holds_object_hands_and_camera_at_frame_0():
     data, _, _ = bundle()
     data["object_to_world_transform"][:, 0, 3] = np.linspace(0, 1, 40)
