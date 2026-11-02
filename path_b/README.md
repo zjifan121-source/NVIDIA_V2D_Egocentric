@@ -13,9 +13,11 @@ records every task and decision (v3's rows first, then the v4 section). Dev epis
 Earlier documents and parked code (v1's framework export and Stage 1 overview; v2's design, SPIDER
 scene and merge runner; v3's spec, audit and v3-only stages), v2's `run.py visualize` page, the v3 dev
 analysis, the 2026-10-26 review pages and the checkpoints before `public_2026-10-30_l5i` were removed on
-2026-10-30; they are in git at `bb6bc46f` (`git show bb6bc46f:path_b/<path>`). `oracles/` holds the two
-baselines the waterfall reads; `reports/checkpoints/` the public checkpoints from `public_2026-10-30_gd1` on
-(tracked; `data/` is not; `public_2026-10-30_l5i` was removed on 2026-10-31, in git at `2ae4796a`,
+2026-10-30; they are in git at `bb6bc46f` (`git show bb6bc46f:path_b/<path>`). `cache/` holds files moved out
+on 2026-11-02 because nothing reads them (`cache/README.md`: each one's reason and the `git mv` back). `oracles/`
+holds the two baselines the waterfall reads; `reports/checkpoints/` the best public checkpoint,
+`public_2026-11-02_p4s` (tracked; `data/` is not; `public_2026-10-30_gd1` is in `cache/`;
+`public_2026-10-30_l5i` was removed on 2026-10-31, in git at `2ae4796a`,
 `public_2026-10-31_ga2` the same day, in git at `2894b075`, `public_2026-10-31_gdp` on 2026-11-01, in git at
 `26dd208b`, `public_2026-11-01_p1b` the same day, in git at `a501f088`, `public_2026-11-01_c1z` the same
 day, in git at `efd99296`, `public_2026-11-01_fb3` on 2026-11-02, in git at `7d25a703`, and `public_2026-11-02_p4c` the same day, in git at `13376035`).
