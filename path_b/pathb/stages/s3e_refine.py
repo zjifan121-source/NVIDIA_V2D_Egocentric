@@ -11,9 +11,11 @@ Keep rule (Recon round P4, applied here to the driver's records, `keeps`): a ref
 frame of a moving segment (S3b: grasp or unstable; S4b holds each static segment at its first frame's pose, so one
 frame's polish would move the whole rest), where the mask IoU does not drop by more than IOU_DROP, the scorer
 prefers it by SCORE_MARGIN, the depth residual falls by MIN_GAIN_M (when set), and it moved at most
-MAX_STEP_M / MAX_STEP_DEG. The scorer, not the depth residual, since 2026-11-02: on moving frames the refiner raises
-the mask IoU but not the depth residual (ep40: median +0.049 IoU, residual 0.77 mm worse), and with the scorer in
-the depth bar's place public rose 0.8202 -> 0.8239 (BUILD_LOG). S4b reads this track when it exists.
+MAX_STEP_M / MAX_STEP_DEG, a move beyond the polish (FAR_STEP_M / FAR_STEP_DEG) only with a mask IoU gain of
+FAR_IOU_GAIN. The scorer, not the depth residual, since 2026-11-02: on moving frames the refiner raises the mask IoU
+but not the depth residual (ep40: median +0.049 IoU, residual 0.77 mm worse), and with the scorer in the depth bar's
+place public rose 0.8202 -> 0.8239; moves up to 6 cm / 30 deg with the IoU bar for those past 3 cm / 15 deg, 0.8239
+-> 0.8290 (BUILD_LOG). S4b reads this track when it exists.
 Out per object: object_to_world.npz (N, 4, 4), refine_meta.json, poses/ (the driver's own pick), request.json.
 Without nvidia-smi (the Mac) the stage re-applies the keep rule to a GPU pass's records already in s3e_refine/
 (copied from the GPU machine), so the rule can be tuned without the GPU; a pass whose start poses are not this
@@ -39,9 +41,9 @@ from .s3b_track import FP_DEV_PRESERVE
 ITERATIONS = 5  # default: the baseline tracker's refiner passes per frame (track_one)
 CHECKPOINTS = None  # GPU pass: also record the poses after these many passes (e.g. (5, 10, 20)); None = ITERATIONS only
 HYPOTHESES = None  # keep rule: choose among these checkpoints' poses by the scorer (`chosen`); None = ITERATIONS' pose
-MAX_STEP_M, MAX_STEP_DEG = 0.03, 15.0  # default: the refiner polishes; a larger move is a re-registration, not kept
-FAR_STEP_M, FAR_STEP_DEG = 0.03, 15.0  # a move beyond these (within MAX_STEP) also needs FAR_IOU_GAIN
-FAR_IOU_GAIN = None  # the mask IoU gain such a far move needs (`far_ok`); None = no extra bar (default)
+MAX_STEP_M, MAX_STEP_DEG = 0.06, 30.0  # default (2026-11-02; 0.03 / 15 before): a larger move is a re-registration
+FAR_STEP_M, FAR_STEP_DEG = 0.03, 15.0  # default: the polish; a move beyond it (within MAX_STEP) also needs FAR_IOU_GAIN
+FAR_IOU_GAIN = 0.05  # default (2026-11-02): the mask IoU gain such a far move needs (`far_ok`); None = no extra bar
 MOVING_ONLY = True  # default (P4): refined poses only on S3b's grasp / unstable frames
 MIN_GAIN_M = None  # P4's first rule: 0.001 (the median masked-depth residual falls by 1 mm); None = not used (default)
 IOU_DROP = 0.0  # default (P4): the mask IoU does not drop

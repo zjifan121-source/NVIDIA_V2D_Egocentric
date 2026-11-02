@@ -47,7 +47,8 @@ def test_the_keep_rule_needs_the_scorer_no_iou_drop_and_a_small_step(monkeypatch
     assert E.keeps(record(0))
     assert E.keeps(record(0, res=(0.010, 0.012)))  # the depth residual is not asked by default
     assert not E.keeps(record(0, iou=(0.80, 0.79)))  # the mask IoU drops
-    assert not E.keeps(record(0, step=(0.05, 2.0)))  # a 5 cm move is a re-registration
+    assert not E.keeps(record(0, step=(0.05, 2.0)))  # a 5 cm move with +0.02 IoU: not a clearly better mask
+    assert not E.keeps(record(0, iou=(0.80, 0.90), step=(0.07, 2.0)))  # 7 cm is a re-registration
     assert not E.keeps(record(0, logits=(100.5, 100.0)))  # the scorer prefers the start
     assert not E.keeps(record(0, logits=(None, None)))  # not scored
     monkeypatch.setattr(E, "MIN_GAIN_M", 0.001)  # P4's first rule
@@ -71,15 +72,13 @@ def test_refined_poses_replace_s3d_on_moving_frames_only():
 
 
 def test_a_far_move_needs_a_clearly_better_mask(monkeypatch):
-    monkeypatch.setattr(E, "MAX_STEP_M", 0.06)
-    monkeypatch.setattr(E, "MAX_STEP_DEG", 30.0)
     far = dict(step=(0.045, 10.0))
-    assert E.keeps(record(0, iou=(0.70, 0.72), **far))  # no extra bar by default
-    monkeypatch.setattr(E, "FAR_IOU_GAIN", 0.05)
     assert not E.keeps(record(0, iou=(0.70, 0.72), **far))  # 4.5 cm with +0.02 IoU: not enough
     assert E.keeps(record(0, iou=(0.70, 0.78), **far))
     assert E.keeps(record(0, iou=(0.70, 0.72), step=(0.02, 10.0)))  # a polish needs no extra gain
     assert not E.keeps(record(0, iou=(0.70, 0.72), step=(0.02, 20.0)))  # 20 deg is far too
+    monkeypatch.setattr(E, "FAR_IOU_GAIN", None)
+    assert E.keeps(record(0, iou=(0.70, 0.72), **far))  # without the bar, anything within MAX_STEP
 
 
 def test_the_scorer_picks_among_the_recorded_checkpoints(monkeypatch):
@@ -90,7 +89,7 @@ def test_the_scorer_picks_among_the_recorded_checkpoints(monkeypatch):
                 "step_deg": 2.0, "logit": logit}
     row = record(0) | {"start_logit": 100.0, "hypotheses": [hyp(5, 100.2), hyp(10, 100.6), hyp(20, 100.9, step=0.05)]}
     monkeypatch.setattr(E, "HYPOTHESES", (5, 10, 20))
-    assert np.asarray(E.chosen(row))[0, 3] == 0.010  # 20 passes scores best but moved 5 cm: the next best, 10
+    assert np.asarray(E.chosen(row))[0, 3] == 0.010  # 20 passes scores best but moved 5 cm without a clearly better mask: the next best, 10
     monkeypatch.setattr(E, "HYPOTHESES", (5,))
     assert np.asarray(E.chosen(row))[0, 3] == 0.005
     row["hypotheses"] = [hyp(5, 99.5), hyp(10, 99.8)]
