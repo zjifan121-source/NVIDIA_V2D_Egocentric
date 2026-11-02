@@ -64,10 +64,12 @@ def parked(data, side, frames):
         data[f"hand_{side}_wrist_to_world_transform"][k] = data["camera_to_world_transform"][k]
 
 
-def test_clean_hands_fills_frames_without_a_hand_only_with_the_flag(monkeypatch):
+def test_clean_hands_fills_frames_without_a_hand_with_the_flag(monkeypatch):
+    assert stage23.FILL_INVALID  # on by default since 2026-11-02 (James)
     data, W, J0 = bundle()
     parked(data, "right", range(15, 26))
     before = {k: np.copy(v) for k, v in data.items()}
+    monkeypatch.setattr(stage23, "FILL_INVALID", False)
     assert stage23.clean_hands(data, TRACK3_FPS)["right"]["replaced"] == 0  # off: the parked hand stays
     assert all(np.array_equal(data[k], before[k]) for k in before)
     monkeypatch.setattr(stage23, "FILL_INVALID", True)
@@ -83,6 +85,9 @@ def test_clean_hands_fills_frames_without_a_hand_only_with_the_flag(monkeypatch)
     for key in before:
         if key.startswith("object_"):
             assert np.array_equal(data[key], before[key])
+    filled = {k: np.copy(v) for k, v in data.items()}
+    stage23.clean_hands(data, TRACK3_FPS)  # S5 again on S4b's filled bundle: the hand stays as filled
+    assert all(np.allclose(data[k], filled[k], atol=1e-6) for k in filled if np.issubdtype(filled[k].dtype, np.number))
 
 
 def test_still_scene_holds_object_hands_and_camera_at_frame_0():

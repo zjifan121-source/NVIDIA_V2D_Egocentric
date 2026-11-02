@@ -7,9 +7,10 @@ in $RETARGET_VENV on NVIDIA's loader, retarget, URDF and support scripts as impo
   replaced by the pose interpolated between the nearest frames on either side that are not (position linear, rotation slerp, finger axis-angle linear; held
   at the clip's ends), and written back to the camera-frame MANO parameters the loader reads through the
   bundle's own root offset (J0: wrist_to_world = c2w (J0 + wrist_trans_in_camera), constant per hand).
-  Off by default (hand audit 2026-11-02, the baseline team's four released hand failures): FILL_INVALID also
-  fills the frames without a hand (P4 leaves gaps over P1d's MAX_GAP empty and stores zeros there, which the
-  loader poses at the camera), their scale too (stored as 1.0).
+  On by default since 2026-11-02 (James: "Yes, turn it on"; hand audit of the baseline team's four released hand
+  failures): FILL_INVALID also fills the frames without a hand (P4 leaves gaps over P1d's MAX_GAP empty and stores
+  zeros there, which the loader poses at the camera), their scale too (stored as 1.0). S4b and S5 both call it; a
+  second call leaves a filled hand as it is.
 - `still_scene`: the object at its frame-0 pose and both hands at their frame-0 pose for the whole clip.
 - `run`: one scene (one or more objects sharing S4b's world, camera and hands) through the driver, then
   `check`: frames, robot frames (link origins) inside an object, support disks, the frame-0 seating gap.
@@ -31,7 +32,7 @@ from .paths import PATH_B, REPO, TRACK3_FPS
 SIDES = ("right", "left")
 GROUND_Z = 1.0  # m: table height of the task scene (the support surface sits under the objects there)
 INSIDE_M = 0.02  # a robot frame this deep inside an object counts (S5's bar)
-FILL_INVALID = False  # frames with hand_<side>_is_valid False are filled like fast frames, their scale too (stored 1.0)
+FILL_INVALID = True  # default since 2026-11-02 (James): frames with hand_<side>_is_valid False are filled like fast frames, their scale too (stored 1.0)
 
 
 def mano_dir() -> Path:

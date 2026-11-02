@@ -16,7 +16,8 @@ The moving candidate an episode trains (s4b_reference/moving.json, S5 reads it):
 `inverted` (invert.BRIDGE_FAILED), and on the 9 public episodes with one inverted plays back at or above
 keyframe (mean 0.535 against 0.411; ep41 0.831 / 0.406, ep43 0.435 / 0.132, ep0 0.353 / 0.354).
 v3 runs (s3c_fuse/, cached) keep their old inputs: the fused track, its anchors, S3b's trusted frames.
-Hands: the bundle's, with Path B's own repair of wrist spikes (pathb/stage23.py clean_hands).
+Hands: the bundle's, with Path B's own repair of wrist spikes and, since 2026-11-02, of the frames without a hand
+(pathb/stage23.py clean_hands, FILL_INVALID).
 Each candidate is a complete bundle (BUNDLES.md layout) in s4b_reference/<object>/<candidate>/; the
 still candidate also holds the hands and the camera at frame 0 (pathb/stage23.py still_scene).
 Public, one object: each candidate's playback score (official metrics) is reported; scenes of
