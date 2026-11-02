@@ -14,6 +14,9 @@ or where a rest does not stand (ep18). Features per episode x candidate, from S5
 - RCC, reference contact coverage: share of moving frames with >= 1 / >= 2 of S5's 16 MANO-link contact
   slots filled for the object (NVIDIA contact_utils: object point within 1 cm of a MANO vertex; part id =
   the object's slot + 1).
+- Wrist: over the moving frames, the carrier wrist's (the hand with the nearer fingertip) reference speed from
+  S5's robot_{side}_wrist_*: p95 and max (m/s), the share faster than FAST_WRIST_M_S, acceleration p95 (m/s^2),
+  angular speed p95 (deg/s). A hand on the object the policy cannot follow (ep45, G-H row) shows here, not in UMS.
 - RSS, rest settle in S5's scene: CoACD pieces of each object's mesh (FlashCHORD decomposes the URDF's
   collision mesh, threshold 0.05), S5's support disks, the ground plane at z = 0 (collision.ground),
   hands removed; each object dropped RSS_SECONDS from frame 0 and from the first frame of every static
@@ -45,6 +48,7 @@ HELD_TIPS = 2  # fingertip sites of one hand within delta for a held frame
 OPPOSED_DOT = -0.3  # ums_opp: two of those tips on surfaces facing each other
 RSS_SECONDS, RSS_TIMESTEP = 0.5, 0.002  # S3d's drop
 UNSETTLED_M, UNSETTLED_DEG = 0.01, 10.0  # a rest that moves more than this does not stand
+FAST_WRIST_M_S = 1.5  # G-H (BUILD_LOG 2026-10-31): ep45's pot departs where its carrier wrist reference runs faster
 SUPPORT_GAP_M = 0.02  # support_ok: a disk top or another object within this of the frame-0 bottom
 COACD_THRESHOLD = 0.05  # FlashCHORD's convex_decompose default
 GROUND_Z = 0.0  # FlashCHORD's ground plane (collision.ground)
@@ -190,7 +194,37 @@ def hand_support(mesh: trimesh.Trimesh, poses: np.ndarray, tips: np.ndarray, del
                 if (d[np.triu_indices(len(idx), 1)] < OPPOSED_DOT).any():
                     opp[t] = True
                     break
-    return {"held": held, "held_opp": opp, "nearest_m": np.clip(sd, 0, None).min(axis=(1, 2))}
+    return {"held": held, "held_opp": opp, "nearest_m": np.clip(sd, 0, None).min(axis=(1, 2)),
+            "nearest_hand_m": np.clip(sd, 0, None).min(axis=2)}
+
+
+def wrist_motion(cells: dict) -> dict[str, np.ndarray]:
+    """(n, 2) reference wrist speed (m/s), acceleration (m/s^2) and angular speed (deg/s), right then left, from
+    S5's robot_{side}_wrist_position / _wxyz at the task's fps (central second difference for acceleration)."""
+    fps = float(cells["fps"])
+    speed, acc, ang = [], [], []
+    for side in SIDES:
+        p = np.asarray(cells[f"robot_{side}_wrist_position"], float)
+        q = Rotation.from_quat(np.asarray(cells[f"robot_{side}_wrist_wxyz"], float)[:, [1, 2, 3, 0]])
+        speed.append(np.r_[0.0, np.linalg.norm(np.diff(p, axis=0), axis=1)] * fps)
+        a = np.zeros(len(p))
+        a[1:-1] = np.linalg.norm(p[2:] - 2 * p[1:-1] + p[:-2], axis=1) * fps ** 2
+        acc.append(a)
+        ang.append(np.r_[0.0, np.degrees((q[1:] * q[:-1].inv()).magnitude())] * fps)
+    return {"speed": np.stack(speed, 1), "acc": np.stack(acc, 1), "ang": np.stack(ang, 1)}
+
+
+def carrier_stats(motion: dict, carrier: list[np.ndarray]) -> dict:
+    """Over the moving frames (pooled over objects), the carrier wrist's (the hand nearer the object) reference
+    speed p95 / max, the share faster than FAST_WRIST_M_S, acceleration p95 and angular speed p95."""
+    v = np.concatenate([motion["speed"][f, h] for f, h in carrier]) if carrier else np.zeros(0)
+    a = np.concatenate([motion["acc"][f, h] for f, h in carrier]) if carrier else np.zeros(0)
+    w = np.concatenate([motion["ang"][f, h] for f, h in carrier]) if carrier else np.zeros(0)
+    if not len(v):
+        return {"wrist_p95": 0.0, "wrist_max": 0.0, "wrist_fast": 0.0, "wrist_acc_p95": 0.0, "wrist_ang_p95": 0.0}
+    return {"wrist_p95": float(np.percentile(v, 95)), "wrist_max": float(v.max()),
+            "wrist_fast": float((v > FAST_WRIST_M_S).mean()), "wrist_acc_p95": float(np.percentile(a, 95)),
+            "wrist_ang_p95": float(np.percentile(w, 95))}
 
 
 def contact_slots(cells: dict, slot: int) -> np.ndarray:
@@ -350,7 +384,8 @@ def features(cand_dir: Path, candidate: str, invert_reports: dict[str, dict | No
     n = len(tips)
     per, drops = {}, {}
     tot = {"moving": 0, "free": 0, "free_opp": 0, "rcc1": 0, "rcc2": 0}
-    dist, runs, runs_opp = [], [], []
+    dist, runs, runs_opp, carrier = [], [], [], []
+    motion = wrist_motion(t["cells"])
     for k, (o, mesh) in enumerate(zip(objs, meshes)):
         lab = labels(invert_reports.get(o["name"]), n)
         moving = np.zeros(n, bool) if candidate == "still" else moving_frames(mesh, o["poses"], lab)
@@ -373,6 +408,9 @@ def features(cand_dir: Path, candidate: str, invert_reports: dict[str, dict | No
         dist.append(hs["nearest_m"][moving])
         runs.append(longest_run(free))
         runs_opp.append(longest_run(free_opp))
+        frames = np.nonzero(moving)[0]
+        carrier.append((frames, hs["nearest_hand_m"][frames].argmin(axis=1)))
+        per[o["name"]].update(carrier_stats(motion, carrier[-1:]))
         drops[o["name"]] = [0] if candidate == "still" else sorted({0} | {a for a, _ in lab["static"]})
     m = max(tot["moving"], 1)
     d = np.concatenate(dist)
@@ -380,6 +418,7 @@ def features(cand_dir: Path, candidate: str, invert_reports: dict[str, dict | No
            "ums_opp": tot["free_opp"] / m, "ums_run": max(runs), "ums_opp_run": max(runs_opp),
            "d_hand_cm": 100 * float(d.mean()) if len(d) else None,
            "rcc1": tot["rcc1"] / m if tot["moving"] else None, "rcc2": tot["rcc2"] / m if tot["moving"] else None,
+           **carrier_stats(motion, carrier),
            "support": support_ok(objs, meshes, support_disks(t["support_usd"])), "objects": per,
            "s5_warnings": t["info"].get("output_check", {}).get("warnings", [])}
     out["support_ok"] = out["support"]["ok"]

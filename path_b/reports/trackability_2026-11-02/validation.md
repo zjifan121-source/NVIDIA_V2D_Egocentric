@@ -152,3 +152,47 @@ Each object's maximum error against its reference over frames 0-40 of F2's rollo
 - **The stage:** `s4b2_trackability` stays in the chain as a health check: frame-0 support, RSS and UMS per S5
   candidate, ≤ 35 s per episode.
 - **What it catches before training:** a missing support (ep12 / ep13 still, ep21 / ep23 / ep24 inverted).
+
+## Wrist-speed term (James, 2026-11-02: "Test wrist speed"): still REJECT
+
+**What was added**
+- **Features** (`pathb/trackability.py`), over the moving frames, from S5's `robot_{side}_wrist_*` at the task's fps:
+  the carrier wrist's (the hand with the nearer fingertip) reference speed p95 and max, the share faster than
+  1.5 m/s (the G-H row's bar), acceleration p95 and angular speed p95. The still candidate's hands stand still (all 0).
+- **They reproduce the G-H row** (BUILD_LOG 2026-10-31):
+  - ep45: acceleration p95 104 m/s² (G-H: 86), max 5.9 m/s (5.8), angular p95 695°/s (777)
+  - ep39: max 10.4 m/s (10.4)
+  - ep42: acceleration p95 43 m/s² (32)
+- **Scripts:** `scripts/step2_wrist.py` recomputes every feature but RSS with the current module and keeps step 2's RSS
+  (its code did not change); `scripts/validate_wrist.py`.
+
+**Ranks against the tax (ρ_s)**
+
+| Feature | all 39 | inverted 19 | inverted, playback ≥ 0.6 (15) |
+|---|---|---|---|
+| wrist p95 | +0.496 | +0.140 | +0.286 |
+| wrist max | +0.493 | +0.049 | +0.271 |
+| share > 1.5 m/s | +0.441 | +0.327 | +0.428 |
+| acceleration p95 | +0.529 | +0.270 | +0.396 |
+| angular p95 | +0.472 | -0.084 | -0.011 |
+| (UMS) | +0.518 | +0.225 | +0.520 |
+| (RSS flag) | +0.427 | +0.310 | +0.378 |
+
+**Fits:** 39 models of at most two features (each wrist term alone, with UMS, with the RSS flag, with `ums_run`, and
+pairs of wrist terms), LOO by episode. The best 5 by MAE:
+
+| Model | Coefficients (all pairs) | LOO MAE | ρ_s | pick 12 | pick all |
+|---|---|---|---|---|---|
+| RSS flag + share > 1.5 m/s | 0.049, 0.163, 9.18 | 0.111 | +0.794 | 8 / 12 | 11 / 19 |
+| RSS flag + acceleration p95 | 0.060, 0.168, 0.0043 /(m/s²) | 0.120 | +0.752 | 8 / 12 | 9 / 19 |
+| `ums_run` + share > 1.5 m/s | 0.110, 0.0029 /frame, 7.66 | 0.120 | +0.738 | 8 / 12 | 10 / 19 |
+| RSS flag + wrist p95 | 0.046, 0.119, 0.30 /(m/s) | 0.121 | +0.735 | 7 / 12 | 10 / 19 |
+| UMS + share > 1.5 m/s | 0.119, 0.307, 7.97 | 0.123 | +0.740 | 8 / 12 | 9 / 19 |
+
+**Verdict:** no model passes 3.4.
+- **The best** (RSS flag + the share of moving frames with the carrier wrist faster than 1.5 m/s) cuts LOO MAE from
+  0.133 to 0.111 (bar 0.05) and lifts ρ_s from +0.694 to +0.794 (bar 0.8). It is the best of 39 models on the same 39
+  pairs, so it is optimistic.
+- **Picks get worse:** 8 of 12 (bar 11); no model passes 9 of 12.
+- **Still unexplained:** ep2 (tax 0.385: UMS 0.05, wrist max 1.39 m/s, no fast frame) and ep23 (0.484: UMS 0.08, max 1.12 m/s).
+  Neither where the reference hand is nor how fast it moves explains these.

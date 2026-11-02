@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 import trimesh
+from scipy.spatial.transform import Rotation
 
 from pathb import trackability as T
 
@@ -87,6 +88,25 @@ def test_support_by_a_disk_or_an_object():
     small = trimesh.creation.box(extents=(0.04, 0.04, 0.05))
     s = T.support_ok([o, cup], [box, small], [disk])
     assert s["ok"] and s["objects"]["cup"]["object"] and not s["objects"]["cup"]["disk"]
+
+
+def test_carrier_wrist_speed_finds_a_spike():
+    """A right wrist sliding 1 m/s (0.05 m per frame at 20 fps) and turning 360 deg/s, kicked 0.2 m out at frame 10."""
+    x = 0.05 * np.arange(N)
+    x[10] += 0.2
+    right = np.c_[x, np.zeros(N), np.ones(N)]
+    turn = Rotation.from_euler("z", (18 * np.arange(N))[:, None], degrees=True).as_quat()[:, [3, 0, 1, 2]]
+    cells = {"fps": 20.0, "robot_right_wrist_position": right.tolist(), "robot_right_wrist_wxyz": turn.tolist(),
+             "robot_left_wrist_position": np.zeros((N, 3)).tolist(), "robot_left_wrist_wxyz": np.tile([1.0, 0, 0, 0], (N, 1)).tolist()}
+    motion = T.wrist_motion(cells)
+    assert motion["speed"][10, 0] == pytest.approx(5.0) and motion["speed"][11, 0] == pytest.approx(3.0)
+    assert motion["speed"][20, 0] == pytest.approx(1.0) and motion["speed"][20, 1] == 0.0
+    assert motion["ang"][20, 0] == pytest.approx(360.0)
+    s = T.carrier_stats(motion, [(np.arange(N), np.zeros(N, int))])  # the right hand carries every frame
+    assert s["wrist_max"] == pytest.approx(5.0) and s["wrist_fast"] == pytest.approx(2 / N)
+    assert s["wrist_ang_p95"] == pytest.approx(360.0)
+    still = T.carrier_stats(motion, [(np.arange(N), np.ones(N, int))])  # the left hand, standing still
+    assert still["wrist_max"] == 0.0 and T.carrier_stats(motion, [])["wrist_fast"] == 0.0
 
 
 def test_body_names_map_to_the_roster():

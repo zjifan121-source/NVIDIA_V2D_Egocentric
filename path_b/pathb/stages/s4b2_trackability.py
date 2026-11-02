@@ -1,10 +1,11 @@
 """S4b2 trackability: pathb/trackability.py's GT-free features of every S5 candidate (task "trackability
 score", 2026-11-02), after s5_task and before s6_train: the unsupported-motion share of the reference hand
-(UMS), the reference's contact coverage (RCC), the rests' settle in S5's scene (RSS, drivers/settle.py in
-$SETTLE_PY; CoACD in $COACD_PY, default the same venv) and frame-0 support. Moving frames and rests come
-from S3c's invert report of each object. Out: s4b2_trackability/<candidate>/trackability.json (the task asked
-for s4b_reference/<candidate>/, but S4b's folder is shared by symlink between runs and the features depend on
-this run's S5). Health only: no bar (V4 S6's selection decides what to do with them).
+(UMS), the reference's contact coverage (RCC), the carrier wrist's reference speed, the rests' settle in S5's
+scene (RSS, drivers/settle.py in $SETTLE_PY; CoACD in $COACD_PY, default the same venv) and frame-0 support.
+Moving frames and rests come from S3c's invert report of each object. Out:
+s4b2_trackability/<candidate>/trackability.json (the task asked for s4b_reference/<candidate>/, but S4b's folder
+is shared by symlink between runs and the features depend on this run's S5). Health only: no bar (V4 S6's
+selection decides what to do with them).
 """
 from __future__ import annotations
 
@@ -46,6 +47,9 @@ def run(ctx) -> StageResult:
                            f"run {f['ums_run']} frames, opposed-tips variant {f['ums_opp']:.2f}"),
                     Metric(f"{cand}: RCC >= 1 contact", f["rcc1"], "",
                            note=f">= 2: {f['rcc2']:.2f}" if f["rcc2"] is not None else "no moving frames"),
+                    Metric(f"{cand}: carrier wrist speed p95", f["wrist_p95"], "m/s",
+                           note=f"max {f['wrist_max']:.2f} m/s, {100 * f['wrist_fast']:.1f} % of moving frames > "
+                           f"{trackability.FAST_WRIST_M_S} m/s, acceleration p95 {f['wrist_acc_p95']:.0f} m/s^2"),
                     Metric(f"{cand}: RSS frame 0", rss.get("rss0_cm"), "cm",
                            note=rss.get("error") or f"{rss['rss0_deg']:.1f} deg; worst rest {rss['rss_max_cm']:.2f} cm / "
                            f"{rss['rss_max_deg']:.1f} deg; {rss['unsettled_rests']} of {len(rss['rests'])} rests unsettled"),
