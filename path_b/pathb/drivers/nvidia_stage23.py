@@ -14,6 +14,9 @@ request.json: {"loader": mirror of v2d_task_library_loader, "robotic": mirror of
            scale (v2d_hamer/lib/align_hands.py: "the multiplicative size correction the renderer applies
            around the mesh centroid"); NVIDIA's loader leaves it out
 2. retarget scripts/retarget/ego_recon_to_sharpa.py (IK onto the Sharpa Wave hands)
+2b. contact (off by default: request "contact_retarget", else pathb/contact_retarget.py's ENABLED) Path B's contact-preserving
+           pass on the processed Parquet: finger-only corrections putting the elastomer pads on the reference's contact
+           points; <out>/contact_retarget.json marks it done and holds its before/after metrics
 3. urdf    scripts/generate_rigid_urdfs.py --dataset ego_recon
 4. support scripts/reconstruct_support_surfaces.py through drivers/support_surfaces.py (a dropped disk at the
            table's height, `table_height`, that the kept disks do not cover comes back)
@@ -33,6 +36,7 @@ from dataclasses import replace
 from pathlib import Path
 
 ROBOT = "sharpa_wave"
+SHARPA_XMLS = "source/robotic_grounding/robotic_grounding/assets/xmls/sharpawave"  # under the robotic_grounding mirror
 
 
 class Mirror(importlib.abc.MetaPathFinder):
@@ -168,6 +172,16 @@ def partition(root: Path, seq: str) -> Path:
     return root / f"sequence_id={seq}" / f"robot_name={ROBOT}"
 
 
+def contact(req: dict, out: Path, processed: Path, seq: str) -> bool:
+    """Step 2b, once (its report marks it done); returns whether it is on."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # path_b: the pass is Path B's own code
+    from pathb import contact_retarget
+    on = bool(req.get("contact_retarget", contact_retarget.ENABLED))
+    if on and not (out / "contact_retarget.json").is_file():
+        contact_retarget.apply(partition(processed, seq), out, Path(req["robotic"]) / SHARPA_XMLS)
+    return on
+
+
 def table_height(req: dict) -> float:
     """The table (z = 0 in S3d's world) in the task scene. NVIDIA's loader with --no_ground_align moves object 0's
     frame-0 bottom to ground_z_offset (ego_recon_loader._scene_align), so the table sits that bottom's height under
@@ -201,7 +215,8 @@ def main(request: str) -> int:
     if not any(partition(processed, seq).glob("*.parquet")):
         run([py, "scripts/retarget/ego_recon_to_sharpa.py", "--input_dir", loaded, "--output_dir", processed,
              "--sequence_id", seq, "--device", req["device"], "--save"], rg, env, log)
-    bodies = [seq] if len(req["objects"]) == 1 else [f"{seq}_{o['name']}" for o in req["objects"]]
+    contacted = contact(req, out, processed, seq)
+    bodies =[seq] if len(req["objects"]) == 1 else [f"{seq}_{o['name']}" for o in req["objects"]]
     if not all((processed / f"{b}_rigid.urdf").is_file() for b in bodies):
         run([py, "scripts/generate_rigid_urdfs.py", "--dataset", "ego_recon"], rg, env, log)
     if not usda.is_file():
@@ -209,7 +224,8 @@ def main(request: str) -> int:
              "scripts/reconstruct_support_surfaces.py", "--dataset", "ego_recon", "--input_dir", processed,
              "--sequence_id", seq, "--robot_name", ROBOT, "--output", usda], rg, env, log)
     report = {"sequence_id": seq, "processed": str(partition(processed, seq)), "support_usd": str(usda),
-              "meshes": [str(processed / f"{b}.obj") for b in bodies], "objects": req["objects"], "fps": req["fps"]}
+              "meshes": [str(processed / f"{b}.obj") for b in bodies], "objects": req["objects"], "fps": req["fps"],
+              "contact_retarget": contacted}
     (out / "report.json").write_text(json.dumps(report, indent=1) + "\n")
     return 0
 
