@@ -3,6 +3,7 @@ import json
 
 import cv2
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 from pathb.runner import Context
 from pathb.stages import s3e_refine as E
@@ -67,6 +68,24 @@ def test_refined_poses_replace_s3d_on_moving_frames_only():
     R, kept = E.regate(rows, P, c2w, moving)
     assert kept == [3, 5]
     assert np.allclose(R[3], c2w[3] @ lift) and np.allclose(R[1], np.eye(4)) and np.allclose(R[4], np.eye(4))
+
+
+def test_smoothing_spreads_a_grasp_correction_in_the_object_frame(monkeypatch):
+    monkeypatch.setattr(E, "SMOOTH_SIGMA", 2.0)
+    P = np.tile(np.eye(4), (14, 1, 1))
+    P[:, 0, 3] = np.arange(14) * 0.01
+    turn = Rotation.from_euler("z", 90, degrees=True).as_matrix()
+    P[4:12, :3, :3] = turn  # the object turned: an object-frame shift is no longer a world-frame x shift
+    fix = np.eye(4)
+    fix[0, 3] = 0.002  # 2 mm along the object's own x
+    R = P.copy()
+    for t in (6, 9):
+        R[t] = P[t] @ fix
+    segments = [{"kind": "static", "start": 0, "end": 3}, {"kind": "grasp", "start": 4, "end": 13}]
+    S = E.smoothed(R, P, [6, 9], segments)
+    for u in range(4, 14):  # every frame within 2 sigma of 6 or 9 (2..13) takes the shared 2 mm, in the object frame
+        assert np.allclose(S[u], P[u] @ fix)
+    assert np.allclose(S[:4], P[:4])  # the static rest is not touched
 
 
 def offline_episode(tmp_path, P):

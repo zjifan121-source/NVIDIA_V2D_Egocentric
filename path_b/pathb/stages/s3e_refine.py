@@ -42,6 +42,7 @@ MOVING_ONLY = True  # default (P4): refined poses only on S3b's grasp / unstable
 MIN_GAIN_M = None  # P4's first rule: 0.001 (the median masked-depth residual falls by 1 mm); None = not used (default)
 IOU_DROP = 0.0  # default (P4): the mask IoU does not drop
 SCORE_MARGIN = 0.0  # default (P4, 2026-11-02): the scorer's logit gain (refined - start) a kept pose needs; None = not used
+SMOOTH_SIGMA = None  # frames: the kept corrections averaged over each moving segment (`smoothed`); None = off (default)
 STALE_M = 1e-6  # a record's start pose this far from this S3d's (object_to_camera, any entry) is another track's
 
 
@@ -89,6 +90,32 @@ def regate(rows: list[dict], P: np.ndarray, c2w: np.ndarray, moving: np.ndarray)
         R[t] = c2w[t] @ np.asarray(row["refined_pose"], dtype=np.float64)
         kept.append(t)
     return R, kept
+
+
+def smoothed(R: np.ndarray, P: np.ndarray, kept: list[int], segments: list[dict]) -> np.ndarray:
+    """The kept frames' corrections in the object's own frame (P^-1 R; a grasp's offset error stays fixed there)
+    averaged with Gaussian weights of SMOOTH_SIGMA frames inside each grasp / unstable segment, and applied to every
+    frame of the segment within 2 sigma of a kept one, the kept frames included (rotation vectors and translations
+    averaged: the corrections are small, within MAX_STEP). Other frames keep R."""
+    out, took = R.copy(), set(kept)
+    for s in segments:
+        if s["kind"] == "static":
+            continue
+        a, b = s["start"], min(s["end"], len(P) - 1)
+        ts = np.array([t for t in range(a, b + 1) if t in took], dtype=np.float64)
+        if not len(ts):
+            continue
+        E = np.stack([np.linalg.inv(P[int(t)]) @ R[int(t)] for t in ts])
+        rotvec, shift = Rotation.from_matrix(E[:, :3, :3]).as_rotvec(), E[:, :3, 3]
+        for u in range(a, b + 1):
+            if np.abs(ts - u).min() > 2 * SMOOTH_SIGMA or not np.isfinite(P[u]).all():
+                continue
+            w = np.exp(-0.5 * ((ts - u) / SMOOTH_SIGMA) ** 2)
+            w /= w.sum()
+            D = np.eye(4)
+            D[:3, :3], D[:3, 3] = Rotation.from_rotvec(w @ rotvec).as_matrix(), w @ shift
+            out[u] = P[u] @ D
+    return out
 
 
 def stale(request: dict, P: np.ndarray, c2w: np.ndarray) -> bool:
@@ -154,6 +181,8 @@ def run(ctx) -> StageResult:
         segments = json.loads((ctx.root / f"s3b_segments/{name}/segments.json").read_text())
         moving = moving_frames(segments, n)
         R, kept = regate(rows, P, c2w, moving)
+        if SMOOTH_SIGMA:
+            R = smoothed(R, P, kept, segments)
         np.savez(out / "object_to_world.npz", object_to_world=R)
         took = set(kept)
         pick = [r["refined"] if r["frame"] in took else r["start"] for r in rows]
