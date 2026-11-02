@@ -5,6 +5,11 @@ Public ep21/22. It consumes existing measured inputs and matching predictions;
 it does not generate depth, masks, hands, models, GT registrations or policy data.
 Existing reconstruction defaults are unchanged.
 
+For a complete batch entry that connects these optimizers to matching-mesh FP and
+full native scene export, use [the Scored20 pipeline](../scored20_pipeline/README.md).
+It includes configuration templates, explicit annotation requirements and CPU
+preflight; updating code alone does not enable these stages in the old workflow.
+
 The reusable reconstruction stages are:
 
 1. [R7/R8](../../../../tools/track3/r78/README.md): input-reviewed view/structure
