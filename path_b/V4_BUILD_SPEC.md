@@ -42,6 +42,7 @@ s3b_track                                               (FoundationPose; seed on
 s3c_invert  s3d_settle                                  (S3c/S3d, new; s3c_fuse removed)
 s4a_phases  s4b_reference  s4c_retarget                 (S4; s4a is a view of s3b_segments; s4c gated, off by default)
 s5_task                                                 (S5)
+s4b2_trackability                                       (2026-11-02: GT-free UMS / RCC / RSS of every S5 candidate; health only)
 s6_train  s6_eval  s6_select                            (S6)
 s7_pack                                                 (S7; run.py pack)
 s23_load_retarget                                       (kept: mode A runner for the still fallback)

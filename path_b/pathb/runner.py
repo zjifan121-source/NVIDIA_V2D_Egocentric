@@ -40,6 +40,7 @@ STAGES = ("p0_ingest", "p1_calibrate", "p2_depth",  # S1
           "s3e_refine",  # S3e: FoundationPose's refiner from S3d's track (GPU; skipped without one, §14.4 R1)
           "s4a_phases", "s4b_reference", "s4c_retarget",  # S4 (s4c gated, off by default)
           "s5_task",  # S5
+          "s4b2_trackability",  # GT-free trackability of every S5 candidate (task 2026-11-02; health only)
           "s6_train", "s6_eval", "s6_select",  # S6
           "s7_pack",  # S7 (run.py pack runs it over all episodes)
           "s23_load_retarget")  # kept: mode A runner for the still fallback
