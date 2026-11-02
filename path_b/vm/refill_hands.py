@@ -7,7 +7,9 @@ a hand kept P4's zeros, which a loader that ignores hand_<side>_is_valid poses a
 such frames: its source in the run of its build (BUILDS.json's, else --default), cleaned with FILL_INVALID off and given
 the shipped object arrays, must reproduce the shipped result.npz key by key (floats within SOURCE_ATOL; else the tool
 stops, nothing written); the
-bundle then becomes that source cleaned with FILL_INVALID on, with the same object arrays. Every other file is copied
+bundle then becomes that source cleaned with FILL_INVALID on, with the same object arrays. On its frames with a hand only two
+changes may come out (frames_with_a_hand, else it stops): a frame next to a gap back at its measured pose, and the
+camera-frame wrist parameters recomputed (float rounding, canonical rotation vectors). Every other file is copied
 unchanged; README.md gets a note, BUILDS.json (if there) a "hands_refilled" entry, SHA256SUMS.txt its sums again.
 Writes <set>_refill next to <set>; upload it under <set>'s name (vm/hf_outputs.py) once it is moved into place.
 
@@ -22,6 +24,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "path_b"))
@@ -85,6 +88,50 @@ def sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def frames_with_a_hand(rel: Path, side: str, shipped: dict, new: dict, measured: np.ndarray) -> dict:
+    """What the refill did to one hand: the frames it moved, and on the frames with a hand only (else it stops) a frame
+    next to a gap back at its measured pose (the spike repair, run with the gap still at the camera, had pulled it there)
+    or the camera-frame wrist parameters recomputed (float rounding; a rotation vector past pi in canonical form)."""
+    key = f"hand_{side}_wrist_to_world_transform"
+    old, now = shipped[key].astype(np.float64), new[key].astype(np.float64)
+    invalid = ~np.asarray(shipped[f"hand_{side}_is_valid"], bool)
+    moved = np.abs(now - old).max(axis=(1, 2)) > 1e-6
+    outside = np.flatnonzero(moved & ~invalid)
+    restored = [int(t) for t in outside if np.abs(now[t] - measured[t].astype(np.float64)).max() <= 1e-6]
+    rest = ~invalid & ~moved
+    trans = np.abs(new[f"hand_{side}_wrist_trans_in_camera"].astype(np.float64)
+                   - shipped[f"hand_{side}_wrist_trans_in_camera"].astype(np.float64))[rest]
+    r_old, r_new = (np.asarray(d[f"hand_{side}_wrist_orient_in_camera"], np.float64)[rest] for d in (shipped, new))
+    turn = (Rotation.from_rotvec(r_old).inv() * Rotation.from_rotvec(r_new)).magnitude() if rest.any() else np.zeros(0)
+    if len(outside) > len(restored) or trans.max(initial=0.0) > 1e-6 or turn.max(initial=0.0) > 1e-5:
+        raise SystemExit(f"{rel}: {side} hand: frames with a hand changed beyond a gap's edge or float rounding; nothing written")
+    edges = np.flatnonzero(np.diff(invalid.astype(int)) != 0)  # step t -> t + 1 into or out of a gap
+    step = {n: round(float(np.linalg.norm(np.diff(W[:, :3, 3], axis=0), axis=1)[edges].max()), 4) if len(edges) else None
+            for n, W in (("before", old), ("after", now))}
+    return {"frames_moved": int(moved.sum()), "restored_to_measured": restored,
+            "rotvecs_rewritten": int((np.abs(r_new - r_old).max(axis=1, initial=0.0) > 1e-6).sum()),
+            "max_gap_edge_step_m": step}
+
+
+def note(rows: list[dict]) -> str:
+    """README.md's line on the rebuild."""
+    def name(r):
+        return f"`{r['bundle'].split('/result_slam')[0]}`"
+    restored = [f"{name(r)} frame {t}" for r in rows for s in stage23.SIDES if s in r for t in r[s]["restored_to_measured"]]
+    rewritten = [name(r) for r in rows if any(r[s]["rotvecs_rewritten"] for s in stage23.SIDES if s in r)]
+    return (f"\n## Changes\n\n- {DAY}: rebuilt with the frames without a hand filled (Path B `stage23.FILL_INVALID`, on by "
+            "default since that day). Those frames (`hand_<side>_is_valid` False) held zeros, which a loader that ignores "
+            "`is_valid` poses at the camera; they now hold the hand interpolated between the nearest frames with one (position "
+            "linear, rotation slerp, fingers linear, held at the clip's ends), `is_valid` still False. Rebuilt: "
+            + ", ".join(name(r) for r in rows) + "."
+            + (" Also back at its measured pose: the frame with a hand next to a gap that the wrist-spike repair, run while the "
+               "gap still sat at the camera, had pulled toward it (" + ", ".join(restored) + ")." if restored else "")
+            + " On the other frames with a hand only the camera-frame wrist parameters were recomputed: float rounding (under "
+              "1e-6)" + (", and a rotation vector past pi rewritten in canonical form, the same rotation (" + ", ".join(rewritten)
+                          + ")" if rewritten else "")
+            + ". Object arrays and every other file unchanged.\n")
+
+
 def refill(set_dir: Path, runs: dict[str, Path], default: Path | None = None) -> list[dict]:
     """<set>_refill from <set> (module doc); returns one row per rebuilt bundle."""
     builds = json.loads((set_dir / "BUILDS.json").read_text()) if (set_dir / "BUILDS.json").is_file() else {}
@@ -112,19 +159,14 @@ def refill(set_dir: Path, runs: dict[str, Path], default: Path | None = None) ->
         changed = differing(new, shipped)
         if [k for k in changed if not k.startswith("hand_")]:
             raise SystemExit(f"{rel}: the refill changed {changed}; nothing written")
+        with np.load(src / "result.npz") as z:
+            measured = {k: z[k] for k in z.files if k.endswith("_wrist_to_world_transform")}
         row = {"bundle": rel.parent.as_posix(), "build": build, "source": str(src.relative_to(run.parent)),
                "source_reproduces_within": deviation(then, shipped), "missing": missing, "changed_keys": changed}
         for side in stage23.SIDES:
             if not missing[side]:
                 continue
-            key = f"hand_{side}_wrist_to_world_transform"
-            moved = np.abs(new[key].astype(np.float64) - shipped[key].astype(np.float64)).max(axis=(1, 2)) > 0
-            invalid = ~np.asarray(shipped[f"hand_{side}_is_valid"], bool)
-            edges = np.flatnonzero(np.diff(invalid.astype(int)) != 0)  # step t -> t + 1 into or out of a gap
-            step = {n: round(float(np.linalg.norm(np.diff(d[key][:, :3, 3].astype(np.float64), axis=0), axis=1)[edges].max()), 4)
-                    if len(edges) else None for n, d in (("before", shipped), ("after", new))}
-            row[side] = {"frames_moved": int(moved.sum()), "moved_outside_missing": int((moved & ~invalid).sum()),
-                         "max_gap_edge_step_m": step}
+            row[side] = frames_with_a_hand(rel, side, shipped, new, measured[f"hand_{side}_wrist_to_world_transform"])
         plan.append((rel, new, row))
     dest = set_dir.with_name(set_dir.name + "_refill")
     if dest.exists():
@@ -133,14 +175,8 @@ def refill(set_dir: Path, runs: dict[str, Path], default: Path | None = None) ->
     for rel, new, _ in plan:
         np.savez(dest / rel, **new)
     rows = [row for _, _, row in plan]
-    note = (f"\n## Changes\n\n- {DAY}: rebuilt with the frames without a hand filled (Path B `stage23.FILL_INVALID`, on by "
-            "default since that day). Those frames (`hand_<side>_is_valid` False) held zeros, which a loader that ignores "
-            "`is_valid` poses at the camera; they now hold the hand interpolated between the nearest frames with one (position "
-            "linear, rotation slerp, fingers linear, held at the clip's ends), `is_valid` still False. Rebuilt: "
-            + ", ".join(f"`{r['bundle'].split('/result_slam')[0]}`" for r in rows)
-            + ". Object arrays and every other file unchanged.\n")
     if rows and (dest / "README.md").is_file():
-        (dest / "README.md").write_text((dest / "README.md").read_text().rstrip("\n") + "\n" + note)
+        (dest / "README.md").write_text((dest / "README.md").read_text().rstrip("\n") + "\n" + note(rows))
     if rows and builds:
         builds["hands_refilled"] = {"date": DAY, "tool": "path_b/vm/refill_hands.py", "bundles": rows}
         (dest / "BUILDS.json").write_text(json.dumps(builds, indent=1) + "\n")

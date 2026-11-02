@@ -87,7 +87,8 @@ def test_refill_fills_the_frames_without_a_hand_and_keeps_the_rest(tmp_path):
     before = {p.relative_to(s): p.read_bytes() for p in s.rglob("*") if p.is_file()}
     rows = F.refill(s, {}, default=run)
     assert [r["bundle"] for r in rows] == ["episode_000007/cup/result_slam_gravity_aligned"]
-    assert rows[0]["right"]["frames_moved"] == 11 and rows[0]["right"]["moved_outside_missing"] == 0
+    assert rows[0]["right"]["frames_moved"] == 11 and rows[0]["right"]["restored_to_measured"] == []
+    assert rows[0]["right"]["rotvecs_rewritten"] == 0
     assert rows[0]["right"]["max_gap_edge_step_m"]["after"] < 0.02 < rows[0]["right"]["max_gap_edge_step_m"]["before"]
     dest = tmp_path / "set_refill"
     old = dict(np.load(s / "episode_000007/cup/result_slam_gravity_aligned/result.npz"))
@@ -106,6 +107,21 @@ def test_refill_fills_the_frames_without_a_hand_and_keeps_the_rest(tmp_path):
         digest, rel = line.split("  ", 1)
         assert digest == hashlib.sha256((dest / rel).read_bytes()).hexdigest()
     assert {p.relative_to(s) for p in s.rglob("*") if p.is_file()} == set(before)  # the shipped set untouched
+
+
+def test_refill_puts_back_a_gap_edge_frame_the_spike_repair_pulled_to_the_camera(tmp_path):
+    data = source_data()
+    data["hand_right_wrist_to_world_transform"][14, 2, 3] += 0.1  # fast in from frame 13, then (gap at the camera) out to 15
+    data["hand_right_wrist_trans_in_camera"][14, 2] += 0.1
+    run = make_run(tmp_path, 7, "cup", data)
+    s = ship(tmp_path, run, 7, "cup")
+    shipped = np.load(s / "episode_000007/cup/result_slam_gravity_aligned/result.npz")["hand_right_wrist_to_world_transform"]
+    assert abs(shipped[14, 2, 3] - 0.2) > 0.05  # the old repair took 14 for a spike and pulled it toward the camera
+    rows = F.refill(s, {}, default=run)
+    assert rows[0]["right"]["restored_to_measured"] == [14] and rows[0]["right"]["frames_moved"] == 12
+    new = np.load(tmp_path / "set_refill/episode_000007/cup/result_slam_gravity_aligned/result.npz")
+    assert np.allclose(new["hand_right_wrist_to_world_transform"][14], data["hand_right_wrist_to_world_transform"][14])
+    assert "`episode_000007/cup` frame 14" in (tmp_path / "set_refill/README.md").read_text()
 
 
 def test_refill_takes_float_noise_between_venvs(tmp_path):
