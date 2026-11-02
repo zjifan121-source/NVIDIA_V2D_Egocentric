@@ -45,6 +45,8 @@ MIN_GAIN_M = None  # P4's first rule: 0.001 (the median masked-depth residual fa
 IOU_DROP = 0.0  # default (P4): the mask IoU does not drop
 SCORE_MARGIN = 0.0  # default (P4, 2026-11-02): the scorer's logit gain (refined - start) a kept pose needs; None = not used
 SMOOTH_SIGMA = None  # frames: the kept corrections averaged over each moving segment (`smoothed`); None = off (default)
+STATIC_SHARE = None  # a static segment takes its kept refinements' robust mean correction when at least this share of
+                     # its recorded frames keeps one (`rests`); None = off (default), MOVING_ONLY as before
 STALE_M = 1e-6  # a record's start pose this far from this S3d's (object_to_camera, any entry) is another track's
 
 
@@ -143,6 +145,37 @@ def smoothed(R: np.ndarray, P: np.ndarray, kept: list[int], segments: list[dict]
     return out
 
 
+def rests(R: np.ndarray, P: np.ndarray, rows: list[dict], c2w: np.ndarray, segments: list[dict]) -> np.ndarray:
+    """With STATIC_SHARE: each static segment where at least that share of its recorded frames passes the keep rule
+    (`keeps`, or `chosen` with HYPOTHESES) takes one correction for all its frames, the passing frames' object-frame
+    corrections (P^-1 refined) averaged robustly (median translation; rotation: the chordal mean of the rotations
+    within the median angle). S4b holds a rest at its first frame's pose, so a rest moves as a whole or not at all."""
+    out = R.copy()
+    by_frame = {r["frame"]: r for r in rows}
+    for s in segments:
+        if s["kind"] != "static":
+            continue
+        a, b = s["start"], min(s["end"], len(P) - 1)
+        recs = [by_frame[t] for t in range(a, b + 1) if t in by_frame and np.isfinite(P[t]).all()]
+        poses = []
+        for r in recs:
+            pose = chosen(r) if HYPOTHESES and "hypotheses" in r else (r["refined_pose"] if keeps(r) else None)
+            if pose is not None:
+                poses.append(np.linalg.inv(P[r["frame"]]) @ c2w[r["frame"]] @ np.asarray(pose, dtype=np.float64))
+        if not recs or len(poses) < STATIC_SHARE * len(recs):
+            continue
+        E = np.stack(poses)
+        rot = Rotation.from_matrix(E[:, :3, :3])
+        angle = rot.magnitude()
+        near = rot[angle <= np.median(angle) + 1e-12]
+        D = np.eye(4)
+        D[:3, :3], D[:3, 3] = near.mean().as_matrix(), np.median(E[:, :3, 3], axis=0)
+        for u in range(a, b + 1):
+            if np.isfinite(P[u]).all():
+                out[u] = P[u] @ D
+    return out
+
+
 def stale(request: dict, P: np.ndarray, c2w: np.ndarray) -> bool:
     """Whether a GPU pass started from another track than this S3d's."""
     for t, pose in request["poses"].items():
@@ -208,6 +241,8 @@ def run(ctx) -> StageResult:
         R, kept = regate(rows, P, c2w, moving)
         if SMOOTH_SIGMA:
             R = smoothed(R, P, kept, segments)
+        if STATIC_SHARE is not None:
+            R = rests(R, P, rows, c2w, segments)
         np.savez(out / "object_to_world.npz", object_to_world=R)
         took = set(kept)
         pick = [r["refined"] if r["frame"] in took else r["start"] for r in rows]

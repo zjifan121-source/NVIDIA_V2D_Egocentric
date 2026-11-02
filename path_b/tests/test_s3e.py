@@ -108,6 +108,22 @@ def test_smoothing_spreads_a_grasp_correction_in_the_object_frame(monkeypatch):
     assert np.allclose(S[:4], P[:4])  # the static rest is not touched
 
 
+def test_a_rest_moves_as_a_whole_when_most_of_its_frames_agree(monkeypatch):
+    monkeypatch.setattr(E, "STATIC_SHARE", 0.5)
+    P = np.tile(np.eye(4), (8, 1, 1))
+    c2w = np.tile(np.eye(4), (8, 1, 1))
+    fix = np.eye(4)
+    fix[1, 3] = 0.003
+    segments = [{"kind": "static", "start": 0, "end": 4}, {"kind": "grasp", "start": 5, "end": 7}]
+    rows = [record(t, pose=fix) for t in range(5)]
+    rows[1] = record(1, logits=(100.5, 100.0), pose=fix)  # one frame's refinement is not kept: 4 of 5 agree
+    S = E.rests(P.copy(), P, rows, c2w, segments)
+    assert np.allclose(S[:5], P[:5] @ fix) and np.allclose(S[5:], P[5:])  # the whole rest, frame 1 too
+    rows = [record(t, logits=(100.5, 100.0), pose=fix) for t in range(5)]
+    rows[0] = record(0, pose=fix)  # 1 of 5: under the share, the rest stays
+    assert np.allclose(E.rests(P.copy(), P, rows, c2w, segments), P)
+
+
 def offline_episode(tmp_path, P):
     """An episode folder with a GPU pass's records in s3e_refine/ and no GPU here."""
     from pathb.geometry import write_transform
