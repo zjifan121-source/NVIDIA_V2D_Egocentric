@@ -1,0 +1,19 @@
+{
+  "source_sha256": {
+    "part_basis": "bbb71655ea783791401918e636e88c8c705f0a0c09bab9a6619a8e41f1fcff4c",
+    "part_solver": "bc65aa7938f35d6c0aeaa0cf28efbfca1c293bdf1860e702bcab4341bf86f209",
+    "contact_solver": "bf8e1450f46040243f34d6bd31155594f3856265ec18f56184489cb409d0c16f",
+    "temporal_solver": "6807c70ed3a79d0735c729a9723b955b9c93bebd9f77759529e24d38dc6bc564",
+    "contact_tracking": "d7da212239167f8e5fd57f9250eb33b0d877ca239be59959cb543919d8862454",
+    "contact_projector": "6107676463a8b77034abbd9dee8c6264e84defbab87b461f62fdb67dfda9ded9"
+  },
+  "r78_sync_source_revision": "93824e2",
+  "tracking_release_base": "bf1ec26b7508f3aafda5cc0e2ae30ed968dc9fd7",
+  "cpu_reproduction": "Identical saved-input numerical outputs; shape rejection preserved; no new GT evaluation or GPU",
+  "max_array_difference": 0.0,
+  "source_shape_gates": [
+    "INPUT_GATE_FAILED",
+    "MULTIVIEW_SHAPE_NOT_ACCEPTED"
+  ],
+  "experimental": true
+}

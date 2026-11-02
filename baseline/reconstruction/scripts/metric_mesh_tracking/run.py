@@ -170,12 +170,17 @@ def load_package(manifest_path, protocol_path, payload_override=None):
                     texture = (Path(ref).parent / tokens[-1]).as_posix()
                     if texture not in m["files"]:
                         raise ValueError(f"Unpinned texture dependency: {texture}")
+    from contact import load_contact
+    if cfg.get('contact_constraint') is not None and cfg.get('contact_runner_sha256') != sha(Path(__file__).with_name('contact.py')):
+        raise ValueError('Contact implementation must be pinned in protocol')
+    load_contact(m, cfg, payload, checked_path, validate_transform)
     return m, cfg, payload, K, directions, perframe
 
 
-def validate_review(review, protocol_digest, manifest_digest, mesh_digest, anchor_path, anchor):
+def validate_review(review, protocol_digest, manifest_digest, mesh_digest, anchor_path, anchor, provided=False):
     required = ["proceed_to_fixed_tracking", "visual_target_identity_checked",
-                "visible_structure_alignment_checked", "no_gross_target_miss", "rank0_only"]
+                "visible_structure_alignment_checked", "no_gross_target_miss"]
+    required.append('provided_pose_reviewed' if provided else 'rank0_only')
     if any(review.get(k) is not True for k in required):
         raise ValueError("Human rank0 anchor gate is not explicitly PASS")
     expected = dict(protocol_sha256=protocol_digest, input_manifest_sha256=manifest_digest,
@@ -190,6 +195,8 @@ def validate_review(review, protocol_digest, manifest_digest, mesh_digest, ancho
 def execute(args, package):
     m, cfg, payload, K_dict, directions, perframe = package
     count = m["frame_count"]
+    from contact import load_contact, apply_to_tracker
+    contact = load_contact(m, cfg, payload, checked_path, validate_transform)
     O = Path(args.output).resolve()
     O.mkdir(parents=True, exist_ok=True)
     stage = O / args.stage
@@ -200,6 +207,10 @@ def execute(args, package):
                   mesh_sha256=m["files"][m["mesh_file"]], geometry_units="metres_baked_once",
                   pose_convention="T_camera_from_original_provided_mesh; column vectors",
                   no_GT=True, initialization="single_registration_rank0")
+    record['initialization'] = 'provided_matching_pose_then_track' if contact else 'single_registration_rank0'
+    record['constraint'] = 'observed_contact_point' if contact else None
+    if contact:
+        record['contact_implementation_sha256'] = sha(Path(__file__).with_name('contact.py'))
     tick = time.monotonic()
     def save():
         record["seconds"] = time.monotonic() - tick
@@ -222,10 +233,10 @@ def execute(args, package):
         anchor_path = O / "anchor" / "anchor_public.npy"
         if args.stage == "track":
             ar = json.loads((O / "anchor" / "RECEIPT.json").read_text())
-            if ar["state"] != "COMPLETE_AWAITING_HUMAN_REVIEW" or ar["register_calls"] != 1:
-                raise ValueError("No complete unique registration")
+            if ar["state"] != "COMPLETE_AWAITING_HUMAN_REVIEW" or ar["register_calls"] != (0 if contact else 1):
+                raise ValueError("No complete frozen initialization")
             validate_review(json.loads((O / "ANCHOR_REVIEW.json").read_text()), sha(args.protocol),
-                            sha(args.manifest), record["mesh_sha256"], anchor_path, m["anchor_frame"])
+                            sha(args.manifest), record["mesh_sha256"], anchor_path, m["anchor_frame"], provided=contact is not None)
         import cv2
         import torch
         from v2d.common.datatypes import CameraIntrinsics, DepthImage, Mask, Image, Transform3d
@@ -256,22 +267,42 @@ def execute(args, package):
         def inputs(t):
             rgb, depth, mask = decode_frame(payload, m["frames"][t], K_dict)
             return Image(data=rgb), DepthImage(depth=depth), Mask(mask=mask)
+        def constrain(tracker, pose, frame):
+            raw = validate_transform(pose.to_matrix())
+            if contact is None:
+                return pose, raw
+            corrected_pose, raw, info = apply_to_tracker(tracker, pose, contact, frame, Transform3d.from_matrix)
+            record.setdefault('contact_rows', []).append(info)
+            return corrected_pose, raw
         (stage / "poses").mkdir()
         record["state"] = "RUNNING"; save()
         if args.stage == "anchor":
             tracker = new_tracker()
             image, depth, mask = inputs(m["anchor_frame"])
-            deadline(); record["register_calls"] = 1; save()
-            pose = tracker.register(image, depth, mask, K, iteration=10)
+            deadline()
+            if contact:
+                tracker.reset_to_pose(Transform3d.from_matrix(contact['initial_pose_file']))
+                pose = tracker.track_one(image, depth, K, iteration=5)
+                record['track_calls'] = 1
+            else:
+                record['register_calls'] = 1
+                pose = tracker.register(image, depth, mask, K, iteration=10)
+            pose, raw = constrain(tracker, pose, m['anchor_frame'])
+            np.save(stage / 'raw_anchor_public.npy', raw)
+            save()
             T = validate_transform(pose.to_matrix())
             pose.save(str(stage / "poses" / f"{m['anchor_frame']:06d}.json"))
             np.save(stage / "anchor_public.npy", T)
             est = tracker._est
             A = as_np(est.get_tf_to_centered_mesh())
-            candidates, scores = as_np(est.poses), as_np(est.scores)
-            assert_pair(candidates[0], A, T)
-            np.savez_compressed(stage / "registration_candidates.npz", internal_centered_poses=candidates,
-                                scores=scores, original_to_centered=A, selected_public=T)
+            if not contact:
+                candidates, scores = as_np(est.poses), as_np(est.scores)
+                assert_pair(candidates[0], A, T)
+                np.savez_compressed(stage / "registration_candidates.npz", internal_centered_poses=candidates,
+                                    scores=scores, original_to_centered=A, selected_public=T)
+            else:
+                np.savez_compressed(stage / 'provided_anchor.npz', initial=contact['initial_pose_file'],
+                                    before_contact=raw, selected_public=T)
             tracker.reset_to_pose(pose)
             error = assert_pair(as_np(est.pose_last), A, T)
             # Rendering uses centered geometry and its matching internal pose exactly once.
@@ -290,7 +321,7 @@ def execute(args, package):
             np.save(stage / "anchor_rendered_depth.npy", rz)
             support = (depth.depth > 0); overlap = support & physical
             residual = np.abs(rz[overlap]-depth.depth[overlap])
-            record.update(state="COMPLETE_AWAITING_HUMAN_REVIEW", selected_rank=0,
+            record.update(state="COMPLETE_AWAITING_HUMAN_REVIEW", selected_rank=None if contact else 0,
                 anchor_frame=m["anchor_frame"], anchor_public_sha256=sha(stage / "anchor_public.npy"),
                 coordinate_pair_error=error, runtime_info=tracker.runtime_info,
                 anchor_input_metrics=dict(mask_iou=float((physical&observed).sum()/max(1,(physical|observed).sum())),
@@ -302,6 +333,7 @@ def execute(args, package):
             anchor = Transform3d.from_matrix(T)
             anchor.save(str(stage / "poses" / f"{m['anchor_frame']:06d}.json"))
             allposes = {m["anchor_frame"]: T}
+            rawposes = {m['anchor_frame']: np.load(O / 'anchor' / 'raw_anchor_public.npy')}
             record["directions"] = directions
             for direction, ids in directions.items():
                 tracker = new_tracker()  # Separate estimator, particles and history for each direction.
@@ -313,6 +345,8 @@ def execute(args, package):
                 for t in ids:
                     deadline(); ftick=time.monotonic(); image, depth, _ = inputs(t)
                     pose = tracker.track_one(image, depth, K, iteration=5)
+                    pose, raw = constrain(tracker, pose, t)
+                    rawposes[t] = raw
                     Tt = validate_transform(pose.to_matrix())
                     assert_pair(as_np(tracker._est.pose_last), A, Tt)
                     pose.save(str(stage / "poses" / f"{t:06d}.json")); allposes[t] = Tt
@@ -324,7 +358,8 @@ def execute(args, package):
             if sorted(allposes) != list(range(count)) or record["track_calls"] != count-1:
                 raise ValueError("Incomplete tracking is never a reusable completed cache")
             np.savez_compressed(stage / "matched_mesh_poses.npz", frame_ids=np.arange(count),
-                                public_poses=np.stack([allposes[t] for t in range(count)]))
+                                public_poses=np.stack([allposes[t] for t in range(count)]),
+                                raw_before_contact=np.stack([rawposes[t] for t in range(count)]))
             write_json(stage / "MESH_POSE_PAIR.json", dict(mesh_file=m["mesh_file"],
                 mesh_sha256=record["mesh_sha256"], input_manifest_sha256=sha(args.manifest),
                 poses_sha256=sha(stage / "matched_mesh_poses.npz"), frame_count=m["frame_count"],

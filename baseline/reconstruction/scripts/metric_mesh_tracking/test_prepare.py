@@ -29,6 +29,29 @@ class PackageTest(unittest.TestCase):
             out=prepare.freeze(p/'spec.json',payload,p/'runtime.json',source,p/'package')
             result=run.load_package(out/'manifest.json',out/'protocol.json',payload)
             self.assertEqual(result[4],{'forward':[],'backward':[0]})
+            # The optional path pins its additional inputs and accepts a provided
+            # pose review, without fabricating a global registration receipt.
+            extra={'initial_pose_file':'initial.npy','camera_to_world_file':'camera.npy',
+                   'plane_file':'plane.npy','point_file':'point.npy',
+                   'rest_frames':[0], 'maximum_shift_m':.06,
+                   'input_review_evidence':'Observed body contact on frozen mesh'}
+            for name,value in [('initial.npy',np.eye(4)),('camera.npy',np.tile(np.eye(4),(2,1,1))),
+                               ('plane.npy',np.array([0,0,1,0.])),('point.npy',np.zeros(3))]:
+                np.save(payload/name,value)
+            (p/'contact_spec.json').write_text(json.dumps({**spec,'contact_constraint':extra}))
+            cp=prepare.freeze(p/'contact_spec.json',payload,p/'runtime.json',source,p/'contact_package')
+            run.load_package(cp/'manifest.json',cp/'protocol.json',payload)
+            co=p/'contact_output';(co/'anchor').mkdir(parents=True)
+            np.save(co/'anchor/anchor_public.npy',np.eye(4))
+            (co/'anchor/RECEIPT.json').write_text(json.dumps(dict(
+                state='COMPLETE_AWAITING_HUMAN_REVIEW',register_calls=0,
+                protocol_sha256=run.sha(cp/'protocol.json'),input_manifest_sha256=run.sha(cp/'manifest.json'))))
+            prepare.review(cp,co,'fixture reviewer',['fixture overlay'])
+            review=json.loads((co/'ANCHOR_REVIEW.json').read_text())
+            self.assertTrue(review['provided_pose_reviewed']);self.assertNotIn('rank0_only',review)
+            np.save(payload/'point.npy',np.ones(3))
+            with self.assertRaisesRegex(ValueError,'SHA mismatch'):
+                run.load_package(cp/'manifest.json',cp/'protocol.json',payload)
             with self.assertRaises(FileExistsError):prepare.freeze(p/'spec.json',payload,p/'runtime.json',source,out)
             (payload/'mesh.obj').write_text('changed')
             with self.assertRaisesRegex(ValueError,'SHA mismatch'):run.load_package(out/'manifest.json',out/'protocol.json',payload)

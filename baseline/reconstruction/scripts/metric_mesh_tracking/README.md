@@ -65,3 +65,36 @@ python -m unittest discover -s . -p 'test_*.py' -v
 CPU contracts cover direction schedules, coordinate pairing, depth decoding, input/provenance rejection and review gates. The extracted runner keeps the historical FP call order and numerical settings; this publication does not run new GPU inference and does not claim bitwise GPU parity after packaging.
 
 Across the eight Scored target-object sequences (2,221 frames), same-observation alignment proxy increased from 0.630954 to 0.757114. This is not GT reconstruction AUC or policy performance. ep15 retains a second-half regression; ep19 retains missing baseline depth evidence; raw motion continuity is not uniformly better. No new R7/R8 fitting or automatic mesh generation is claimed for this eight-sequence run.
+
+## Optional observed table-contact tracking
+
+`contact.input.example.json` adds a `contact_constraint` to the normal preparation
+spec. It is opt-in; omitting it preserves the existing register-then-track path.
+The additional NPY files are hashed with the mesh/RGB/depth/mask inputs:
+
+- `initial_pose_file`: a reviewed **matching** original-mesh object-to-camera SE(3)
+  at the declared anchor. It must already describe the provided metric mesh.
+- `camera_to_world_file`: complete `[N,4,4]` common-camera transforms.
+- `plane_file`: unit-normal world plane `[nx,ny,nz,d]` in metres.
+- `point_file`: one observed body/table contact point `[3]` in this exact mesh frame.
+- `rest_frames`: input-observed contact interval, frozen before fitting/scoring.
+- `maximum_shift_m`: correction limit, at most 0.06 m. Exceeding it fails, not clips.
+
+Use the same `prepare.py freeze`, `run.py --validate-only`, `--stage anchor`,
+`prepare.py review`, and `--stage track` commands above. With this option, `anchor`
+performs **one track refinement from the provided pose**, not global registration.
+Its overlay must pass the same explicit identity/structure/alignment review.
+`track` starts two independent states from that reviewed anchor. At each update,
+only declared rest frames get a translation along the world table normal to place
+the observed point on the plane; the corrected public pose resets the FP internal
+state before the next frame. Shape, size, rotation and measured depth are unchanged.
+A large conflict is an explicit failure, not a request to retune the depth.
+
+The exact provided pose, contact point and mesh must come from the same reviewed
+asset. Do not use a contact vertex from another mesh. This is an input-specific
+constraint; it does not detect contact or verify a plane automatically. The original
+and corrected poses are saved in `matched_mesh_poses.npz`, with hashes and contact
+corrections in the receipts. Anchor contributes one `track_one` call and propagation
+contributes N-1, for N total. This optional extraction was CPU-tested, including
+camera transforms, estimator reset and conflict failure; no GPU replay was performed
+during this publication.
