@@ -216,7 +216,7 @@ def main(request: str) -> int:
         run([py, "scripts/retarget/ego_recon_to_sharpa.py", "--input_dir", loaded, "--output_dir", processed,
              "--sequence_id", seq, "--device", req["device"], "--save"], rg, env, log)
     contacted = contact(req, out, processed, seq)
-    bodies =[seq] if len(req["objects"]) == 1 else [f"{seq}_{o['name']}" for o in req["objects"]]
+    bodies = [seq] if len(req["objects"]) == 1 else [f"{seq}_{o['name']}" for o in req["objects"]]
     if not all((processed / f"{b}_rigid.urdf").is_file() for b in bodies):
         run([py, "scripts/generate_rigid_urdfs.py", "--dataset", "ego_recon"], rg, env, log)
     if not usda.is_file():
