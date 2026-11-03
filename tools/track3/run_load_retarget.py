@@ -999,6 +999,10 @@ def main() -> int:
     merge_info = None
     if args.merge:
         args.bundle, merge_info = merged_bundle(args.episode, out / "bundle_merged")
+        if os.environ.get("H5_MERGED_NPZ"):  # hand fixes: replace the merged bundle arrays with a prepared result.npz
+            shutil.copyfile(os.environ["H5_MERGED_NPZ"], Path(args.bundle) / "result.npz")
+            merge_info["h5_merged_npz"] = os.environ["H5_MERGED_NPZ"]
+            print(f"== hand fixes: merged result.npz replaced by {os.environ['H5_MERGED_NPZ']}", flush=True)
     bundle = args.bundle.resolve()
     log = out / "pipeline.log"
 
@@ -1024,6 +1028,10 @@ def main() -> int:
     if not (args.no_rest_hold and args.no_hand_clean and args.no_object_clean) or args.rescale_by_hands \
             or args.rescale_by_scan or args.still_object or not args.no_level or args.attach_hands \
             or args.smooth_hands > 0:
+        if os.environ.get("H5_PATCH"):  # hand fixes: redefine cleanup functions (e.g. attach_hands) from a patch file
+            exec(compile(Path(os.environ["H5_PATCH"]).read_text(), os.environ["H5_PATCH"], "exec"), globals())
+            report["h5_patch"] = os.environ["H5_PATCH"]
+            print(f"== hand fixes: patch {os.environ['H5_PATCH']} applied", flush=True)
         bundle, report["cleaning"] = cleaned_bundle(
             bundle, out / "bundle_cleaned", args.fps, rest_hold=not args.no_rest_hold,
             hand_clean=not args.no_hand_clean, object_clean=not args.no_object_clean,
