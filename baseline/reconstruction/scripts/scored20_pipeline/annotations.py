@@ -68,12 +68,7 @@ def scaffold(input_root, config_file, output_root):
         for slot in object_slots(bundle):
             objects.append(dict(slot=slot, name=f'object_{slot}',
                 review=dict(accepted=False, evidence='Review identity, structure, coordinate pairing, and observed frame roles'),
-                observations=dict(root=f'objects/slot_{slot}/observations', depth_encoding='native_inverse_u16'),
-                contact_point=dict(vertex=None),
-                temporal=dict(inputs=dict(landmarks=f'objects/slot_{slot}/landmarks.npz',
-                    measurement_receipt=f'objects/slot_{slot}/measurement.json', table_plane='bundle/table_plane.npy'),
-                    parameters=dict(calibration_frames=[], fit_frames=[], validation_frames=[], contact_frames=[],
-                                    landmark_groups=[], maximum_seconds=1800))))
+                observations=dict(root=f'objects/slot_{slot}/observations', depth_encoding='native_inverse_u16')))
         recipes.append((path, dict(episode=episode, bundle='bundle', extra_files=[], objects=objects)))
     if config_file.exists():
         raise FileExistsError(config_file)

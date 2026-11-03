@@ -23,6 +23,33 @@ from annotations import materialize, scaffold
 SCORED20 = [1, 3, 5, 6, 8, 10, 14, 15, 16, 19, 20, 25, 28, 30, 32, 33, 35, 36, 37, 38]
 REFINE = SCRIPTS / 'metric_scene_refinement'
 TRACK = SCRIPTS / 'metric_mesh_tracking'
+CANDIDATE_EXPORTED = 'CANDIDATE_EXPORTED_UNVALIDATED'
+BASELINE_PRESERVED = 'BASELINE_PRESERVED'
+
+
+class CandidateRejected(ValueError):
+    """A completed numerical experiment is not an infrastructure failure."""
+    def __init__(self, kind, result, candidate):
+        self.kind, self.result, self.candidate = kind, result, Path(candidate)
+        metrics = self.candidate / 'output/RESULTS.json'
+        self.details = read(metrics) if metrics.is_file() else result
+        self.failed_checks = [k for k, value in self.details.get('checks', {}).items() if value is False]
+        super().__init__(f'{kind} candidate rejected: {self.failed_checks or result.get("state", "input gate failed")}')
+
+
+def batch_summary(outcomes, finished=False):
+    counts = {
+        'candidate_exports_unvalidated': sum(x['state'] == CANDIDATE_EXPORTED for x in outcomes),
+        'baseline_preserved': sum(x['state'] == BASELINE_PRESERVED for x in outcomes),
+        'candidates_rejected': sum(x['state'] == 'CANDIDATE_REJECTED' for x in outcomes),
+        'execution_failures': sum(x['state'] == 'FAILED_PRESERVED' for x in outcomes),
+    }
+    exported = counts['candidate_exports_unvalidated'] + counts['baseline_preserved']
+    complete = len(outcomes) == len(SCORED20) and exported == len(SCORED20)
+    return dict(state=('ALL_EPISODES_EXPORTED_UNVALIDATED' if complete else 'INCOMPLETE_EXPORTS') if finished else 'RUNNING',
+                episodes=outcomes, expected=SCORED20, counts=counts, exports_complete=complete,
+                full_sequence_quality_validation='NOT_RUN', verified_improvement_count=None,
+                production_adopted=False, GT_used=False)
 
 
 def utc():
@@ -183,8 +210,8 @@ def prepare_episode(config, episode, prepared):
             continue
         review_inputs(obj)
         shape, track, temporal = obj.get('shape'), obj.get('tracking'), obj.get('temporal')
-        if not shape and not temporal and not (track and track.get('contact')):
-            raise ValueError('No 5454d57 optimizer enabled: tracking-only is not the new pipeline')
+        if not shape and not temporal and track is None:
+            raise ValueError('Choose explicit tracking/optimization stages or preserve this object with a reason')
         if shape and (shape.get('kind') not in ('part_shape', 'contact_shape') or track is None):
             raise ValueError('Shape refinement requires part_shape/contact_shape followed by fresh FP')
         if track is not None:
@@ -241,10 +268,10 @@ def prepare_episode(config, episode, prepared):
         if temporal:
             stages.append('temporal_pose')
         plan.append(dict(slot=obj['slot'], stages=stages))
-    if not new_modules:
-        raise ValueError('Episode has no enabled 5454d57 optimization; refusing silent legacy-only completion')
     prepared_recipe = dict(recipe=recipe, base=str(base), bundle=str(bundle), frame_count=n,
-                           episode=episode, plan=plan, file_sha256=hashes)
+                           episode=episode, plan=plan, file_sha256=hashes,
+                           enabled_optimization_count=new_modules,
+                           planned_outcome='experimental_candidate' if any(not obj.get('preserve') for obj in recipe['objects']) else 'explicit_baseline_preservation')
     put(prepared / 'PREPARED.json', prepared_recipe)
     return prepared_recipe
 
@@ -267,7 +294,15 @@ class NativeBackend:
         stage.mkdir(parents=True, exist_ok=False)
         put(stage / 'spec.json', spec)
         self.command([sys.executable, REFINE / 'run.py', 'freeze', '--spec', stage / 'spec.json', '--output', stage / 'frozen.json'], stage / 'freeze.log')
-        self.command([sys.executable, REFINE / 'run.py', 'run', '--manifest', stage / 'frozen.json', '--output', stage / 'candidate'], stage / 'run.log', timeout=spec['parameters']['maximum_seconds'] + 30)
+        try:
+            self.command([sys.executable, REFINE / 'run.py', 'run', '--manifest', stage / 'frozen.json', '--output', stage / 'candidate'], stage / 'run.log', timeout=spec['parameters']['maximum_seconds'] + 30)
+        except subprocess.CalledProcessError:
+            receipt_file = stage / 'candidate/EXECUTION.json'
+            rec = read(receipt_file) if receipt_file.is_file() else {}
+            result = rec.get('result', {})
+            if result.get('bounds_ok') is False or result.get('state') in ('INPUT_GATE_FAILED', 'MULTIVIEW_SHAPE_NOT_ACCEPTED'):
+                raise CandidateRejected(spec['kind'], result, stage / 'candidate')
+            raise  # Missing/invalid receipts and runtime errors remain execution failures.
         rec = read(stage / 'candidate/EXECUTION.json')
         if rec.get('exit_code') != 0:
             raise ValueError('Optimizer failed; artifacts retained')
@@ -385,7 +420,7 @@ def run_episode(prepared, output, backend):
                 candidate, result = backend.refine(spec, directory / 'shape')
                 stages.append(dict(slot=obj['slot'], stage=shape['kind'], result=result))
                 if result.get('input_gate_pass') is not True:
-                    raise ValueError('Shape input gate failed; no old-mesh fallback or FP launch')
+                    raise CandidateRejected(shape['kind'], result, candidate)
                 shape_output = candidate / 'output'
                 backend.review(directory / 'shape', [shape_output / 'comparison.jpg', shape_output / 'RESULTS.json'])
             if track:
@@ -416,16 +451,28 @@ def run_episode(prepared, output, backend):
         final = output / 'bundle'
         copy_scene(current, final, recipe.get('extra_files', []))
         # Do not label finite/complete trajectories as visual or policy acceptance.
-        temporal_pending = any(s['stage'] == 'temporal_pose' for s in stages)
-        put(final / 'run.json', dict(state='COMPLETE_EXPERIMENTAL_PIPELINE', method='5454d57 integrated optimizers',
+        optimized = any(s['stage'] != 'preserve' for s in stages)
+        new_optimization = any(s['stage'] in ('part_shape', 'contact_shape', 'contact_FP', 'temporal_pose') for s in stages)
+        state = CANDIDATE_EXPORTED if optimized else BASELINE_PRESERVED
+        method = '5454d57 experimental optimizers' if new_optimization else ('fixed metric FP' if optimized else 'explicit baseline preservation')
+        put(final / 'run.json', dict(state=state, method=method, new_optimization_executed=new_optimization,
             episode=prepared['episode'], frame_count=prepared['frame_count'], stages=stages,
-            full_scene=True, input_gate_pending=temporal_pending, production_adopted=False,
+            full_scene=True, input_gate_pending=optimized, production_adopted=False,
+            full_sequence_quality_validation='NOT_RUN', verified_improvement=None,
             GT_used=False, policy_evaluated=False, protected='common camera, hands, table and untargeted objects preserved',
             pairs={str(slot): dict(mesh_sha256=sha(final / mesh_name(slot)), result_sha256=sha(final / 'result.npz'))
                    for slot in object_slots(final)}))
         validate_scene(final)
         verify_hashes(prepared['file_sha256'])
-        receipt.update(state='COMPLETE_EXPERIMENTAL_PIPELINE', exit_code=0, bundle_files_sha256=inventory(final))
+        receipt.update(state=state, exit_code=0, full_sequence_quality_validation='NOT_RUN',
+                       verified_improvement=None, new_optimization_executed=new_optimization,
+                       bundle_files_sha256=inventory(final))
+    except CandidateRejected as error:
+        receipt.update(state='CANDIDATE_REJECTED', exit_code=1, error=str(error),
+                       rejected_stage=error.kind, failed_checks=error.failed_checks,
+                       numerical_result=error.details, candidate=str(error.candidate),
+                       baseline_substituted=False)
+        raise
     except BaseException as error:
         receipt.update(state='FAILED_PRESERVED', exit_code=1, error=repr(error))
         raise
@@ -446,7 +493,9 @@ def prepare_batch(config, output):
         try:
             data = prepare_episode(config, ep, output / 'prepared' / f'episode_{ep:06d}')
             ready.append(data)
-            rows.append(dict(episode=ep, state='READY', frames=data['frame_count'], plan=data['plan']))
+            rows.append(dict(episode=ep, state='INPUT_CONTRACTS_VALID', frames=data['frame_count'],
+                             plan=data['plan'], planned_outcome=data['planned_outcome'],
+                             enabled_optimization_count=data['enabled_optimization_count']))
         except Exception as e:
             rows.append(dict(episode=ep, state='MISSING_OR_INVALID_INPUT', error=repr(e)))
     needs_gpu = any(o.get('tracking') for d in ready for o in d['recipe']['objects'])
@@ -467,14 +516,15 @@ def prepare_batch(config, output):
             for name in ('v2d_foundation_pose/lib/foundation_pose_tracker.py', 'v2d_foundation_pose/lib/FoundationPose/estimater.py'):
                 if not (Path(rt['source_root']) / name).is_file():
                     runtime_errors.append('Missing native module: ' + name)
-    state = 'READY_FOR_SCORED20' if len(ready) == 20 and not runtime_errors else 'INPUTS_INCOMPLETE_NO_EXECUTION'
+    state = 'INPUT_CONTRACTS_VALID' if len(ready) == 20 and not runtime_errors else 'INPUTS_INCOMPLETE_NO_EXECUTION'
     runtime_hashes = {}
     if needs_gpu and not runtime_errors:
         runtime_files = [Path(rt['runtime_info'])] + [Path(rt['source_root']) / name for name in
             ('v2d_foundation_pose/lib/foundation_pose_tracker.py', 'v2d_foundation_pose/lib/FoundationPose/estimater.py')]
         runtime_hashes = {str(p): sha(p) for p in runtime_files}
     report = dict(state=state, episodes=rows, runtime_errors=runtime_errors, no_GPU_calls=True,
-                  no_fit_started=True, code_sha256=code_hashes(), config_sha256=config['config_sha256'],
+                  no_fit_started=True, method_quality_validated=False, full_batch_export_guaranteed=False,
+                  code_sha256=code_hashes(), config_sha256=config['config_sha256'],
                   runtime_file_sha256=runtime_hashes, cpu_python=sys.version,
                   cpu_packages={name: importlib.metadata.version(name) for name in ('numpy', 'scipy', 'trimesh', 'numba')})
     put(output / 'PREFLIGHT.json', report)
@@ -503,7 +553,7 @@ def main():
     output = (args.output or Path(config['output_root'])).resolve()
     ready, report = prepare_batch(config, output)
     print('Preflight:', report['state'], output / 'PREFLIGHT.json', flush=True)
-    if report['state'] != 'READY_FOR_SCORED20':
+    if report['state'] != 'INPUT_CONTRACTS_VALID':
         return 2
     if args.command == 'validate':
         return 0
@@ -519,16 +569,20 @@ def main():
                 raise ValueError('Code or configuration changed during the frozen batch')
             verify_hashes(report['runtime_file_sha256'])
             rec = run_episode(data, output / f'episode_{ep:06d}', backend)
-            outcomes.append(dict(episode=ep, state=rec['state'], bundle=f'episode_{ep:06d}/bundle'))
+            outcomes.append(dict(episode=ep, state=rec['state'], bundle=f'episode_{ep:06d}/bundle',
+                                 new_optimization_executed=rec['new_optimization_executed']))
+        except CandidateRejected as error:
+            outcomes.append(dict(episode=ep, state='CANDIDATE_REJECTED', rejected_stage=error.kind,
+                                 failed_checks=error.failed_checks, numerical_result=error.details,
+                                 baseline_substituted=False))
         except Exception as error:
             outcomes.append(dict(episode=ep, state='FAILED_PRESERVED', error=repr(error)))
         # Continue independent episodes, never retry or substitute a legacy bundle.
-        put(output / 'BATCH.json', dict(state='RUNNING', episodes=outcomes, expected=SCORED20))
-    passed = all(x['state'] == 'COMPLETE_EXPERIMENTAL_PIPELINE' for x in outcomes)
-    put(output / 'BATCH.json', dict(state='COMPLETE_SCORED20_EXPERIMENTAL' if passed else 'INCOMPLETE_SCORED20',
-        episodes=outcomes, expected=SCORED20, production_adopted=False, GT_used=False,
-        code_sha256=code_hashes(), config_sha256=config['config_sha256']))
-    return 0 if passed else 1
+        put(output / 'BATCH.json', batch_summary(outcomes))
+    summary = batch_summary(outcomes, finished=True)
+    summary.update(code_sha256=code_hashes(), config_sha256=config['config_sha256'])
+    put(output / 'BATCH.json', summary)
+    return 0 if summary['exports_complete'] else 1
 
 
 if __name__ == '__main__':

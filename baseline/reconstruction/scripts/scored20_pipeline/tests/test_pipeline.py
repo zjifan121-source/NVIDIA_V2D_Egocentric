@@ -140,8 +140,10 @@ class ContractTests(Fixture):
         cfg = dict(self.config, runtime={}, config_sha256='fixture')
         ready, report = pipe.prepare_batch(cfg, self.root / 'preflight')
         self.assertEqual(len(ready), 20)
-        self.assertEqual(report['state'], 'READY_FOR_SCORED20')
+        self.assertEqual(report['state'], 'INPUT_CONTRACTS_VALID')
         self.assertTrue(report['no_fit_started'])
+        self.assertFalse(report['method_quality_validated'])
+        self.assertFalse(report['full_batch_export_guaranteed'])
         (self.root / 'input/episode_000038/recipe.json').unlink()
         ready, report = pipe.prepare_batch(cfg, self.root / 'missing')
         self.assertEqual(report['state'], 'INPUTS_INCOMPLETE_NO_EXECUTION')
@@ -151,15 +153,28 @@ class ContractTests(Fixture):
         self.assertEqual(len(pipe.SCORED20), 20)
         self.assertEqual(pipe.SCORED20[-1], 38)
 
-    def test_no_optimizer_is_not_a_successful_new_pipeline(self):
+    def test_explicit_fp_only_is_allowed_and_not_reported_as_new_optimization(self):
         self.obj.pop('temporal'); self.obj['tracking'] = dict(anchor_frame=0)
-        with self.assertRaisesRegex(ValueError, 'No 5454d57'):
-            self.prepare()
+        prepared = self.prepare()
+        self.assertEqual(prepared['enabled_optimization_count'], 0)
+        pipe.run_episode(prepared, self.root / 'fp_only', FakeNativeBackend())
+        report = read(self.root / 'fp_only/bundle/run.json')
+        self.assertEqual(report['method'], 'fixed metric FP')
+        self.assertFalse(report['new_optimization_executed'])
+        self.assertTrue(report['input_gate_pending'])
 
-    def test_all_preserved_and_missing_partner_rejected(self):
+    def test_explicit_baseline_only_is_preserved_without_pretending_optimization(self):
         self.recipe['objects'] = [dict(slot=0, preserve='historical'), dict(slot=1, preserve='historical')]
-        with self.assertRaisesRegex(ValueError, 'no enabled'):
-            self.prepare()
+        prepared = self.prepare(); backend = FakeNativeBackend()
+        self.assertEqual(prepared['planned_outcome'], 'explicit_baseline_preservation')
+        rec = pipe.run_episode(prepared, self.root / 'baseline_only', backend)
+        self.assertEqual(rec['state'], 'BASELINE_PRESERVED')
+        self.assertEqual(backend.events, [])
+        self.assertEqual(sha(self.b / 'result.npz'), sha(self.root / 'baseline_only/bundle/result.npz'))
+        self.assertEqual(sha(self.b / 'mesh.obj'), sha(self.root / 'baseline_only/bundle/mesh.obj'))
+        self.assertIsNone(read(self.root / 'baseline_only/bundle/run.json')['verified_improvement'])
+
+    def test_missing_partner_is_still_rejected(self):
         self.recipe['objects'].pop()
         put(self.source / 'recipe.json', self.recipe)
         with self.assertRaisesRegex(ValueError, 'Every object'):
@@ -273,7 +288,7 @@ class WiringTests(Fixture):
         prepared = self.prepare(); backend = FakeNativeBackend()
         rec = pipe.run_episode(prepared, self.root / 'run', backend)
         self.assertEqual(backend.events, ['part_shape', 'visual_review', 'FP', 'temporal_pose'])
-        self.assertEqual(rec['state'], 'COMPLETE_EXPERIMENTAL_PIPELINE')
+        self.assertEqual(rec['state'], pipe.CANDIDATE_EXPORTED)
         final = self.root / 'run/bundle'; data = arrays(final)
         np.testing.assert_allclose(data['object_to_camera_transform'][:, 2, 3], .51)
         np.testing.assert_allclose(data['object_to_camera_transform'][:, 0, 3], .001)
@@ -329,10 +344,51 @@ class WiringTests(Fixture):
     def test_failed_shape_gate_never_launches_fp_or_exports_final_bundle(self):
         self.shape_recipe('part_shape')
         prepared = self.prepare(); backend = FakeNativeBackend(reject_shape=True)
-        with self.assertRaisesRegex(ValueError, 'Shape input gate failed'):
+        with self.assertRaises(pipe.CandidateRejected):
             pipe.run_episode(prepared, self.root / 'run', backend)
         self.assertEqual(backend.events, ['part_shape'])
         self.assertFalse((self.root / 'run/bundle').exists())
+        self.assertEqual(read(self.root / 'run/EXECUTION.json')['state'], 'CANDIDATE_REJECTED')
+
+    def test_shape_and_fp_completion_still_requires_full_sequence_acceptance(self):
+        self.shape_recipe('part_shape'); self.obj.pop('temporal')
+        pipe.run_episode(self.prepare(), self.root / 'run', FakeNativeBackend())
+        rec = read(self.root / 'run/bundle/run.json')
+        self.assertTrue(rec['input_gate_pending'])
+        self.assertEqual(rec['full_sequence_quality_validation'], 'NOT_RUN')
+        self.assertIsNone(rec['verified_improvement'])
+
+    def test_nonzero_numeric_rejection_is_decoded_before_fp(self):
+        self.shape_recipe('contact_shape')
+
+        class FailedNumericalSubprocess(pipe.NativeBackend):
+            def command(self, args, log, **kwargs):
+                if 'freeze' in args:
+                    return
+                candidate = Path(args[args.index('--output') + 1]); candidate.mkdir()
+                (candidate / 'output').mkdir()
+                put(candidate / 'EXECUTION.json', dict(exit_code=1, state='FAILED_PRESERVED',
+                    result=dict(state='INPUT_GATE_FAILED', input_gate_pass=False)))
+                put(candidate / 'output/RESULTS.json', dict(state='INPUT_GATE_FAILED',
+                    checks=dict(bounded=True, heldout_common_depth_median_mm=False)))
+                raise subprocess.CalledProcessError(1, args)
+
+        backend = FailedNumericalSubprocess({})
+        with self.assertRaises(pipe.CandidateRejected):
+            pipe.run_episode(self.prepare(), self.root / 'run', backend)
+        receipt = read(self.root / 'run/EXECUTION.json')
+        self.assertEqual(receipt['failed_checks'], ['heldout_common_depth_median_mm'])
+        self.assertEqual(receipt['rejected_stage'], 'contact_shape')
+        self.assertFalse(receipt['baseline_substituted'])
+        self.assertFalse((self.root / 'run/slot_0/tracking').exists())
+        self.assertFalse((self.root / 'run/bundle').exists())
+
+    def test_runtime_error_is_not_misreported_as_rejected_candidate(self):
+        class RuntimeFailure(FakeNativeBackend):
+            def refine(self, spec, stage):
+                raise subprocess.CalledProcessError(2, ['failed-runtime'])
+        with self.assertRaises(subprocess.CalledProcessError):
+            pipe.run_episode(self.prepare(), self.root / 'run', RuntimeFailure())
         self.assertEqual(read(self.root / 'run/EXECUTION.json')['state'], 'FAILED_PRESERVED')
 
     def test_changed_original_and_existing_output_are_not_reused(self):
@@ -354,7 +410,7 @@ class WiringTests(Fixture):
             if log.exists():
                 print(log.read_text())
             raise
-        self.assertEqual(rec['state'], 'COMPLETE_EXPERIMENTAL_PIPELINE')
+        self.assertEqual(rec['state'], pipe.CANDIDATE_EXPORTED)
         result = read(self.root / 'run/slot_0/temporal/candidate/EXECUTION.json')
         self.assertEqual(result['kind'], 'temporal_pose')
         self.assertEqual(result['GPU_calls'], 0)
@@ -362,6 +418,28 @@ class WiringTests(Fixture):
         for k, v in self.original.items():
             if k not in fields(0):
                 np.testing.assert_array_equal(arrays(self.root / 'run/bundle')[k], v)
+
+
+class BatchReportingTests(unittest.TestCase):
+    def test_nine_exports_eleven_rejections_are_not_twenty_successes(self):
+        exported = {1, 3, 6, 14, 15, 19, 32, 35, 38}
+        rows = [dict(episode=ep, state=pipe.CANDIDATE_EXPORTED if ep in exported else 'CANDIDATE_REJECTED')
+                for ep in pipe.SCORED20]
+        report = pipe.batch_summary(rows, finished=True)
+        self.assertFalse(report['exports_complete'])
+        self.assertEqual(report['counts']['candidate_exports_unvalidated'], 9)
+        self.assertEqual(report['counts']['candidates_rejected'], 11)
+        self.assertIsNone(report['verified_improvement_count'])
+
+    def test_explicit_baselines_fill_coverage_not_new_method_success_count(self):
+        rows = [dict(episode=ep, state=pipe.CANDIDATE_EXPORTED if i < 9 else pipe.BASELINE_PRESERVED)
+                for i, ep in enumerate(pipe.SCORED20)]
+        report = pipe.batch_summary(rows, finished=True)
+        self.assertTrue(report['exports_complete'])
+        self.assertEqual(report['counts']['baseline_preserved'], 11)
+        self.assertEqual(report['counts']['candidate_exports_unvalidated'], 9)
+        self.assertEqual(report['full_sequence_quality_validation'], 'NOT_RUN')
+        self.assertIsNone(report['verified_improvement_count'])
 
 
 if __name__ == '__main__':
