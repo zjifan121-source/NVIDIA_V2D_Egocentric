@@ -3,10 +3,4 @@ FlashCHORD evaluator, never reconstructions or reference trajectories. All objec
 own reconstructions from the released videos; no public ground-truth mesh enters any submission;
 public ground truth was used only to evaluate during development.
 
-\textbf{Code and container.} The submitted file cites commit
-\texttt{de66fea3\allowbreak ae7c99ba\allowbreak 96458f3c\allowbreak d9d1b77f\allowbreak 5f94b4ff} of
-the team repository \texttt{github.com/\allowbreak zjifan121-source/\allowbreak NVIDIA\_V2D\_Egocentric} (the code that
-produced it; the Path~A$'$ scene-consistency scripts are on pull request \#24 of the same
-repository); per-episode checkpoint and row hashes are in Appendix~\ref{app:provenance}. The
-reproduction container follows after 12 November; code is released on request under Apache 2.0 as
-the challenge rules require.
+\textbf{Code \& Container Provenance.} The code that produced the submissions is in our repository (\url{https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric}) at commit \texttt{de66fea3ae7c99ba96458f3cd9d1b77f5f94b4ff} (training pipeline, campaign tooling and hand-fix tools), with the Path~A$'$ scene-hygiene tools in PR~\#24; every submitted row carries the kit's provenance hashes (commit URL, evaluation script and code, packer, uploader, policy checkpoint), listed for the six-board base file (sha256 \texttt{c8fcd7df\ldots}, Kaggle 57978563) in Appendix~\ref{app:provenance}. A reproduction container will be provided after 12 November, as the challenge requires. Reconstructed scenes, checkpoints and rollouts are archived at \texttt{huggingface.co/datasets/rose-tea-cafe/v2d-t3-recon}.
