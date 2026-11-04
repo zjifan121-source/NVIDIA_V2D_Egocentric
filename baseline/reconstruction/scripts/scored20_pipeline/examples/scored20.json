@@ -1,0 +1,11 @@
+{
+  "format_version": 1,
+  "input_root": "inputs/scored20",
+  "output_root": "runs/scored20_refined_v1",
+  "runtime": {
+    "gpu_python": ".venv-fp/bin/python",
+    "source_root": "baseline/reconstruction/modules",
+    "weights_dir": "weights",
+    "runtime_info": "inputs/fp_runtime.json"
+  }
+}

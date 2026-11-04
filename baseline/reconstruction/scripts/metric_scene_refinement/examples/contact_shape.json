@@ -1,0 +1,35 @@
+{
+  "object_slot": 1,
+  "coordinate_convention": "T_camera_from_original_mesh_metres",
+  "structure_review": {
+    "accepted": false,
+    "evidence": "Fill after input-side identity/structure review"
+  },
+  "mesh_pose_pair": {
+    "mesh_sha256": "REVIEWED_MESH_SHA256",
+    "result_sha256": "MATCHING_RESULT_NPZ_SHA256"
+  },
+  "historical_Public_GT_exposed": false,
+  "kind": "contact_shape",
+  "inputs": {
+    "bundle": "inputs/bundle",
+    "observations": "inputs/observations",
+    "validity": "inputs/validity",
+    "table_plane": "inputs/plane.npy",
+    "contact_annotation": "inputs/contact.json"
+  },
+  "parameters": {
+    "support": [
+      0,
+      2,
+      4
+    ],
+    "heldout": [
+      1,
+      3,
+      5
+    ],
+    "graph_nodes": 16,
+    "maximum_seconds": 1200
+  }
+}

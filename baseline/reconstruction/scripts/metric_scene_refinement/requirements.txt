@@ -1,0 +1,7 @@
+# CPU release-parity environment, Python 3.11.
+numpy==2.3.5
+scipy==1.17.1
+opencv-python-headless==4.10.0.84
+trimesh==5.1.1
+numba==0.68.1
+Pillow>=10
