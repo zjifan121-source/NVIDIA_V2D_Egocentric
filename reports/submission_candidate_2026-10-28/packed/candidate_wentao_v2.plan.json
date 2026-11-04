@@ -1,0 +1,142 @@
+{
+ "1": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep1_WRS_s91/early_100003840",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes_rs/ep1",
+  "kind": "policy",
+  "tracking": 0.5729477611940299,
+  "name": "ep1_WRS_s91/early_100003840"
+ },
+ "3": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep3_WRS_s91/early_95006720",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes_rs/ep3",
+  "kind": "policy",
+  "tracking": 0.577276357827476,
+  "name": "ep3_WRS_s91/early_95006720"
+ },
+ "5": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep5_WMIX_s80/early_90005504",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep5",
+  "kind": "policy",
+  "tracking": 0.6474609375,
+  "name": "ep5_WMIX_s80/early_90005504"
+ },
+ "6": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep6_KXW_s80/early_50003968",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep6",
+  "kind": "policy",
+  "tracking": 0.5475823045267489,
+  "name": "ep6_KXW_s80/early_50003968"
+ },
+ "8": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep8_WMIX_s80/early_100003840",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep8",
+  "kind": "policy",
+  "tracking": 0.812642694063927,
+  "name": "ep8_WMIX_s80/early_100003840"
+ },
+ "10": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep10_WMIX_s84/early_95006720",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep10",
+  "kind": "policy",
+  "tracking": 0.5547360248447205,
+  "name": "ep10_WMIX_s84/early_95006720"
+ },
+ "14": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep14_WRS_s91/early_75005952",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes_rs/ep14",
+  "kind": "policy",
+  "tracking": 0.7108386075949367,
+  "name": "ep14_WRS_s91/early_75005952"
+ },
+ "15": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep15_WMIX_s83/early_100003840",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep15",
+  "kind": "policy",
+  "tracking": 0.7998870481927711,
+  "name": "ep15_WMIX_s83/early_100003840"
+ },
+ "16": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep16_WMIX_s80/early_50003968",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep16",
+  "kind": "policy",
+  "tracking": 0.604407514450867,
+  "name": "ep16_WMIX_s80/early_50003968"
+ },
+ "19": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep19_WMIX_s83/early_95006720",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep19",
+  "kind": "policy",
+  "tracking": 0.8984042553191489,
+  "name": "ep19_WMIX_s83/early_95006720"
+ },
+ "20": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep20_WMIX_s80/early_95006720",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep20",
+  "kind": "policy",
+  "tracking": 0.5655940594059405,
+  "name": "ep20_WMIX_s80/early_95006720"
+ },
+ "25": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep25_WMIX_s81/early_90005504",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep25",
+  "kind": "policy",
+  "tracking": 0.582689606741573,
+  "name": "ep25_WMIX_s81/early_90005504"
+ },
+ "28": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep28_WMIX_s81/early_75005952",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep28",
+  "kind": "policy",
+  "tracking": 0.9058238636363636,
+  "name": "ep28_WMIX_s81/early_75005952"
+ },
+ "30": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep30_WMIX_s81/early_95006720",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep30",
+  "kind": "policy",
+  "tracking": 0.9214591254752852,
+  "name": "ep30_WMIX_s81/early_95006720"
+ },
+ "32": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep32_WMIX_s86/early_95006720",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep32",
+  "kind": "policy",
+  "tracking": 0.49613899613899615,
+  "name": "ep32_WMIX_s86/early_95006720"
+ },
+ "33": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep33_WMIX_s81/early_95006720",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep33",
+  "kind": "policy",
+  "tracking": 0.2509877873563218,
+  "name": "ep33_WMIX_s81/early_95006720"
+ },
+ "35": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep35_WMIX_s81/early_100003840",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep35",
+  "kind": "policy",
+  "tracking": 0.8698040380047506,
+  "name": "ep35_WMIX_s81/early_100003840"
+ },
+ "36": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep36_WMIX_s81/early_100003840",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep36",
+  "kind": "policy",
+  "tracking": 0.7320331695331695,
+  "name": "ep36_WMIX_s81/early_100003840"
+ },
+ "37": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep37_WMIX_s81/early_75005952",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep37",
+  "kind": "policy",
+  "tracking": 0.7309602649006622,
+  "name": "ep37_WMIX_s81/early_75005952"
+ },
+ "38": {
+  "run": "/data/user_data/edmondwa/v2d/flash_runs/diag/ep38_WMIX_s80/early_90005504",
+  "scene": "/data/user_data/edmondwa/v2d/wentao_mix/scenes/ep38",
+  "kind": "policy",
+  "tracking": 0.9472433460076045,
+  "name": "ep38_WMIX_s80/early_90005504"
+ }
+}
