@@ -42,3 +42,27 @@ on still references; a high tracking score does not establish manipulation or
 official leaderboard accuracy. Report Kaggle scores separately. Input snapshots,
 training receipts, checkpoint selections, packing audits and official submission
 IDs belong in the private experiment archive, never alongside credentials.
+
+## Current spin-corrected scenes
+
+The subsequent run uses the team's Wentao v3-r1 EP32/33 scenes, pinned to HF
+revision `27578b2ae0249cdf8d8c830c6841b8bd0aaa501f`. These correct cup axial
+rotation while retaining mesh, axis and positional geometry. `prepare_v3_scenes.py`
+imports isolated copies and validates dependency closure; its explicit
+`--repair-incomplete` option only repairs an unvalidated copy. It changes the
+upstream raw-bundle absolute path to the accompanying bundle without changing
+numerical trajectories. `run_v3_spin.py` waits for the original baseline queue,
+then runs EP32 and EP33 sequentially with the same KEN-style recipe and seed42.
+Neither runner submits to Kaggle.
+
+Use a current team comparison base, not the historical PathB control, for future
+candidate decisions. The packer accepts `--base PATH --base-sha256 SHA256`; both
+must match an independently validated immutable base. The offline bob1 re-pack
+from its published real rollouts and matching meshes has 9,120 rows and SHA256
+`58969e96a90005501eb8db1376841a8018741789cc32a2e42ff88e0fb786c899`.
+It has not been separately submitted or officially rescored. Teammate-reported
+official scores belong to the original bob1 submission.
+
+Kaggle quota is shared. Do not use submissions as an exploratory oracle, upload
+every checkpoint, or resubmit unchanged meshes. A gain against a failed tracking
+baseline is insufficient to claim an improvement over the team's official best.

@@ -13,6 +13,8 @@ p=argparse.ArgumentParser()
 p.add_argument('--manifest',type=Path,required=True)
 p.add_argument('--code-commit',required=True)
 p.add_argument('--out',type=Path,required=True)
+p.add_argument('--base',type=Path,default=Path('/data/v2d/inputs/path_b/runs/v4_eval_g4/pack_60m/track3_submission.parquet'))
+p.add_argument('--base-sha256',default='298b9c1f73ddd99eedabb5a2b08a1e2ccdde24de6ea980ba989acd3aa35ab3ad')
 a=p.parse_args()
 root=Path('/data/v2d');kit=root/'repo/assets/data/v2d_submission_kit'
 sys.path.insert(0,str(kit))
@@ -24,13 +26,13 @@ official=importlib.util.module_from_spec(spec);spec.loader.exec_module(official)
 config=json.loads((kit/'config/tracks.json').read_text())
 roster=json.loads((kit/'data/track_3_evaluation_objects.json').read_text())['episodes']
 manifest=json.loads(a.manifest.read_text())
-base=root/'inputs/path_b/runs/v4_eval_g4/pack_60m/track3_submission.parquet'
+base=a.base
 sha=lambda path:hashlib.sha256(Path(path).read_bytes()).hexdigest()
-assert sha(base)=='298b9c1f73ddd99eedabb5a2b08a1e2ccdde24de6ea980ba989acd3aa35ab3ad'
+assert re.fullmatch('[0-9a-f]{64}',a.base_sha256) and sha(base)==a.base_sha256
 assert re.fullmatch(r'https://github\.com/[^/]+/[^/]+/commit/[0-9a-f]{40}',a.code_commit)
 original=official.validate_submission(base,'track_3',config)
 frame=original.copy();epcol=frame.row_id.str.extract(r'/e(\d+)/')[0].astype(int)
-audit={'base_sha256':sha(base),'replacements':{},'code_commit_url':a.code_commit}
+audit={'base':str(base),'base_sha256':sha(base),'replacements':{},'code_commit_url':a.code_commit}
 assert set(map(int,manifest)).issubset({32,33,38}) and manifest
 with tempfile.TemporaryDirectory(prefix='pack_',dir=root) as tmp:
  for key,entry in manifest.items():
