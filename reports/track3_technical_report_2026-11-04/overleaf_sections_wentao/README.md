@@ -29,7 +29,7 @@ The teammates replaced `main.tex` with a 2-page rewrite (921 to 381 lines) betwe
 
 The official limit is in the template `nvidiaextabstract.cls`: main text 2 pages; references, acknowledgments and appendices do not count. The FAQ has no page rule. Before the cut the main text ran to page 5. Final `main.tex` sha256 `052f89afeb3a86c16addb85aaab2c940845dc63750bbe89d4b644fcc7e05226f`: 0 errors, no class warning, 10 pages.
 
-The full text before the cut is `../overleaf_main_precut_482fac21.tex`, byte-identical to Overleaf (sha256 `482fac21...`); the Overleaf history also carries the label "Before 2-page cut".
+The final file is `../overleaf_main_final_052f89af.tex`, byte-identical to Overleaf at 23:19 UTC. The full text before the cut is `../overleaf_main_precut_482fac21.tex`, byte-identical to Overleaf (sha256 `482fac21...`); the Overleaf history also carries the label "Before 2-page cut".
 
 Page map: p1 title, abstract, Introduction, Approach, 2.1 Reconstruction. p2 Figure 1, Table 1 (`tab:headline`), 2.2 Repair, 2.3 Tracking and Selection, 3 Experiments, 4 Industry Relevance, 5 Conclusion. p3 Acknowledgments, References, Appendix A, A.1 Compliance and Code. p4-p6 Extended Introduction, Extended Method Details, Extended Results, Extended Industry Relevance. p7-p10 the remaining appendix sections and the wide tables.
 
