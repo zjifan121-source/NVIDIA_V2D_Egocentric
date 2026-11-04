@@ -1,0 +1,50 @@
+\subsection{Provenance of the submitted file}
+\label{app:provenance}
+The team final is one Parquet file (sha256 \texttt{c8fcd7df\allowbreak a05d042e\allowbreak
+5f32d483\allowbreak 2f87e424\allowbreak 033b93c3\allowbreak 30ed19ea\allowbreak 342ff3f9\allowbreak
+664d7414}; 9{,}120 rows, 20 episodes, 36 object meshes) submitted identically to the six Track~3
+competitions (Kaggle AUC submission 57978563). Every row carries the kit's provenance columns:
+\texttt{code\_commit\_url} (the commit of Sec.~\ref{sec:compliance}), evaluation script
+\texttt{160d24f5\ldots} and evaluation code \texttt{b1b3ebe3\ldots} (the kit's evaluator at
+FlashCHORD revision \texttt{8c778f90}), packer script \texttt{49b13052\ldots} and uploader script
+\texttt{d31d4a7c\ldots} (sha256 prefixes, identical on all rows), and the sha256 of the policy
+checkpoint that produced the episode (Table~\ref{tab:provenance}). The base file and the four
+single-episode files were merged at row level, keeping each row's columns.
+
+\begin{table}[ht]
+  \centering\footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}rllrrll@{}}
+\toprule
+Ep & Objects & Source & Own-ref & $\Delta$AUC$\times$20 & Checkpoint & Rows \\
+\midrule
+1 & white\_pot, white\_pot\_lid & swap T2 & 0.787 & +0.0494 & \texttt{969b9cef} & \texttt{2c898c3a} \\
+3 & white\_pot, wooden\_spoon & swap T5 & 0.947 & +0.0278 & \texttt{45c4736b} & \texttt{bc0a2ad1} \\
+5 & white\_pot, wooden\_spoon & swap T8 & 0.909 & +0.1266 & \texttt{d351dbae} & \texttt{c5762b51} \\
+6 & white\_pot, wooden\_spoon & base & 0.9685 & +0.0000 & \texttt{837fb7d0} & \texttt{ee410edc} \\
+8 & beige\_cup, white\_pot & swap T6 & 0.973 & +0.0678 & \texttt{0ff463d1} & \texttt{01931fb5} \\
+10 & blue\_cup, beige\_cup & base & 0.7201 & +0.0000 & \texttt{856e8137} & \texttt{aec70db7} \\
+14 & blue\_cup, plastic\_dish\_rack & base & 0.8453 & +0.0000 & \texttt{4d8b3668} & \texttt{69c5f43e} \\
+15 & plastic\_dish\_rack, wooden\_spoon & base & 0.9537 & +0.0000 & \texttt{16f7a2a9} & \texttt{f04f3163} \\
+16 & plastic\_dish\_rack, wooden\_spoon & base & 0.9314 & +0.0000 & \texttt{4093d226} & \texttt{365975fd} \\
+19 & mini\_sweeper, mini\_dust\_pan & base & 0.8984 & +0.0000 & \texttt{67245e59} & \texttt{fe9e9fd4} \\
+20 & blue\_cup, water\_pitcher & base & 0.9041 & +0.0000 & \texttt{960577b6} & \texttt{be4bf206} \\
+25 & wooden\_piece\_1, wooden\_piece\_2 & base & 0.87 & +0.0000 & \texttt{570ff7d3} & \texttt{0ee38972} \\
+28 & plastic\_dish\_rack, white\_pot & base & 0.9058 & +0.0000 & \texttt{392e1859} & \texttt{3a9700c2} \\
+30 & mini\_sweeper, plastic\_dish\_rack & base & 0.9215 & +0.0000 & \texttt{fa794771} & \texttt{c246332e} \\
+32 & blue\_cup, wooden\_spoon & base & 0.8947 & +0.0000 & \texttt{fb5cc521} & \texttt{0eeb81fb} \\
+33 & blue\_cup, wooden\_spoon & base & 0.901 & +0.0000 & \texttt{eb920406} & \texttt{cf1b3e32} \\
+35 & wooden\_spoon & base & 0.9534 & +0.0000 & \texttt{b2d63a8b} & \texttt{b51c384d} \\
+36 & wooden\_spoon & base & 0.9217 & +0.0000 & \texttt{1f2ffdb9} & \texttt{47668a44} \\
+37 & wooden\_spoon & base & 0.9905 & +0.0000 & \texttt{1cd18c66} & \texttt{e36e29cb} \\
+38 & mini\_dust\_pan & base & 0.9482 & +0.0000 & \texttt{39512cc2} & \texttt{fad58577} \\
+\bottomrule
+\end{tabular}}
+  \caption{Per-episode composition of the team final. ``base'' = bob1; ``swap Tn'' = hand-fix line
+  single-episode file merged at row level. Own-ref is the selected checkpoint's tracking AUC against
+  its own reference; $\Delta$AUC$\times$20 is the board change of that swap times 20. Checkpoint and
+  Rows are sha256 prefixes of the policy file and of the submitted rows.}
+  \label{tab:provenance}
+\end{table}
+

@@ -38,19 +38,13 @@ public-split AUC.
   \label{tab:hygiene}
 \end{table}
 
-\textbf{Selection without the board.} Once the daily Kaggle quota was exhausted, A$'$ candidates
-were judged by two instruments that use neither hidden ground truth nor leaderboard probes: a
-\emph{board emulator} (the kit's registration, frame-0 alignment and metric code, with the
-incumbent's reference track and mesh standing in for the hidden solution) and a \emph{camera
-proxy} (the rollout aligned on frame~0, rendered into the scored frames and scored by mask overlap
-and depth). On 14 single-episode swaps with known board outcomes their episode deltas correlate
-with the board at Spearman 0.956 and 0.912; requiring both to beat the incumbent (``two-check'')
-accepted five winners, all correct, rejected all eight losers and missed one winner. Under this
-rule the ep28 scene of Sec.~\ref{sec:wentao} trained with the KEN thresholds (0.930 own-reference
-AUC at 90M; emulator $+0.026$, camera $+0.012$) was the strongest candidate of the final day; it
-was ready after the AUC board's quota had been used up. ep33 with the KEN thresholds (0.827
-own-reference AUC) was rejected: its emulator delta is $-0.21$ because the A$'$ cup and spoon
-differ in size from the incumbent's (18.7 vs.\ 17.1\,cm and 31.8 vs.\ 27.8\,cm).
+\textbf{Two-check decisions.} Under the two-check rule of Sec.~\ref{sec:selection}, the ep28 scene
+of Sec.~\ref{sec:wentao} trained with the 0.1\,m / 0.5\,rad termination (0.930 own-reference AUC
+at 90M; trusted-frame proxy $+0.012$, emulator $+0.026$, camera $+0.012$) was the strongest
+candidate of the final day and was ready after the AUC board's quota had been used up. ep33 with
+the same thresholds (0.827 own-reference AUC) was rejected: its emulator delta is $-0.21$ because
+the A$'$ cup and spoon differ in size from the incumbent's (18.7 vs.\ 17.1\,cm and 31.8 vs.\
+27.8\,cm).
 
 \textbf{Artefacts.} A$'$ reconstructions, scenes, rollouts and policies are on the team's
 Hugging Face dataset \texttt{rose-tea-cafe/v2d-t3-recon} under append-only per-version prefixes
