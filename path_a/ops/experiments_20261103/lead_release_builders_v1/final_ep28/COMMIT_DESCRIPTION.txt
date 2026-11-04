@@ -1,0 +1,1 @@
+Episode 28 only. Bundle + scene as trained + selected checkpoint (90M) with its recorded rollout + ground-truth-free judge lines + the six-board pack on the team base (sha256 c8fcd7df..., ep28 replaced). New sub-prefix under final/, add-only; no existing file touched. README.md and TRAINING_SUMMARY.md explain the contents and how to train.
