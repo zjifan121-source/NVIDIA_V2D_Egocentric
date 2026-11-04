@@ -1,0 +1,227 @@
+% References for the V2D Track 3 report.
+% Entries marked CHECK were written from memory: verify authors / venue / arXiv id before submission.
+
+% ---------------- Challenge and baseline ----------------
+@misc{v2d,
+  author       = {{NVIDIA}},
+  title        = {Video to Data (\texttt{video\_to\_data})},
+  howpublished = {\url{https://github.com/nvidia-isaac/video_to_data}},
+  note         = {Commit 8c778f9},
+  year         = {2026}
+}
+@misc{v2ddata,
+  author       = {{NVIDIA}},
+  title        = {{Video-to-Data} Challenge Dataset, Track 3},
+  howpublished = {\url{https://huggingface.co/datasets/nvidia/video_to_data_challenge}},
+  note         = {CC-BY-4.0},
+  year         = {2026}
+}
+% CHECK: cite the FlashCHORD / FlashSAC paper if one exists
+@misc{flashchord,
+  author       = {{NVIDIA}},
+  title        = {{FlashCHORD}: dexterous tracking policies with {FlashSAC}},
+  howpublished = {In \texttt{video\_to\_data}, \texttt{robotic\_grounding/flash\_chord}},
+  year         = {2026}
+}
+
+% ---------------- Reconstruction ----------------
+@inproceedings{wen2024foundationpose,
+  author    = {Wen, Bowen and Yang, Wei and Kautz, Jan and Birchfield, Stan},
+  title     = {{FoundationPose}: Unified 6D Pose Estimation and Tracking of Novel Objects},
+  booktitle = {CVPR},
+  year      = {2024}
+}
+@inproceedings{wen2025foundationstereo,
+  author    = {Wen, Bowen and Trepte, Matthew and Aribido, Joseph and Kautz, Jan and Gallo, Orazio and Birchfield, Stan},
+  title     = {{FoundationStereo}: Zero-Shot Stereo Matching},
+  booktitle = {CVPR},
+  year      = {2025}
+}
+@inproceedings{ravi2025sam2,
+  author    = {Ravi, Nikhila and Gabeur, Valentin and Hu, Yuan-Ting and Hu, Ronghang and Ryali, Chaitanya and Ma, Tengyu and Khedr, Haitham and R{\"a}dle, Roman and Rolland, Chloe and Gustafson, Laura and Mintun, Eric and Pan, Junting and Alwala, Kalyan Vasudev and Carion, Nicolas and Wu, Chao-Yuan and Girshick, Ross and Doll{\'a}r, Piotr and Feichtenhofer, Christoph},
+  title     = {{SAM 2}: Segment Anything in Images and Videos},
+  booktitle = {ICLR},
+  year      = {2025}
+}
+% CHECK author list / arXiv id
+@article{carion2025sam3,
+  author  = {Carion, Nicolas and Gustafson, Laura and Hu, Yuan-Ting and Debnath, Shoubhik and Hu, Ronghang and Feichtenhofer, Christoph and others},
+  title   = {{SAM 3}: Segment Anything with Concepts},
+  journal = {arXiv preprint arXiv:2511.16719},
+  year    = {2025}
+}
+% CHECK author list / arXiv id
+@article{sam3dteam2025sam3d,
+  author  = {{SAM 3D Team} and Chen, Xingyu and Chu, Fu-Jen and Gleize, Pierre and Liang, Kevin J. and Sax, Alexander and Malik, Jitendra and others},
+  title   = {{SAM 3D}: 3Dfy Anything in Images},
+  journal = {arXiv preprint arXiv:2511.16624},
+  year    = {2025}
+}
+@inproceedings{potamias2025wilor,
+  author    = {Potamias, Rolandos Alexandros and Zhang, Jinglei and Deng, Jiankang and Zafeiriou, Stefanos},
+  title     = {{WiLoR}: End-to-end {3D} Hand Localization and Reconstruction in-the-wild},
+  booktitle = {CVPR},
+  year      = {2025}
+}
+@inproceedings{pavlakos2024hamer,
+  author    = {Pavlakos, Georgios and Shan, Dandan and Radosavovic, Ilija and Kanazawa, Angjoo and Fouhey, David and Malik, Jitendra},
+  title     = {Reconstructing Hands in {3D} with Transformers},
+  booktitle = {CVPR},
+  year      = {2024}
+}
+@article{romero2017mano,
+  author  = {Romero, Javier and Tzionas, Dimitrios and Black, Michael J.},
+  title   = {Embodied Hands: Modeling and Capturing Hands and Bodies Together},
+  journal = {ACM Transactions on Graphics (Proc. SIGGRAPH Asia)},
+  volume  = {36},
+  number  = {6},
+  year    = {2017}
+}
+@inproceedings{wang2025moge,
+  author    = {Wang, Ruicheng and Xu, Sicheng and Dai, Cassie and Xiang, Jianfeng and Deng, Yu and Tong, Xin and Yang, Jiaolong},
+  title     = {{MoGe}: Unlocking Accurate Monocular Geometry Estimation for Open-Domain Images with Optimal Training Supervision},
+  booktitle = {CVPR},
+  year      = {2025}
+}
+% CHECK author list
+@article{wang2025moge2,
+  author  = {Wang, Ruicheng and Xu, Sicheng and Dong, Yue and Deng, Yu and Xiang, Jianfeng and Lv, Zelong and Sun, Guangzhong and Tong, Xin and Yang, Jiaolong},
+  title   = {{MoGe-2}: Accurate Monocular Geometry with Metric Scale and Sharp Details},
+  journal = {arXiv preprint arXiv:2507.02546},
+  year    = {2025}
+}
+@inproceedings{teed2021droid,
+  author    = {Teed, Zachary and Deng, Jia},
+  title     = {{DROID-SLAM}: Deep Visual {SLAM} for Monocular, Stereo, and {RGB-D} Cameras},
+  booktitle = {NeurIPS},
+  year      = {2021}
+}
+@inproceedings{veicht2024geocalib,
+  author    = {Veicht, Alexander and Sarlin, Paul-Edouard and Lindenberger, Philipp and Pollefeys, Marc},
+  title     = {{GeoCalib}: Learning Single-image Calibration with Geometric Optimization},
+  booktitle = {ECCV},
+  year      = {2024}
+}
+% CHECK venue
+@inproceedings{tirado2025anycalib,
+  author    = {Tirado-Gar{\'\i}n, Javier and Civera, Javier},
+  title     = {{AnyCalib}: On-Manifold Learning for Model-Agnostic Single-View Camera Calibration},
+  booktitle = {ICCV},
+  year      = {2025}
+}
+@inproceedings{liu2024groundingdino,
+  author    = {Liu, Shilong and Zeng, Zhaoyang and Ren, Tianhe and Li, Feng and Zhang, Hao and Yang, Jie and Jiang, Qing and Li, Chunyuan and Yang, Jianwei and Su, Hang and Zhu, Jun and Zhang, Lei},
+  title     = {Grounding {DINO}: Marrying {DINO} with Grounded Pre-Training for Open-Set Object Detection},
+  booktitle = {ECCV},
+  year      = {2024}
+}
+@article{kerbl20233dgs,
+  author  = {Kerbl, Bernhard and Kopanas, Georgios and Leimk{\"u}hler, Thomas and Drettakis, George},
+  title   = {{3D} Gaussian Splatting for Real-Time Radiance Field Rendering},
+  journal = {ACM Transactions on Graphics},
+  volume  = {42},
+  number  = {4},
+  year    = {2023}
+}
+% CHECK volume/number
+@article{ye2025gsplat,
+  author  = {Ye, Vickie and Li, Ruilong and Kerr, Justin and Turkulainen, Matias and Yi, Brent and Pan, Zhuoyang and Seiskari, Otto and Ye, Jianbo and Hu, Jeffrey and Tancik, Matthew and Kanazawa, Angjoo},
+  title   = {gsplat: An Open-Source Library for {Gaussian} Splatting},
+  journal = {Journal of Machine Learning Research},
+  volume  = {26},
+  number  = {34},
+  year    = {2025}
+}
+% CHECK venue
+@inproceedings{karaev2025cotracker3,
+  author    = {Karaev, Nikita and Makarov, Yuri and Wang, Jianyuan and Neverova, Natalia and Vedaldi, Andrea and Rupprecht, Christian},
+  title     = {{CoTracker3}: Simpler and Better Point Tracking by Pseudo-Labelling Real Videos},
+  booktitle = {ICCV},
+  year      = {2025}
+}
+@article{hirschmuller2008sgm,
+  author  = {Hirschm{\"u}ller, Heiko},
+  title   = {Stereo Processing by Semiglobal Matching and Mutual Information},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume  = {30},
+  number  = {2},
+  pages   = {328--341},
+  year    = {2008}
+}
+@article{zhang2020mediapipehands,
+  author  = {Zhang, Fan and Bazarevsky, Valentin and Vakunov, Andrey and Tkachenka, Andrei and Sung, George and Chang, Chuo-Ling and Grundmann, Matthias},
+  title   = {{MediaPipe Hands}: On-device Real-time Hand Tracking},
+  journal = {arXiv preprint arXiv:2006.10214},
+  year    = {2020}
+}
+@article{wei2022coacd,
+  author  = {Wei, Xinyue and Liu, Minghua and Ling, Zhan and Su, Hao},
+  title   = {Approximate Convex Decomposition for {3D} Meshes with Collision-Aware Concavity and Tree Search},
+  journal = {ACM Transactions on Graphics},
+  volume  = {41},
+  number  = {4},
+  year    = {2022}
+}
+
+% ---------------- Geometry (Path B) ----------------
+@inproceedings{curless1996volumetric,
+  author    = {Curless, Brian and Levoy, Marc},
+  title     = {A Volumetric Method for Building Complex Models from Range Images},
+  booktitle = {SIGGRAPH},
+  year      = {1996}
+}
+@article{zhou2018open3d,
+  author  = {Zhou, Qian-Yi and Park, Jaesik and Koltun, Vladlen},
+  title   = {{Open3D}: A Modern Library for {3D} Data Processing},
+  journal = {arXiv preprint arXiv:1801.09847},
+  year    = {2018}
+}
+@article{besl1992icp,
+  author  = {Besl, Paul J. and McKay, Neil D.},
+  title   = {A Method for Registration of {3-D} Shapes},
+  journal = {IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  volume  = {14},
+  number  = {2},
+  pages   = {239--256},
+  year    = {1992}
+}
+@article{kazhdan2013screened,
+  author  = {Kazhdan, Michael and Hoppe, Hugues},
+  title   = {Screened {Poisson} Surface Reconstruction},
+  journal = {ACM Transactions on Graphics},
+  volume  = {32},
+  number  = {3},
+  year    = {2013}
+}
+@inproceedings{rusu2009fpfh,
+  author    = {Rusu, Radu Bogdan and Blodow, Nico and Beetz, Michael},
+  title     = {Fast Point Feature Histograms ({FPFH}) for {3D} Registration},
+  booktitle = {ICRA},
+  year      = {2009}
+}
+@misc{rohit,
+  author       = {Zhu, Zhifan and Bansal, Siddhant and Tripathi, Shashank and Damen, Dima},
+  title        = {Reconstructing Objects along Hand Interaction Timelines in Egocentric Video},
+  howpublished = {arXiv preprint arXiv:2512.07394},
+  year         = {2025}
+}
+
+% ---------------- Simulation and learning ----------------
+@inproceedings{todorov2012mujoco,
+  author    = {Todorov, Emanuel and Erez, Tom and Tassa, Yuval},
+  title     = {{MuJoCo}: A physics engine for model-based control},
+  booktitle = {IROS},
+  year      = {2012}
+}
+@inproceedings{haarnoja2018sac,
+  author    = {Haarnoja, Tuomas and Zhou, Aurick and Abbeel, Pieter and Levine, Sergey},
+  title     = {Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor},
+  booktitle = {ICML},
+  year      = {2018}
+}
+@inproceedings{bellemare2017c51,
+  author    = {Bellemare, Marc G. and Dabney, Will and Munos, R{\'e}mi},
+  title     = {A Distributional Perspective on Reinforcement Learning},
+  booktitle = {ICML},
+  year      = {2017}
+}
