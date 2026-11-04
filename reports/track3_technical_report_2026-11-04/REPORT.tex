@@ -1,0 +1,143 @@
+% V2D Challenge 2026, Track 3 technical report (team draft, 2026-11-04).
+% Self-contained: compiles with pdflatex/xelatex/tectonic. Tables are generated from
+% work/reports/20261103-lead-sprint/INCUMBENTS.md (see make_tables note in the README).
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\setlist{nosep,leftmargin=*}
+\newcommand{\teamname}{\textit{[team name as registered]}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{Video-to-Data Challenge 2026, Track 3:\\Egocentric reconstruction and end-to-end transfer\\\large Technical report (draft of 4 November 2026)}
+\author{Team \teamname\\\small authors and affiliations to be filled in by the team}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We describe our Track 3 submission: reconstructed object meshes and learned-policy object trajectories for the 20 scored egocentric videos. Objects, hands and camera are reconstructed from the released video alone with pretrained models (stereo depth, segmentation, SLAM, hand pose, single-image mesh generation, 6-DoF tracking); the reconstruction is assembled into a simulation scene for the Sharpa Wave embodiment; a tracking policy is trained per episode with FlashCHORD; the rollout and the mesh are packed with the official kit. Our final file scores AUC 0.76526 with ranks 11/9/12/13/13/23 on the six boards (rank sum 81). The report documents the pipeline, the per-episode provenance of the final file, the ground-truth-free selection procedure we used once the submission quota was exhausted, and the failure modes we found. The main technical lesson is that reconstruction quality measured against public ground truth (local AUC 0.908 on the development set) did not predict transfer: the defects that decide the score appear only when the reference motion is turned into a scene and a policy is trained on it.
+\end{abstract}
+
+\section{Submission summary}
+\label{sec:summary}
+
+\paragraph{Final file.} One Parquet file (sha256 \code{c8fcd7df\ldots}, 9{,}120 rows, 20 episodes, 36 object meshes) submitted identically to all six Track 3 competitions. Kaggle references: AUC 57978563 (0.76526), SP-SR 0.95, MP-SR 0.55, RPE 4.1052 cm, MPPE 3.42999 cm, CD-O 0.39579 cm. Public-board ranks as of 4 November 2026, 10:40 UTC: 11, 9, 12, 13, 13, 23 (sum 81; 83 if ties are counted by list order). The file cites \code{code\_commit\_url} = team repository commit \code{de66fea3} (branch \code{main\_buffer}, 2026-11-04 02:35 UTC, ``Push the full policy training pipeline and a training guide''). Every row carries the kit's provenance columns (checkpoint, evaluator, packer and uploader hashes) of the pack it came from; Table~\ref{tab:episodes} lists the checkpoint and row hashes per episode.
+
+\paragraph{How the file was built.} The team worked as three lines: a reconstruction line (objects, hands, camera, scene hygiene), a hand-fix line (reference-hand repairs and retraining on repaired scenes) and a policy line (training campaigns, packing, the team base ``bob1''). The final file is the policy line's base \code{bob1} (AUC 0.75166, all 20 episodes) with four episodes replaced by the hand-fix line's later single-episode submissions that had been measured on all six boards: ep1 (T2), ep3 (T5), ep5 (T8) and ep8 (T6). Each replacement was a row-level merge of already-scored Kaggle files, so no re-evaluation was involved and the expected score could be predicted before upload (Table~\ref{tab:progression}; single-episode swaps proved exactly additive, maximum gap 0.00002 over five checks). Episodes 5, 16, 19, 28, 30 and 38 in \code{bob1} use the reconstruction line's objects; the remaining episodes use the hand-fix line's reconstruction. Table~\ref{tab:episodes} gives the per-episode source, own-reference tracking score and hashes.
+
+\begin{table}[h]\centering\small
+\caption{Progression of the team's best file. ``Predicted'' is the row-level sum of the already-scored parts before upload.}
+\label{tab:progression}
+\input{table_progression}
+\end{table}
+
+\section{Reconstruction from video}
+\label{sec:recon}
+
+All inputs are the released egocentric RGB and stereo videos and device calibration; no scans, no ground truth and no Track 2 assets enter any submitted trajectory or mesh. Pretrained models are used throughout (allowed by the FAQ). The stages, in order:
+
+\begin{enumerate}
+\item \textbf{Ingest and calibration.} Three-way video decode with frame-index bookkeeping; the official 14-parameter distortion model; the 180$^\circ$ device rotation and the RGB-to-stereo extrinsics are applied together.
+\item \textbf{Metric depth.} FoundationStereo on the stereo pair gives metric camera-Z depth, resampled onto the RGB grid with a validity mask (the stereo stream is offset by two frames from RGB; the first frames share one stereo frame).
+\item \textbf{Masks.} SAM~3 text-prompted segmentation per object and per hand, with a SAM~2 propagation fallback. Mask drift onto a neighbouring object (for example pot $\to$ lid in ep1 after frame 96) was found late and is one of the blind spots listed in Section~\ref{sec:lessons}.
+\item \textbf{Camera.} DROID-SLAM with the background stereo depth as prior and dynamic objects and hands masked out, giving camera-to-world per frame; the table plane is fitted from depth and used later for gravity alignment.
+\item \textbf{Hands.} WiLoR detection and identity, HaMeR MANO fits, FoundationStereo-aligned scale, short-gap filling and a per-sequence shape (``first beta'') rule; outputs MANO parameters, scale and validity.
+\item \textbf{Object meshes.} For every (episode, object) pair a single-image mesh generator (SAM~3D, seed 0) is run on up to two clear, complementary views; the candidate is accepted after an explicit structural check (missing parts or neighbour contamination cannot be hidden behind a low depth residual). Metric size is fitted once per object: a uniform scale shared across three support frames with independent per-frame SE(3), validated on two held-out frames, then baked into the vertices.
+\item \textbf{6-DoF tracking.} FoundationPose with the fixed metric mesh: one registration on a chosen anchor frame, then full bidirectional tracking (register 10 / track 5 refinement iterations, masked depth). Optional post-processing (contact-shape, part-shape and temporal pose refinement) is recorded per bundle, never applied silently.
+\item \textbf{Bundles.} Each episode yields one bundle (\code{result.npz}): object poses, meshes with materials, hands, camera, table plane and a manifest. Absolute paths are rewritten on the training host (\code{relocate\_scene.py}).
+\end{enumerate}
+
+Against the public development split, the retained reconstruction scores a local AUC of 0.9076 (official metric code, 20 episodes, ground truth used for evaluation only). Mesh sizes were audited across episodes of the same physical object; a disagreement flags an episode but, by team rule, a mesh is never copied from another episode or from the base into a scene: the only legal replacement is re-tracking and retraining on our own better mesh.
+
+\section{Scene assembly}
+\label{sec:scene}
+
+The bundle is converted by the team loader (\code{tools/track3/run\_load\_retarget.py}) into a FlashCHORD scene: retargeted Sharpa Wave hands, rigid object URDFs, a support surface and the reference trajectory Parquet. The reconstruction line added a ``hygiene stack'' during the final 36 hours, each item answering a defect that only showed up in training:
+
+\begin{itemize}
+\item \textbf{Hands re-attached to the final object tracks} (hands had been copied from an older object version; the spoon-in-hand angle was 21$^\circ$ off at the median).
+\item \textbf{Per-frame hold rule instead of exclusive attach.} The exclusive rule attached a hand to an object for the whole lift segment if it came within 12 cm once (``false grasps'' in ep14/15/16/28, wrist-to-surface 15--47 cm before attachment). The new rule decides holding per frame and assigns unheld lifted frames to the last holder; placing an object on a higher surface is no longer mistaken for lifting.
+\item \textbf{Cup spin and spoon roll from the hand.} The tracker cannot observe rotation about a cup's axis or a spoon's long axis; it produced hundreds of degrees of spurious spin, and attaching the hand in the object frame made the reference hand orbit the object (wrist moved 10--25 cm). Cups take their spin from the holding hand (the hand-fix line's ``respin''); thin objects have roll frozen while held.
+\item \textbf{Support seating.} The support plane is set to the object's lowest point minus 2 mm (only ever lowered; shims for floating objects), after a frame-0 audit found 1--6 cm of penetration.
+\item \textbf{Centre of mass.} The URDF inertial origin is moved to the shell centroid (the pot's mesh origin was 8 cm off its axis and tipped 25$^\circ$ at rest).
+\item \textbf{World levelling and depth-measured table.} Table-versus-gravity tilt was 1--10$^\circ$ per episode; the hand-fix line's re-levelled scenes (T8: 5.5$^\circ$) carried the largest single-episode gain of the day (ep5, +0.127).
+\item \textbf{Simulator contact capacity.} Nested cups with two hands exceed \code{njmax}=1024 (172 overflow events in seven minutes); such scenes train with \code{njmax}=2048, \code{nconmax}=1024.
+\end{itemize}
+
+\section{Policy training}
+\label{sec:policy}
+
+Policies are trained with the team's FlashCHORD pipeline (\code{train\_flash\_sac.py}, experiment \code{sharpa\_flash\_sac}, curriculum \code{tracking\_100m\_object2x}, 100M environment steps, 20.25 Hz simulation matching the video). Three recipes were used: DEF (object termination 0.3 m / 1.5 rad, replay 1M, float16 observations), WIDE (wider exploration) and KEN (object termination 0.1 m / 0.5 rad, replay 4M). Every checkpoint from 70M is evaluated against the scene's own reference (own-ref tracking AUC, the kit's metric code) and the best is kept: in 262 of 371 campaign runs the best checkpoint was not the last one, by 0.06 on average. Seeds within one arm agree to about 0.04 at the median; the team base therefore prefers a second recipe to a third seed. The policy line's campaign tooling and guide are in the cited commit (directory \code{reports/policy\_\allowbreak targeted\_\allowbreak 2026-10-28}); the reconstruction line's host-side queue (\code{run\_train\_v3.sh}) reproduces the same command line with Hydra overrides per arm.
+
+Two training findings matter for transfer. First, the tighter KEN termination thresholds make the policy track the hard object of a pair: on ep33 the spoon rose from 0.30 to 0.75 own-ref (0.827 overall versus 0.637 for DEF on the same scene), and on ep28 the pot reached 0.88 at 70M. Second, scene geometry decides learnability more than the recipe: a donor pot mesh 2 cm shorter than the observed one (chosen because it improved an observation proxy by 0.0145) left a 3.5 cm wrist gap and the policy dropped the pot at the hand-off (0.22); restoring the observed-size pot with the per-frame hold rule trained to 0.914, above the base's 0.906 on this episode.
+
+\section{Selection without ground truth}
+\label{sec:select}
+
+Kaggle allows 20 submissions per competition per day and the leaderboard only returns a public score, so most candidates had to be judged locally. We used three instruments, all free of hidden ground truth and scans:
+
+\begin{enumerate}
+\item \textbf{Own-reference tracking} (Section~\ref{sec:policy}) ranks checkpoints of one scene but does not transfer across scenes: two hand-fix swaps with higher own-ref than the incumbent scored $-0.006$ and $-0.131$ on the board.
+\item \textbf{Board emulator.} The kit's own registration, frame-0 alignment and metric code are run with the incumbent's reference track and mesh standing in for the hidden solution. On 14 swaps with known board outcomes the emulator's episode deltas correlate with the board at Spearman 0.956.
+\item \textbf{Camera proxy.} The rollout, aligned on frame 0 as the board aligns a scene, is rendered into the scored frames and scored on mask overlap and depth (Spearman 0.912 on the same 14 swaps); it uses no reference track and is independent of the emulator. Because the masks drift in places, the proxy is reported on all frames, on trusted frames only, and as a mask-free depth fit.
+\end{enumerate}
+
+A candidate replaces an incumbent only if the emulator and the camera proxy both beat the incumbent on that episode (``two-check''). On the 14 known swaps this rule accepted five winners, all correct, rejected all eight losers and missed one winner. Probes on the board were single-episode swaps of the current base, which are exactly additive, so a probe's score change times 20 is that episode's change. Candidates were ranked by predicted rank sum over the six boards, not by AUC alone: on this leaderboard one AUC place costs 0.063 while a single SP-SR or MP-SR success is one place.
+
+\section{Results}
+\label{sec:results}
+
+Table~\ref{tab:episodes} lists, for each scored episode, the objects, the source of the rows in the final file, the own-reference tracking score of the selected checkpoint, the episode's measured contribution relative to \code{bob1} (board change $\times$20) and the hashes. Ten episodes track above 0.9 against their own reference; the weakest are ep10 (0.720, two nested cups), ep1 (0.787, pot and lid) and ep14 (0.845).
+
+\begin{table}[h]\centering\footnotesize
+\caption{Per-episode composition of the final file. ``base'' = team base bob1; ``swap Tn'' = hand-fix line single-episode submission merged at row level. Own-ref is tracking AUC against the scene's own reference. Checkpoint and rows are sha256 prefixes of the policy file and of the submitted rows.}
+\label{tab:episodes}
+\resizebox{\textwidth}{!}{\input{table_episodes}}
+\end{table}
+
+Candidates that were not submitted because the AUC quota closed on the final day: ep28 rebuilt with the observed-size pot, per-frame hold rule and centre-of-mass fix (own-ref 0.914 at 100M; two-check gains emulator +0.017, camera +0.009), and the same scene trained with the KEN thresholds (0.913 at 70M, two-check gains +0.007/+0.005). Candidates rejected by the two-check rule although their own-ref improved: ep33 with the KEN thresholds (0.827; the emulator is $-0.21$ because our cup and spoon meshes differ in size from the incumbent's, 18.7 versus 17.1 cm and 31.8 versus 27.8 cm) and ep25 (own-ref ceiling 0.49 on the second board in every arm; a board probe confirmed $-0.027$).
+
+\section{What we learned}
+\label{sec:lessons}
+
+\begin{itemize}
+\item \textbf{Reconstruction metrics are blind to the defects that decide transfer.} Mask-and-depth proxies and the public-split AUC cannot see rotation about a symmetry or long axis, centimetre depth offsets, table penetration or a hand passing through an object. Each such defect was found only after a 2--4.5 hour training run. Acceptance of a scene change must be ``train once and see whether the object is lifted'', or at least the board emulator, not a geometric score.
+\item \textbf{Failures are at the lift and the hand-off.} In every failing run the policy left the object where the reference started moving it (ep28 pot frame 22, ep25 board frame 174, ep33 spoon frame 57); the base's policies lift with the same termination thresholds. Contact geometry at those frames (wrist and fingertip distance to the surface) explains the cases we could trace.
+\item \textbf{Same object, different episode, different mesh size.} Re-tracking with a donor mesh of the same physical object can improve the observation proxy and still break hand contact if its size differs; the per-episode observed size wins.
+\item \textbf{Termination thresholds interact with scene difficulty.} Loose thresholds let the policy neglect the harder object of a pair.
+\item \textbf{Own-ref does not transfer across references; single-episode swaps do add.} Measure every candidate with a ground-truth-free emulator before spending a board slot, and keep probes to one episode.
+\item \textbf{Process.} Append-only artefact versions with per-file hash read-back; one writer per training queue; whoever changes an object re-runs the hand stage; the cheapest experiment to separate ``our scene'' from ``our training'' (the base's scene under our recipe) should be run on day one.
+\end{itemize}
+
+\section{Reproducibility and provenance}
+\label{sec:repro}
+
+\paragraph{Code.} Team repository \code{NVIDIA\_V2D\_Egocentric} (private; shared with the organiser GitHub account). The final file cites commit \code{de66fea3} on \code{main\_buffer}, which contains the training pipeline, the campaign tooling and the hand-fix line's ep3/ep10/ep20 patches (\code{tools/track3/hand\_fixes/}). The reconstruction line's scene-consistency scripts (hand re-attach, seating, spin/roll/COM fixes, donor re-tracking, probe review, release builders) are on pull request \#24 into \code{main\_buffer}; the hand-fix line's ep1/ep5 scripts and run directories are in its delivered package and the per-episode owners supply the remaining run directories for the container.
+
+\paragraph{Artefacts.} Reconstructions, scenes, rollouts and policies are on the team's Hugging Face dataset \code{rose-tea-cafe/v2d-t3-recon} under append-only, per-version prefixes (for example \code{experiments/<user>/scored20\_lead\_v3\_20261104}, commit \code{5583fb22}; \code{scored20\_lead\_sprint\_v2\_20261103}, commit \code{55846863}); every upload was verified by reading back each file's SHA.
+
+\paragraph{Evaluation and packing.} Rollouts come from the kit's evaluator at FlashCHORD revision \code{8c778f90}; files are packed with \code{tools/pack\_submission.py} and uploaded with the kit uploader; the merge of already-scored files is row-level and keeps each row's provenance columns.
+
+\paragraph{Container.} The reproduction container requested by the organisers after 12 November will package, per episode: the bundle, the built scene, the training command line with its Hydra overrides and seed, the selected checkpoint, the evaluator output and the pack plan; Appendix~\ref{app:checklist} is the checklist each episode owner fills in.
+
+\appendix
+\section{Reproduction checklist per episode}
+\label{app:checklist}
+\begin{enumerate}
+\item Bundle (\code{result.npz}, meshes with materials, manifest) and its Hugging Face prefix and commit.
+\item Scene directory as trained (after \code{relocate\_scene.py}), with the loader flags used.
+\item Training command line (recipe, overrides, seed, step count) and the checkpoint file with its sha256.
+\item Evaluator output (\code{episode\_XXXXXX.parquet}, results JSON) and the checkpoint-selection log.
+\item Pack plan entry (run directory, scene) and the sha256 of the packed rows.
+\end{enumerate}
+
+\end{document}
