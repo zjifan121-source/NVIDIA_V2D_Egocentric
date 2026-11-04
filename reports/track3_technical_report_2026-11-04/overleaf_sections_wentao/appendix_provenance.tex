@@ -1,15 +1,6 @@
-\subsection{Provenance of the submitted file}
+\subsection{Provenance of the submitted files}
 \label{app:provenance}
-The team final is one Parquet file (sha256 \texttt{c8fcd7df\allowbreak a05d042e\allowbreak
-5f32d483\allowbreak 2f87e424\allowbreak 033b93c3\allowbreak 30ed19ea\allowbreak 342ff3f9\allowbreak
-664d7414}; 9{,}120 rows, 20 episodes, 36 object meshes) submitted identically to the six Track~3
-competitions (Kaggle AUC submission 57978563). Every row carries the kit's provenance columns:
-\texttt{code\_commit\_url} (the commit of Sec.~\ref{sec:compliance}), evaluation script
-\texttt{160d24f5\ldots} and evaluation code \texttt{b1b3ebe3\ldots} (the kit's evaluator at
-FlashCHORD revision \texttt{8c778f90}), packer script \texttt{49b13052\ldots} and uploader script
-\texttt{d31d4a7c\ldots} (sha256 prefixes, identical on all rows), and the sha256 of the policy
-checkpoint that produced the episode (Table~\ref{tab:provenance}). The base file and the four
-single-episode files were merged at row level, keeping each row's columns.
+The counted scores are the team's best public submission per board at the close (AUC 0.77970, SP-SR 0.95, MP-SR 0.65, RPE 3.86589\,cm, MPPE 3.28089\,cm, CD-O 0.32243\,cm; rank sum 81), produced by the policy line's final uploads. Every submitted file carries the kit's provenance columns on each row: the code commit URL, the sha256 of the evaluation script and evaluation code, of the packer and of the uploader, and the sha256 of the policy checkpoint that produced the episode; for the common base of all final files (sha256 \texttt{c8fcd7df\ldots}, Kaggle 57978563: bob1 with ep1 T2, ep3 T5, ep5 T8, ep8 T6) these are evaluation script \texttt{160d24f5\ldots}, evaluation code \texttt{b1b3ebe3\ldots}, packer \texttt{49b13052\ldots}, uploader \texttt{d31d4a7c\ldots} (evaluator at FlashCHORD revision \texttt{8c778f90}). Table~\ref{tab:provenance} lists that base file's per-episode composition and hashes; episodes replaced in later final uploads carry their own checkpoint hashes inside those files.
 
 \begin{table}[ht]
   \centering\footnotesize
@@ -41,7 +32,7 @@ Ep & Objects & Source & Own-ref & $\Delta$AUC$\times$20 & Checkpoint & Rows \\
 38 & mini\_dust\_pan & base & 0.9482 & +0.0000 & \texttt{39512cc2} & \texttt{fad58577} \\
 \bottomrule
 \end{tabular}}
-  \caption{Per-episode composition of the team final. ``base'' = bob1; ``swap Tn'' = hand-fix line
+  \caption{Per-episode composition of the common base file (Kaggle 57978563). ``base'' = bob1; ``swap Tn'' = hand-fix line
   single-episode file merged at row level. Own-ref is the selected checkpoint's tracking AUC against
   its own reference; $\Delta$AUC$\times$20 is the board change of that swap times 20. Checkpoint and
   Rows are sha256 prefixes of the policy file and of the submitted rows.}
