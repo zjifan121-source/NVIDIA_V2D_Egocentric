@@ -52,7 +52,7 @@ RATIO = {'ken': 0.81, 'wentao': 0.86}
 RULES = ['Merging a candidate into the base needs a six-board probe, judged on rank-sum: no board may regress by more than the gain elsewhere.',
          'No mesh is copied from another episode or from the base into our scenes, because of possible scan provenance. The only legal replacement is our own reconstruction selected by the GT-free proxy.',
          'No new mesh on old-coordinate poses (work/handover/08_operations_and_access.md: 不用新mesh配旧坐标pose). A better mesh must be re-tracked and retrained, as T4 did. Mesh-only swaps are closed, whatever their CD-O gain.',
-         'Submissions are unlimited (the user, 2026-11-04), so one identical file goes on all six boards.',
+         'Uploads are paused (the user, 2026-11-04): no board gets a new submission until the user lifts this. Kaggle rejected a 21st AUC upload, so that board has a real limit. When uploads resume, one identical file goes on all six boards.',
          'Only sources measured on all six boards can enter the final. The rank-sum picker decides, and ep8 stays T4 until T6 has its five boards.']
 
 def now(): return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
