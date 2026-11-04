@@ -40,3 +40,5 @@ Appendix layout fixes in the same pass: `tab:ablations`, `tab:oracle`, `tab:reci
 ## References fix (2026-11-04, about 23:25 UTC)
 
 Seven entries printed as bare numbers because `references.bib` had `% CHECK ...` notes on the `@entry{key,` line: `%` is not a comment in BibTeX, so eight entries failed to parse. The notes now sit on their own line above each entry; keys are unchanged. The placeholder ROHIT entry now carries the authors and title from arXiv 2512.07394. All 27 references print text, BibTeX reports no warnings, and `main.tex` is unchanged. The file is `../overleaf_references_final_<sha8>.bib`.
+
+A.1 then gained one factual statement: the Path A' reconstruction code (absent from `main_buffer`) is in PR #24 (head 7ea9ac1) and on branch `wentacc_dev`; checked with `git cat-file` on both refs. Current `main.tex`: `../overleaf_main_final_664be316.tex`, sha256 `664be31616d611befd6643db533e606edafa5eaf374a8a3ef2b5706ea5336388`. `overleaf_main_final_052f89af.tex` is kept as the version before this line.
