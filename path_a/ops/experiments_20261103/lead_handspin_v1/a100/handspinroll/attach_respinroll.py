@@ -128,7 +128,7 @@ SRC='kenclean' if '--ken' in sys.argv else 'rawclean'
 CTL='--ctl' in sys.argv  # no raw hands for this episode: re-seat the delivered (control) hands on the current tracks
 INV={int(r['episode']):r['objects'] for r in json.loads((H_DIR/'inventory_v1.json').read_text())}
 for ep in [int(a) for a in sys.argv[1:] if not a.startswith('--')]:
-    src=(H_DIR/'bundles'/f'ep{ep:02d}_control') if CTL else H_DIR/'scenes'/f'ep{ep:02d}_{SRC}'/'bundle_cleaned'; out=O/'bundles'/f'ep{ep:02d}_rawspinroll'
+    src=Path(os.environ['LEAD_SPIN_SRC']) if 'LEAD_SPIN_SRC' in os.environ else ((H_DIR/'bundles'/f'ep{ep:02d}_control') if CTL else H_DIR/'scenes'/f'ep{ep:02d}_{SRC}'/'bundle_cleaned'); out=O/'bundles'/f'ep{ep:02d}_rawspinroll'
     if out.exists(): shutil.rmtree(out)
     shutil.copytree(src,out,symlinks=False)
     data=dict(np.load(out/'result.npz',allow_pickle=False)); names=[str(x) for x in data['object_names']] if 'object_names' in data else INV[ep]

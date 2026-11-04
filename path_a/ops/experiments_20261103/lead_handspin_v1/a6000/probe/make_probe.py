@@ -4,7 +4,7 @@ exit 0 only if the gate passed and the file was packed; prints the gate summary 
 import json, subprocess, sys
 from pathlib import Path
 HERE = Path('/mnt/v2d/outputs/experiments_20261103/lead_v3_train/probe'); KIT = '/mnt/v2d/outputs/experiments_20261021/independent_pipeline_v1/packet/submission_kit'; PY = str(HERE / 'venv-kit/bin/python')
-COMMIT = 'https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/de66fea3ae7c99ba96458f3cd9d1b77f5f94b4ff'
+COMMIT = 'https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/f377f3b235f4ba8188d94f0025090ea65ab85ffc'
 name, ep, run, scene = sys.argv[1:5]
 out = HERE / 'out' / name; out.mkdir(parents=True, exist_ok=True)
 ref_path = HERE / 'bob1_a6000.plan.json'

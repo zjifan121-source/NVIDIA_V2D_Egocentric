@@ -1,4 +1,5 @@
 #!/bin/bash
+[ -f /root/probes/UPLOAD_HOLD ] && { echo "uploads on hold by the user"; exit 4; }
 # Reads already-scored team files on the boards they have not been on. No AUC slot is used. Files are byte-identical to what Kaggle holds.
 # Usage: submit_list.sh <name>   where name is one of t6 t5 bob5 p1 p2. Check each receipt: a board can come back UPLOAD_FAILED.
 F=/root/probes/five_board; KIT=/root/v2d/NVIDIA_V2D_Egocentric/assets/data/v2d_submission_kit; PY=/root/venv-kit/bin/python
