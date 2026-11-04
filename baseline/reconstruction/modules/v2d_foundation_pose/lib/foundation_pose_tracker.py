@@ -378,6 +378,8 @@ class FoundationPoseTracker:
         K = intrinsics.to_matrix()
         H, W = intrinsics.height, intrinsics.width
         pose_mat = torch.as_tensor(pose.to_matrix()[None], device='cuda', dtype=torch.float)
+        # Public poses act on the original mesh; mesh_tensors are centered.
+        pose_mat = pose_mat @ torch.linalg.inv(self._est.get_tf_to_centered_mesh())
 
         with torch.no_grad():
             _, rendered_depth, _ = nvdiffrast_render(
@@ -502,6 +504,8 @@ class FoundationPoseTracker:
         K = intrinsics.to_matrix()
         H, W = intrinsics.height, intrinsics.width
         pose_mat = torch.as_tensor(pose.to_matrix()[None], device='cuda', dtype=torch.float)
+        # Public poses act on the original mesh; mesh_tensors are centered.
+        pose_mat = pose_mat @ torch.linalg.inv(self._est.get_tf_to_centered_mesh())
 
         with torch.no_grad():
             _, rendered_depth, _ = nvdiffrast_render(
