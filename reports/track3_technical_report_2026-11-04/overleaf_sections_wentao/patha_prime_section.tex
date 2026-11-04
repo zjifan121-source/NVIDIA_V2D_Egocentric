@@ -27,9 +27,12 @@ hand; the support seated at the object's lowest point $-2$\,mm after a frame-0 a
 transfer: ep28 rebuilt with the observed-size pot, the hold rule and the centre-of-mass fix trains
 to 0.914 (DEF, 100M) and 0.930 (0.1\,m / 0.5\,rad termination, 90M) against the base's 0.906 on its
 own scene and passes both ground-truth-free checks of Sec.~\ref{sec:selection} (trusted-frame
-proxy $+0.012$, emulator $+0.026$, camera $+0.012$; not uploaded, quota), whereas a donor pot 2\,cm
-shorter had raised an observation proxy by 0.0145 and still failed at the hand-off (3.5\,cm wrist
-gap, pot 0.22). As a control, the base's own ep33 scene trained with our DEF recipe reads 0.361 at
+proxy $+0.012$, emulator $+0.026$, camera $+0.012$); a single-board probe on RPE then read 3.900
+against 3.880 for the same base, so the swap was not used: the rack mesh differs from the base's
+(48.6 vs.\ 47.4\,cm) and the board registers each submitted mesh to its reference, which moves the
+anchor frame that RPE is measured in---a shift that neither own-reference tracking nor the emulator
+can see. A donor pot 2\,cm shorter had raised an observation proxy by 0.0145 and still failed at
+the hand-off (3.5\,cm wrist gap, pot 0.22). As a control, the base's own ep33 scene trained with our DEF recipe reads 0.361 at
 70M against 0.901 for the base's run, so on ep33 the recipe, not the reconstruction, is the gap:
 with the 0.1\,m / 0.5\,rad thresholds our ep33 scene went 0.637$\rightarrow$0.827 (spoon
 0.30$\rightarrow$0.75).

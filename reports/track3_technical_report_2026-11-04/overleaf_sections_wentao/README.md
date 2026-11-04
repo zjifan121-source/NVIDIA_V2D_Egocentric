@@ -3,7 +3,7 @@
 The team report is written in the shared Overleaf project "V2D Technical Report - Gravity Aligned"
 (`main.tex`, NVIDIA extended-abstract class, 2-page main-text limit). These files are the exact text
 inserted there on 2026-11-04, second round after the lead's review (main.tex sha256 after the edit:
-`2146b41c3faa73bca6666d6a961eaf160d9ff9a271ca1c3a433f36ff400b6787`):
+`e549b11b43a7ed3872d5385b23a99d3ed3b5ef685e6cd1a78a0b451e4eea2986`):
 
 - `patha_prime_section.tex` — Sec. 2.3 "Path A′: metric scene refinement (fixed-mesh tracking)" (`sec:wentao`): the teammates' technical sentences kept, the `\todo` replaced by the front-end stage sentence, the public-split 0.908 result, the scene-hygiene list (marked `\cut`), the ep28 results and the ep33 recipe control.
 - `selection_two_check_paragraph.tex` — one paragraph appended to Sec. 2.7 "Ground-truth-free selection": board emulator + camera proxy, two-check rule and its validation on 14 swaps (their ρ-weighted rule untouched).
