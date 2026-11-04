@@ -1,11 +1,12 @@
 #!/bin/bash
+[ -f /root/probes/UPLOAD_HOLD ] && { echo "uploads on hold by the user"; exit 4; }
 # Single-episode swap probe: bob1 with one episode replaced by the best evaluated checkpoint of one run.
 # usage: probe.sh <run_name> <episode> <scene_dir> "<kaggle message label>" [--submit]
 # Without --submit nothing is uploaded: plan, check, pack and a dry run only. check_probe_plan exit 0 is required.
 set -u
 NAME=$1; EP=$2; SCENE=$3; LABEL=$4; MODE=${5:-}
 M=/root/v2d/NVIDIA_V2D_Egocentric; TL=/root/v2d/tools_lead; K=$M/assets/data/v2d_submission_kit
-COMMIT=https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/de66fea3ae7c99ba96458f3cd9d1b77f5f94b4ff
+COMMIT=https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/f377f3b235f4ba8188d94f0025090ea65ab85ffc
 REF=/root/bob1_meta/experiments/edmond/bob1_submission_20261103/candidate_bob1.plan.json
 read STEP AUC EARLY PB <<< $(/root/venv-cpu/bin/python -c "
 import json
@@ -43,7 +44,7 @@ if [ "$MODE" = "--submit" ]; then
       grep -q -E "Preflight failed|identity is not the same" $3.try$i.log || break
       sleep 25
     done; }
-  up add_auc $W/receipt_auc.json $W/up_auc
+  if [ "${ALLOW_AUC:-1}" = 1 ]; then up add_auc $W/receipt_auc.json $W/up_auc; else echo "AUC upload skipped: set ALLOW_AUC=1 only for the file the user names"; fi
   up "spider_sr maniptrans_sr rpe_cm mppe_cm cd_o_cm" $W/receipt_rest.json $W/up_rest
 else
   /root/venv-kit/bin/python -u submit/v2d_submit.py $OUT --track track_3 --only add_auc --dry-run -m "$MSG" 2>&1 | tail -6 | cut -c1-170
