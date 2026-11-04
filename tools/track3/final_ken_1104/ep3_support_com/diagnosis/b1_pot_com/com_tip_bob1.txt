@@ -1,0 +1,88 @@
+A1 {
+ "white_pot": {
+  "origin_to_volcentroid_cm": 5.89,
+  "origin_to_surfcentroid_cm": 8.04,
+  "f0": {
+   "base_hull_extent_cm": [
+    12.8,
+    13.4
+   ],
+   "margin_simCoM_origin_cm": -3.35,
+   "margin_volcentroid_cm": 2.53,
+   "margin_surfcentroid_cm": 4.67,
+   "simCoM_height_cm": 5.79,
+   "simCoM_horizontal_offset_from_volcentroid_cm": 5.88,
+   "tip_about_nearest_edge_contact_angle_deg": 23.5,
+   "at_tip_contact_second_support_dist_from_edge_cm": 25.4,
+   "at_tip_simCoM_over_edge_cm": 5.38
+  },
+  "f312": {
+   "base_hull_extent_cm": [
+    10.0,
+    4.9
+   ],
+   "margin_simCoM_origin_cm": -12.59,
+   "margin_volcentroid_cm": -6.75,
+   "margin_surfcentroid_cm": -4.63,
+   "simCoM_height_cm": 6.93,
+   "simCoM_horizontal_offset_from_volcentroid_cm": 5.85,
+   "tip_about_nearest_edge_contact_angle_deg": 5.5,
+   "at_tip_contact_second_support_dist_from_edge_cm": 11.4,
+   "at_tip_simCoM_over_edge_cm": 13.19
+  }
+ },
+ "wooden_spoon": {
+  "origin_to_volcentroid_cm": 0.76,
+  "origin_to_surfcentroid_cm": 2.38,
+  "f0": {
+   "base_hull_extent_cm": [
+    11.4,
+    24.8
+   ],
+   "margin_simCoM_origin_cm": 0.94,
+   "margin_volcentroid_cm": 1.29,
+   "margin_surfcentroid_cm": 1.38,
+   "simCoM_height_cm": 1.44,
+   "simCoM_horizontal_offset_from_volcentroid_cm": 0.73,
+   "tip_about_nearest_edge_contact_angle_deg": 34.25,
+   "at_tip_contact_second_support_dist_from_edge_cm": 22.7,
+   "at_tip_simCoM_over_edge_cm": 0.03
+  },
+  "f312": {
+   "base_hull_extent_cm": [
+    4.5,
+    26.2
+   ],
+   "margin_simCoM_origin_cm": 0.47,
+   "margin_volcentroid_cm": 0.78,
+   "margin_surfcentroid_cm": 0.83,
+   "simCoM_height_cm": 1.52,
+   "simCoM_horizontal_offset_from_volcentroid_cm": 0.73,
+   "tip_about_nearest_edge_contact_angle_deg": 23.5,
+   "at_tip_contact_second_support_dist_from_edge_cm": 23.9,
+   "at_tip_simCoM_over_edge_cm": 0.18
+  }
+ }
+}
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot_rigid.urdf:      <inertial>
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot_rigid.urdf-         <origin xyz="0 0 0" rpy="0 0 0"/>
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot_rigid.urdf-         <mass value="0.3"/>
+--
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot_rigid.urdf:      </inertial>
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot_rigid.urdf-      <visual>
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot_rigid.urdf-         <origin rpy="0 0 0" xyz="0 0 0"/>
+--
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon_rigid.urdf:      <inertial>
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon_rigid.urdf-         <origin xyz="0 0 0" rpy="0 0 0"/>
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon_rigid.urdf-         <mass value="0.3"/>
+--
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon_rigid.urdf:      </inertial>
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon_rigid.urdf-      <visual>
+/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon_rigid.urdf-         <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertial>
+         <origin xyz="0 0 0" rpy="0 0 0"/>
+         <mass value="0.3"/>
+--
+      </inertial>
+      <visual>
+         <origin rpy="0 0 0" xyz="0 0 0"/>

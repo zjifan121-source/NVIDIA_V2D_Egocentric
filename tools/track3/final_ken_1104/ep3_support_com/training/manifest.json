@@ -1,0 +1,19 @@
+{
+ "candidate": "h_ep3_sc_K_s42",
+ "episode": 3,
+ "scene": "sc_ep3",
+ "scene_tgz": "scene.tgz",
+ "checkpoint_step": 95006720,
+ "step_arg": "95006720",
+ "results_source": "/tmp/haisenk_v2d/runs/h_ep3_sc_K_s42/early_95006720/results",
+ "own_ref": 0.946785143769968,
+ "own_ref_per_body": [
+  0.9882188498402555,
+  0.9053514376996805
+ ],
+ "policy_file": "policy_95006720.safetensors",
+ "policy_sha256": "45c4736b1feab1e88189530c4cccbf672f19d6d8d50a7bfca4e321ed4828b531",
+ "rollout_sha256": "77a60882e148f23a95bf43a1959c70c81b00296cc1b323863cc680d68e78a62f",
+ "recipe": "KEN task.motion_speed=1.0 sim.fps=20.254119873046875 termination.wrist_position.threshold=0.3 training.checkpoint.save_interval_environment_steps=5000192 termination.object_position.threshold=0.1 termination.object_orientation.threshold=0.5 training.replay.capacity=4194304 training.replay.observation_storage_dtype=float32 sim.njmax=1024 sim.nconmax=512",
+ "note": "T5 (AUC only) sc_ep3 - score pending"
+}

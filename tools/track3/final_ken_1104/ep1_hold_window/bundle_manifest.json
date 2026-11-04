@@ -1,0 +1,403 @@
+{
+ "part": "ep1_hold_window",
+ "episode": 1,
+ "written": "2026-11-04 ~14:40 EST (staging only; nothing uploaded or committed by this step)",
+ "final_candidate": {
+  "scene": "w_hold_ep1",
+  "run": "b_ep1_wh_K_s48",
+  "checkpoint_step": 100003840,
+  "policy_sha256": "6aaab5d64f317cf5690f89f296114b12e5aebe33121fe950b925094ce1e51152",
+  "rollout_sha256": "b3fbfe3b1e8cbab6b2ed2fe917c0822d2f3a291dae66272e431a0f678cc155b6",
+  "packed_one_parquet_sha256": "7150f4e5764d15ad30824bda8720054288a63055eb32ea4cd21a1e82529d3276",
+  "kaggle_status": "NOT SUBMITTED (Kaggle submissions stopped 4 Nov ~10:05 EST; local GT-free selection only)"
+ },
+ "submitted_ep1_rows": {
+  "note": "The ep1 rows that are actually on the Kaggle boards (swap test T2, and the team's combined entry, AUC 0.76526) come from T2 = o_ep1_hold_s44 @100003840 on the SAME scene w_hold_ep1. Listed under items with role 'submitted_T2'.",
+  "policy_sha256": "969b9cef527814ed9c5138dc82f68fdb9a1097e746f122d5a8ed28a56b1c8820",
+  "rollout_sha256": "bf5e57c42eb6c31cc32c90e4fc8bec26cc7bad445673a0778ffff41c608765e6",
+  "packed_one_parquet_sha256": "27dba3341a02e7e1ef42cd7906452e9e0b29e53bfd7d7ff60af7807b59302e41"
+ },
+ "items": [
+  {
+   "role": "final",
+   "kind": "scene",
+   "name": "w_hold_ep1",
+   "location": "babel-s5-16:/tmp/haisenk_v2d/scenes/w_hold_ep1 (node /tmp inside H100 job 10774619; gone when the job ends, about 6 Nov 00:03 EST)",
+   "sha256_of": "assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave/67e77991625d40adb2b7a7ea3264eedc-0.parquet (paths relocated to /tmp/haisenk_v2d/scenes/w_hold_ep1)",
+   "sha256": "6b1ed3b223dc7e223fe9957ac0f1dad77ed7d9320fb983455b884d7dbf35ff6e",
+   "files": [
+    {
+     "path": "SUPPORT_V1_COPIED_FROM_CONTROL",
+     "sha256": "4828e1bca8a10a7cd4689796b8f3b8aa1e3e479441b5d53a94b9ba81696aab90"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep1_hw_w_hold_ep1_white_pot.obj",
+     "sha256": "011a5858e2cd2f05fc956e9c2aaeeba4bec921e5fca0568538ab430adaf55f08"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep1_hw_w_hold_ep1_white_pot_lid.mtl",
+     "sha256": "9dfa5b0da6d0349060acdaa3aaa6bf614654eb7a1bab453649d1f87ebf16c026"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep1_hw_w_hold_ep1_white_pot_lid.obj",
+     "sha256": "879e8b583df6980abbb025e717b15d7845dfc1b434c111659056e1a8f3f85bdb"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep1_hw_w_hold_ep1_white_pot_lid_obj1_mesh_1_material_0.png",
+     "sha256": "fb69787b48986642a89911bdf15c143bfdbb05e8e3073b8305c1ae9ba2ad5e63"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep1_hw_w_hold_ep1_white_pot_lid_rigid.urdf",
+     "sha256": "907a60dc6a5dbf3e19e693254b9d0f4c338d7f0f400a10c27b81363d679bff8c"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep1_hw_w_hold_ep1_white_pot_lid_visual.stl",
+     "sha256": "1b9e396dfb38cda80f978358fa1f8b768f2b1d6f10a7d2b0df0306fa18995e9c"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep1_hw_w_hold_ep1_white_pot_rigid.urdf",
+     "sha256": "fb4bab9e192e5790343f5c914788c8bde1001bf322a8e14e2c9103ebdca3ef5a"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep1_hw_w_hold_ep1_white_pot_visual.stl",
+     "sha256": "99acc770eb82ad7520eb1f8e8140e7877cc793eaa88e903cc87cf94871c0063f"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave/67e77991625d40adb2b7a7ea3264eedc-0.parquet",
+     "sha256": "6b1ed3b223dc7e223fe9957ac0f1dad77ed7d9320fb983455b884d7dbf35ff6e"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave/67e77991625d40adb2b7a7ea3264eedc-0.parquet.orig",
+     "sha256": "31d10a3fdc8582f881a09305742ea9cb99d9dd2ba72614e7c2813fe1bc37c136"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/reconstructed_stage/ep1_hw_w_hold_ep1_sharpa_wave_support.usda",
+     "sha256": "3486b2c7015dc4c12122db29f8561c215869e2839cfea03ce4e251770d71c1c7"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/reconstructed_stage/ep1_hw_w_hold_ep1_sharpa_wave_support.usda.generated_by_loader",
+     "sha256": "c0c7b3a0ffd6077847b886adc264a3c1a414727bc83b90bcaaeb30dde4824227"
+    },
+    {
+     "path": "bundle_cleaned/result.npz",
+     "sha256": "a25f3ee4ce41d3e4ce6b51baa9ec0a250df22a799ca7b86559308b80d0a8ef39"
+    },
+    {
+     "path": "pipeline.log",
+     "sha256": "85c221fbaa241a7b492c5bcf1a2979e789e81e651d92f600434f55ae5d0d3b06"
+    },
+    {
+     "path": "report.json",
+     "sha256": "ad407455bf4392c5f9a8d55dfe3f8dc59c547f553c00a88c8f467902f625b688"
+    },
+    {
+     "path": "score_input/meshes/episode_000001/material.mtl",
+     "sha256": "0d90fe7d688a6da0b82b0f8053231a1c8986de34aa839f8113ed53a610c09227"
+    },
+    {
+     "path": "score_input/meshes/episode_000001/material_0.png",
+     "sha256": "fb69787b48986642a89911bdf15c143bfdbb05e8e3073b8305c1ae9ba2ad5e63"
+    },
+    {
+     "path": "score_input/meshes/episode_000001/white_pot.obj",
+     "sha256": "5f97106bc9d2be8ec57225d8ccb0615cdc69fc4ebd3e2887eaf0a7743e68b686"
+    },
+    {
+     "path": "score_input/meshes/episode_000001/white_pot_lid.obj",
+     "sha256": "3a89fa0db9483a75968f16fac599d43a21c9eec78cd0dcb9bf358beb02977a22"
+    },
+    {
+     "path": "score_input/results/episode_000001.npy",
+     "sha256": "a460db2cb6c380c6d516c2a6c940cbb155d470fb5a33a402efa13fc947ae098d"
+    }
+   ],
+   "note": "21 regular files (hashed on babel-s5-16 4 Nov 14:20 EST) + 6 dangling symlinks in bundle_cleaned/ (HANDFIX_PREP.json, manifest.json, mesh.obj, mesh_1.obj, obj1_mesh_1.mtl, obj1_mesh_1_material_0.png -> /scratch/haisenk-v2d/hand5w/bundles/w_hold_ep1/; not needed for training or evaluation; the targets are in the 'prepared_bundle' item). The .parquet.orig is the as-built parquet (Babel /scratch paths); the .parquet is the relocate_scene.py output. Identical file-by-file to the T2 training copy (handoff w_hold_ep1.tgz) and to the /data backup."
+  },
+  {
+   "role": "final",
+   "kind": "scene_tgz",
+   "name": "w_hold_ep1 (tar of the babel-s5-16 scene, made 4 Nov 13:50 by archive.sh)",
+   "location": "local C:\\v2d_demo\\archive\\b_ep1_wh_K_s48\\scene.tgz ; Babel staged copy ~/v2d_ops/kenc/final1104/b_ep1_wh_K_s48/archive/ (per FINAL.md critic, not re-hashed here)",
+   "sha256": "7b3854460da68765a7f5edeb6cc0c7352e6e7f6d03c51595f19008897b110f07",
+   "bytes": 8090889
+  },
+  {
+   "role": "final",
+   "kind": "policy",
+   "name": "b_ep1_wh_K_s48 policy_100003840.safetensors",
+   "location": "Babel /data/user_data/haisenk/v2d/refine1104/ep1/adopt_s48/train/policy_100003840.safetensors (sha256sum -c OK 4 Nov 14:21 EST) ; babel-s5-16:/tmp/haisenk_v2d/runs/b_ep1_wh_K_s48/train/policy_100003840.safetensors ; local C:\\v2d_demo\\archive\\b_ep1_wh_K_s48\\policy_100003840.safetensors",
+   "sha256": "6aaab5d64f317cf5690f89f296114b12e5aebe33121fe950b925094ce1e51152",
+   "bytes": 5138792
+  },
+  {
+   "role": "final",
+   "kind": "rollout",
+   "name": "early_100003840/results/episode_000001.parquet (official evaluator output used for packing)",
+   "location": "Babel /data/user_data/haisenk/v2d/refine1104/ep1/adopt_s48/early_100003840/results/ ; babel-s5-16:/tmp/haisenk_v2d/runs/b_ep1_wh_K_s48/early_100003840/results/ ; local C:\\v2d_demo\\archive\\b_ep1_wh_K_s48\\results\\",
+   "sha256": "b3fbfe3b1e8cbab6b2ed2fe917c0822d2f3a291dae66272e431a0f678cc155b6",
+   "bytes": 100363
+  },
+  {
+   "role": "final",
+   "kind": "rollout_metrics",
+   "name": "early_100003840/results/episode_000001.json (own-ref add_auc 0.8300 [0.913, 0.747]) + results/hydra/",
+   "location": "same three places as the rollout",
+   "sha256": "6758a34f5d4d20636411647002c533a55a3e0ac27e46b2182a1a066b8ea938a9",
+   "bytes": 2363
+  },
+  {
+   "role": "final",
+   "kind": "packed_parquet",
+   "name": "one.parquet (ep1 rows only, 670 rows; pack_one.sh; code_commit_url = bob1 commit 1689cf63)",
+   "location": "Babel ~/v2d_ops/kenc/final1104/b_ep1_wh_K_s48/one.parquet (re-hashed 4 Nov 14:19 EST) ; local C:\\v2d_demo\\archive\\b_ep1_wh_K_s48\\babel\\one.parquet",
+   "sha256": "7150f4e5764d15ad30824bda8720054288a63055eb32ea4cd21a1e82529d3276",
+   "bytes": 225201
+  },
+  {
+   "role": "final",
+   "kind": "training_log",
+   "name": "b_ep1_wh_K_s48 train.log",
+   "location": "Babel /data/user_data/haisenk/v2d/refine1104/ep1/adopt_s48/train.log ; babel-s5-16:/tmp/haisenk_v2d/runs/b_ep1_wh_K_s48/train.log ; local archive",
+   "sha256": "0a0c88fd71c7779e08ca68bfc9bdd9232323573929e9cc0617ad729a58af0cf1",
+   "bytes": 20256
+  },
+  {
+   "role": "final",
+   "kind": "run_records",
+   "name": "recipe.txt / sweep.json / best.txt (also copied into training/ of this part)",
+   "location": "Babel /data/user_data/haisenk/v2d/refine1104/ep1/adopt_s48/ ; babel-s5-16 run dir ; local archive",
+   "sha256": {
+    "recipe.txt": "b3bb4ab8f3ca80826685e44608e4dd37eb046aebfffd03c9b91210f1d23f1479",
+    "sweep.json": "faedcd1795c4911c7ddbb6057bf5550889afb5d983f7036f4815d3f4c98a6e74",
+    "best.txt": "1aa568d89e80ef43c647cd9b2bccf708e50ce491329b55c852cc60bc665f05db"
+   }
+  },
+  {
+   "role": "final_context",
+   "kind": "sweep_rollouts",
+   "name": "b_ep1_wh_K_s48 checkpoint sweep rollouts 70M-100M",
+   "location": "babel-s5-16:/tmp/haisenk_v2d/runs/b_ep1_wh_K_s48/early_<step>/results/ ; local C:\\v2d_demo\\diag\\refine1104\\ep1\\in_wh\\b_ep1_wh_K_s48\\",
+   "files": [
+    {
+     "path": "early_70004736/results/episode_000001.parquet",
+     "sha256": "d645451339306633968a3e0ec846b9ec5797ceac604080b7d98745294d3a9b06"
+    },
+    {
+     "path": "early_75005952/results/episode_000001.parquet",
+     "sha256": "8e8f1205fb553e601bf87f2314ce8997315a9f0f88148a3c272249cae1b4a15f"
+    },
+    {
+     "path": "early_80003072/results/episode_000001.parquet",
+     "sha256": "585ce57b02ad8211a02be60a6cde85e6a72915dafd688b1a949b8a598d42a292"
+    },
+    {
+     "path": "early_85004288/results/episode_000001.parquet",
+     "sha256": "8756b29729729b7a81f058f6ccd023af852ab05182f8cd07492157d1fe098be9"
+    },
+    {
+     "path": "early_90005504/results/episode_000001.parquet",
+     "sha256": "0fc20a3d7f35c2b534f87c74d6c6a8c0476e451a44f1ed221e833a16da9ccec3"
+    },
+    {
+     "path": "early_95006720/results/episode_000001.parquet",
+     "sha256": "155e290d06148529e5ca3be3aaf16543c2a1ff252732fc6932792192bd7b0545"
+    },
+    {
+     "path": "early_100003840/results/episode_000001.parquet",
+     "sha256": "b3fbfe3b1e8cbab6b2ed2fe917c0822d2f3a291dae66272e431a0f678cc155b6"
+    }
+   ]
+  },
+  {
+   "role": "final_context",
+   "kind": "policy",
+   "name": "b_ep1_wh_K_s48 policy_95006720.safetensors (neighbouring checkpoint; also passes the selection rule; not the pick)",
+   "location": "Babel /data/user_data/haisenk/v2d/refine1104/ep1/adopt_s48/train/policy_95006720.safetensors ; babel-s5-16 run dir",
+   "sha256": "581b0cb28ce9df3e7f256b68a42672db28acb7f0ef881bb85bb5c3634f87ed1f",
+   "bytes": 5138792
+  },
+  {
+   "role": "parent",
+   "kind": "upstream_bundle",
+   "name": "Wentao scored20_contactshape_proxy_mix_v1_20261103, episode_000001 (objects white_pot + white_pot_lid, camera, support_v1 spec, tools/install_support.py)",
+   "location": "HF dataset rose-tea-cafe/v2d-t3-recon @ revision fb11a3ce: experiments/wentacc/scored20_contactshape_proxy_mix_v1_20261103/scenes/episode_000001/{bundle,support_v1} and .../tools/install_support.py (our working copy was node-local Babel /scratch/haisenk-v2d/wentao_mix_20261103/, no longer reachable)",
+   "sha256": null,
+   "note": "not re-hashed here; not ours (teammate's release)"
+  },
+  {
+   "role": "parent",
+   "kind": "raw_hands",
+   "name": "our raw (pre-cleanup) hands, ken_c_scored_attach/bundle_merged/result.npz, episode 1",
+   "location": "Babel /data/user_data/haisenk/v2d/v2d_train/baseline/reconstruction/data/outputs/load_retarget/episode_000001/ken_c_scored_attach/bundle_merged/result.npz",
+   "sha256": "a44038b7e9ff9cd3a5e92a8b0e912cc98c504a3ad5861a60a7299f31ac9b92ea"
+  },
+  {
+   "role": "parent",
+   "kind": "prepared_bundle",
+   "name": "w_hold_ep1 input bundle = wprep.py rawhands output (Wentao's bundle dir with every hand_* array replaced by the raw hands in his world)",
+   "location": "HF rose-tea-cafe/v2d-t3-recon experiments/haisenk/hand_fixes_wentao_v1_20261103/episode_000001/bundle/ (LFS sha256 checked 4 Nov 14:3x) ; Babel /data/user_data/haisenk/v2d/hand5_backup_20261103/hand5w/bundles/w_hold_ep1/",
+   "sha256": "115a06572edd3a67b07a545dd4232f0ee43bb6428d4acbb0eb50d01a4e550510",
+   "sha256_of": "result.npz"
+  },
+  {
+   "role": "parent",
+   "kind": "scene_as_built",
+   "name": "w_hold_ep1 as built on 3 Nov 00:52 EST (before relocate_scene.py)",
+   "location": "HF rose-tea-cafe/v2d-t3-recon experiments/haisenk/hand_fixes_wentao_v1_20261103/episode_000001/scene/ ; Babel /data/user_data/haisenk/v2d/hand5_backup_20261103/hand5w/scenes/w_hold_ep1 (+ w_hold_ep1.log, w_hold_ep1.support.log)",
+   "sha256": "31d10a3fdc8582f881a09305742ea9cb99d9dd2ba72614e7c2813fe1bc37c136",
+   "sha256_of": "processed parquet (as built)"
+  },
+  {
+   "role": "parent",
+   "kind": "control_scene",
+   "name": "w_ctl_ep1 (Wentao's ep1 bundle as delivered; source of the support_v1 table copied into w_hold_ep1)",
+   "location": "Babel /data/user_data/haisenk/v2d/hand5_backup_20261103/hand5w/scenes/w_ctl_ep1 (+ w_ctl_ep1.log, w_ctl_ep1.support.log)",
+   "sha256": "3486b2c7015dc4c12122db29f8561c215869e2839cfea03ce4e251770d71c1c7",
+   "sha256_of": "reconstructed_stage/ep1_hw_w_ctl_ep1_sharpa_wave_support.usda (byte-identical to w_hold_ep1's support usda)"
+  },
+  {
+   "role": "submitted_T2",
+   "kind": "policy",
+   "name": "o_ep1_hold_s44 policy_100003840.safetensors (T2; orchard, team gpu_queue.sh @1a6bae7b, seed 44)",
+   "location": "local C:\\v2d_demo\\archive\\o_ep1_hold_s44\\policy_100003840.safetensors ; local C:\\v2d_demo\\handoff\\ep1_ep5_20261104\\episode_000001\\policy_100003840.safetensors",
+   "sha256": "969b9cef527814ed9c5138dc82f68fdb9a1097e746f122d5a8ed28a56b1c8820",
+   "bytes": 5138792
+  },
+  {
+   "role": "submitted_T2",
+   "kind": "rollout",
+   "name": "o_ep1_hold_s44 results/episode_000001.parquet (own-ref 0.7874 [0.900, 0.675])",
+   "location": "local C:\\v2d_demo\\archive\\o_ep1_hold_s44\\results\\ ; handoff episode_000001\\results\\ ; = C:\\v2d_demo\\diag\\ep1_verify\\synthesis\\in\\adopt_roll.parquet",
+   "sha256": "bf5e57c42eb6c31cc32c90e4fc8bec26cc7bad445673a0778ffff41c608765e6"
+  },
+  {
+   "role": "submitted_T2",
+   "kind": "packed_parquet",
+   "name": "o_ep1_hold_s44 one.parquet (ep1 rows of T2 and of the team's combined entry)",
+   "location": "local C:\\v2d_demo\\archive\\o_ep1_hold_s44\\babel\\one.parquet ; Babel ~/v2d_ops/kenc/tests/o_ep1_hold_s44/",
+   "sha256": "27dba3341a02e7e1ef42cd7906452e9e0b29e53bfd7d7ff60af7807b59302e41",
+   "bytes": 225127
+  },
+  {
+   "role": "submitted_T2",
+   "kind": "submission_file",
+   "name": "T2 swap-test file (bob1 + ep1 <- o_ep1_hold_s44), submitted 3 Nov 22:44 EST, Kaggle refs 57969833-57969844",
+   "location": "local C:\\v2d_demo\\archive\\o_ep1_hold_s44\\babel\\track3_submission.parquet (+ .cd-o.parquet, kaggle-receipt.json, pack/dryrun/submit logs)",
+   "sha256": "d7c31578ffa08bb5de3d5eea268eb0aa556e0813bd4958ec9ba6691599e2ade1"
+  },
+  {
+   "role": "submitted_T2",
+   "kind": "kaggle_receipt",
+   "name": "track3_submission.parquet.56330a38f989.kaggle-receipt.json",
+   "location": "local C:\\v2d_demo\\archive\\o_ep1_hold_s44\\babel\\ ; handoff episode_000001\\kaggle_T2\\",
+   "sha256": "73ff20ca98129aa759cd3d77e5825ff93d2efd881b9fd0e85132949382c3f265"
+  },
+  {
+   "role": "analysis_input",
+   "kind": "emulator_inputs",
+   "name": "ep1 emulator input dir (syn_lib IN): rollouts, packed meshes, stand-in meshes, depth-ICP truth",
+   "location": "local C:\\v2d_demo\\diag\\ep1_verify\\synthesis\\in\\",
+   "files": [
+    {
+     "path": "adopt_roll.parquet",
+     "sha256": "bf5e57c42eb6c31cc32c90e4fc8bec26cc7bad445673a0778ffff41c608765e6",
+     "note": "T2 rollout (baseline of the rule)"
+    },
+    {
+     "path": "adopt_one.parquet",
+     "sha256": "27dba3341a02e7e1ef42cd7906452e9e0b29e53bfd7d7ff60af7807b59302e41",
+     "note": "T2 packed rows; submitted pot/lid meshes MA"
+    },
+    {
+     "path": "o44_100003840.parquet",
+     "sha256": "a9b39586e1a3e12ba1c9409d239e2a33aa35708fb9058f3c10abacdb85bc8270",
+     "note": "T2 checkpoint re-evaluated (noise yardstick)"
+    },
+    {
+     "path": "cand_roll.parquet",
+     "sha256": "bb69d0da3609c1dea103d50bc2c785a2eec8481669bc08ae5b5e4688c5c63c72",
+     "note": "r_ep1_rl_K_s43 @95M rollout; only its frame-0 reference is used (table normal of the re-levelled world)"
+    },
+    {
+     "path": "w_pot.obj",
+     "sha256": "5f97106bc9d2be8ec57225d8ccb0615cdc69fc4ebd3e2887eaf0a7743e68b686",
+     "note": "= w_hold_ep1 score_input white_pot.obj"
+    },
+    {
+     "path": "w_lid.obj",
+     "sha256": "3a89fa0db9483a75968f16fac599d43a21c9eec78cd0dcb9bf358beb02977a22",
+     "note": "= w_hold_ep1 score_input white_pot_lid.obj"
+    },
+    {
+     "path": "rl_pot.obj",
+     "sha256": "4b3c961aa8f73c7dd3f4e22f6ecef8b517d5d39960b60648e65ce09f4a8087a5",
+     "note": "pot trimmed 2.07 cm rim-fixed (end point of the GT-pot stand-in family)"
+    },
+    {
+     "path": "base_truth.json",
+     "sha256": "3cc3b1667dcbd0e76b0ed88deaf8759da4f9e6c27f622643f91d7601792b6db3",
+     "note": "'jb' truth: depth-ICP-refined object track"
+    },
+    {
+     "path": "AUC_kit.py",
+     "sha256": "3f1a98997f25e521e6ee14f1bdb58ade47f73963fb190b3d9695b4472e78022a",
+     "note": "organisers' Kaggle metric code (participant copy, md5 93a20d94...): NOT ours, do not redistribute; get it from the kit metric_code/track_3/AUC.py"
+    },
+    {
+     "path": "bob1_roll.parquet",
+     "sha256": "3a62f1d09045ad94dfcecdf1e81b44b46474f215ad329d16e5683c3b199af463",
+     "note": "emu_boards.py only"
+    },
+    {
+     "path": "o44_95006720.parquet",
+     "sha256": "6e8606a3b883c08c1e451b065e1b1effc8d9c9ea14498ab0aafb31bcfc8ac34c",
+     "note": "emu_boards.py only"
+    },
+    {
+     "path": "o44_90005504.parquet",
+     "sha256": "866c2128dbc4e27885847cadf68b1352ed75544acf074551fc4d5625325606ff",
+     "note": "emu_boards.py only"
+    },
+    {
+     "path": "cand_one.parquet",
+     "sha256": "c7b3d846665dd5fb517606841abea1ae1cb3bed0806441b67063d02e7b470b78",
+     "note": "emu_boards.py only"
+    },
+    {
+     "path": "sub_T3_ep5.parquet",
+     "sha256": "1cd6f8e70526c9e25677d2472cb9e6eec0bf1d32c0ebd7e25bbc0887eb35bcfc",
+     "note": "emu_boards.py only (bob1 ep1 meshes)"
+    }
+   ]
+  },
+  {
+   "role": "analysis_input",
+   "kind": "seed_rollouts",
+   "name": "new-seed rollouts on w_hold_ep1 used by s1_select.py (s45-s50) and ep1_final_select.py (s51-s56)",
+   "location": "local C:\\v2d_demo\\diag\\refine1104\\ep1\\in_wh\\wh_rollouts.tgz (+ extracted dirs) ; local C:\\v2d_demo\\diag\\refine1104\\wrapup\\ep1_final\\in_wh\\wh_new_rollouts_130739.tgz (+ extracted dirs) ; originals in babel-s5-16:/tmp/haisenk_v2d/runs/b_ep1_wh_K_s4[5-9],s5[0-6]/",
+   "files": [
+    {
+     "path": "refine1104/ep1/in_wh/wh_rollouts.tgz",
+     "sha256": "545a001a73e92772ae68504b314c745470743e9b89863b0e903c617ec0e039be",
+     "bytes": 1042129
+    },
+    {
+     "path": "refine1104/wrapup/ep1_final/in_wh/wh_new_rollouts_130739.tgz",
+     "sha256": "74f420e2f7dba2672c547e1710844c958275fd95dabd8217029ad4a9f454ef80"
+    },
+    {
+     "path": "b_ep1_wh_K_s50/early_100003840/results/episode_000001.parquet",
+     "sha256": "10f9123336b222e3e47fb72dfb4f3e17bca8b7bee2b324271a661784f54c5ef4"
+    },
+    {
+     "path": "b_ep1_wh_K_s56/early_100003840/results/episode_000001.parquet",
+     "sha256": "88897a4c48a4d262060f876f9ac02ec66f0bb831cf3362fd22b200ecb8455901"
+    },
+    {
+     "path": "b_ep1_wh_K_s47/early_95006720/results/episode_000001.parquet",
+     "sha256": "4fc6d9a4d0ec29cf91e12b66dc8d37f5c4741cd043050d988607536066adef2c"
+    }
+   ]
+  }
+ ]
+}

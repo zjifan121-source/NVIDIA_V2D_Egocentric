@@ -1,0 +1,30 @@
+--- scene_build/scenefix.py (exact version used for sf_ep3, 4 Nov 05:10:54Z write, md5 7f19b50d)
++++ C:/v2d_demo/cupfix/scenefix.py = orchard/Babel tools/scenefix.py (final version, 4 Nov 01:49 EST, md5 d3ca0eeb)
+@@ -31,7 +31,7 @@
+ RELOCATE = os.environ.get("RELOCATE", os.path.expanduser("~/v2d_orchard/relocate_scene.py"))
+ 
+ if os.path.exists(OUT): sys.exit(f"{OUT} exists; refusing to overwrite")
+-shutil.copytree(SCENE, OUT, symlinks=False)
++shutil.copytree(SCENE, OUT, symlinks=True)
+ pqf = sorted(glob.glob(f"{OUT}/assets/human_motion_data/ego_recon/processed/sequence_id=*/robot_name=*/*.parquet"))[-1]
+ t = pq.read_table(pqf, columns=["object_body_names", "object_body_position", "object_body_wxyz"])
+ names = list(t.column("object_body_names")[0].as_py())
+@@ -91,7 +91,7 @@
+     sm2.export(stl); files["visual_stl"] = len(sm.vertices)
+     for so in glob.glob(f"{OUT}/score_input/meshes/episode_*/{obj}.obj"): files["score_obj"] = fix_obj_file(so)
+     nproc = sum(1 for ln in open(f"{SCENE}/assets/human_motion_data/ego_recon/processed/{seq}_{obj}.obj") if ln.startswith("v "))
+-    for bm in glob.glob(f"{OUT}/bundle_cleaned/mesh*.obj"):
++    for bm in [p for p in glob.glob(f"{OUT}/bundle_cleaned/mesh*.obj") if os.path.isfile(p) and not os.path.islink(p)]:
+         if sum(1 for ln in open(bm) if ln.startswith("v ")) == nproc:
+             bv = np.asarray(trimesh.load(bm, force="mesh", process=False).vertices)
+             if np.abs(bv.min(0) - V.min(0)).max() < 1e-3 and np.abs(bv.max(0) - V.max(0)).max() < 1e-3:
+@@ -104,7 +104,8 @@
+ 
+ for spec in TOPS:
+     prim, topz = spec.split(":"); topz = float(topz)
+-    m = re.search(r'def Cylinder "%s"[^{]*\{(.*?)\n    \}' % re.escape(prim), usd_txt, re.S)
++    m = re.search(r'def Cylinder "%s"[^{]*\{(.*?)\n[ \t]*\}' % re.escape(prim), usd_txt, re.S)   # any indentation
++    if m is None: sys.exit(f"support prim {prim} not found in {usd}")
+     body = m.group(1); hgt = float(re.search(r"double height = ([-\d.e]+)", body).group(1))
+     tr = re.search(r"xformOp:translate = \(([^)]+)\)", body).group(1); x, y, z = [float(s) for s in tr.split(",")]
+     body2 = body.replace(f"xformOp:translate = ({tr})", f"xformOp:translate = ({x}, {y}, {topz - hgt / 2})")

@@ -1,0 +1,554 @@
+{
+ "t0.00_ref": {
+  "adopt_T2_100M": {
+   "auc": 0.8038,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 3.7526,
+   "mppe_cm": 2.4996,
+   "mean_pos_cm": [
+    1.55,
+    3.43
+   ],
+   "mean_rot_deg": [
+    2.29,
+    5.3
+   ]
+  },
+  "o44_95M": {
+   "auc": 0.8029,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 3.5021,
+   "mppe_cm": 2.5244,
+   "mean_pos_cm": [
+    1.74,
+    3.29
+   ],
+   "mean_rot_deg": [
+    2.26,
+    3.93
+   ]
+  },
+  "o44_90M": {
+   "auc": 0.8029,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 3.5744,
+   "mppe_cm": 2.5404,
+   "mean_pos_cm": [
+    1.64,
+    3.42
+   ],
+   "mean_rot_deg": [
+    2.28,
+    4.13
+   ]
+  },
+  "o44_100M_reeval": {
+   "auc": 0.7871,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 4.2275,
+   "mppe_cm": 2.6467,
+   "mean_pos_cm": [
+    1.82,
+    3.45
+   ],
+   "mean_rot_deg": [
+    2.73,
+    4.64
+   ]
+  },
+  "cand_r43_95M": {
+   "auc": 0.7679,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 4.0622,
+   "mppe_cm": 2.8187,
+   "mean_pos_cm": [
+    1.91,
+    3.7
+   ],
+   "mean_rot_deg": [
+    2.57,
+    6.56
+   ]
+  },
+  "bob1": {
+   "auc": 0.7709,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 5.1001,
+   "mppe_cm": 3.1244,
+   "mean_pos_cm": [
+    1.62,
+    4.57
+   ],
+   "mean_rot_deg": [
+    3.09,
+    9.32
+   ]
+  }
+ },
+ "t0.00_jb": {
+  "adopt_T2_100M": {
+   "auc": 0.8012,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 3.7103,
+   "mppe_cm": 2.5096,
+   "mean_pos_cm": [
+    1.94,
+    3.04
+   ],
+   "mean_rot_deg": [
+    3.66,
+    5.94
+   ]
+  },
+  "o44_95M": {
+   "auc": 0.8103,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.4887,
+   "mppe_cm": 2.4609,
+   "mean_pos_cm": [
+    2.15,
+    2.74
+   ],
+   "mean_rot_deg": [
+    3.55,
+    4.91
+   ]
+  },
+  "o44_90M": {
+   "auc": 0.8082,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.5936,
+   "mppe_cm": 2.4967,
+   "mean_pos_cm": [
+    2.02,
+    2.93
+   ],
+   "mean_rot_deg": [
+    3.72,
+    5.23
+   ]
+  },
+  "o44_100M_reeval": {
+   "auc": 0.7946,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 4.2804,
+   "mppe_cm": 2.5966,
+   "mean_pos_cm": [
+    2.19,
+    2.96
+   ],
+   "mean_rot_deg": [
+    3.99,
+    5.41
+   ]
+  },
+  "cand_r43_95M": {
+   "auc": 0.7934,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 3.6312,
+   "mppe_cm": 2.6268,
+   "mean_pos_cm": [
+    2.15,
+    3.06
+   ],
+   "mean_rot_deg": [
+    3.5,
+    7.22
+   ]
+  },
+  "bob1": {
+   "auc": 0.773,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 5.0528,
+   "mppe_cm": 3.1149,
+   "mean_pos_cm": [
+    1.99,
+    4.17
+   ],
+   "mean_rot_deg": [
+    3.73,
+    10.03
+   ]
+  }
+ },
+ "t0.00_seat": {
+  "adopt_T2_100M": {
+   "auc": 0.8658,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 2.9907,
+   "mppe_cm": 1.9919,
+   "mean_pos_cm": [
+    1.55,
+    2.41
+   ],
+   "mean_rot_deg": [
+    2.29,
+    5.29
+   ]
+  },
+  "o44_95M": {
+   "auc": 0.8816,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 2.644,
+   "mppe_cm": 1.8434,
+   "mean_pos_cm": [
+    1.74,
+    1.92
+   ],
+   "mean_rot_deg": [
+    2.26,
+    3.89
+   ]
+  },
+  "o44_90M": {
+   "auc": 0.8822,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 2.7265,
+   "mppe_cm": 1.8805,
+   "mean_pos_cm": [
+    1.64,
+    2.09
+   ],
+   "mean_rot_deg": [
+    2.28,
+    4.1
+   ]
+  },
+  "o44_100M_reeval": {
+   "auc": 0.8641,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.296,
+   "mppe_cm": 1.9953,
+   "mean_pos_cm": [
+    1.82,
+    2.14
+   ],
+   "mean_rot_deg": [
+    2.73,
+    4.57
+   ]
+  },
+  "cand_r43_95M": {
+   "auc": 0.8476,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.2382,
+   "mppe_cm": 2.1738,
+   "mean_pos_cm": [
+    1.91,
+    2.4
+   ],
+   "mean_rot_deg": [
+    2.57,
+    6.01
+   ]
+  },
+  "bob1": {
+   "auc": 0.8299,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 4.2171,
+   "mppe_cm": 2.5862,
+   "mean_pos_cm": [
+    1.62,
+    3.47
+   ],
+   "mean_rot_deg": [
+    3.09,
+    9.04
+   ]
+  }
+ },
+ "t2.07_ref": {
+  "adopt_T2_100M": {
+   "auc": 0.8586,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.2867,
+   "mppe_cm": 2.0548,
+   "mean_pos_cm": [
+    1.61,
+    2.47
+   ],
+   "mean_rot_deg": [
+    2.31,
+    4.72
+   ]
+  },
+  "o44_95M": {
+   "auc": 0.8711,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.0098,
+   "mppe_cm": 1.948,
+   "mean_pos_cm": [
+    1.78,
+    2.09
+   ],
+   "mean_rot_deg": [
+    2.27,
+    3.02
+   ]
+  },
+  "o44_90M": {
+   "auc": 0.8643,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.103,
+   "mppe_cm": 2.0166,
+   "mean_pos_cm": [
+    1.66,
+    2.35
+   ],
+   "mean_rot_deg": [
+    2.29,
+    2.97
+   ]
+  },
+  "o44_100M_reeval": {
+   "auc": 0.836,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.7924,
+   "mppe_cm": 2.2211,
+   "mean_pos_cm": [
+    1.86,
+    2.56
+   ],
+   "mean_rot_deg": [
+    2.74,
+    3.71
+   ]
+  },
+  "cand_r43_95M": {
+   "auc": 0.8841,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 2.6207,
+   "mppe_cm": 1.8185,
+   "mean_pos_cm": [
+    1.9,
+    1.71
+   ],
+   "mean_rot_deg": [
+    2.56,
+    2.79
+   ]
+  },
+  "bob1": {
+   "auc": 0.7916,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 5.031,
+   "mppe_cm": 2.9719,
+   "mean_pos_cm": [
+    1.66,
+    4.23
+   ],
+   "mean_rot_deg": [
+    3.07,
+    8.66
+   ]
+  }
+ },
+ "t2.07_jb": {
+  "adopt_T2_100M": {
+   "auc": 0.8326,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.6442,
+   "mppe_cm": 2.3077,
+   "mean_pos_cm": [
+    2.03,
+    2.55
+   ],
+   "mean_rot_deg": [
+    3.66,
+    4.9
+   ]
+  },
+  "o44_95M": {
+   "auc": 0.853,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.4838,
+   "mppe_cm": 2.0933,
+   "mean_pos_cm": [
+    2.23,
+    1.92
+   ],
+   "mean_rot_deg": [
+    3.57,
+    3.89
+   ]
+  },
+  "o44_90M": {
+   "auc": 0.8458,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.5682,
+   "mppe_cm": 2.2026,
+   "mean_pos_cm": [
+    2.08,
+    2.29
+   ],
+   "mean_rot_deg": [
+    3.72,
+    4.0
+   ]
+  },
+  "o44_100M_reeval": {
+   "auc": 0.8199,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 4.2217,
+   "mppe_cm": 2.3976,
+   "mean_pos_cm": [
+    2.28,
+    2.48
+   ],
+   "mean_rot_deg": [
+    4.0,
+    4.08
+   ]
+  },
+  "cand_r43_95M": {
+   "auc": 0.8624,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.031,
+   "mppe_cm": 1.9859,
+   "mean_pos_cm": [
+    2.2,
+    1.73
+   ],
+   "mean_rot_deg": [
+    3.48,
+    4.65
+   ]
+  },
+  "bob1": {
+   "auc": 0.787,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 5.1628,
+   "mppe_cm": 3.0325,
+   "mean_pos_cm": [
+    2.02,
+    3.97
+   ],
+   "mean_rot_deg": [
+    3.73,
+    8.66
+   ]
+  }
+ },
+ "t2.07_seat": {
+  "adopt_T2_100M": {
+   "auc": 0.8736,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.169,
+   "mppe_cm": 1.914,
+   "mean_pos_cm": [
+    1.61,
+    2.19
+   ],
+   "mean_rot_deg": [
+    2.31,
+    4.96
+   ]
+  },
+  "o44_95M": {
+   "auc": 0.8953,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 2.9138,
+   "mppe_cm": 1.706,
+   "mean_pos_cm": [
+    1.78,
+    1.6
+   ],
+   "mean_rot_deg": [
+    2.27,
+    3.47
+   ]
+  },
+  "o44_90M": {
+   "auc": 0.8896,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 2.9856,
+   "mppe_cm": 1.8246,
+   "mean_pos_cm": [
+    1.66,
+    1.96
+   ],
+   "mean_rot_deg": [
+    2.29,
+    3.41
+   ]
+  },
+  "o44_100M_reeval": {
+   "auc": 0.8587,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 3.6228,
+   "mppe_cm": 2.0537,
+   "mean_pos_cm": [
+    1.86,
+    2.23
+   ],
+   "mean_rot_deg": [
+    2.74,
+    3.98
+   ]
+  },
+  "cand_r43_95M": {
+   "auc": 0.893,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 2.7787,
+   "mppe_cm": 1.7192,
+   "mean_pos_cm": [
+    1.9,
+    1.51
+   ],
+   "mean_rot_deg": [
+    2.56,
+    3.0
+   ]
+  },
+  "bob1": {
+   "auc": 0.8148,
+   "spider_sr": 1.0,
+   "maniptrans_sr": 0.0,
+   "rpe_cm": 4.732,
+   "mppe_cm": 2.7786,
+   "mean_pos_cm": [
+    1.66,
+    3.83
+   ],
+   "mean_rot_deg": [
+    3.07,
+    8.31
+   ]
+  }
+ }
+}

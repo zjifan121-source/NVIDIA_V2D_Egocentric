@@ -1,0 +1,5 @@
+/home/haisenk/v2d_ops/kenc/tests/h_ep3_sc_K_s42/track3_submission.parquet: 9,120 rows over 20 episodes, 2,589,569 B - looks valid
+Track 3 - Egocentric: 1 leaderboard(s)
+  add_auc          v2d-challenge-track3-auc                 9 left today
+
+--dry-run: nothing submitted.

@@ -1,0 +1,93 @@
+{
+ "sequence_id": "ep5_hw_w7_attcom_ep5",
+ "episode": 5,
+ "object": null,
+ "bundle": "/scratch/haisenk-v2d/hand5w/bundles/w7_attcom_ep5",
+ "fps": 20.25411910142744,
+ "ground_z_offset": 1.0,
+ "started_utc": "2026-11-03T23:39:59+00:00",
+ "bundle_check": {
+  "frames": 288,
+  "nan_arrays": [],
+  "valid_fraction": {
+   "camera": 1.0,
+   "object": 1.0,
+   "hand_left": 1.0,
+   "hand_right": 1.0
+  },
+  "hand_scale_mean": {
+   "left": 0.8717460036277771,
+   "right": 0.8976998925209045
+  },
+  "gravity_alignment_applied": true,
+  "object_drift_first_30_frames_cm": 2.86,
+  "object_step_median_cm": 0.49,
+  "first_still_frame": 279,
+  "mesh_vertices": 5520,
+  "mesh_extents_cm": [
+   35.8,
+   19.3,
+   11.8
+  ],
+  "rest_footprint_cm": [
+   11.6,
+   5.9
+  ],
+  "warnings": [
+   "object never holds still (<1 mm, <0.6 deg per frame for 5 frames) in the first 30 frames: no table is built under it, so it falls in simulation"
+  ]
+ },
+ "cleaning": {
+  "hand_left_refilled_frames": 0,
+  "hand_right_refilled_frames": 7,
+  "hand_smooth_sigma_frames": 2.0,
+  "attach_rule": "nearest within reach",
+  "attached_0": [
+   [
+    "left",
+    27,
+    223,
+    2.6
+   ]
+  ],
+  "attached_1": [
+   [
+    "right",
+    41,
+    253,
+    2.0
+   ]
+  ],
+  "hand_left_attached_frames": 196,
+  "hand_right_attached_frames": 212
+ },
+ "output_check": {
+  "frames": 288,
+  "fps": 20.254119873046875,
+  "task_error_cm": {
+   "right": {
+    "mean": 1.96,
+    "max": 5.37
+   },
+   "left": {
+    "mean": 1.69,
+    "max": 3.87
+   }
+  },
+  "penetration_frames": {
+   "any": 0.566,
+   "over_1cm": 0.0,
+   "over_2cm": 0.0
+  },
+  "support_disks": 1,
+  "frame0_seating_cm": [
+   0.0,
+   1.07
+  ],
+  "warnings": []
+ },
+ "processed": "/scratch/haisenk-v2d/hand5w/scenes/w7_attcom_ep5/assets/human_motion_data/ego_recon/processed/sequence_id=ep5_hw_w7_attcom_ep5/robot_name=sharpa_wave",
+ "support_usd": "/scratch/haisenk-v2d/hand5w/scenes/w7_attcom_ep5/assets/human_motion_data/ego_recon/reconstructed_stage/ep5_hw_w7_attcom_ep5_sharpa_wave_support.usda",
+ "video": null,
+ "finished_utc": "2026-11-03T23:44:34+00:00"
+}

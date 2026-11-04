@@ -1,0 +1,15 @@
+{
+ "written": "2026-11-04 12:14 EST (retry agent), BEFORE any rf_ep8_ds rollout was fetched or scored. Only the training-queue own-ref sweep lines (kq_stat_b.sh, 12:10) were seen: rf_ep8_ds_K_s42 best 0.988 @85M, K_s43 0.990 @95M, K_s44 0.987 @90M.",
+ "source": "Rule unchanged from notes.md 'Judge plan' item 4 (pre-registered 10:51 EST by the first attempt, before the rf runs started). Below it is only restated with the numeric thresholds that follow from judge_family.json (adopted family, scored 11:15).",
+ "rollouts_judged": "sweep-best checkpoint of each rf run (best.txt), fetched with babel/b4_fetch.sh semantics (md5 checked). Scored with judge_ep8.py, all five stand-ins: REF|t6cup (primary), REF_DS|t6cup, REF|b1cup (= REF_B1), SEAT|t6cup, RAY|t6cup.",
+ "T6": "h_ep8_sc_K_s42 @100003840 (judge_family.json)",
+ "recommend_rf_over_T6_only_if_ALL": {
+  "a_mechanism": "cup ADD median in window 'burst f62-69' under REF|t6cup < 2.0 cm in >= 2 of the 3 rf seeds (T6 4.76 cm; adopted KEN seeds 3.36-4.76; W_s42 2.29)",
+  "b_family": "mean REF|t6cup add_auc of the 3 rf seeds >= mean of the 4 adopted KEN seeds (0.95691, 0.96119, 0.95662, 0.95833 -> 0.958263) + 0.004 = 0.962263",
+  "c_candidate": "chosen rf seed = the one with the best REF|t6cup add_auc; it must reach >= T6 + 0.005 = 0.96191 under REF|t6cup AND be >= T6 - 0.003 under each other stand-in: REF_DS 0.95733 -> >= 0.95433; REF_B1 0.96219 -> >= 0.95919; SEAT 0.93936 -> >= 0.93636; RAY 0.94406 -> >= 0.94106",
+  "d_no_new_failure": "for the chosen seed: spider_sr = maniptrans_sr = 1.0 under all five stand-ins; cup window lost shares 'blend-out+setdown+rest f176-218' and 'rest f0-31' each <= T6's + 0.002 and the summed pot window lost share <= T6's + 0.003. Interpretation fixed now (the 10:51 text does not name the stand-in for the window clauses): the strict reading, i.e. the window clauses must hold under EVERY stand-in. T6 values: cup end lost REF 0.0043, REF_DS 0.0043, REF_B1 0.0047, SEAT 0.0043, RAY 0.0043; rest0 lost 0.0000 everywhere; pot total lost REF 0.0120, REF_DS 0.0120, REF_B1 0.0070, SEAT 0.0276, RAY 0.0228",
+  "e_training_stability": "the chosen seed's own-ref sweep (sweep.json) best >= 0.94 and no collapse at 90-100M (every 90/95/100M checkpoint >= 0.94)"
+ },
+ "otherwise": "keep T6. Either way nothing is submitted (Ken's stop).",
+ "supplementary_not_deciding": "(1) the rf seeds' 100M rollouts scored under REF|t6cup to show checkpoint sensitivity; (2) anch.py anchored own-ref sanity (own reference differs between rf and T6, so not cross-comparable)."
+}

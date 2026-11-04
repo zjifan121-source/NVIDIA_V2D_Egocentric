@@ -1,0 +1,109 @@
+{
+ "part": "ep8_cup_despin",
+ "episode": 8,
+ "written": "2026-11-04 by the release staging agent (hashes computed from the local archive copies)",
+ "final_candidate": {
+  "scene": "rf_ep8_ds",
+  "policy": "rf_ep8_ds_K_s43@95006720",
+  "policy_sha256": "3d33ff6bdee2980766b84dfd239c83866de17544eff314daf24b35a4a0a5d9fc",
+  "packed_one_parquet_sha256": "6da1e7bf92856491de3bbca8ba47f1c2dee60ef0163d429c9bcecf43e3d46611",
+  "kaggle": "never submitted"
+ },
+ "kaggle_scored_ep8_rows": {
+  "scene": "sc_ep8",
+  "policy": "h_ep8_sc_K_s42@100003840",
+  "swap_test": "T6 AUC 0.75505 (+0.00339; ep8 +0.068)"
+ },
+ "items": [
+  {
+   "kind": "scene",
+   "location": "C:\\v2d_demo\\archive\\rf_ep8_ds_K_s43\\scene.tgz",
+   "sha256": "54b4c1676f3c4f429406e198d7fbc86e87caf61f0810dd7d13f082ee835b08ec",
+   "note": "FINAL ep8 scene rf_ep8_ds = tar of the trained-on installed copy (babel-s5-16 /tmp/haisenk_v2d/scenes/rf_ep8_ds; parquet md5 61cff60b, path columns point at that dir: run relocate_scene.py after unpacking elsewhere)"
+  },
+  {
+   "kind": "scene",
+   "location": "babel-s5-16:/tmp/haisenk_v2d/scenes/rf_ep8_ds",
+   "note": "trained-on copy, node-local; lost when holder job 10774619 ends (~6 Nov 00:03 EST). Same content as the scene.tgz above"
+  },
+  {
+   "kind": "scene",
+   "location": "babel:/data/user_data/haisenk/v2d/refine1104/ep8/rf_ep8_ds",
+   "note": "durable copy as built by merge_gates.py, before relocation (parquet md5 b09c4578bb3ca0689320cad7085f314c; its 3 path columns still point at /tmp/haisenk_v2d/scenes/sc_ep8 - relocate before use)"
+  },
+  {
+   "kind": "policy",
+   "location": "C:\\v2d_demo\\archive\\rf_ep8_ds_K_s43\\policy_95006720.safetensors",
+   "sha256": "3d33ff6bdee2980766b84dfd239c83866de17544eff314daf24b35a4a0a5d9fc",
+   "note": "FINAL ep8 policy rf_ep8_ds_K_s43 @ 95,006,720 (own-ref 0.9902). Also babel:/data/user_data/haisenk/v2d/refine1104/ep8/candidates/rf_ep8_ds_K_s43/policy_95006720.safetensors and babel-s5-16 /tmp/haisenk_v2d/runs/rf_ep8_ds_K_s43/train/"
+  },
+  {
+   "kind": "rollout",
+   "location": "C:\\v2d_demo\\archive\\rf_ep8_ds_K_s43\\results\\episode_000008.parquet",
+   "sha256": "bdcebcb2e199a080103573f831766ac9a4471613af285562a0fbab65de313067",
+   "note": "kit evaluator output of that checkpoint (+ episode_000008.json); the packed rows are its env-0 achieved poses"
+  },
+  {
+   "kind": "packed_parquet",
+   "location": "babel:/home/haisenk/v2d_ops/kenc/final1104/rf_ep8_ds_K_s43/one.parquet",
+   "sha256": "6da1e7bf92856491de3bbca8ba47f1c2dee60ef0163d429c9bcecf43e3d46611",
+   "note": "packed ep8 rows of the final candidate (438 rows, checkpoint_sha256 3d33ff6b..., commit URL 1689cf63...); local copy C:\\v2d_demo\\archive\\rf_ep8_ds_K_s43\\babel\\one.parquet (same sha256). NEVER submitted"
+  },
+  {
+   "kind": "archive_dir",
+   "location": "C:\\v2d_demo\\archive\\rf_ep8_ds_K_s43",
+   "note": "complete local archive of the final candidate (manifest.json, SHA256SUMS: scene.tgz, policy, results, sweep.json, best.txt, recipe.txt, train.log, babel/one.parquet + pack.log); also babel ~/v2d_ops/kenc/final1104/rf_ep8_ds_K_s43/archive/"
+  },
+  {
+   "kind": "intermediate",
+   "location": "babel:/data/user_data/haisenk/v2d/refine1104/ep8/despin_src/despin.parquet",
+   "note": "despin build parquet merged into rf_ep8_ds (md5 2ae8488e19c5bce2cfbbcc758347bd27; 1,352,340 B; sha256 not computed). Original on babel-t9-28 node-local /scratch/haisenk-v2d/diag/ep8_plan/despin/"
+  },
+  {
+   "kind": "intermediate",
+   "location": "babel:/data/user_data/haisenk/v2d/refine1104/ep8/despin_src/bundle_cleaned_result.npz",
+   "note": "despin build bundle_cleaned/result.npz copied into rf_ep8_ds (md5 266a5213cf9968ce68237d953a5bd642; sha256 not computed)"
+  },
+  {
+   "kind": "combined_parquet",
+   "location": "babel:/home/haisenk/v2d_ops/kenc/final1104/local_best/track3_submission.parquet",
+   "sha256": "5d1d534f4b3e6ba5dcd165203aebc001faa4f2823c78238b83e9df287e529edd",
+   "note": "all-episode local-best file (bob1 + ep1 + ep3 + ep5 + ep8 rf + ep10 NEST); kit dry-run only, NEVER submitted; shared with the other parts"
+  },
+  {
+   "kind": "parent_scene",
+   "location": "C:\\v2d_demo\\archive\\h_ep8_sc_K_s42\\scene.tgz",
+   "sha256": "803318f56efcca6b3f08c4999377d981ea287bf4d3a2faf38f1854ec68513c7a",
+   "note": "sc_ep8 (T6 scene; parent of rf_ep8_ds); also babel-s5-16 /tmp/haisenk_v2d/scenes/sc_ep8 and babel:/data/user_data/haisenk/v2d/refine1104/ep8/src_sc_ep8 (md5 list identical to the installed copy)"
+  },
+  {
+   "kind": "policy",
+   "location": "C:\\v2d_demo\\archive\\h_ep8_sc_K_s42\\policy_100003840.safetensors",
+   "sha256": "0ff463d1314e315c4106c7a449c6cb88aa1001a4301d6e7ae3dea61f9035bf44",
+   "note": "T6 policy h_ep8_sc_K_s42 @ 100,003,840 (own-ref 0.973) = the ep8 rows that were Kaggle-scored (swap test T6 AUC 0.75505; team entry 0.76526)"
+  },
+  {
+   "kind": "rollout",
+   "location": "C:\\v2d_demo\\archive\\h_ep8_sc_K_s42\\results\\episode_000008.parquet",
+   "sha256": "5b44b3250a3c219f206fb1e7074cec3afc81d0fe5f5a7537a72c39ed32a1126b",
+   "note": "T6 rollout (kit evaluator output)"
+  },
+  {
+   "kind": "packed_parquet",
+   "location": "C:\\v2d_demo\\archive\\h_ep8_sc_K_s42\\babel\\one.parquet",
+   "sha256": "2e5696d49a0dfcfe537610f95e034f188785d6741e86aa2a5ee405fc33e9c2ad",
+   "note": "T6 packed ep8 rows (438 rows; babel ~/v2d_ops/kenc/tests/h_ep8_sc_K_s42/one.parquet)"
+  },
+  {
+   "kind": "swap_test_file",
+   "location": "C:\\v2d_demo\\archive\\h_ep8_sc_K_s42\\babel\\track3_submission.parquet",
+   "sha256": "9c18eef8720816e4a44387e1e2d63dd73b9a7315b3558c0a4a0a3a9bf30efb47",
+   "note": "bob1 + T6 ep8 swap file as dry-run validated at 01:29 EST (babel ~/v2d_ops/kenc/tests/h_ep8_sc_K_s42/); the ~01:50 T6 submission receipt is not in the local records, so identity with the submitted file is not verified"
+  },
+  {
+   "kind": "parent_pointer",
+   "location": "babel:/data/user_data/haisenk/v2d/edmond_bob1/relocated/eb1_ep8",
+   "note": "bob1 ep8 scene (Edmond's candidate_bob1; HF rose-tea-cafe/v2d-t3-recon experiments/edmond/bob1_submission_20261103); bundle_merged/result.npz md5 c75cb24c63d3555f1ad5a013900f274f; released by Edmond, pointer only"
+  }
+ ]
+}

@@ -1,0 +1,16 @@
+{
+  "track": "track_3",
+  "file": "/home/haisenk/v2d_ops/kenc/tests/h_ep3_sc_K_s42/track3_submission.parquet",
+  "message": "Ken swap test T5 (AUC only): bob1 + ep3 <- h_ep3_sc_K_s42@95M (support at depth-measured table + pot COM at centroid; own-ref 0.947)",
+  "submissions": {
+    "add_auc": {
+      "slug": "v2d-challenge-track3-auc",
+      "state": "COMPLETE",
+      "file": "/home/haisenk/v2d_ops/kenc/tests/h_ep3_sc_K_s42/track3_submission.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - AUC",
+      "ref": 57974215,
+      "public_score": "0.75305",
+      "error": ""
+    }
+  }
+}

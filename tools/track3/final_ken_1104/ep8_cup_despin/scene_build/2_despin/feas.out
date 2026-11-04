@@ -1,0 +1,150 @@
+total 5248
+drwxr-sr-x 2 haisenk cx_group    4096 Oct 25 00:04 .
+drwxr-xr-x 4 haisenk haisenk       49 Nov  4 01:51 ..
+-rw-r--r-- 1 haisenk cx_group    6934 Oct 25 00:04 manifest.json
+-rw-r--r-- 1 haisenk cx_group     204 Oct 25 00:04 mesh.mtl
+-rw-r--r-- 1 haisenk cx_group 2210276 Oct 25 00:04 mesh.obj
+-rw-r--r-- 1 haisenk cx_group     206 Oct 25 00:04 mesh_1.mtl
+-rw-r--r-- 1 haisenk cx_group  614716 Oct 25 00:04 mesh_1.obj
+-rw-r--r-- 1 haisenk cx_group 1213012 Oct 25 00:04 mesh_1_material_0.png
+-rw-r--r-- 1 haisenk cx_group 1089568 Oct 25 00:04 mesh_material_0.png
+-rw-r--r-- 1 haisenk cx_group  212761 Oct 25 00:04 result.npz
+c75cb24c63d3555f1ad5a013900f274f  /scratch/haisenk-v2d/diag/ep8_plan/bundle_base/result.npz
+c75cb24c63d3555f1ad5a013900f274f  /data/user_data/haisenk/v2d/NVIDIA_V2D_Egocentric/baseline/reconstruction/data/outputs/load_retarget/episode_000008/ken_c_scored_attach/bundle_merged/result.npz
+13:# Diagnostics (pre/post wrist poses, j0, axes, holds) -> /scratch/haisenk-v2d/diag/ep8_plan/diag/<seq>.npz
+232:        dd = Path("/scratch/haisenk-v2d/diag/ep8_plan/diag")
+== build ctl 01:51:09
+BUILD FAILED ctl
+  $ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/retarget/ego_recon_to_sharpa.py --input_dir /scratch/haisenk-v2d/diag/ep8_plan/ctl/intermediate/ego_recon/loaded --output_dir /scratch/haisenk-v2d/diag/ep8_plan/ctl/assets/human_motion_data/ego_recon/processed --sequence_id ep8_ken_c_scored_attach --device cpu --save
+== object URDF
+  $ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/generate_rigid_urdfs.py --dataset ego_recon
+== support surface
+  $ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/reconstruct_support_surfaces.py --dataset ego_recon --input_dir /scratch/haisenk-v2d/diag/ep8_plan/ctl/assets/human_motion_data/ego_recon/processed --sequence_id ep8_ken_c_scored_attach --robot_name sharpa_wave --output /scratch/haisenk-v2d/diag/ep8_plan/ctl/assets/human_motion_data/ego_recon/reconstructed_stage/ep8_ken_c_scored_attach_sharpa_wave_support.usda
+== check output
+Traceback (most recent call last):
+  File "/home/haisenk/v2d_ops/kenc/hand5/rlr_h5.py", line 1091, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/haisenk/v2d_ops/kenc/hand5/rlr_h5.py", line 1075, in main
+    report["output_check"] = check_output(partition(processed, seq), [processed / f"{body}.obj" for body in bodies],
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/haisenk/v2d_ops/kenc/hand5/rlr_h5.py", line 878, in check_output
+    mesh = trimesh.load(mesh_path, force="mesh", process=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/user_data/haisenk/v2d/v2d_train/.venv_retarget/lib/python3.11/site-packages/trimesh/exchange/load.py", line 111, in load
+    loaded = load_scene(
+             ^^^^^^^^^^^
+  File "/data/user_data/haisenk/v2d/v2d_train/.venv_retarget/lib/python3.11/site-packages/trimesh/exchange/load.py", line 193, in load_scene
+    arg = _parse_file_args(
+          ^^^^^^^^^^^^^^^^^
+  File "/data/user_data/haisenk/v2d/v2d_train/.venv_retarget/lib/python3.11/site-packages/trimesh/exchange/load.py", line 624, in _parse_file_args
+    raise ValueError(f"string is not a file: `{file_obj}`")
+ValueError: string is not a file: `/scratch/haisenk-v2d/diag/ep8_plan/ctl/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach.obj`
+== done ctl 01:56:41
+== build despin 01:56:41
+BUILD FAILED despin
+  $ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/retarget/ego_recon_to_sharpa.py --input_dir /scratch/haisenk-v2d/diag/ep8_plan/despin/intermediate/ego_recon/loaded --output_dir /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed --sequence_id ep8_ken_c_scored_attach --device cpu --save
+== object URDF
+  $ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/generate_rigid_urdfs.py --dataset ego_recon
+== support surface
+  $ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/reconstruct_support_surfaces.py --dataset ego_recon --input_dir /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed --sequence_id ep8_ken_c_scored_attach --robot_name sharpa_wave --output /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/reconstructed_stage/ep8_ken_c_scored_attach_sharpa_wave_support.usda
+== check output
+Traceback (most recent call last):
+  File "/home/haisenk/v2d_ops/kenc/hand5/rlr_h5.py", line 1091, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/haisenk/v2d_ops/kenc/hand5/rlr_h5.py", line 1075, in main
+    report["output_check"] = check_output(partition(processed, seq), [processed / f"{body}.obj" for body in bodies],
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/haisenk/v2d_ops/kenc/hand5/rlr_h5.py", line 878, in check_output
+    mesh = trimesh.load(mesh_path, force="mesh", process=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/user_data/haisenk/v2d/v2d_train/.venv_retarget/lib/python3.11/site-packages/trimesh/exchange/load.py", line 111, in load
+    loaded = load_scene(
+             ^^^^^^^^^^^
+  File "/data/user_data/haisenk/v2d/v2d_train/.venv_retarget/lib/python3.11/site-packages/trimesh/exchange/load.py", line 193, in load_scene
+    arg = _parse_file_args(
+          ^^^^^^^^^^^^^^^^^
+  File "/data/user_data/haisenk/v2d/v2d_train/.venv_retarget/lib/python3.11/site-packages/trimesh/exchange/load.py", line 624, in _parse_file_args
+    raise ValueError(f"string is not a file: `{file_obj}`")
+ValueError: string is not a file: `/scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach.obj`
+== done despin 01:57:14
+== report ctl
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/haisenk-v2d/diag/ep8_plan/ctl/report.json'
+== report despin
+Traceback (most recent call last):
+  File "<string>", line 2, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/haisenk-v2d/diag/ep8_plan/despin/report.json'
+== cmp_pq ctl vs eb1_ep8
+  m = float(np.nanmax(np.abs(xa - xb))) if xa.size else 0.0
+4774016f0a65458c9245084fdc462018-0.parquet 1 1 cols 66 66
+  raw_motion_file: non-numeric differs (['/data/user_data/haisenk/v2d/edmond_bob1/relocated/eb1_ep8/bundle_cle)
+  mano_right_tips_distance: maxabs 0.00233
+  mano_right_link_contact_positions: maxabs 1.12
+  mano_right_link_contact_normals: maxabs 0.999
+  mano_right_object_contact_positions: maxabs 1.12
+  mano_right_object_contact_normals: maxabs 2
+  mano_right_object_contact_part_ids: maxabs 1
+  mano_left_tips_distance: maxabs 0.00302
+  mano_left_link_contact_positions: maxabs 1.12
+  mano_left_link_contact_normals: maxabs 1.72
+  mano_left_object_contact_positions: maxabs 1.11
+  mano_left_object_contact_normals: maxabs 2
+  mano_left_object_contact_part_ids: maxabs 2
+  object_mesh_paths: non-numeric differs (['/data/user_data/haisenk/v2d/edmond_bob1/relocated/eb1_ep8/assets/hum)
+  object_urdf_paths: non-numeric differs (['/data/user_data/haisenk/v2d/edmond_bob1/relocated/eb1_ep8/assets/hum)
+  object_mesh_radius: maxabs 0.00082
+  columns differing: 16 of 66
+CMPPQ_DONE
+== cmp_scene ctl vs base
+bundle_cleaned keys 30 differing: [('hand_right_wrist_to_camera_transform', 'maxabs 1.49e-08'), ('hand_right_wrist_to_world_transform', 'maxabs 2.98e-08'), ('hand_right_wrist_trans_in_camera', 'maxabs 1.49e-08')]
+Traceback (most recent call last):
+  File "/home/haisenk/v2d_ops/kenc/hand5/cmp_scene.py", line 18, in <module>
+    ra, rb = json.load(open(os.path.join(A, "report.json"))), json.load(open(os.path.join(B, "report.json")))
+                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/scratch/haisenk-v2d/diag/ep8_plan/ctl/report.json'
+== support usda
+        double radius = 0.22383235264324094
+        double3 xformOp:translate = (-0.1614335790695663, -0.047692860181851135, 0.9487791965557545)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+        double radius = 0.22383235264324094
+        double3 xformOp:translate = (-0.1614335790695663, -0.047692860181851135, 0.9487791965557545)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+        double radius = 0.22383235264324094
+        double3 xformOp:translate = (-0.1614335790695663, -0.047692860181851135, 0.9487791965557545)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+== md5 meshes
+38e2c4142bbd8cc18625a93d099bd866  /data/user_data/haisenk/v2d/edmond_bob1/relocated/eb1_ep8/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup.obj
+db96dd07636168e73f80ec81c79a93ce  /data/user_data/haisenk/v2d/edmond_bob1/relocated/eb1_ep8/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot.obj
+38e2c4142bbd8cc18625a93d099bd866  /scratch/haisenk-v2d/diag/ep8_plan/ctl/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup.obj
+db96dd07636168e73f80ec81c79a93ce  /scratch/haisenk-v2d/diag/ep8_plan/ctl/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot.obj
+38e2c4142bbd8cc18625a93d099bd866  /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup.obj
+db96dd07636168e73f80ec81c79a93ce  /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot.obj
+== chk_scene
+cup symmetry axis (object frame) [-0.012 -0.774 -0.633] surface centroid [-0.0009  0.0004 -0.0016]
+
+== /data/user_data/haisenk/v2d/edmond_bob1/relocated/eb1_ep8
+ cup twist vs f0: min -164.3 max 36.8 last -159.6; cumulative last -149.3, sum|inc| 401; rot step max 27.2 deg at f64, frames >10 deg: 21
+ right wrist: rot step max 27.1 deg (f64), trans step max 4.82 cm (f20); f40-56 rot 19.8 trans 4.46; f56-70 rot 27.1 trans 4.13; f125-156 rot 13.9 trans 2.81; f170-190 rot 12.7 trans 1.62; labels 0-218 (219 fr)
+ left wrist: rot step max 9.8 deg (f202), trans step max 2.90 cm (f199); f40-56 rot 0.7 trans 0.08; f56-70 rot 0.7 trans 0.05; f125-156 rot 1.7 trans 0.53; f170-190 rot 1.3 trans 0.15; labels 0-218 (219 fr)
+
+== /scratch/haisenk-v2d/diag/ep8_plan/ctl
+ cup twist vs f0: min -164.3 max 36.8 last -159.6; cumulative last -149.3, sum|inc| 401; rot step max 27.2 deg at f64, frames >10 deg: 21
+ right wrist: rot step max 27.1 deg (f64), trans step max 4.82 cm (f20); f40-56 rot 19.8 trans 4.46; f56-70 rot 27.1 trans 4.13; f125-156 rot 13.9 trans 2.81; f170-190 rot 12.7 trans 1.62; labels 0-218 (219 fr)
+ left wrist: rot step max 9.8 deg (f202), trans step max 2.90 cm (f199); f40-56 rot 0.7 trans 0.08; f56-70 rot 0.7 trans 0.05; f125-156 rot 1.7 trans 0.53; f170-190 rot 1.3 trans 0.15; labels 0-218 (219 fr)
+ cup vs base: origin diff max 0.000 cm, centroid-point diff max 0.000 cm, axis-dir diff max 0.00 deg, full rot diff max 0.0 deg
+ pot vs base: origin diff max 0.000 cm, centroid-point diff max 0.000 cm, axis-dir diff max 0.00 deg, full rot diff max 0.0 deg
+ right wrist vs base: pos diff max 0.00 cm (f114), frames >1 cm: 0
+ left wrist vs base: pos diff max 0.00 cm (f99), frames >1 cm: 0
+
+== /scratch/haisenk-v2d/diag/ep8_plan/despin
+ cup twist vs f0: min -0.0 max 0.0 last 0.0; cumulative last 10.3, sum|inc| 48; rot step max 13.8 deg at f133, frames >10 deg: 8
+ right wrist: rot step max 13.6 deg (f133), trans step max 4.82 cm (f20); f40-56 rot 6.0 trans 2.24; f56-70 rot 7.0 trans 1.56; f125-156 rot 13.6 trans 2.29; f170-190 rot 5.1 trans 1.24; labels 0-218 (219 fr)
+ left wrist: rot step max 9.8 deg (f202), trans step max 2.90 cm (f199); f40-56 rot 0.7 trans 0.08; f56-70 rot 0.7 trans 0.05; f125-156 rot 1.7 trans 0.53; f170-190 rot 1.3 trans 0.15; labels 0-218 (219 fr)
+ cup vs base: origin diff max 0.351 cm, centroid-point diff max 0.000 cm, axis-dir diff max 0.00 deg, full rot diff max 164.3 deg
+ pot vs base: origin diff max 0.000 cm, centroid-point diff max 0.000 cm, axis-dir diff max 0.00 deg, full rot diff max 0.0 deg
+ right wrist vs base: pos diff max 14.85 cm (f60), frames >1 cm: 113
+ left wrist vs base: pos diff max 0.00 cm (f99), frames >1 cm: 0
+FEAS_DONE 01:57:16

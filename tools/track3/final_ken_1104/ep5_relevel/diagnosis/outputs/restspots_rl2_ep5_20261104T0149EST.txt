@@ -1,0 +1,14 @@
+# Output of diagnosis/restspots.py on the finished scene rl2_ep5, 4 Nov 2026 01:49 EST (06:49:11Z), orchard job 157612:
+#   $P /tmp/haisenk_v2d/tools/restspots.py rl2_ep5 0,20,35,270,287
+# Copied verbatim from the session log. Object bottom height (sim world z, m) at the listed frames: after the 5.48 deg
+# re-level and the -1.0 cm pot trim, pot and spoon both rest at z = 1.0107 at frame 0 (coplanar); support_0 top = 1.0097.
+white_pot      f   0 bottom z 1.0107 footprint center (+0.0235, +0.0493) r_base 0.083 r_all 0.276
+white_pot      f  20 bottom z 1.0112 footprint center (+0.0239, +0.0427) r_base 0.081 r_all 0.274
+white_pot      f  35 bottom z 1.0161 footprint center (+0.0598, +0.0689) r_base 0.079 r_all 0.291
+white_pot      f 270 bottom z 1.0113 footprint center (+0.0354, +0.0644) r_base 0.084 r_all 0.276
+white_pot      f 287 bottom z 1.0139 footprint center (+0.0321, +0.0660) r_base 0.083 r_all 0.276
+wooden_spoon   f   0 bottom z 1.0107 footprint center (+0.2440, +0.0245) r_base 0.125 r_all 0.192
+wooden_spoon   f  20 bottom z 1.0086 footprint center (+0.2477, +0.0144) r_base 0.143 r_all 0.182
+wooden_spoon   f  35 bottom z 1.0119 footprint center (+0.2448, +0.0110) r_base 0.163 r_all 0.178
+wooden_spoon   f 270 bottom z 1.0117 footprint center (+0.2344, +0.0134) r_base 0.160 r_all 0.175
+wooden_spoon   f 287 bottom z 1.0150 footprint center (+0.2318, +0.0346) r_base 0.112 r_all 0.195

@@ -1,0 +1,973 @@
+{
+ "ep3_h5A1_s42": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5A1_s42/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": null,
+  "tilt_gt10_runs": [],
+  "n_frames_tilt_gt10": 0,
+  "max_rel_tilt_f0_50": 1.2,
+  "argmax_f0_50": 11,
+  "rel_tilt_at": [
+   0.0,
+   0.4,
+   0.7,
+   1.2,
+   1.2,
+   1.2,
+   0.6
+  ],
+  "final_rel_tilt": 1.3,
+  "final_abs_tilt": 4.6,
+  "ref_final_abs_tilt": 4.4,
+  "mean_rel_tilt_f289_312": 1.3,
+  "lifted_roll": 186,
+  "lifted_ref": 175,
+  "pot_body_name": "ep3_h5_h5_ep3_A1_white_pot",
+  "ownref_auc_pot": 0.9828,
+  "ownref_auc_spoon": 0.8454,
+  "ownref_auc": 0.9141,
+  "pot_ADD_cm_mean_tipped_frames": null,
+  "pot_ADD_cm_mean_untipped_frames": 0.77,
+  "json_add_auc": 0.9139,
+  "json_per_body": [
+   0.9828,
+   0.845
+  ],
+  "tip_attrib_pot_auc_loss": 0.0,
+  "tip_attrib_episode_loss": 0.0,
+  "episode_gap_to_s42_ownref": 0.0
+ },
+ "ep3_h5A1_s43": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5A1_s43/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 283,
+  "tilt_gt10_runs": [
+   [
+    283,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 30,
+  "max_rel_tilt_f0_50": 2.2,
+  "argmax_f0_50": 44,
+  "rel_tilt_at": [
+   0.0,
+   0.4,
+   0.5,
+   1.1,
+   1.2,
+   1.1,
+   0.4
+  ],
+  "final_rel_tilt": 27.0,
+  "final_abs_tilt": 22.7,
+  "ref_final_abs_tilt": 4.4,
+  "mean_rel_tilt_f289_312": 27.1,
+  "lifted_roll": 201,
+  "lifted_ref": 175,
+  "pot_body_name": "ep3_h5_h5_ep3_A1_white_pot",
+  "ownref_auc_pot": 0.8638,
+  "ownref_auc_spoon": 0.74,
+  "ownref_auc": 0.8019,
+  "pot_ADD_cm_mean_tipped_frames": 5.59,
+  "pot_ADD_cm_mean_untipped_frames": 1.62,
+  "json_add_auc": 0.8026,
+  "json_per_body": [
+   0.8658,
+   0.7394
+  ],
+  "tip_attrib_pot_auc_loss": 0.0527,
+  "tip_attrib_episode_loss": 0.0264,
+  "episode_gap_to_s42_ownref": 0.1122
+ },
+ "ep3_h5A1_s44": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5A1_s44/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 8,
+  "tilt_gt10_runs": [
+   [
+    8,
+    50
+   ]
+  ],
+  "n_frames_tilt_gt10": 43,
+  "max_rel_tilt_f0_50": 23.7,
+  "argmax_f0_50": 9,
+  "rel_tilt_at": [
+   0.0,
+   0.3,
+   1.9,
+   23.3,
+   22.7,
+   22.7,
+   16.3
+  ],
+  "final_rel_tilt": 4.4,
+  "final_abs_tilt": 1.1,
+  "ref_final_abs_tilt": 4.4,
+  "mean_rel_tilt_f289_312": 4.3,
+  "lifted_roll": 183,
+  "lifted_ref": 175,
+  "pot_body_name": "ep3_h5_h5_ep3_A1_white_pot",
+  "ownref_auc_pot": 0.9287,
+  "ownref_auc_spoon": 0.86,
+  "ownref_auc": 0.8943,
+  "pot_ADD_cm_mean_tipped_frames": 4.37,
+  "pot_ADD_cm_mean_untipped_frames": 0.76,
+  "json_add_auc": 0.8948,
+  "json_per_body": [
+   0.9295,
+   0.86
+  ],
+  "tip_attrib_pot_auc_loss": 0.0503,
+  "tip_attrib_episode_loss": 0.0252,
+  "episode_gap_to_s42_ownref": 0.0198
+ },
+ "ep3_h5A1seat_s42": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5A1seat_s42/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 308,
+  "tilt_gt10_runs": [
+   [
+    308,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 5,
+  "max_rel_tilt_f0_50": 7.3,
+  "argmax_f0_50": 50,
+  "rel_tilt_at": [
+   1.9,
+   1.7,
+   1.1,
+   1.1,
+   2.1,
+   1.9,
+   7.3
+  ],
+  "final_rel_tilt": 28.2,
+  "final_abs_tilt": 23.8,
+  "ref_final_abs_tilt": 4.4,
+  "mean_rel_tilt_f289_312": 11.0,
+  "lifted_roll": 183,
+  "lifted_ref": 175,
+  "pot_body_name": "ep3_h5_r1b_ep3_A1_seat_white_pot",
+  "ownref_auc_pot": 0.9565,
+  "ownref_auc_spoon": 0.8722,
+  "ownref_auc": 0.9143,
+  "pot_ADD_cm_mean_tipped_frames": 5.45,
+  "pot_ADD_cm_mean_untipped_frames": 0.97,
+  "json_add_auc": 0.9153,
+  "json_per_body": [
+   0.9585,
+   0.8722
+  ],
+  "tip_attrib_pot_auc_loss": 0.0086,
+  "tip_attrib_episode_loss": 0.0043,
+  "episode_gap_to_s42_ownref": -0.0002
+ },
+ "ep3_h5A1seat_s43": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5A1seat_s43/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 276,
+  "tilt_gt10_runs": [
+   [
+    276,
+    277
+   ],
+   [
+    279,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 36,
+  "max_rel_tilt_f0_50": 2.1,
+  "argmax_f0_50": 29,
+  "rel_tilt_at": [
+   1.3,
+   0.7,
+   1.5,
+   2.0,
+   1.9,
+   1.8,
+   0.8
+  ],
+  "final_rel_tilt": 33.3,
+  "final_abs_tilt": 29.8,
+  "ref_final_abs_tilt": 4.4,
+  "mean_rel_tilt_f289_312": 27.9,
+  "lifted_roll": 175,
+  "lifted_ref": 175,
+  "pot_body_name": "ep3_h5_r1b_ep3_A1_seat_white_pot",
+  "ownref_auc_pot": 0.9069,
+  "ownref_auc_spoon": 0.8844,
+  "ownref_auc": 0.8957,
+  "pot_ADD_cm_mean_tipped_frames": 6.55,
+  "pot_ADD_cm_mean_untipped_frames": 0.76,
+  "json_add_auc": 0.8967,
+  "json_per_body": [
+   0.9089,
+   0.8844
+  ],
+  "tip_attrib_pot_auc_loss": 0.0775,
+  "tip_attrib_episode_loss": 0.0387,
+  "episode_gap_to_s42_ownref": 0.0184
+ },
+ "ep3_h5A2C_s42": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5A2C_s42/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 48,
+  "tilt_gt10_runs": [
+   [
+    48,
+    67
+   ],
+   [
+    297,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 36,
+  "max_rel_tilt_f0_50": 22.4,
+  "argmax_f0_50": 50,
+  "rel_tilt_at": [
+   0.0,
+   0.1,
+   0.6,
+   1.2,
+   1.2,
+   0.4,
+   22.4
+  ],
+  "final_rel_tilt": 29.5,
+  "final_abs_tilt": 23.1,
+  "ref_final_abs_tilt": 6.8,
+  "mean_rel_tilt_f289_312": 20.6,
+  "lifted_roll": 0,
+  "lifted_ref": 112,
+  "pot_body_name": "ep3_h5_h5_ep3_A2C_white_pot"
+ },
+ "ep3_h5A2C_s43": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5A2C_s43/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 7,
+  "tilt_gt10_runs": [
+   [
+    7,
+    71
+   ],
+   [
+    73,
+    73
+   ],
+   [
+    76,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 303,
+  "max_rel_tilt_f0_50": 23.9,
+  "argmax_f0_50": 44,
+  "rel_tilt_at": [
+   0.0,
+   0.1,
+   1.0,
+   22.7,
+   22.7,
+   22.7,
+   22.8
+  ],
+  "final_rel_tilt": 50.0,
+  "final_abs_tilt": 50.6,
+  "ref_final_abs_tilt": 6.8,
+  "mean_rel_tilt_f289_312": 30.6,
+  "lifted_roll": 0,
+  "lifted_ref": 112,
+  "pot_body_name": "ep3_h5_h5_ep3_A2C_white_pot"
+ },
+ "ep3_h5A2C_s44": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5A2C_s44/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 298,
+  "tilt_gt10_runs": [
+   [
+    298,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 15,
+  "max_rel_tilt_f0_50": 1.4,
+  "argmax_f0_50": 46,
+  "rel_tilt_at": [
+   0.0,
+   0.6,
+   0.6,
+   1.1,
+   1.2,
+   1.2,
+   1.1
+  ],
+  "final_rel_tilt": 29.1,
+  "final_abs_tilt": 23.6,
+  "ref_final_abs_tilt": 6.8,
+  "mean_rel_tilt_f289_312": 18.6,
+  "lifted_roll": 110,
+  "lifted_ref": 112,
+  "pot_body_name": "ep3_h5_h5_ep3_A2C_white_pot"
+ },
+ "ep3_h5A2_s42": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5A2_s42/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 307,
+  "tilt_gt10_runs": [
+   [
+    307,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 6,
+  "max_rel_tilt_f0_50": 1.6,
+  "argmax_f0_50": 49,
+  "rel_tilt_at": [
+   0.0,
+   0.1,
+   0.6,
+   1.2,
+   1.2,
+   1.2,
+   1.5
+  ],
+  "final_rel_tilt": 29.3,
+  "final_abs_tilt": 22.9,
+  "ref_final_abs_tilt": 6.8,
+  "mean_rel_tilt_f289_312": 11.6,
+  "lifted_roll": 88,
+  "lifted_ref": 112,
+  "pot_body_name": "ep3_h5_h5_ep3_A2_white_pot"
+ },
+ "ep3_h5A2_s43": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5A2_s43/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 288,
+  "tilt_gt10_runs": [
+   [
+    288,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 25,
+  "max_rel_tilt_f0_50": 1.2,
+  "argmax_f0_50": 14,
+  "rel_tilt_at": [
+   0.0,
+   0.6,
+   0.6,
+   1.1,
+   1.2,
+   1.2,
+   0.7
+  ],
+  "final_rel_tilt": 29.1,
+  "final_abs_tilt": 23.3,
+  "ref_final_abs_tilt": 6.8,
+  "mean_rel_tilt_f289_312": 28.9,
+  "lifted_roll": 0,
+  "lifted_ref": 112,
+  "pot_body_name": "ep3_h5_h5_ep3_A2_white_pot"
+ },
+ "ep3_h5A2_s44": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5A2_s44/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 312,
+  "tilt_gt10_runs": [
+   [
+    312,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 1,
+  "max_rel_tilt_f0_50": 1.2,
+  "argmax_f0_50": 43,
+  "rel_tilt_at": [
+   0.0,
+   0.6,
+   0.6,
+   1.1,
+   1.2,
+   1.2,
+   0.6
+  ],
+  "final_rel_tilt": 13.4,
+  "final_abs_tilt": 6.7,
+  "ref_final_abs_tilt": 6.8,
+  "mean_rel_tilt_f289_312": 6.7,
+  "lifted_roll": 0,
+  "lifted_ref": 112,
+  "pot_body_name": "ep3_h5_h5_ep3_A2_white_pot"
+ },
+ "ep3_h5B1_s42": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5B1_s42/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 281,
+  "tilt_gt10_runs": [
+   [
+    281,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 32,
+  "max_rel_tilt_f0_50": 1.2,
+  "argmax_f0_50": 42,
+  "rel_tilt_at": [
+   0.0,
+   0.6,
+   0.6,
+   1.1,
+   1.2,
+   1.2,
+   1.0
+  ],
+  "final_rel_tilt": 29.7,
+  "final_abs_tilt": 23.1,
+  "ref_final_abs_tilt": 6.8,
+  "mean_rel_tilt_f289_312": 29.3,
+  "lifted_roll": 0,
+  "lifted_ref": 112,
+  "pot_body_name": "ep3_h5_h5_ep3_B1_white_pot"
+ },
+ "ep3_h5B1_s43": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5B1_s43/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 279,
+  "tilt_gt10_runs": [
+   [
+    279,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 34,
+  "max_rel_tilt_f0_50": 1.2,
+  "argmax_f0_50": 14,
+  "rel_tilt_at": [
+   0.0,
+   0.6,
+   0.6,
+   1.1,
+   1.2,
+   1.2,
+   0.7
+  ],
+  "final_rel_tilt": 29.0,
+  "final_abs_tilt": 23.6,
+  "ref_final_abs_tilt": 6.8,
+  "mean_rel_tilt_f289_312": 29.1,
+  "lifted_roll": 0,
+  "lifted_ref": 112,
+  "pot_body_name": "ep3_h5_h5_ep3_B1_white_pot"
+ },
+ "ep3_h5B1_s44": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5B1_s44/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 83,
+  "tilt_gt10_runs": [
+   [
+    83,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 230,
+  "max_rel_tilt_f0_50": 1.2,
+  "argmax_f0_50": 14,
+  "rel_tilt_at": [
+   0.0,
+   0.1,
+   0.6,
+   1.2,
+   1.2,
+   1.2,
+   0.6
+  ],
+  "final_rel_tilt": 28.7,
+  "final_abs_tilt": 23.2,
+  "ref_final_abs_tilt": 6.8,
+  "mean_rel_tilt_f289_312": 28.4,
+  "lifted_roll": 0,
+  "lifted_ref": 112,
+  "pot_body_name": "ep3_h5_h5_ep3_B1_white_pot"
+ },
+ "ep3_h5ctl_s42": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/ep3_h5ctl_s42/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 191,
+  "tilt_gt10_runs": [
+   [
+    191,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 122,
+  "max_rel_tilt_f0_50": 1.2,
+  "argmax_f0_50": 14,
+  "rel_tilt_at": [
+   0.0,
+   0.1,
+   0.6,
+   1.2,
+   1.2,
+   1.2,
+   0.6
+  ],
+  "final_rel_tilt": 29.1,
+  "final_abs_tilt": 24.2,
+  "ref_final_abs_tilt": 6.8,
+  "mean_rel_tilt_f289_312": 29.0,
+  "lifted_roll": 0,
+  "lifted_ref": 112,
+  "pot_body_name": "ep3_h5_ctl_ep3_white_pot"
+ },
+ "w_ep3_ctl_s42": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/w_ep3_ctl_s42/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 69,
+  "tilt_gt10_runs": [
+   [
+    69,
+    75
+   ],
+   [
+    90,
+    90
+   ],
+   [
+    286,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 35,
+  "max_rel_tilt_f0_50": 2.5,
+  "argmax_f0_50": 24,
+  "rel_tilt_at": [
+   0.1,
+   0.3,
+   0.8,
+   0.8,
+   1.3,
+   0.9,
+   0.6
+  ],
+  "final_rel_tilt": 27.9,
+  "final_abs_tilt": 24.1,
+  "ref_final_abs_tilt": 4.0,
+  "mean_rel_tilt_f289_312": 28.5,
+  "lifted_roll": 0,
+  "lifted_ref": 177,
+  "pot_body_name": "ep3_hw_w_ctl_ep3_white_pot"
+ },
+ "w_ep3_ctl_s43": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/w_ep3_ctl_s43/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 3,
+  "tilt_gt10_runs": [
+   [
+    3,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 310,
+  "max_rel_tilt_f0_50": 25.1,
+  "argmax_f0_50": 46,
+  "rel_tilt_at": [
+   0.2,
+   8.9,
+   24.9,
+   24.6,
+   23.8,
+   24.5,
+   24.7
+  ],
+  "final_rel_tilt": 28.6,
+  "final_abs_tilt": 24.8,
+  "ref_final_abs_tilt": 4.0,
+  "mean_rel_tilt_f289_312": 27.9,
+  "lifted_roll": 0,
+  "lifted_ref": 177,
+  "pot_body_name": "ep3_hw_w_ctl_ep3_white_pot"
+ },
+ "w_ep3_ctlseat_s42": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/w_ep3_ctlseat_s42/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 0,
+  "tilt_gt10_runs": [
+   [
+    0,
+    21
+   ],
+   [
+    42,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 293,
+  "max_rel_tilt_f0_50": 67.6,
+  "argmax_f0_50": 10,
+  "rel_tilt_at": [
+   14.2,
+   28.6,
+   60.0,
+   67.6,
+   46.4,
+   0.7,
+   25.9
+  ],
+  "final_rel_tilt": 31.0,
+  "final_abs_tilt": 27.2,
+  "ref_final_abs_tilt": 4.0,
+  "mean_rel_tilt_f289_312": 32.0,
+  "lifted_roll": 15,
+  "lifted_ref": 177,
+  "pot_body_name": "ep3_hw_w_ctl_ep3_white_pot"
+ },
+ "w_ep3_fix_s42": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/w_ep3_fix_s42/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 69,
+  "tilt_gt10_runs": [
+   [
+    69,
+    74
+   ],
+   [
+    188,
+    189
+   ],
+   [
+    275,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 46,
+  "max_rel_tilt_f0_50": 2.2,
+  "argmax_f0_50": 45,
+  "rel_tilt_at": [
+   0.1,
+   0.3,
+   0.8,
+   0.8,
+   1.3,
+   0.5,
+   0.7
+  ],
+  "final_rel_tilt": 28.0,
+  "final_abs_tilt": 24.0,
+  "ref_final_abs_tilt": 4.0,
+  "mean_rel_tilt_f289_312": 28.3,
+  "lifted_roll": 0,
+  "lifted_ref": 177,
+  "pot_body_name": "ep3_hw_w_fix_ep3_white_pot"
+ },
+ "w_ep3_fix_s43": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/w_ep3_fix_s43/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 16,
+  "tilt_gt10_runs": [
+   [
+    16,
+    61
+   ],
+   [
+    63,
+    63
+   ],
+   [
+    312,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 48,
+  "max_rel_tilt_f0_50": 25.1,
+  "argmax_f0_50": 27,
+  "rel_tilt_at": [
+   0.1,
+   0.3,
+   0.8,
+   1.2,
+   22.7,
+   24.6,
+   24.3
+  ],
+  "final_rel_tilt": 16.1,
+  "final_abs_tilt": 12.3,
+  "ref_final_abs_tilt": 4.0,
+  "mean_rel_tilt_f289_312": 4.5,
+  "lifted_roll": 0,
+  "lifted_ref": 177,
+  "pot_body_name": "ep3_hw_w_fix_ep3_white_pot"
+ },
+ "w_ep3_fix_s44": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/w_ep3_fix_s44/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 35,
+  "tilt_gt10_runs": [
+   [
+    35,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 278,
+  "max_rel_tilt_f0_50": 26.7,
+  "argmax_f0_50": 38,
+  "rel_tilt_at": [
+   0.1,
+   0.3,
+   1.1,
+   0.9,
+   0.7,
+   17.4,
+   23.6
+  ],
+  "final_rel_tilt": 28.0,
+  "final_abs_tilt": 24.0,
+  "ref_final_abs_tilt": 4.0,
+  "mean_rel_tilt_f289_312": 28.2,
+  "lifted_roll": 0,
+  "lifted_ref": 177,
+  "pot_body_name": "ep3_hw_w_fix_ep3_white_pot"
+ },
+ "w_ep3_fixseat_s42": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/w_ep3_fixseat_s42/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 0,
+  "tilt_gt10_runs": [
+   [
+    0,
+    69
+   ],
+   [
+    72,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 311,
+  "max_rel_tilt_f0_50": 77.1,
+  "argmax_f0_50": 20,
+  "rel_tilt_at": [
+   14.2,
+   28.6,
+   51.9,
+   44.6,
+   77.1,
+   60.5,
+   24.6
+  ],
+  "final_rel_tilt": 40.1,
+  "final_abs_tilt": 36.1,
+  "ref_final_abs_tilt": 4.0,
+  "mean_rel_tilt_f289_312": 38.6,
+  "lifted_roll": 6,
+  "lifted_ref": 177,
+  "pot_body_name": "ep3_hw_w_fix_ep3_white_pot"
+ },
+ "w_ep3_fixseat_s43": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/w_ep3_fixseat_s43/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 0,
+  "tilt_gt10_runs": [
+   [
+    0,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 313,
+  "max_rel_tilt_f0_50": 27.1,
+  "argmax_f0_50": 24,
+  "rel_tilt_at": [
+   14.2,
+   20.5,
+   25.5,
+   23.5,
+   25.0,
+   25.7,
+   25.5
+  ],
+  "final_rel_tilt": 29.8,
+  "final_abs_tilt": 25.7,
+  "ref_final_abs_tilt": 4.0,
+  "mean_rel_tilt_f289_312": 30.3,
+  "lifted_roll": 0,
+  "lifted_ref": 177,
+  "pot_body_name": "ep3_hw_w_fix_ep3_white_pot"
+ },
+ "w_ep3_fixseat_s44": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/w_ep3_fixseat_s44/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 0,
+  "tilt_gt10_runs": [
+   [
+    0,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 313,
+  "max_rel_tilt_f0_50": 97.6,
+  "argmax_f0_50": 17,
+  "rel_tilt_at": [
+   14.2,
+   19.7,
+   41.9,
+   48.5,
+   77.7,
+   34.1,
+   24.5
+  ],
+  "final_rel_tilt": 32.2,
+  "final_abs_tilt": 28.3,
+  "ref_final_abs_tilt": 4.0,
+  "mean_rel_tilt_f289_312": 34.8,
+  "lifted_roll": 14,
+  "lifted_ref": 177,
+  "pot_body_name": "ep3_hw_w_fix_ep3_white_pot"
+ },
+ "w_ep3_ygrip_s42": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/w_ep3_ygrip_s42/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 299,
+  "tilt_gt10_runs": [
+   [
+    299,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 14,
+  "max_rel_tilt_f0_50": 1.0,
+  "argmax_f0_50": 43,
+  "rel_tilt_at": [
+   0.3,
+   0.6,
+   0.7,
+   0.9,
+   0.8,
+   0.8,
+   0.6
+  ],
+  "final_rel_tilt": 27.7,
+  "final_abs_tilt": 24.3,
+  "ref_final_abs_tilt": 3.8,
+  "mean_rel_tilt_f289_312": 17.6,
+  "lifted_roll": 170,
+  "lifted_ref": 171,
+  "pot_body_name": "ep3_hw_y_grip_ep3_white_pot"
+ },
+ "w_ep3_ygrip_s43": {
+  "parquet": "/data/user_data/haisenk/v2d/hand5_backup_20261103/runs/w_ep3_ygrip_s43/results/episode_000003.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": null,
+  "tilt_gt10_runs": [],
+  "n_frames_tilt_gt10": 0,
+  "max_rel_tilt_f0_50": 1.3,
+  "argmax_f0_50": 39,
+  "rel_tilt_at": [
+   0.3,
+   0.7,
+   0.9,
+   0.8,
+   0.8,
+   1.3,
+   0.9
+  ],
+  "final_rel_tilt": 3.4,
+  "final_abs_tilt": 0.7,
+  "ref_final_abs_tilt": 3.8,
+  "mean_rel_tilt_f289_312": 3.6,
+  "lifted_roll": 9,
+  "lifted_ref": 171,
+  "pot_body_name": "ep3_hw_y_grip_ep3_white_pot"
+ },
+ "c_ep3_b1_s42": {
+  "parquet": "/home/haisenk/v2d_ops/kenc/diag/ep3_handsB/c_ep3_b1_s42.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 34,
+  "tilt_gt10_runs": [
+   [
+    34,
+    61
+   ],
+   [
+    280,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 61,
+  "max_rel_tilt_f0_50": 23.5,
+  "argmax_f0_50": 35,
+  "rel_tilt_at": [
+   0.0,
+   0.4,
+   0.6,
+   1.1,
+   0.7,
+   23.5,
+   23.2
+  ],
+  "final_rel_tilt": 26.8,
+  "final_abs_tilt": 22.5,
+  "ref_final_abs_tilt": 4.4,
+  "mean_rel_tilt_f289_312": 26.9,
+  "lifted_roll": 183,
+  "lifted_ref": 175,
+  "pot_body_name": "ep3_h5_h5_ep3_A1_white_pot",
+  "ownref_auc_pot": 0.8774,
+  "ownref_auc_spoon": 0.8379,
+  "ownref_auc": 0.8577,
+  "pot_ADD_cm_mean_tipped_frames": 4.66,
+  "pot_ADD_cm_mean_untipped_frames": 1.04,
+  "tip_attrib_pot_auc_loss": 0.0861,
+  "tip_attrib_episode_loss": 0.043,
+  "episode_gap_to_s42_ownref": 0.0564
+ },
+ "c_ep3_b1_s43": {
+  "parquet": "/home/haisenk/v2d_ops/kenc/diag/ep3_handsB/c_ep3_b1_s43.parquet",
+  "frames": 313,
+  "first_rel_tilt_gt10": 16,
+  "tilt_gt10_runs": [
+   [
+    16,
+    66
+   ],
+   [
+    234,
+    238
+   ],
+   [
+    274,
+    312
+   ]
+  ],
+  "n_frames_tilt_gt10": 95,
+  "max_rel_tilt_f0_50": 25.3,
+  "argmax_f0_50": 44,
+  "rel_tilt_at": [
+   0.0,
+   0.8,
+   1.4,
+   1.2,
+   21.8,
+   23.3,
+   25.1
+  ],
+  "final_rel_tilt": 51.7,
+  "final_abs_tilt": 49.0,
+  "ref_final_abs_tilt": 4.4,
+  "mean_rel_tilt_f289_312": 50.0,
+  "lifted_roll": 0,
+  "lifted_ref": 175,
+  "pot_body_name": "ep3_h5_h5_ep3_A1_white_pot",
+  "ownref_auc_pot": 0.3572,
+  "ownref_auc_spoon": 0.7903,
+  "ownref_auc": 0.5737,
+  "pot_ADD_cm_mean_tipped_frames": 6.11,
+  "pot_ADD_cm_mean_untipped_frames": 6.16,
+  "tip_attrib_pot_auc_loss": 0.1815,
+  "tip_attrib_episode_loss": 0.0908,
+  "episode_gap_to_s42_ownref": 0.3404
+ }
+}

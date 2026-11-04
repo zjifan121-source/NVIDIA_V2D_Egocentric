@@ -1,0 +1,55 @@
+# Local rebuild check of sc_ep8 (T6 scene), 4 Nov 2026 ~14:30 EST - written for this release
+# Purpose: prove that the staged scenefix.py / comfix.py and the reconstructed command lines reproduce sc_ep8.
+# Input : bob1's ep8 scene b1_ep8 extracted from C:/v2d_demo/orchard/b1scenes.tgz (identical md5s to babel-s5-16
+#         /tmp/haisenk_v2d/scenes/b1_ep8 and to /data/user_data/haisenk/v2d/edmond_bob1/relocated/eb1_ep8 for every mesh,
+#         URDF, USD and bundle file; its parquet = the .orig of the orchard copy, md5 9b8492f4).
+# Commands (Windows, local venv: Python 3.12.7, numpy 2.5.2, scipy 1.18.1, trimesh 5.1.1, pyarrow 26.0.1; run through a
+#  2-line shim that only makes glob() return '/' separators and writes text with LF line endings, tool logic unchanged):
+#   RELOCATE=relocate_scene.py python -I scenefix.py b1_ep8 sf_b --obj beige_cup:2.8 --add-disk cupdisk:-0.003:0.008:0.085:0.971
+#   RELOCATE=relocate_scene.py python -I comfix.py fix sf_b sc_b white_pot
+#   -> comfix printed: white_pot: inertial origin [0. 0. 0.] -> [-0.008451 -0.062887  0.049392]
+# Reference: md5 list of the trained-on sc_ep8 (babel-s5-16 /tmp/haisenk_v2d/scenes/sc_ep8, read 4 Nov 14:22 EST).
+# Columns: result  md5(babel sc_ep8)  md5(local rebuild)  file  note
+MATCH   a9cf789877807cd546c8d0cb9a190719  a9cf789877807cd546c8d0cb9a190719  ./assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup.mtl
+MATCH   050e1e4ba355e49e621d5af95c916796  050e1e4ba355e49e621d5af95c916796  ./assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup.obj
+MATCH   b5d31add4d2912ca1408169268d3d229  b5d31add4d2912ca1408169268d3d229  ./assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup_rigid.urdf
+MATCH   dc7f2366fe66cc8145add06719d3b944  dc7f2366fe66cc8145add06719d3b944  ./assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup_visual.stl
+MATCH   0474e51c37dc44aa9d744c6db5b357ce  0474e51c37dc44aa9d744c6db5b357ce  ./assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot.mtl
+MATCH   db96dd07636168e73f80ec81c79a93ce  db96dd07636168e73f80ec81c79a93ce  ./assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot.obj
+MATCH   d8b88a91d83b5793bec77ef73143c806  d8b88a91d83b5793bec77ef73143c806  ./assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot_rigid.urdf
+MATCH   105f8713bf33f7bc234b796991c48649  105f8713bf33f7bc234b796991c48649  ./assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot_visual.stl
+DIFFER  e6816b136d25b739f5a456f805c6bae5  6ce9b3578371d7f9075d585b3186ba14  ./assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave/4774016f0a65458c9245084fdc462018-0.parquet  path columns differ by design (relocated to a different directory); see the column check below
+MATCH   9b8492f46e4df3053575270eff87a401  9b8492f46e4df3053575270eff87a401  ./assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave/4774016f0a65458c9245084fdc462018-0.parquet.orig
+MATCH   b281783792e39a240913110e62498c8f  b281783792e39a240913110e62498c8f  ./assets/human_motion_data/ego_recon/reconstructed_stage/ep8_ken_c_scored_attach_sharpa_wave_support.usda
+MATCH   b9b711efd2f2ca79db24e007a0730d06  b9b711efd2f2ca79db24e007a0730d06  ./bundle_cleaned/manifest.json
+MATCH   516c715f1a2915df001bf501fea545c8  516c715f1a2915df001bf501fea545c8  ./bundle_cleaned/mesh.mtl
+MATCH   327d04a8512db10c94ed9892b3830b61  327d04a8512db10c94ed9892b3830b61  ./bundle_cleaned/mesh.obj
+MATCH   ef290e2b006fd97af170f08f98cf2de5  ef290e2b006fd97af170f08f98cf2de5  ./bundle_cleaned/mesh_1.mtl
+MATCH   82d3898ce306b6b34f8ffbd39b5ad56a  82d3898ce306b6b34f8ffbd39b5ad56a  ./bundle_cleaned/mesh_1.obj
+MATCH   42821c8ee2ee7d5cc2ebc2edf314a169  42821c8ee2ee7d5cc2ebc2edf314a169  ./bundle_cleaned/result.npz
+MATCH   b9b711efd2f2ca79db24e007a0730d06  b9b711efd2f2ca79db24e007a0730d06  ./bundle_merged/manifest.json
+MATCH   516c715f1a2915df001bf501fea545c8  516c715f1a2915df001bf501fea545c8  ./bundle_merged/mesh.mtl
+MATCH   f872bc5b4776053453840a7062b26e0b  f872bc5b4776053453840a7062b26e0b  ./bundle_merged/mesh.obj
+MATCH   ef290e2b006fd97af170f08f98cf2de5  ef290e2b006fd97af170f08f98cf2de5  ./bundle_merged/mesh_1.mtl
+MATCH   82d3898ce306b6b34f8ffbd39b5ad56a  82d3898ce306b6b34f8ffbd39b5ad56a  ./bundle_merged/mesh_1.obj
+MATCH   c75cb24c63d3555f1ad5a013900f274f  c75cb24c63d3555f1ad5a013900f274f  ./bundle_merged/result.npz
+MATCH   43da135c576e5265d76aab2d22b7f05b  43da135c576e5265d76aab2d22b7f05b  ./pipeline.log
+MATCH   a9b65f868c1680071327ed9d012e747a  a9b65f868c1680071327ed9d012e747a  ./report.json
+DIFFER  b5b625feaf75a65de323650357b3c80d  67d8ab1a4fe40f582021a3d14bcc6995  ./scenefix_report.json  records absolute scene/out paths, so it differs by design
+MATCH   71b0010553120f3f3ed3032a8af543de  71b0010553120f3f3ed3032a8af543de  ./score_input/meshes/episode_000008/beige_cup.obj
+MATCH   d4964b449ac982a62ce89b724c07afd4  d4964b449ac982a62ce89b724c07afd4  ./score_input/meshes/episode_000008/material.mtl
+MATCH   b5939098e76f645d5930ab5bcd6fea35  b5939098e76f645d5930ab5bcd6fea35  ./score_input/meshes/episode_000008/white_pot.obj
+MATCH   2002e1a25979944b9ce3433522ef12de  2002e1a25979944b9ce3433522ef12de  ./score_input/results/episode_000008.npy
+
+# Parquet content check (pyarrow, all columns of the single row):
+#   local rebuild vs trained-on sc_ep8 (local copy C:/v2d_demo/diag/refine1104/ep8/work/sc_ep8, md5 e6816b13):
+#   66 of 66 data columns identical except the 3 path columns (raw_motion_file, object_mesh_paths, object_urdf_paths).
+#   The trained-on file additionally holds 2 columns, sequence_id and robot_name: the Hive partition keys of its directory,
+#   written into the file when relocate_scene.py rewrote it with pyarrow on Linux (pq.read_table infers them from the path).
+#   installed rf_ep8_ds (archive scene.tgz, md5 61cff60b) vs sc_ep8: 44 of 68 identical, 3 path columns, and exactly the
+#   21 intended columns differ (mano_right_* x11, robot_right_* x6, object_root_axis_angle, object_root_position,
+#   object_body_position, object_body_wxyz) - same list as gate G2 in gate_results.json.
+# Conclusion: every geometry/physics file of sc_ep8 (cup OBJ/STL/score mesh, bundle_cleaned cup mesh, support USD with the
+#   cupdisk, pot URDF with the moved COM) is reproduced byte-for-byte by the staged tools. scenefix.py's file mtime
+#   (01:49 EST) is later than the sf_ep8 build (00:12 EST); the byte-identical rebuild shows that the code paths used by
+#   this build (--obj, --add-disk, no :cap, no --support-top) behave exactly as in the original run.

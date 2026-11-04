@@ -1,0 +1,19 @@
+{
+ "candidate": "r_ep5_rl_K_s43",
+ "episode": 5,
+ "scene": "rl2_ep5",
+ "scene_tgz": "scene.tgz",
+ "checkpoint_step": 95006720,
+ "step_arg": "95006720",
+ "results_source": "/tmp/haisenk_v2d/runs/r_ep5_rl_K_s43/early_95006720/results",
+ "own_ref": 0.9088541666666667,
+ "own_ref_per_body": [
+  0.9194878472222222,
+  0.8982204861111112
+ ],
+ "policy_file": "policy_95006720.safetensors",
+ "policy_sha256": "d351dbaed5a14cca0d50f05876ad60ae68b2970e1bb3960026d1c9411a875840",
+ "rollout_sha256": "f4a352dd6ccdc06a2d754bc6a891f243171a03ff6a2d69c196ae4bd1cff214fc",
+ "recipe": "KEN task.motion_speed=1.0 sim.fps=20.254119873046875 termination.wrist_position.threshold=0.3 training.checkpoint.save_interval_environment_steps=5000192 termination.object_position.threshold=0.1 termination.object_orientation.threshold=0.5 training.replay.capacity=4194304 training.replay.observation_storage_dtype=float32 sim.njmax=1024 sim.nconmax=512",
+ "note": "T8 ADOPTED for ep5: Kaggle AUC 0.75799 (+0.00633 vs bob1, ep5 ~+0.127; +0.073 over T3). Scene rl2_ep5 = adopted w7_attcom_ep5 re-levelled 5.48 deg to the depth table + partial spoon disk dropped + pot mesh -1.0 cm rim-fixed."
+}

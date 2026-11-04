@@ -1,0 +1,14 @@
+# Lines of babel-s5-16:/tmp/haisenk_v2d/kq_babel.txt for the ep1 seed sweep on scene w_hold_ep1 (read 4 Nov 2026 14:20 EST).
+# Format (kq.sh): NAME EP PARQUET_DIR SEED RECIPE PRIO.  The final ep1 policy is b_ep1_wh_K_s48 @ step 100003840.
+b_ep1_wh_K_s45 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 45 KEN 20
+b_ep1_wh_K_s46 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 46 KEN 20
+b_ep1_wh_K_s47 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 47 KEN 20
+b_ep1_wh_K_s48 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 48 KEN 20
+b_ep1_wh_K_s49 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 49 KEN 20
+b_ep1_wh_K_s50 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 50 KEN 20
+b_ep1_wh_K_s51 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 51 KEN 30
+b_ep1_wh_K_s52 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 52 KEN 30
+b_ep1_wh_K_s53 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 53 KEN 30
+b_ep1_wh_K_s54 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 54 KEN 30
+b_ep1_wh_K_s55 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 55 KEN 30
+b_ep1_wh_K_s56 1 /tmp/haisenk_v2d/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave 56 KEN 30

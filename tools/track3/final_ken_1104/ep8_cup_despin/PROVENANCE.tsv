@@ -1,0 +1,79 @@
+# path	md5	bytes	origin (host:path of the copied file, or how it was generated). Babel = babel.cs.cmu.edu cluster.
+README.md	17358e83c24e50d6c38c9201518cdcd9	23792	written 4 Nov by the release staging agent
+bundle_manifest.json	af2fb1a5d3e9fff3196798c5115ec1b6	6155	written 4 Nov by the release staging agent (sha256 of the local archive copies)
+diagnosis/d1_decomp.py	8800b06036f4b7b2f98dbae2a0777c47	9838	local C:/v2d_demo/diag/refine1104/ep8/work/d1_decomp.py
+diagnosis/d1_out.json	7ebcb7660495286ca67be2ab9ba501fc	28192	local C:/v2d_demo/diag/refine1104/ep8/work/d1_out.json
+diagnosis/d2_bottom.py	92d45c58616e36f18f55219f538edc4b	3624	local C:/v2d_demo/diag/refine1104/ep8/work/d2_bottom.py
+diagnosis/d2_out.json	42a2cd7c397abd357efe6dac0ddb2cd1	888	local C:/v2d_demo/diag/refine1104/ep8/work/d2_out.json
+diagnosis/d3_gain.json	9d0e2d1b9af79f2664ddd151080f6e3d	603	local C:/v2d_demo/diag/refine1104/ep8/work/d3_gain.json
+diagnosis/d3_gain.py	b77bd6160a6681e358d519bf3c208ca9	1647	local C:/v2d_demo/diag/refine1104/ep8/work/d3_gain.py
+diagnosis/depth_table/dt8.log	7abfcc54ed035fe6308edd73035efcec	11372	local C:/v2d_demo/depthtab/ep8/dt8.log (= babel ~/v2d_ops/kenc/depthtab/ep8/dt8.log, md5 7abfcc54)
+diagnosis/depth_table/dt8.py	37b28dd783262843179e21dae5269670	19602	local C:/v2d_demo/depthtab/ep8/dt8.py (= babel ~/v2d_ops/kenc/depthtab/ep8/dt8.py, md5 37b28dd7)
+diagnosis/depth_table/ep8_depthtab.json	a7043fbf5b0b0b7de1554644b406c9a5	100975	local C:/v2d_demo/depthtab/ep8/ep8_depthtab.json
+diagnosis/depth_table/render_review.py	8050e21708eb6d052964651ba50e6a1e	88446	babel:/home/haisenk/v2d_ops/kenc/review/tool/render_review.py (md5 8050e217; imported by dt8.py)
+diagnosis/ep8_B2_diagnosis_extract.json	13c74668edba48217dce97ca986db05f	15421	generated 4 Nov: verbatim extract of C:/v2d_demo/diag/wai0uhdk8_result.json
+packing/T6_h_ep8_sc_K_s42_pack.log	7ca01f4c7e8d2135c1261b2af0c00842	1207	local archive C:/v2d_demo/archive/h_ep8_sc_K_s42/babel/pack.log
+packing/combine_final.sh	61addd4f7d8d6a296303ae58e1fa50a9	1264	babel:/home/haisenk/v2d_ops/kenc/final1104/combine_final.sh (md5 61addd4f)
+packing/final1104_local_best_manifest.txt	0502a8ad73372225461f130bc2e86390	771	babel:/home/haisenk/v2d_ops/kenc/final1104/local_best/manifest.txt (combine order + sha256 of each one.parquet)
+packing/pack_new.sh	84a370b21740c10510b5793d0e1aea9e	2218	local C:/v2d_demo/diag/refine1104/wrapup/pack_final/pack_new.sh (the script piped to a babel-s5-16 step on 4 Nov 13:47 EST; packs ep1 and ep8)
+packing/rf_ep8_ds_K_s43_pack.log	0e851d4f839e7e803b27cf1d21533aa6	1217	local archive .../rf_ep8_ds_K_s43/babel/pack.log (= babel ~/v2d_ops/kenc/final1104/rf_ep8_ds_K_s43/pack.log)
+packing/rf_ep8_ds_K_s43_pack_args.txt	1b477e480f97b27e47a29dec726102b0	281	local archive C:/v2d_demo/archive/rf_ep8_ds_K_s43/babel/pack_args.txt
+scene_build/1_sc_ep8/comfix.py	2aa37dac3570d0aeaa3ec5b95e7ef0a4	4560	local C:/v2d_demo/cupfix/comfix.py (= /tmp/haisenk_v2d/tools/comfix.py, md5 2aa37dac)
+scene_build/1_sc_ep8/rebuild_check_20261104.txt	dd206421729feb650e31e39436a7c680	6714	generated 4 Nov by the release agent (local rebuild in scratch)
+scene_build/1_sc_ep8/relocate_scene.py	d8319c83091b9ac11d982869d142e5f4	2766	local C:/v2d_demo/orchard/relocate_scene.py (= babel-s5-16 /tmp/haisenk_v2d/orchard_home/v2d_orchard/relocate_scene.py and ~/v2d_ops/relocate_scene.py, md5 d8319c83)
+scene_build/1_sc_ep8/restspots.py	1df89fd03c51430e40e26437b4e0708c	1526	local C:/v2d_demo/cupfix/restspots.py (orchard tools copy same size, mtime 00:11)
+scene_build/1_sc_ep8/sc_ep8_files.md5	a0f364df497afa80f51e4f465a1594ab	3518	babel:/data/user_data/haisenk/v2d/refine1104/ep8/src_sc_ep8.md5 (md5 list of the installed sc_ep8, 4 Nov 10:38 EST)
+scene_build/1_sc_ep8/scenefix.py	d3ca0eeb2dc20a0b13af08078884f783	8052	local C:/v2d_demo/cupfix/scenefix.py (= orchard/babel-s5-16 /tmp/haisenk_v2d/tools/scenefix.py, md5 d3ca0eeb)
+scene_build/1_sc_ep8/sf_ep8.log	ae2ef900bd1860a3727c59f449cb1ea0	784	babel-s5-16:/tmp/haisenk_v2d/scenes/sf_ep8.log (scenefix.py stdout, 4 Nov 00:12 EST)
+scene_build/2_despin/chk_scene.py	8c925d8d71bd1fb622e4aa84f063a338	4135	local C:/v2d_demo/diag/ep8_plan/chk_scene.py (= babel ~/v2d_ops/kenc/diag/ep8_plan/chk_scene.py, md5 8c925d8d)
+scene_build/2_despin/cmp_pq.py	95e505fa596bcdc8ed2309c173db9571	1597	babel:/home/haisenk/v2d_ops/kenc/hand5/cmp_pq.py (md5 95e505fa)
+scene_build/2_despin/cmp_scene.py	43524fdc60bfb4adbad95b252c52dbb7	2283	babel:/home/haisenk/v2d_ops/kenc/hand5/cmp_scene.py (md5 43524fdc)
+scene_build/2_despin/despin.log	722c95ad8c58ed3aa2c8520c78f250b7	4531	babel-t9-28:/scratch/haisenk-v2d/diag/ep8_plan/despin.log (md5 722c95ad)
+scene_build/2_despin/despin_build_files.md5.txt	ca34b55d8e229b5950261d74958b08db	6432	generated 4 Nov from a read-only Babel probe
+scene_build/2_despin/feas.out	8b5ad240bfd0ff462e7adb045090fcb2	12496	local C:/v2d_demo/diag/ep8_plan/feas.out (= babel ~/v2d_ops/kenc/diag/ep8_plan/feas.out, md5 8b5ad240)
+scene_build/2_despin/feas.sh	fd69040e800e291fdb6823025b88ab5f	3001	local C:/v2d_demo/diag/ep8_plan/feas.sh (= babel ~/v2d_ops/kenc/diag/ep8_plan/feas.sh, md5 fd69040e)
+scene_build/2_despin/patch_despin_ep8.py	e920bf15d6f1dafab400ce852f98cac4	123	babel-t9-28:/scratch/haisenk-v2d/diag/ep8_plan/patch_despin_ep8.py (md5 e920bf15, 4 Nov 01:51 EST)
+scene_build/2_despin/rlr_h5.py	0f2cef753271746addea0416806e1b21	64606	babel:/home/haisenk/v2d_ops/kenc/hand5/rlr_h5.py (md5 0f2cef75, mtime 2 Nov 17:13 EST)
+scene_build/2_despin/rlr_h5_vs_team_run_load_retarget_1a6bae7b.diff.txt	aeb27cd6cfc8cace25f6b29075d0d26a	1907	generated 4 Nov from a read-only Babel diff
+scene_build/2_despin/sym_common_ep8.py	59be69365ec603888de9c62af95a388f	13398	babel-t9-28:/scratch/haisenk-v2d/diag/ep8_plan/sym_common_ep8.py (md5 59be6936, 4 Nov 01:51 EST)
+scene_build/3_merge_install/b1_copy_src.sh	43ed6e1dd793dd0543298f54e16d6682	1048	local C:/v2d_demo/diag/refine1104/ep8/babel/b1_copy_src.sh
+scene_build/3_merge_install/b2_build.sh	da5a3d196fa537a3fe5448d353015f69	1702	local C:/v2d_demo/diag/refine1104/ep8/babel/b2_build.sh
+scene_build/3_merge_install/b3_install_queue.sh	c39cf328df9f79a90d25da460deffde1	1967	local C:/v2d_demo/diag/refine1104/ep8/babel/b3_install_queue.sh
+scene_build/3_merge_install/gate_results.json	8ca174db1e4e27a1f5f431a639f69702	2840	babel:/data/user_data/haisenk/v2d/refine1104/ep8/gate_results.json (md5 8ca174db = local copy)
+scene_build/3_merge_install/gates.json	5c82e3d92a52f71d2abde0ee167f464a	5416	local C:/v2d_demo/diag/refine1104/ep8/gates.json (= babel .../refine1104/ep8/gates.json, md5 5c82e3d9; pre-registered 10:38 EST)
+scene_build/3_merge_install/install.log	1b51d277c890dc795c3ccb7c48dce5e4	427	babel:/data/user_data/haisenk/v2d/refine1104/ep8/install.log
+scene_build/3_merge_install/install_scene_b.sh	e9fe7124994d9eb30ddc97a864ad8478	1550	babel:/home/haisenk/v2d_ops/install_scene_b.sh (md5 e9fe7124)
+scene_build/3_merge_install/kq_add_b.sh	ecbe3664f15307697a849b12a8bbcafe	579	babel:/home/haisenk/v2d_ops/kq_add_b.sh (md5 ecbe3664)
+scene_build/3_merge_install/merge_gates.py	e8bafc76318ca1bdad851243961a97b3	9635	local C:/v2d_demo/diag/refine1104/ep8/babel/merge_gates.py (= babel /data/user_data/haisenk/v2d/refine1104/ep8/code/merge_gates.py, md5 e8bafc76)
+scene_build/3_merge_install/queue.log	31ec836d1eb7c516f480af319809ef5d	69	babel:/data/user_data/haisenk/v2d/refine1104/ep8/queue.log
+scene_build/scene_md5_lists_20261104.txt	70c062b06b350cdada6a63e76a410f37	22099	generated 4 Nov from read-only Babel probes (md5sum on babel-s5-16 and /data)
+scene_build/superseded_v1_cf_ep8/cupfix.py	66020c2fbc709d29a94d5c37d9ac53bb	10135	local C:/v2d_demo/cupfix/cupfix.py (= /tmp/haisenk_v2d/tools/cupfix.py, md5 66020c2f); built cf_ep8 V1 (T4), NOT part of the final chain
+selection/JUDGED.json	62d9c8878f6f3479fb1bad39e40848b3	3078	local C:/v2d_demo/diag/refine1104/ep8/JUDGED.json
+selection/decide_rf.py	f65c356eeafdf3db8287e7b4c42fb1c3	5612	local C:/v2d_demo/diag/refine1104/ep8/work/decide_rf.py
+selection/decision_rule_retry.json	72140b824fd394406f0e620ddcf45d57	2558	local C:/v2d_demo/diag/refine1104/ep8/decision_rule_retry.json (12:12 EST, before the rf rollouts were fetched)
+selection/emu8.py	4e326d12d2e65a50323893796a102ba0	10825	local C:/v2d_demo/diag/ep_status_1104/ep8_work/emu8.py (imported by judge_ep8.py)
+selection/judge_ep8.py	c5070ef3a34334c49d155337fbc07083	5183	local C:/v2d_demo/diag/refine1104/ep8/judge_ep8.py
+selection/judge_family.json	91196cabb734bd85903fd36dcf650bd0	29554	local C:/v2d_demo/diag/refine1104/ep8/judge_family.json
+selection/judge_rf.json	a069e3f0d86781b40bc0631c16c98933	17733	local C:/v2d_demo/diag/refine1104/ep8/judge_rf.json
+selection/judge_rf_100M_REF.json	f85c38322e604ddbbe50ea3f8d77616d	3764	local C:/v2d_demo/diag/refine1104/ep8/judge_rf_100M_REF.json
+selection/nonsym_calib.py	c95ec8e4c77b870b8fa06d9c38c65ce5	1851	local C:/v2d_demo/diag/refine1104/ep8/work/nonsym_calib.py
+selection/nonsym_check.py	01082bcba8999d963f76c378dbc5007a	2144	local C:/v2d_demo/diag/refine1104/ep8/work/nonsym_check.py
+selection/nonsym_summary.json	15ea2b2b7b33cc69c9bfa4e3bf50c477	2468	local C:/v2d_demo/diag/refine1104/ep8/work/nonsym_summary.json
+selection/perframe_rf.json	821424c40a0ab5adfd2fcce6d9f2735d	67047	local C:/v2d_demo/diag/refine1104/ep8/work/perframe_rf.json
+selection/perframe_rf.py	968ab95f73e1861d400367652d49fe5f	3634	local C:/v2d_demo/diag/refine1104/ep8/work/perframe_rf.py
+selection/verdict_rf.json	d1cd5c7fb15fc4c246c59ffeb3387041	7293	local C:/v2d_demo/diag/refine1104/ep8/verdict_rf.json
+training/T6_h_ep8_sc_K_s42/archive_manifest.json	b2c34caf2911f2dbaf69e5675ec298ae	1009	local archive .../h_ep8_sc_K_s42/manifest.json
+training/T6_h_ep8_sc_K_s42/best.txt	627df2ee2ce3913b0c0d788f462940d6	32	local archive .../h_ep8_sc_K_s42/best.txt
+training/T6_h_ep8_sc_K_s42/recipe.txt	15bde7161aeedc77e5f5876563016e55	355	local archive C:/v2d_demo/archive/h_ep8_sc_K_s42/recipe.txt
+training/T6_h_ep8_sc_K_s42/sweep.json	ba026561e00a02c0fe26346db7b49786	1293	local archive .../h_ep8_sc_K_s42/sweep.json
+training/kq_queue_lines_ep8.txt	f493599058e37aec1c5b3c7103e72465	1776	generated 4 Nov from a read-only Babel probe (grep of the queue files)
+training/rf_ep8_ds_K_s43/archive_SHA256SUMS	57521fd1ea347e6101ec95f614056e41	1488	local archive C:/v2d_demo/archive/rf_ep8_ds_K_s43/SHA256SUMS
+training/rf_ep8_ds_K_s43/archive_manifest.json	ba5d9285b3d6c98cd4fd28343abe61fc	1624	local archive C:/v2d_demo/archive/rf_ep8_ds_K_s43/manifest.json
+training/rf_ep8_ds_K_s43/best.txt	6cba01cc6784b159cf59e0ef4caeca4f	31	local archive .../rf_ep8_ds_K_s43/best.txt
+training/rf_ep8_ds_K_s43/early_95006720_checkpoints.json	adb252ee63a8f785309847ef385c6161	81	babel-s5-16:/tmp/haisenk_v2d/runs/rf_ep8_ds_K_s43/early_95006720/checkpoints.json
+training/rf_ep8_ds_K_s43/early_95006720_episode_000008.json	e4901c163285affce7592b78e03b984e	2382	local archive .../rf_ep8_ds_K_s43/results/episode_000008.json (evaluator metrics of the packed rollout)
+training/rf_ep8_ds_K_s43/eval_hydra/config.yaml	bb3ccc8cbfd056a8a478c53a1bcf185b	783	local archive .../results/hydra/episode_000008/.hydra/config.yaml
+training/rf_ep8_ds_K_s43/eval_hydra/overrides.yaml	f5ef0066dbdd53a34ac755b5ff4a2f8e	413	local archive .../results/hydra/episode_000008/.hydra/overrides.yaml
+training/rf_ep8_ds_K_s43/recipe.txt	15bde7161aeedc77e5f5876563016e55	355	local archive C:/v2d_demo/archive/rf_ep8_ds_K_s43/recipe.txt (= babel-s5-16 runs/rf_ep8_ds_K_s43/recipe.txt)
+training/rf_ep8_ds_K_s43/sweep.json	2b8948998f821aee2755ffae8cbe6c1c	1301	local archive .../rf_ep8_ds_K_s43/sweep.json
+training/rf_ep8_ds_K_s43/train.log	9f31c208662d110ef69f2218916d817d	20163	local archive .../rf_ep8_ds_K_s43/train.log

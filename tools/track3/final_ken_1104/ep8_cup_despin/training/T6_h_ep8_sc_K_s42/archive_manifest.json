@@ -1,0 +1,19 @@
+{
+ "candidate": "h_ep8_sc_K_s42",
+ "episode": 8,
+ "scene": "sc_ep8",
+ "scene_tgz": "scene.tgz",
+ "checkpoint_step": 100003840,
+ "step_arg": "100003840",
+ "results_source": "/tmp/haisenk_v2d/runs/h_ep8_sc_K_s42/early_100003840/results",
+ "own_ref": 0.9730308219178082,
+ "own_ref_per_body": [
+  0.9529109589041096,
+  0.9931506849315068
+ ],
+ "policy_file": "policy_100003840.safetensors",
+ "policy_sha256": "0ff463d1314e315c4106c7a449c6cb88aa1001a4301d6e7ae3dea61f9035bf44",
+ "rollout_sha256": "5b44b3250a3c219f206fb1e7074cec3afc81d0fe5f5a7537a72c39ed32a1126b",
+ "recipe": "KEN task.motion_speed=1.0 sim.fps=20.254119873046875 termination.wrist_position.threshold=0.3 training.checkpoint.save_interval_environment_steps=5000192 termination.object_position.threshold=0.1 termination.object_orientation.threshold=0.5 training.replay.capacity=4194304 training.replay.observation_storage_dtype=float32 sim.njmax=1024 sim.nconmax=512",
+ "note": "ep8 V2 sc_ep8 own-ref 0.973 - prepared, NOT submitted (counter at 8)"
+}

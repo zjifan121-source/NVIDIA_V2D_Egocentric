@@ -1,0 +1,143 @@
+/scratch/haisenk-v2d/hand5w/r2/review_ep1/rev.py:97: RuntimeWarning: All-NaN axis encountered
+  m = float(np.nanmax(np.abs(x - y))) if x.size else 0
+== w_ctl_ep1: parquet dir ['/scratch/haisenk-v2d/hand5w/scenes/w_ctl_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_ctl_ep1/robot_name=sharpa_wave']; files ['40ec707a56214029afaf1bc99bebd7a2-0.parquet']; report True; npz False
+   no bundle_cleaned; candidates ['/scratch/haisenk-v2d/hand5w/scenes/../bundles/w_ctl_ep1/result.npz']
+   npz used: /scratch/haisenk-v2d/hand5w/scenes/../bundles/w_ctl_ep1/result.npz
+== w_raw_ep1: parquet dir ['/scratch/haisenk-v2d/hand5w/scenes/w_raw_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_raw_ep1/robot_name=sharpa_wave']; files ['b856f78e88644d68a0d15d93ce7dc2eb-0.parquet']; report True; npz True
+   npz used: /scratch/haisenk-v2d/hand5w/scenes/w_raw_ep1/bundle_cleaned/result.npz
+== w_hold_ep1: parquet dir ['/scratch/haisenk-v2d/hand5w/scenes/w_hold_ep1/assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave']; files ['67e77991625d40adb2b7a7ea3264eedc-0.parquet']; report True; npz True
+   npz used: /scratch/haisenk-v2d/hand5w/scenes/w_hold_ep1/bundle_cleaned/result.npz
+
+== report.json cleaning (hold)
+  hand_left_refilled_frames 2
+  hand_right_refilled_frames 71
+  attach_rule "nearest within reach"
+  ep1n_forced_windows {"left": [[0, 32, 304]], "right": [[1, 45, 68], [1, 250, 274]]}
+  ep1n_grip "median"
+  ep1n_team_holds_left [[0, 127, 221]]
+  ep1n_grip_dev_mm_deg [["left", 0, 32, 304, 176, "team(med,p90 mm; med,p90 deg)", [19.3, 26.1, 17.7, 29.3], "median", [12.2, 19.2, 8.5, 12.2]], ["right", 1, 45, 68, 60, "team(med,p90 mm; med,p90 deg)", [8.4, 14.8, 8.4, 10.8], "median", [6.5, 10.8, 4.5, 6.8]], ["right", 1, 250, 274, 270, "team(med,p90 mm; med,p90 deg)", [26.6, 34.8, 11.1, 20.3], "median", [9.4, 11.2, 7.4, 15.2]]]
+  attached_0 [["left", 32, 304, 2.9]]
+  ep1n_grip_frames [["left", 0, 32, 304, 176], ["right", 1, 45, 68, 60], ["right", 1, 250, 274, 270]]
+  ep1n_team_holds_right [[1, 47, 59], [1, 255, 272]]
+  attached_1 [["right", 45, 68, 3.0], ["right", 250, 274, 1.6]]
+  hand_left_attached_frames 272
+  hand_right_attached_frames 47
+== report.json cleaning (raw)
+  hand_left_refilled_frames 2
+  hand_right_refilled_frames 71
+  attach_rule "nearest within reach"
+  attached_0 [["left", 127, 221, 2.9]]
+  attached_1 [["right", 47, 59, 3.2], ["right", 255, 272, 1.6]]
+  hand_left_attached_frames 94
+  hand_right_attached_frames 29
+
+== npz diff hold vs raw: keys only in A [] only in B []
+  hand_left_wrist_orient_in_camera: maxabs 0.28 nanA 0 frames [(32, 304)]
+  hand_left_wrist_to_camera_transform: maxabs 0.313 nanA 0 frames [(32, 304)]
+  hand_left_wrist_to_world_transform: maxabs 0.3051 nanA 0 frames [(32, 304)]
+  hand_left_wrist_trans_in_camera: maxabs 0.02252 nanA 0 frames [(32, 304)]
+  hand_right_wrist_orient_in_camera: maxabs 5.25 nanA 0 frames [(45, 68), (250, 274)]
+  hand_right_wrist_to_camera_transform: maxabs 0.2012 nanA 0 frames [(45, 68), (250, 274)]
+  hand_right_wrist_to_world_transform: maxabs 0.2608 nanA 0 frames [(45, 68), (250, 274)]
+  hand_right_wrist_trans_in_camera: maxabs 0.02128 nanA 0 frames [(45, 68), (250, 274)]
+
+== npz diff hold vs ctl (hand keys expected to differ): keys only in A [] only in B []
+  hand_left_wrist_orient_in_camera: maxabs 0.2284 nanA 0 frames [(32, 304)]
+  hand_left_wrist_to_camera_transform: maxabs 0.2029 nanA 0 frames [(32, 304)]
+  hand_left_wrist_to_world_transform: maxabs 0.2097 nanA 0 frames [(32, 304)]
+  hand_left_wrist_trans_in_camera: maxabs 0.03828 nanA 0 frames [(32, 304)]
+  hand_right_wrist_orient_in_camera: maxabs 5.25 nanA 0 frames [(45, 68), (250, 274)]
+  hand_right_wrist_to_camera_transform: maxabs 0.2483 nanA 0 frames [(45, 68), (250, 274)]
+  hand_right_wrist_to_world_transform: maxabs 0.3099 nanA 0 frames [(45, 68), (250, 274)]
+  hand_right_wrist_trans_in_camera: maxabs 0.02299 nanA 0 frames [(45, 68), (250, 274)]
+
+== objects vs Wentao delivered bundle
+  wentao npz: ['/scratch/haisenk-v2d/wentao_mix_20261103/experiments/wentacc/scored20_contactshape_proxy_mix_v1_20261103/scenes/episode_000001/bundle/result.npz']
+  camera_to_world_transform: maxabs 0
+  object_to_camera_transform: maxabs 3.33e-16
+  object_to_world_transform: maxabs 0
+  object_scale: maxabs 0
+  object_is_valid: maxabs 0
+  object_1_to_world_transform: maxabs 0
+  object_1_scale: maxabs 0
+  object_1_to_camera_transform: maxabs 0
+  object_1_is_valid: maxabs 0
+
+== parquet column diffs
+  w_hold_ep1 vs w_raw_ep1: ['mano_right_scale_center:0.0112', 'mano_left_scale_center:0.0152', 'mano_center_idx:nan NAN1', 'mano_to_robot_scale:nan NAN1', 'mano_right_trans:0.0245', 'mano_right_global_orient:0.237', 'mano_right_joints:0.0236', 'mano_right_joints_wxyz:1.35', 'mano_right_tips_distance:0.0112', 'mano_right_link_contact_positions:1.22', 'mano_right_link_contact_normals:1.83', 'mano_right_object_contact_positions:1.21', 'mano_right_object_contact_normals:1.99', 'mano_right_object_contact_part_ids:2', 'mano_left_trans:0.0219', 'mano_left_global_orient:0.31', 'mano_left_joints:0.0208', 'mano_left_joints_wxyz:0.162', 'mano_left_tips_distance:0.02', 'mano_left_link_contact_positions:1.25', 'mano_left_link_contact_normals:1.65', 'mano_left_object_contact_positions:1.24', 'mano_left_object_contact_normals:2', 'mano_left_object_contact_part_ids:1', 'robot_right_wrist_position:0.025', 'robot_right_wrist_wxyz:0.114', 'robot_right_finger_joints:0.000778', 'robot_right_frames:1.41', 'robot_right_frame_task_errors:1.69e-05', 'robot_right_num_optimization_iterations:1', 'robot_left_wrist_position:0.0248', 'robot_left_wrist_wxyz:0.141', 'robot_left_finger_joints:0.00454', 'robot_left_frames:1.44', 'robot_left_frame_task_errors:4.1e-05', 'robot_left_num_optimization_iterations:27', 'object_mesh_radius:0.000726']
+  w_hold_ep1 vs w_ctl_ep1: ['mano_right_scale_center:0.0121', 'mano_left_scale_center:0.0149', 'mano_center_idx:nan NAN1', 'mano_to_robot_scale:nan NAN1', 'mano_right_trans:0.0271', 'mano_right_global_orient:0.299', 'mano_right_joints:0.0264', 'mano_right_joints_wxyz:1.35', 'mano_right_tips_distance:0.0179', 'mano_right_link_contact_positions:1.21', 'mano_right_link_contact_normals:1.77', 'mano_right_object_contact_positions:1.21', 'mano_right_object_contact_normals:1.99', 'mano_right_object_contact_part_ids:2', 'mano_left_trans:0.0413', 'mano_left_global_orient:0.236', 'mano_left_joints:0.0483', 'mano_left_joints_wxyz:0.117', 'mano_left_tips_distance:0.035', 'mano_left_link_contact_positions:1.24', 'mano_left_link_contact_normals:1.84', 'mano_left_object_contact_positions:1.24', 'mano_left_object_contact_normals:2', 'mano_left_object_contact_part_ids:1', 'robot_right_wrist_position:0.0273', 'robot_right_wrist_wxyz:0.127', 'robot_right_finger_joints:0.000803', 'robot_right_frames:1.41', 'robot_right_frame_task_errors:1.76e-05', 'robot_right_num_optimization_iterations:1', 'robot_left_wrist_position:0.0405', 'robot_left_wrist_wxyz:0.105', 'robot_left_finger_joints:0.00457', 'robot_left_frames:1.43', 'robot_left_frame_task_errors:3.64e-05', 'robot_left_num_optimization_iterations:26', 'object_mesh_radius:6.53e-05']
+
+objects ['ep1_hw_w_hold_ep1_white_pot', 'ep1_hw_w_hold_ep1_white_pot_lid']
+  mesh ep1_hw_w_hold_ep1_white_pot: extents [0.19885502 0.3107748  0.27853897], watertight False
+  mesh ep1_hw_w_hold_ep1_white_pot_lid: extents [0.18411724 0.18604206 0.05100035], watertight False
+
+######## w_ctl_ep1
+ left: NaN 0; wrist step max 26.1@f310 p99 24.7 >20mm [np.int64(16), np.int64(17), np.int64(24), np.int64(25), np.int64(26), np.int64(307), np.int64(308), np.int64(309), np.int64(310), np.int64(311), np.int64(312), np.int64(313), np.int64(314)]; any-joint step max 40.5@f327
+   contact part 1 runs [(28, 308)]
+   contact part 2 runs []
+   pen into pot: min -7.1mm@f64; frames joint < -10mm: 0 runs []; < -5mm 79
+   pen into lid: min 49.3mm@f306; frames joint < -10mm: 0 runs []; < -5mm 0
+ right: NaN 0; wrist step max 35.4@f308 p99 32.8 >20mm [np.int64(16), np.int64(17), np.int64(18), np.int64(19), np.int64(20), np.int64(21), np.int64(22), np.int64(23), np.int64(24), np.int64(25), np.int64(100), np.int64(101), np.int64(102), np.int64(103), np.int64(104), np.int64(105), np.int64(106), np.int64(107), np.int64(108), np.int64(109), np.int64(114), np.int64(115), np.int64(116), np.int64(117), np.int64(231), np.int64(232), np.int64(233), np.int64(234), np.int64(235), np.int64(236), np.int64(253), np.int64(254), np.int64(255), np.int64(256), np.int64(257), np.int64(303), np.int64(304), np.int64(305), np.int64(306), np.int64(307), np.int64(308), np.int64(309), np.int64(310), np.int64(311), np.int64(312), np.int64(313), np.int64(314)]; any-joint step max 44.7@f307
+   contact part 1 runs []
+   contact part 2 runs [(34, 97), (238, 304)]
+   pen into pot: min 17.4mm@f274; frames joint < -10mm: 0 runs []; < -5mm 0
+   pen into lid: min -3.7mm@f58; frames joint < -10mm: 0 runs []; < -5mm 0
+  L-pot pre[32,127)   : wrist dev from all-median med  15.2 p90  24.8 | from phase-median med   3.9 | phase-median offset from all  13.7mm | wrist HF(7f box) rms  2.2 | tip sd med [40 39 18  6 -4] std [ 9.3 10.2  8.5  7.8  7.2] | frames no tip<1cm 13
+  L-pot lift[127,221) : wrist dev from all-median med  23.1 p90  34.2 | from phase-median med  15.4 | phase-median offset from all  20.7mm | wrist HF(7f box) rms  6.3 | tip sd med [50 46 23 11  2] std [8.7 7.9 7.  6.9 4.8] | frames no tip<1cm 3
+  L-pot post[221,304) : wrist dev from all-median med   3.5 p90   7.5 | from phase-median med   3.5 | phase-median offset from all   0.5mm | wrist HF(7f box) rms  2.1 | tip sd med [39 35 14  3 -3] std [3.4 3.8 3.4 3.9 3.4] | frames no tip<1cm 1
+  L-pot all[32,304)   : wrist dev from all-median med  14.1 p90  29.0 | from phase-median med  14.1 | phase-median offset from all   0.0mm | wrist HF(7f box) rms  4.1 | tip sd med [41 39 18  6 -2] std [9.3 9.5 7.7 7.1 5.7] | frames no tip<1cm 17
+  R-lid [45,68): wrist dev from phase median med   9.3 p90  12.8 | wrist sd med 25 | tip sd med [15  9 13 11  3] std [8.4 9.5 6.8 5.8 3.4] | frames no tip<1cm 1 | min joint sd -3.7
+  R-lid [250,274): wrist dev from phase median med  12.5 p90  29.4 | wrist sd med 12 | tip sd med [21 40 25 18  5] std [13.1  8.5  8.5  5.2  4.2] | frames no tip<1cm 3 | min joint sd -3.5
+  R-pot min sd in lid windows: 21.7 / 17.7 mm
+
+######## w_raw_ep1
+ left: NaN 0; wrist step max 26.5@f174 p99 25.4 >20mm [np.int64(16), np.int64(17), np.int64(24), np.int64(25), np.int64(26), np.int64(149), np.int64(155), np.int64(156), np.int64(174), np.int64(307), np.int64(308), np.int64(309), np.int64(310), np.int64(311), np.int64(312), np.int64(313), np.int64(314)]; any-joint step max 40.5@f327
+   contact part 1 runs [(28, 308)]
+   contact part 2 runs []
+   pen into pot: min -7.1mm@f64; frames joint < -10mm: 0 runs []; < -5mm 74
+   pen into lid: min 49.3mm@f306; frames joint < -10mm: 0 runs []; < -5mm 0
+ right: NaN 0; wrist step max 35.4@f308 p99 32.8 >20mm [np.int64(16), np.int64(17), np.int64(18), np.int64(19), np.int64(20), np.int64(21), np.int64(22), np.int64(23), np.int64(24), np.int64(25), np.int64(54), np.int64(100), np.int64(101), np.int64(102), np.int64(103), np.int64(104), np.int64(105), np.int64(106), np.int64(107), np.int64(108), np.int64(109), np.int64(114), np.int64(115), np.int64(116), np.int64(117), np.int64(231), np.int64(232), np.int64(233), np.int64(234), np.int64(235), np.int64(236), np.int64(253), np.int64(254), np.int64(255), np.int64(256), np.int64(257), np.int64(303), np.int64(304), np.int64(305), np.int64(306), np.int64(307), np.int64(308), np.int64(309), np.int64(310), np.int64(311), np.int64(312), np.int64(313), np.int64(314)]; any-joint step max 44.7@f307
+   contact part 1 runs []
+   contact part 2 runs [(34, 97), (238, 304)]
+   pen into pot: min 17.4mm@f274; frames joint < -10mm: 0 runs []; < -5mm 0
+   pen into lid: min -3.7mm@f58; frames joint < -10mm: 0 runs []; < -5mm 0
+  L-pot pre[32,127)   : wrist dev from all-median med  14.1 p90  20.1 | from phase-median med   3.4 | phase-median offset from all  13.5mm | wrist HF(7f box) rms  1.9 | tip sd med [40 39 18  6 -4] std [5.1 6.1 4.7 4.5 3.9] | frames no tip<1cm 3
+  L-pot lift[127,221) : wrist dev from all-median med   9.5 p90   9.6 | from phase-median med   0.1 | phase-median offset from all   9.5mm | wrist HF(7f box) rms  0.4 | tip sd med [56 51 25 11 -2] std [2.8 3.2 2.4 2.4 1.9] | frames no tip<1cm 0
+  L-pot post[221,304) : wrist dev from all-median med   6.1 p90  10.7 | from phase-median med   3.7 | phase-median offset from all   4.5mm | wrist HF(7f box) rms  2.0 | tip sd med [39 34 14  3 -3] std [3.4 3.8 3.5 4.  3.5] | frames no tip<1cm 1
+  L-pot all[32,304)   : wrist dev from all-median med   9.5 p90  15.6 | from phase-median med   9.5 | phase-median offset from all   0.0mm | wrist HF(7f box) rms  1.9 | tip sd med [42 39 19  7 -3] std [8.3 8.4 5.5 4.7 3.3] | frames no tip<1cm 4
+  R-lid [45,68): wrist dev from phase median med   6.0 p90  11.6 | wrist sd med 25 | tip sd med [14 12 13 11  2] std [6.9 8.1 5.  4.6 3.2] | frames no tip<1cm 1 | min joint sd -3.7
+  R-lid [250,274): wrist dev from phase median med   3.9 p90  36.1 | wrist sd med 11 | tip sd med [23 40 25 18  5] std [12.3  4.5  5.1  3.5  3.5] | frames no tip<1cm 3 | min joint sd -2.2
+  R-pot min sd in lid windows: 21.7 / 17.7 mm
+
+######## w_hold_ep1
+ left: NaN 0; wrist step max 26.2@f174 p99 25.4 >20mm [np.int64(16), np.int64(17), np.int64(24), np.int64(25), np.int64(26), np.int64(127), np.int64(149), np.int64(155), np.int64(156), np.int64(173), np.int64(174), np.int64(307), np.int64(308), np.int64(309), np.int64(310), np.int64(311), np.int64(312), np.int64(313), np.int64(314)]; any-joint step max 40.5@f327
+   contact part 1 runs [(28, 308)]
+   contact part 2 runs []
+   pen into pot: min -6.8mm@f246; frames joint < -10mm: 0 runs []; < -5mm 262
+   pen into lid: min 49.3mm@f306; frames joint < -10mm: 0 runs []; < -5mm 0
+ right: NaN 0; wrist step max 35.4@f308 p99 32.8 >20mm [np.int64(16), np.int64(17), np.int64(18), np.int64(19), np.int64(20), np.int64(21), np.int64(22), np.int64(23), np.int64(24), np.int64(25), np.int64(100), np.int64(101), np.int64(102), np.int64(103), np.int64(104), np.int64(105), np.int64(106), np.int64(107), np.int64(108), np.int64(109), np.int64(114), np.int64(115), np.int64(116), np.int64(117), np.int64(231), np.int64(232), np.int64(233), np.int64(234), np.int64(235), np.int64(236), np.int64(253), np.int64(254), np.int64(255), np.int64(256), np.int64(257), np.int64(303), np.int64(304), np.int64(305), np.int64(306), np.int64(307), np.int64(308), np.int64(309), np.int64(310), np.int64(311), np.int64(312), np.int64(313), np.int64(314)]; any-joint step max 44.7@f307
+   contact part 1 runs []
+   contact part 2 runs [(34, 97), (238, 304)]
+   pen into pot: min 17.3mm@f47; frames joint < -10mm: 0 runs []; < -5mm 0
+   pen into lid: min -3.6mm@f48; frames joint < -10mm: 0 runs []; < -5mm 0
+  L-pot pre[32,127)   : wrist dev from all-median med   0.9 p90   1.0 | from phase-median med   0.1 | phase-median offset from all   0.9mm | wrist HF(7f box) rms  0.4 | tip sd med [43 41 19  7  4] std [1.4 2.  2.3 3.3 5. ] | frames no tip<1cm 6
+  L-pot lift[127,221) : wrist dev from all-median med   0.2 p90   0.3 | from phase-median med   0.1 | phase-median offset from all   0.2mm | wrist HF(7f box) rms  0.0 | tip sd med [41 36 15  3 -3] std [2.3 2.  1.1 1.8 2. ] | frames no tip<1cm 0
+  L-pot post[221,304) : wrist dev from all-median med   0.2 p90   0.3 | from phase-median med   0.1 | phase-median offset from all   0.2mm | wrist HF(7f box) rms  0.2 | tip sd med [42 38 17  4 -5] std [1.  1.8 1.3 2.  2.9] | frames no tip<1cm 1
+  L-pot all[32,304)   : wrist dev from all-median med   0.3 p90   1.0 | from phase-median med   0.3 | phase-median offset from all   0.0mm | wrist HF(7f box) rms  0.3 | tip sd med [42 38 17  4 -3] std [2.  2.7 2.7 3.3 4.8] | frames no tip<1cm 7
+  R-lid [45,68): wrist dev from phase median med   0.3 p90  10.4 | wrist sd med 27 | tip sd med [14  8 12 10  1] std [5.1 6.1 4.3 3.6 2.8] | frames no tip<1cm 0 | min joint sd -3.6
+  R-lid [250,274): wrist dev from phase median med   0.3 p90  16.2 | wrist sd med 20 | tip sd med [21 41 26 20  3] std [13.   1.9  2.6  2.   2.9] | frames no tip<1cm 2 | min joint sd -1.9
+  R-pot min sd in lid windows: 17.3 / 18.6 mm
+
+hold vs raw left: max pairwise-joint-distance change 0.000 mm; wrist moved >1mm runs [(32, 225), (226, 304)]; max 22.7@f40
+hold vs ctl left: wrist diff med 11.2 p90 29.9 max 45.2@f172
+
+hold vs raw right: max pairwise-joint-distance change 0.000 mm; wrist moved >1mm runs [(45, 68), (250, 274)]; max 25.1@f265
+hold vs ctl right: wrist diff med 0.0 p90 6.4 max 26.8@f261
+ left wrist steps hold/raw f26-40: 19/19 17/17 16/16 14/14 12/12 16/9 9/7 6/4 7/3 4/2 5/2 2/1 2/1 2/1
+ left wrist steps hold/raw f298-312: 2/2 1/2 4/3 2/3 6/5 10/8 11/11 16/16 20/20 24/24 25/25 26/26 26/26 25/25
+ right wrist steps hold/raw f40-50: 2/2 1/1 1/1 2/2 3/4 5/6 5/6 8/8 13/11 14/13
+ right wrist steps hold/raw f63-73: 7/8 5/6 3/5 2/3 2/2 1/1 1/1 1/1 1/1 1/1
+ right wrist steps hold/raw f245-255: 2/2 2/2 3/3 7/7 9/11 12/15 17/19 22/21 26/22 25/23
+ right wrist steps hold/raw f268-279: 4/5 15/12 3/2 4/2 4/2 4/1 1/1 1/1 1/1 0/0 0/0
+obj pos maxabs hold vs w_ctl_ep1: 0.00e+00; rot 0.00e+00
+obj pos maxabs hold vs w_raw_ep1: 0.00e+00; rot 0.00e+00

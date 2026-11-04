@@ -1,0 +1,72 @@
+Please either pass the dim explicitly or simply use torch.linalg.cross.
+The default value of dim will change to agree with that of linalg.cross in a future release. (Triggered internally at /pytorch/aten/src/ATen/native/Cross.cpp:62.)
+  l_axis = torch.cross(b_axis, self.up_axis_base.expand(bs, 16, 3))
+camera identical W vs prep: True
+left wrist in pot frame, raw:
+   [30,100) pos dev med 0.4 p90 0.8 cm, rot dev med 3 p90 6 deg
+   [100,127) pos dev med 0.4 p90 0.7 cm, rot dev med 3 p90 5 deg
+   [127,221) pos dev med 0.7 p90 1.5 cm, rot dev med 9 p90 15 deg
+   [221,250) pos dev med 0.4 p90 0.5 cm, rot dev med 4 p90 5 deg
+   [250,305) pos dev med 0.4 p90 1.0 cm, rot dev med 2 p90 7 deg
+   [30,305) pos dev med 1.1 p90 1.8 cm, rot dev med 9 p90 13 deg
+   phase medians vs lift median (cm): {'30-100': 1.9, '100-127': 1.6, '127-221': 0.0, '221-250': 0.7, '250-305': 0.4, '30-305': 0.4}
+left wrist in pot frame, delivered:
+   [30,100) pos dev med 0.4 p90 0.8 cm, rot dev med 3 p90 7 deg
+   [100,127) pos dev med 1.7 p90 2.0 cm, rot dev med 3 p90 4 deg
+   [127,221) pos dev med 1.5 p90 2.6 cm, rot dev med 3 p90 5 deg
+   [221,250) pos dev med 0.4 p90 0.5 cm, rot dev med 4 p90 5 deg
+   [250,305) pos dev med 0.3 p90 1.0 cm, rot dev med 2 p90 7 deg
+   [30,305) pos dev med 1.6 p90 2.8 cm, rot dev med 7 p90 10 deg
+   phase medians vs lift median (cm): {'30-100': 3.4, '100-127': 1.3, '127-221': 0.0, '221-250': 1.7, '250-305': 1.8, '30-305': 1.9}
+right wrist in lid frame, raw:
+   [36,47) pos dev med 0.5 p90 1.8 cm, rot dev med 6 p90 9 deg
+   [47,59) pos dev med 0.5 p90 0.7 cm, rot dev med 5 p90 6 deg
+   [59,70) pos dev med 0.4 p90 0.6 cm, rot dev med 2 p90 3 deg
+   [70,97) pos dev med 1.2 p90 2.1 cm, rot dev med 7 p90 10 deg
+   [241,250) pos dev med 0.2 p90 0.6 cm, rot dev med 4 p90 6 deg
+   [250,272) pos dev med 1.1 p90 2.2 cm, rot dev med 11 p90 17 deg
+   [272,303) pos dev med 0.3 p90 1.7 cm, rot dev med 5 p90 9 deg
+right wrist in lid frame, delivered:
+   [36,47) pos dev med 0.4 p90 1.0 cm, rot dev med 3 p90 4 deg
+   [47,59) pos dev med 0.5 p90 1.1 cm, rot dev med 3 p90 5 deg
+   [59,70) pos dev med 0.3 p90 0.9 cm, rot dev med 1 p90 2 deg
+   [70,97) pos dev med 1.6 p90 2.3 cm, rot dev med 7 p90 9 deg
+   [241,250) pos dev med 0.5 p90 1.4 cm, rot dev med 3 p90 6 deg
+   [250,272) pos dev med 1.5 p90 2.9 cm, rot dev med 8 p90 14 deg
+   [272,303) pos dev med 0.3 p90 1.6 cm, rot dev med 4 p90 9 deg
+lift [127,221) HF residual RMS mm: pot origin 17.2 | raw left wrist 11.2 | delivered left wrist 6.4
+[30,127) HF RMS mm: pot 1.4
+[221,305) HF RMS mm: pot 1.3
+lid HF RMS mm [40,75): 9.0 [245,280): 11.9
+f44 lid z   0.5 cm  lid speed  0.6 cm/f
+f46 lid z   1.5 cm  lid speed  0.8 cm/f
+f48 lid z   3.3 cm  lid speed  1.3 cm/f
+f50 lid z   5.0 cm  lid speed  1.5 cm/f
+f52 lid z   5.6 cm  lid speed  1.8 cm/f
+f54 lid z   5.1 cm  lid speed  1.9 cm/f
+f56 lid z   4.1 cm  lid speed  1.9 cm/f
+f58 lid z   2.4 cm  lid speed  1.7 cm/f
+f60 lid z  -0.1 cm  lid speed  1.5 cm/f
+f62 lid z  -2.9 cm  lid speed  1.4 cm/f
+f64 lid z  -5.3 cm  lid speed  1.1 cm/f
+f66 lid z  -6.6 cm  lid speed  0.5 cm/f
+f68 lid z  -7.0 cm  lid speed  0.1 cm/f
+f70 lid z  -7.6 cm  lid speed  0.2 cm/f
+f244 lid z  -8.4 cm  lid speed  0.1 cm/f
+f246 lid z  -8.4 cm  lid speed  0.1 cm/f
+f248 lid z  -8.7 cm  lid speed  0.1 cm/f
+f250 lid z  -8.4 cm  lid speed  0.5 cm/f
+f252 lid z  -4.9 cm  lid speed  2.4 cm/f
+f254 lid z   0.4 cm  lid speed  3.1 cm/f
+f256 lid z   4.9 cm  lid speed  2.7 cm/f
+f258 lid z   6.3 cm  lid speed  1.9 cm/f
+f260 lid z   5.6 cm  lid speed  1.5 cm/f
+f262 lid z   4.2 cm  lid speed  1.1 cm/f
+f264 lid z   3.2 cm  lid speed  0.8 cm/f
+f266 lid z   2.5 cm  lid speed  0.6 cm/f
+f268 lid z   2.4 cm  lid speed  0.5 cm/f
+f270 lid z   2.2 cm  lid speed  0.4 cm/f
+f272 lid z   1.8 cm  lid speed  0.3 cm/f
+f274 lid z   1.3 cm  lid speed  0.3 cm/f
+f276 lid z   1.1 cm  lid speed  0.1 cm/f
+f278 lid z   0.9 cm  lid speed  0.1 cm/f

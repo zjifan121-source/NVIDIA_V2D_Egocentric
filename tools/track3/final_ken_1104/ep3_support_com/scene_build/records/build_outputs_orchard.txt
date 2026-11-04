@@ -1,0 +1,55 @@
+Verbatim tool outputs of the sc_ep3 build, copied from the main session log (Claude Code session 3081c1c4, 4 Nov 2026).
+Timestamps are UTC from the session log (EST = UTC-5). Host: orchard-flame-21, job 157612, /tmp/haisenk_v2d (since moved
+unchanged to babel-s5-16:/tmp/haisenk_v2d). P = /tmp/haisenk_v2d/v2d_train/baseline/robotic_grounding/flash_chord/.venv/bin/python
+
+------------------------------------------------------------------------------------------------------------------------
+[05:11:10Z] frame-0 / end resting bottoms of the parent scene (restspots.py, used to set the support cap)
+  $P /tmp/haisenk_v2d/tools/restspots.py b1_ep3 0,30,280,312
+white_pot      f   0 bottom z 1.0000 footprint center (+0.0126, +0.0453) r_base 0.078 r_all 0.298
+white_pot      f  30 bottom z 1.0000 footprint center (+0.0126, +0.0453) r_base 0.078 r_all 0.298
+white_pot      f 280 bottom z 0.9913 footprint center (-0.0003, +0.0972) r_base 0.088 r_all 0.315
+white_pot      f 312 bottom z 0.9842 footprint center (+0.0009, +0.1027) r_base 0.088 r_all 0.316
+wooden_spoon   f   0 bottom z 1.0073 footprint center (+0.2182, +0.0595) r_base 0.173 r_all 0.177
+wooden_spoon   f  30 bottom z 1.0056 footprint center (+0.2203, +0.0565) r_base 0.169 r_all 0.173
+wooden_spoon   f 280 bottom z 1.0102 footprint center (+0.2039, +0.0448) r_base 0.167 r_all 0.171
+wooden_spoon   f 312 bottom z 1.0013 footprint center (+0.2084, +0.0551) r_base 0.175 r_all 0.182
+    def Cylinder "support_0" (
+        double radius = 0.29815092397859855
+        double3 xformOp:translate = (0.0751038498241909, -0.009501558456765827, 0.9828071156409292)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+  (support_0 is 0.01 m high, so its top was 0.9828071 + 0.005 = 0.9878)
+
+------------------------------------------------------------------------------------------------------------------------
+[05:12:13Z] step 1, support raised (the same command line also built sf_ep1 and sf_ep8 for other episodes)
+  cat /c/v2d_demo/cupfix/scenefix.py | ssh orchard "srun --jobid=157612 --overlap -n1 -c4 bash -c 'cat > /tmp/haisenk_v2d/tools/scenefix.py; cd /tmp/haisenk_v2d/scenes && ... $P $S b1_ep3 sf_ep3 --support-top support_0:0.9990 > sf_ep3.log 2>&1; ...'"
+  output for ep3 (the report's support list and the first relocate line):
+== ep3
+[{'prim': 'support_0', 'top_before': 0.9878, 'top_after': 0.999}]
+['changed 5 paths']
+
+------------------------------------------------------------------------------------------------------------------------
+[05:19:13Z] centre-of-mass check before the fix (comfix.py check sf_ep3 ...), ep3 part of the output
+== sf_ep3
+  white_pot      COM(urdf) [0. 0. 0.] cm, shell centroid [-0.8 -6.3  4.9] cm, |diff| 8.0 cm
+      f0: COM   inside base footprint: False (margin 16.5 cm)
+      f0: shell inside base footprint: True (margin 8.6 cm)
+      f312: COM   inside base footprint: False (margin 16.0 cm)
+      f312: shell inside base footprint: False (margin 8.2 cm)
+  wooden_spoon   COM(urdf) [0. 0. 0.] cm, shell centroid [-0.8 -1.6  1.5] cm, |diff| 2.4 cm
+      f0: COM   inside base footprint: True (margin 13.8 cm)
+      f0: shell inside base footprint: True (margin 16.1 cm)
+      f312: COM   inside base footprint: True (margin 11.9 cm)
+      f312: shell inside base footprint: True (margin 14.0 cm)
+  NOTE: the printed "margin" is not a signed distance (comfix.inside_footprint takes the most negative facet value);
+  read only the True/False. The diagnosis measured the origin COM 3.3 cm OUTSIDE the base hull with the pot flat
+  (f312's reference pose is tilted 4.4 deg and sunk, so its "footprint" is only a sliver; see diagnosis/b1_pot_com).
+
+------------------------------------------------------------------------------------------------------------------------
+[05:20:00Z] step 2, pot centre of mass (loop over e in 1 3 8; ep3 is the second block)
+  cd /tmp/haisenk_v2d/scenes && $P /tmp/haisenk_v2d/tools/comfix.py fix sf_ep3 sc_ep3 white_pot
+white_pot: inertial origin [0. 0. 0.] -> [-0.008451 -0.062887  0.049392]
+['changed 5 paths']
+
+------------------------------------------------------------------------------------------------------------------------
+[05:20:19Z] training lines appended to kq.txt (kq_add6.txt); the pending support-only runs g_*_sf_* were marked taken
+  h_ep3_sc_K_s42 3 /tmp/haisenk_v2d/scenes/sc_ep3/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave 42 KEN 2

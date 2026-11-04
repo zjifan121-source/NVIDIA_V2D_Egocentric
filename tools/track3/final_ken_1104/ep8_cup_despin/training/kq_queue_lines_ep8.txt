@@ -1,0 +1,12 @@
+# Queue lines of the ep8 trainings (NAME EP PARQUET_DIR SEED RECIPE PRIO), as read 4 Nov 14:22 EST.
+# rf_ep8_ds_* : babel-s5-16 /tmp/haisenk_v2d/kq_babel.txt (added by b3_install_queue.sh via kq_add_b.sh, 10:46 EST)
+# h_ep8_sc_*  : the orchard queue kq.txt (3-4 Nov night); h_ep8_sc_K_s42 = T6 (Kaggle-tested)
+rf_ep8_ds_K_s42 8 /tmp/haisenk_v2d/scenes/rf_ep8_ds/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave 42 KEN 10
+rf_ep8_ds_K_s43 8 /tmp/haisenk_v2d/scenes/rf_ep8_ds/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave 43 KEN 10
+rf_ep8_ds_K_s44 8 /tmp/haisenk_v2d/scenes/rf_ep8_ds/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave 44 KEN 10
+h_ep8_sc_K_s42 8 /tmp/haisenk_v2d/scenes/sc_ep8/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave 42 KEN 2
+h_ep8_sc_W_s42 8 /tmp/haisenk_v2d/scenes/sc_ep8/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave 42 WIDE 2
+h_ep8_sc_W_s43 8 /tmp/haisenk_v2d/scenes/sc_ep8/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave 43 WIDE 2
+h_ep8_sc_K_s43 8 /tmp/haisenk_v2d/scenes/sc_ep8/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave 43 KEN 2
+h_ep8_sc_K_s44 8 /tmp/haisenk_v2d/scenes/sc_ep8/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave 44 KEN 3
+h_ep8_sc_K_s45 8 /tmp/haisenk_v2d/scenes/sc_ep8/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave 45 KEN 3

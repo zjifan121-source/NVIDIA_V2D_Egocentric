@@ -1,0 +1,37 @@
+kq.sh driver log lines for the ep3 sc_ep3 runs (orchard-flame-21 /tmp/haisenk_v2d/kq.out, now babel-s5-16 same path; EST)
+== Tue Nov  3 22:34:02 EST 2026 kq queue /tmp/haisenk_v2d/kq.txt runs /tmp/haisenk_v2d/runs GPUs 0 1 2 3 4 5 6 PYTHONPATH=/tmp/haisenk_v2d/fc_src_de66
+2026-11-04 00:48:21 gpu1 start h_ep3_sc_K_s42 (ep3 seed 42 KEN)
+2026-11-04 01:09:47 gpu3 start h_ep3_sc_K_s43 (ep3 seed 43 KEN)
+  h_ep3_sc_K_s42 train exit=0 minutes=33 nefc_overflow_lines=0
+  sweep h_ep3_sc_K_s42: best 0.947 @ 95006720 [0.988, 0.905] (last 0.783 @ 100003840, 7 ckpts)
+2026-11-04 01:24:02 gpu1 done h_ep3_sc_K_s42
+2026-11-04 01:28:03 gpu0 start h_ep3_sc_W_s42 (ep3 seed 42 WIDE)
+  h_ep3_sc_K_s43 train exit=0 minutes=33 nefc_overflow_lines=0
+  sweep h_ep3_sc_K_s43: best 0.952 @ 100003840 [0.988, 0.916] (last 0.952 @ 100003840, 7 ckpts)
+2026-11-04 01:45:28 gpu3 done h_ep3_sc_K_s43
+  h_ep3_sc_W_s42 train exit=0 minutes=35 nefc_overflow_lines=0
+  sweep h_ep3_sc_W_s42: best 0.772 @ 70004736 [0.622, 0.922] (last 0.746 @ 100003840, 7 ckpts)
+2026-11-04 02:05:19 gpu0 done h_ep3_sc_W_s42
+2026-11-04 02:27:01 gpu2 start h_ep3_sc_K_s44 (ep3 seed 44 KEN)
+2026-11-04 02:46:30 gpu6 start h_ep3_sc_K_s45 (ep3 seed 45 KEN)
+  h_ep3_sc_K_s44 train exit=0 minutes=34 nefc_overflow_lines=0
+  sweep h_ep3_sc_K_s44: best 0.955 @ 80003072 [0.987, 0.923] (last 0.946 @ 100003840, 7 ckpts)
+2026-11-04 03:03:17 gpu2 done h_ep3_sc_K_s44
+  h_ep3_sc_K_s45 train exit=0 minutes=34 nefc_overflow_lines=0
+  sweep h_ep3_sc_K_s45: best 0.793 @ 95006720 [0.759, 0.828] (last 0.361 @ 100003840, 7 ckpts)
+2026-11-04 03:22:41 gpu6 done h_ep3_sc_K_s45
+
+Queue lines (kq.txt) of all runs on this scene (NAME EP PARQUET SEED RECIPE PRIO):
+h_ep3_sc_K_s42 3 /tmp/haisenk_v2d/scenes/sc_ep3/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave 42 KEN 2
+h_ep3_sc_K_s43 3 /tmp/haisenk_v2d/scenes/sc_ep3/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave 43 KEN 2
+h_ep3_sc_W_s42 3 /tmp/haisenk_v2d/scenes/sc_ep3/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave 42 WIDE 2
+h_ep3_sc_K_s44 3 /tmp/haisenk_v2d/scenes/sc_ep3/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave 44 KEN 3
+h_ep3_sc_K_s45 3 /tmp/haisenk_v2d/scenes/sc_ep3/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave 45 KEN 3
+(The support-only runs g_ep3_sf_K_s42/s43, g_ep3_sf_W_s42 on sf_ep3 were queued at 00:13 and marked taken = skipped at 00:20,
+ when sc_ep3 replaced sf_ep3; they never ran.)
+
+Seed summary on sc_ep3 (own-reference add_auc of the best checkpoint >= 70M):
+  KEN s42 0.947 @95M (adopted, Kaggle T5) | KEN s43 0.952 @100M | KEN s44 0.955 @80M | KEN s45 0.793 @95M (pot failure) | WIDE s42 0.772 @70M
+  For comparison, KEN/A1 seeds on the unfixed bob1 scene: 0.574-0.914 (bob1's submitted ep3_h5A1_s42 = 0.914).
+  s42 stayed the pick after s43/s44 finished because it is the run measured on Kaggle (T5); ledger: "h_ep3_sc_K_s43 0.952
+  (adopted s42 0.947 stays, Kaggle-proven)". s43/s44 were never submitted.

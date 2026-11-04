@@ -1,0 +1,794 @@
+{
+ "manifest": "bundles_manifest.json",
+ "release": "tools/track3/final_ken_1104 (Ken / haisenk, team Gravity Aligned, NVIDIA V2D Challenge Track 3; our scored episodes 1, 3, 5, 6, 8, 10)",
+ "written": "2026-11-04 ~15:10 EST by the release assembly step. Staging only: nothing was uploaded, committed or submitted by this step.",
+ "hf": {
+  "dataset": "rose-tea-cafe/v2d-t3-recon",
+  "repo_type": "dataset",
+  "prefix": "experiments/haisenk/final_ours_20261104/",
+  "layout": {
+   "README.md": "recommended: copy of code/tools/track3/final_ken_1104/README.md (overview, reproduction, caveats)",
+   "bundles_manifest.json": "recommended: this file",
+   "episode_00000N/scene/<scene>/": "the scene directory as trained (or scene/<scene>.tgz = the verified fallback tarball)",
+   "episode_00000N/policy/policy_<step>.safetensors": "final policy checkpoint",
+   "episode_00000N/results/": "kit evaluator output of that checkpoint (the rollout that was packed)",
+   "episode_00000N/packed/one.parquet": "the episode's packed Kaggle rows",
+   "episode_00000N/run/": "optional run records (train.log, sweep.json, best.txt, recipe.txt, manifest.json, pack.log)",
+   "episode_000001/kaggle_rows_T2/, episode_000008/kaggle_rows_T6/": "recommended: the rows actually on the leaderboard for ep1/ep8",
+   "episode_000005/parent/": "recommended: parent scene w7_attcom_ep5.tgz (input of the verified ep5 rebuild)",
+   "local_best/": "the combined local-best file (not submitted)"
+  },
+  "naming_note": "episode_00000N follows the team's existing HF folders (experiments/edmond/bob1_submission_20261103/episode_000006, experiments/haisenk/hand_fixes_wentao_v1_20261103/episode_000001). The ep3 part manifest suggested ep3_support_com/ instead; the uploader may rename, but keep one scheme."
+ },
+ "deadline": "babel-s5-16:/tmp/haisenk_v2d is node /tmp inside H100 job 10774619 (RUNNING at 14:52 EST 4 Nov, time left 1-09:10). It disappears when the job ends (about 6 Nov 00:03 EST). Read it only inside a step of that job: ssh -o BatchMode=yes babel \"srun --jobid=10774619 --overlap -n1 -c1 --mem=2G bash -s\" < script. Every final item also has a hash-identical copy in C:\\v2d_demo\\archive\\<run>\\ (scene as scene.tgz), so the whole required set can be uploaded from the local PC instead.",
+ "verification": {
+  "babel_s5_16": "2026-11-04 14:52 EST, read-only step of job 10774619: scene dirs (file counts, sizes, symlinks, processed parquet sha256), final policies, rollout parquet+json, node archives' scene.tgz, home one.parquet files, the combined file and its CD-O file, bob1 base, /data copies of the ep1/ep8 policies. All equal to the values here.",
+  "local": "2026-11-04 14:5x EST: sha256 of every C:\\v2d_demo\\archive\\<run>\\ scene.tgz, policy, results parquet/json and babel\\one.parquet, plus the processed parquet inside each scene.tgz, and the local copy of the combined file. All equal.",
+  "not_rehashed_here": "items marked 'not re-hashed by this step' (sha256 copied from the part collectors): T5/T8 swap files, ep3 depth points, ep10 CoACD hulls, ep10 pre-relocation tgz, CD-O C1/C2 files, Babel staged archive copies ~/v2d_ops/kenc/final1104/<run>/archive/<run>/ (verified by the 13:5x completeness critic)."
+ },
+ "rules_for_the_upload": [
+  "Upload only under experiments/haisenk/final_ours_20261104/. Do not touch teammates' folders on HF.",
+  "Do not upload: the kit's metric code (AUC.py, CD-O.py), MANO model files, any credential or token, the internal notes (release1104/notes/), teammates' files (bob1 base parquet, Wentao's bundles): pointers only.",
+  "Scene directories: skip the dangling symlinks listed per scene, or upload the fallback scene.tgz instead (same contents, verified).",
+  "results/ dirs contain a hidden .hydra/ folder; include it if the uploader skips dot-folders by default (optional).",
+  "After the upload, compare the LFS sha256 on HF with this manifest."
+ ],
+ "episodes": [
+  {
+   "episode": 1,
+   "objects": [
+    "white_pot",
+    "white_pot_lid"
+   ],
+   "part": "ep1_hold_window",
+   "part_readme": "code/tools/track3/final_ken_1104/ep1_hold_window/README.md",
+   "part_manifest": "code/tools/track3/final_ken_1104/ep1_hold_window/bundle_manifest.json",
+   "hf_dir": "experiments/haisenk/final_ours_20261104/episode_000001/",
+   "final": {
+    "scene": "w_hold_ep1",
+    "run": "b_ep1_wh_K_s48",
+    "recipe": "KEN",
+    "seed": 48,
+    "checkpoint_step": 100003840,
+    "own_ref_add_auc": 0.83,
+    "own_ref_per_body": [
+     0.913,
+     0.747
+    ],
+    "kaggle": "NOT SUBMITTED. Picked after Kaggle submissions stopped (4 Nov ~10:05 EST) by the pre-registered ep1 emulator rule: better than T2 in 16/16 cells, median emulated AUC 0.887 vs 0.847 (GT-free, local only)."
+   },
+   "on_the_leaderboard": "T2 = o_ep1_hold_s44 @100003840 on the same scene w_hold_ep1 (swap test T2: AUC 0.75413, ep1 +0.049; rows of the team's 0.76526 entry)",
+   "upload": [
+    {
+     "what": "scene",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/scenes/w_hold_ep1/",
+     "source_kind": "directory in node /tmp of H100 job 10774619 (read it inside a step of that job)",
+     "hf_path": "scene/w_hold_ep1/",
+     "regular_files": 21,
+     "bytes": 11127025,
+     "symlinks": "6 dangling symlinks in bundle_cleaned/ (HANDFIX_PREP.json, manifest.json, mesh.obj, mesh_1.obj, obj1_mesh_1.mtl, obj1_mesh_1_material_0.png -> /scratch/haisenk-v2d/hand5w/bundles/w_hold_ep1/ on babel-u5-16, unreachable); not needed for training or evaluation: skip them",
+     "check": {
+      "file": "assets/human_motion_data/ego_recon/processed/sequence_id=ep1_hw_w_hold_ep1/robot_name=sharpa_wave/67e77991625d40adb2b7a7ea3264eedc-0.parquet",
+      "sha256": "6b1ed3b223dc7e223fe9957ac0f1dad77ed7d9320fb983455b884d7dbf35ff6e",
+      "note": "processed parquet as trained (paths relocated to /tmp/haisenk_v2d/scenes/w_hold_ep1; original kept as *.parquet.orig)"
+     },
+     "fallback": {
+      "source": "C:\\v2d_demo\\archive\\b_ep1_wh_K_s48\\scene.tgz",
+      "sha256": "7b3854460da68765a7f5edeb6cc0c7352e6e7f6d03c51595f19008897b110f07",
+      "bytes": 8090889,
+      "hf_path": "scene/w_hold_ep1.tgz",
+      "note": "tarball of the same scene (top dir w_hold_ep1/); its processed parquet has the same sha256 (checked by this step)"
+     },
+     "other_copies": "as built (before relocation): Babel /data/user_data/haisenk/v2d/hand5_backup_20261103/hand5w/scenes/w_hold_ep1 and HF experiments/haisenk/hand_fixes_wentao_v1_20261103/episode_000001/scene/ (processed parquet 31d10a3f...)"
+    },
+    {
+     "what": "policy",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/runs/b_ep1_wh_K_s48/train/policy_100003840.safetensors",
+     "local_copy": "C:\\v2d_demo\\archive\\b_ep1_wh_K_s48\\policy_100003840.safetensors",
+     "hf_path": "policy/policy_100003840.safetensors",
+     "sha256": "6aaab5d64f317cf5690f89f296114b12e5aebe33121fe950b925094ce1e51152",
+     "bytes": 5138792,
+     "durable": "Babel /data/user_data/haisenk/v2d/refine1104/ep1/adopt_s48/train/policy_100003840.safetensors (re-hashed by this step)"
+    },
+    {
+     "what": "rollout_results_dir",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/runs/b_ep1_wh_K_s48/early_100003840/results/",
+     "local_copy": "C:\\v2d_demo\\archive\\b_ep1_wh_K_s48\\results\\",
+     "hf_path": "results/",
+     "files": {
+      "episode_000001.parquet": {
+       "sha256": "b3fbfe3b1e8cbab6b2ed2fe917c0822d2f3a291dae66272e431a0f678cc155b6",
+       "bytes": 100363,
+       "note": "kit evaluator rollout of the packed checkpoint (the packed rows are its env-0 achieved poses)"
+      },
+      "episode_000001.json": {
+       "sha256": "6758a34f5d4d20636411647002c533a55a3e0ac27e46b2182a1a066b8ea938a9",
+       "bytes": 2363,
+       "note": "evaluator metrics (own-reference add_auc etc.) incl. checkpoint_sha256"
+      },
+      "hydra/episode_000001/": {
+       "note": "evaluate_policy.log + .hydra/{config,hydra,overrides}.yaml (hidden dir: make sure the uploader does not skip it)"
+      }
+     },
+     "bytes_approx": "about 0.1 MB",
+     "durable": "Babel /data/user_data/haisenk/v2d/refine1104/ep1/adopt_s48/early_100003840/results/ (parquet re-hashed by this step)"
+    },
+    {
+     "what": "packed_one_parquet",
+     "source": "babel:~/v2d_ops/kenc/final1104/b_ep1_wh_K_s48/one.parquet",
+     "local_copy": "C:\\v2d_demo\\archive\\b_ep1_wh_K_s48\\babel\\one.parquet",
+     "hf_path": "packed/one.parquet",
+     "sha256": "7150f4e5764d15ad30824bda8720054288a63055eb32ea4cd21a1e82529d3276",
+     "bytes": 225201,
+     "rows": 670,
+     "checkpoint_sha256_prefix": "6aaab5d6",
+     "code_commit_url": "https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/1689cf6396bee0f6a3bf4cced610f2fe0f71ebf6",
+     "note": "rows of this episode only, as packed by pack_one.sh (kit tools/pack_submission.py, track_3)"
+    },
+    {
+     "what": "run_records",
+     "source": "C:\\v2d_demo\\archive\\b_ep1_wh_K_s48\\ (train.log, sweep.json, best.txt, recipe.txt, manifest.json, SHA256SUMS, babel\\pack.log)",
+     "hf_path": "run/",
+     "optional": true,
+     "note": "small text records; copies of most are also in the code tree (part training/ folders)"
+    }
+   ],
+   "recommended_extra": {
+    "why": "These are the ep1 rows actually on the Kaggle boards (T2). Same scene as the final, so only policy, rollout and packed rows are needed.",
+    "hf_subdir": "kaggle_rows_T2/",
+    "items": [
+     {
+      "what": "policy",
+      "name": "o_ep1_hold_s44 @100003840 (orchard, team gpu_queue.sh @1a6bae7b, seed 44)",
+      "source": "C:\\v2d_demo\\archive\\o_ep1_hold_s44\\policy_100003840.safetensors",
+      "also": "C:\\v2d_demo\\handoff\\ep1_ep5_20261104\\episode_000001\\policy_100003840.safetensors",
+      "hf_path": "kaggle_rows_T2/policy/policy_100003840.safetensors",
+      "sha256": "969b9cef527814ed9c5138dc82f68fdb9a1097e746f122d5a8ed28a56b1c8820",
+      "bytes": 5138792
+     },
+     {
+      "what": "rollout_results_dir",
+      "source": "C:\\v2d_demo\\archive\\o_ep1_hold_s44\\results\\",
+      "hf_path": "kaggle_rows_T2/results/",
+      "files": {
+       "episode_000001.parquet": {
+        "sha256": "bf5e57c42eb6c31cc32c90e4fc8bec26cc7bad445673a0778ffff41c608765e6",
+        "bytes": 100301
+       },
+       "episode_000001.json": {
+        "sha256": "21112dc27e4a47d03c30daa87c62ae5ccf8892f68f8637e42692ee6939a480d9",
+        "bytes": 2363
+       }
+      }
+     },
+     {
+      "what": "packed_one_parquet",
+      "source": "babel:~/v2d_ops/kenc/tests/o_ep1_hold_s44/one.parquet",
+      "local_copy": "C:\\v2d_demo\\archive\\o_ep1_hold_s44\\babel\\one.parquet",
+      "hf_path": "kaggle_rows_T2/packed/one.parquet",
+      "sha256": "27dba3341a02e7e1ef42cd7906452e9e0b29e53bfd7d7ff60af7807b59302e41",
+      "bytes": 225127,
+      "rows": 670
+     },
+     {
+      "what": "kaggle_receipt",
+      "source": "C:\\v2d_demo\\archive\\o_ep1_hold_s44\\babel\\track3_submission.parquet.56330a38f989.kaggle-receipt.json",
+      "hf_path": "kaggle_rows_T2/kaggle_receipt_T2.json",
+      "sha256": "73ff20ca98129aa759cd3d77e5825ff93d2efd881b9fd0e85132949382c3f265",
+      "note": "public scores of T2 on all 6 boards; contains no credentials",
+      "optional": true
+     }
+    ]
+   }
+  },
+  {
+   "episode": 3,
+   "objects": [
+    "white_pot",
+    "wooden_spoon"
+   ],
+   "part": "ep3_support_com",
+   "part_readme": "code/tools/track3/final_ken_1104/ep3_support_com/README.md",
+   "part_manifest": "notes/ep3_support_com/bundle_manifest_ep3.json",
+   "hf_dir": "experiments/haisenk/final_ours_20261104/episode_000003/",
+   "final": {
+    "scene": "sc_ep3",
+    "run": "h_ep3_sc_K_s42",
+    "recipe": "KEN",
+    "seed": 42,
+    "checkpoint_step": 95006720,
+    "own_ref_add_auc": 0.9468,
+    "own_ref_per_body": [
+     0.988,
+     0.905
+    ],
+    "kaggle": "swap test T5 (AUC board only, submission 57974215): AUC 0.75305 vs bob1 0.75166, ep3 +0.028; rows of the team's 0.76526 entry"
+   },
+   "on_the_leaderboard": "these rows (T5)",
+   "upload": [
+    {
+     "what": "scene",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/scenes/sc_ep3/",
+     "source_kind": "directory in node /tmp of H100 job 10774619 (read it inside a step of that job)",
+     "hf_path": "scene/sc_ep3/",
+     "regular_files": 38,
+     "bytes": 18847028,
+     "symlinks": "none",
+     "check": {
+      "file": "assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave/cffb49c402f842de966872b0e5685642-0.parquet",
+      "sha256": "5441e07342338f16904baa0eddafad5b4179860e987cee6bdcd03d56dab0847d",
+      "note": "processed parquet as trained (paths relocated to /tmp/haisenk_v2d/scenes/sc_ep3; original kept as *.parquet.orig)"
+     },
+     "fallback": {
+      "source": "C:\\v2d_demo\\archive\\h_ep3_sc_K_s42\\scene.tgz",
+      "sha256": "154922eb3c784d5f3253c6692bd370c90c3b4a59c13a03425131693f666b7978",
+      "bytes": 16159487,
+      "hf_path": "scene/sc_ep3.tgz",
+      "note": "tarball of the same scene (top dir sc_ep3/); its processed parquet has the same sha256 (checked by this step)"
+     },
+     "other_copies": "babel-s5-16:/tmp/haisenk_v2d/archive/h_ep3_sc_K_s42/scene.tgz (same sha256; also node /tmp) and the local archive"
+    },
+    {
+     "what": "policy",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/runs/h_ep3_sc_K_s42/train/policy_95006720.safetensors",
+     "local_copy": "C:\\v2d_demo\\archive\\h_ep3_sc_K_s42\\policy_95006720.safetensors",
+     "hf_path": "policy/policy_95006720.safetensors",
+     "sha256": "45c4736b1feab1e88189530c4cccbf672f19d6d8d50a7bfca4e321ed4828b531",
+     "bytes": 5138784
+    },
+    {
+     "what": "rollout_results_dir",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/runs/h_ep3_sc_K_s42/early_95006720/results/",
+     "local_copy": "C:\\v2d_demo\\archive\\h_ep3_sc_K_s42\\results\\",
+     "hf_path": "results/",
+     "files": {
+      "episode_000003.parquet": {
+       "sha256": "77a60882e148f23a95bf43a1959c70c81b00296cc1b323863cc680d68e78a62f",
+       "bytes": 90869,
+       "note": "kit evaluator rollout of the packed checkpoint (the packed rows are its env-0 achieved poses)"
+      },
+      "episode_000003.json": {
+       "sha256": "0a016df9aa85f280d75e46d711637970b3bf1b0b01af4fd8446e4768b838caf7",
+       "bytes": 2351,
+       "note": "evaluator metrics (own-reference add_auc etc.) incl. checkpoint_sha256"
+      },
+      "hydra/episode_000003/": {
+       "note": "evaluate_policy.log + .hydra/{config,hydra,overrides}.yaml (hidden dir: make sure the uploader does not skip it)"
+      }
+     },
+     "bytes_approx": "about 0.1 MB"
+    },
+    {
+     "what": "packed_one_parquet",
+     "source": "babel:~/v2d_ops/kenc/tests/h_ep3_sc_K_s42/one.parquet",
+     "local_copy": "C:\\v2d_demo\\archive\\h_ep3_sc_K_s42\\babel\\one.parquet",
+     "hf_path": "packed/one.parquet",
+     "sha256": "4a3d974d5ebce4ce529174b4f2828b7fe4789c4c250fdcd2d423bac6002cc98d",
+     "bytes": 171792,
+     "rows": 626,
+     "checkpoint_sha256_prefix": "45c4736b",
+     "code_commit_url": "https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/1689cf6396bee0f6a3bf4cced610f2fe0f71ebf6",
+     "note": "rows of this episode only, as packed by pack_one.sh (kit tools/pack_submission.py, track_3)"
+    },
+    {
+     "what": "run_records",
+     "source": "C:\\v2d_demo\\archive\\h_ep3_sc_K_s42\\ (train.log, sweep.json, best.txt, recipe.txt, manifest.json, babel\\pack.log)",
+     "hf_path": "run/",
+     "optional": true,
+     "note": "small text records; copies of most are also in the code tree (part training/ folders)"
+    }
+   ],
+   "optional": [
+    {
+     "what": "T5 swap-test file (evidence: bob1 + these ep3 rows, submitted AUC-only)",
+     "source": "babel:~/v2d_ops/kenc/tests/h_ep3_sc_K_s42/track3_submission.parquet",
+     "local_copy": "C:\\v2d_demo\\archive\\h_ep3_sc_K_s42\\babel\\track3_submission.parquet",
+     "hf_path": "evidence/T5_track3_submission.parquet",
+     "sha256": "7fd980f052e89e71b181aa1ca88fedb691ec79fe8f665c817c9df7b8818e3c97",
+     "bytes": 2589569,
+     "note": "sha256 from the ep3 collector, not re-hashed by this step"
+    },
+    {
+     "what": "depth-table points that set the support height",
+     "source": "babel:~/v2d_ops/kenc/depthtab/ep3/out/ep3_table_points.npz",
+     "hf_path": "evidence/ep3_table_points.npz",
+     "sha256": "83b563440a769fe70c6bfea6e5f9543c26c97986e95d34ffca3b02ed72562f3e",
+     "bytes": 57097157,
+     "note": "large (57 MB); only needed to re-check the depth-table fit; sha256 from the ep3 collector, not re-hashed by this step"
+    }
+   ],
+   "parent_pointer": "b1_ep3 = bob1's ep3 = our h5_ep3_A1: Babel /data/user_data/haisenk/v2d/hand5/scenes/h5_ep3_A1; HF experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene (already released)"
+  },
+  {
+   "episode": 5,
+   "objects": [
+    "white_pot",
+    "wooden_spoon"
+   ],
+   "part": "ep5_relevel",
+   "part_readme": "code/tools/track3/final_ken_1104/ep5_relevel/README.md",
+   "part_manifest": "code/tools/track3/final_ken_1104/ep5_relevel/bundle_manifest.json",
+   "hf_dir": "experiments/haisenk/final_ours_20261104/episode_000005/",
+   "final": {
+    "scene": "rl2_ep5",
+    "run": "r_ep5_rl_K_s43",
+    "recipe": "KEN",
+    "seed": 43,
+    "checkpoint_step": 95006720,
+    "own_ref_add_auc": 0.9089,
+    "anchored_own_ref": 0.9093,
+    "kaggle": "swap test T8 (AUC board only, submission 57976828): AUC 0.75799 vs bob1 0.75166, ep5 +0.127 (+0.073 over the parent's T3); rows of the team's 0.76526 entry"
+   },
+   "on_the_leaderboard": "these rows (T8)",
+   "upload": [
+    {
+     "what": "scene",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/scenes/rl2_ep5/",
+     "source_kind": "directory in node /tmp of H100 job 10774619 (read it inside a step of that job)",
+     "hf_path": "scene/rl2_ep5/",
+     "regular_files": 26,
+     "bytes": 9847743,
+     "symlinks": "7 dangling symlinks in bundle_cleaned/ (mesh.obj, mesh_1.obj, optimized_assets, MESH_POSE_PAIR.json, obj1_mesh_1.mtl, obj1_mesh_1_material_0.png, HANDFIX_PREP.json -> /scratch/haisenk-v2d/hand5w/bundles/w7_attcom_ep5/ on another node, unreachable); not needed for training or evaluation: skip them",
+     "check": {
+      "file": "assets/human_motion_data/ego_recon/processed/sequence_id=ep5_hw_w7_attcom_ep5/robot_name=sharpa_wave/e973bf284334409f9630493afab742f1-0.parquet",
+      "sha256": "f3badc29e9703ddfee4f4affcb673a481203efb0202b23b79535050daaa400d8",
+      "note": "processed parquet as trained (paths relocated to /tmp/haisenk_v2d/scenes/rl2_ep5; original kept as *.parquet.orig)"
+     },
+     "fallback": {
+      "source": "C:\\v2d_demo\\archive\\r_ep5_rl_K_s43\\scene.tgz",
+      "sha256": "c0159b0db5e8ceede65306ff3668840479adf1ccf40b5de90adb16ef5e3fd30f",
+      "bytes": 8150928,
+      "hf_path": "scene/rl2_ep5.tgz",
+      "note": "tarball of the same scene (top dir rl2_ep5/); its processed parquet has the same sha256 (checked by this step)"
+     },
+     "other_copies": "babel-s5-16:/tmp/haisenk_v2d/archive/r_ep5_rl_K_s43/scene.tgz (same sha256; node /tmp) and the local archive"
+    },
+    {
+     "what": "policy",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/runs/r_ep5_rl_K_s43/train/policy_95006720.safetensors",
+     "local_copy": "C:\\v2d_demo\\archive\\r_ep5_rl_K_s43\\policy_95006720.safetensors",
+     "hf_path": "policy/policy_95006720.safetensors",
+     "sha256": "d351dbaed5a14cca0d50f05876ad60ae68b2970e1bb3960026d1c9411a875840",
+     "bytes": 5138792
+    },
+    {
+     "what": "rollout_results_dir",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/runs/r_ep5_rl_K_s43/early_95006720/results/",
+     "local_copy": "C:\\v2d_demo\\archive\\r_ep5_rl_K_s43\\results\\",
+     "hf_path": "results/",
+     "files": {
+      "episode_000005.parquet": {
+       "sha256": "f4a352dd6ccdc06a2d754bc6a891f243171a03ff6a2d69c196ae4bd1cff214fc",
+       "bytes": 85509,
+       "note": "kit evaluator rollout of the packed checkpoint (the packed rows are its env-0 achieved poses)"
+      },
+      "episode_000005.json": {
+       "sha256": "b8680074611ab40bf1d348fef9f15023fb6af4eb1722f34cfb4069e0cd3fdb9f",
+       "bytes": 2368,
+       "note": "evaluator metrics (own-reference add_auc etc.) incl. checkpoint_sha256"
+      },
+      "hydra/episode_000005/": {
+       "note": "evaluate_policy.log + .hydra/{config,hydra,overrides}.yaml (hidden dir: make sure the uploader does not skip it)"
+      }
+     },
+     "bytes_approx": "about 0.1 MB"
+    },
+    {
+     "what": "packed_one_parquet",
+     "source": "babel:~/v2d_ops/kenc/tests/r_ep5_rl_K_s43/one.parquet",
+     "local_copy": "C:\\v2d_demo\\archive\\r_ep5_rl_K_s43\\babel\\one.parquet",
+     "hf_path": "packed/one.parquet",
+     "sha256": "11183810af8d275adac7e6575d38f6d4c6ead952e5b9c392d35ec630b8068066",
+     "bytes": 178101,
+     "rows": 576,
+     "checkpoint_sha256_prefix": "d351dbae",
+     "code_commit_url": "https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/1689cf6396bee0f6a3bf4cced610f2fe0f71ebf6",
+     "note": "rows of this episode only, as packed by pack_one.sh (kit tools/pack_submission.py, track_3)"
+    },
+    {
+     "what": "run_records",
+     "source": "C:\\v2d_demo\\archive\\r_ep5_rl_K_s43\\ (train.log, sweep.json, best.txt, recipe.txt, manifest.json, babel\\pack.log)",
+     "hf_path": "run/",
+     "optional": true,
+     "note": "small text records; copies of most are also in the code tree (part training/ folders)"
+    }
+   ],
+   "recommended_extra": {
+    "why": "Parent scene w7_attcom_ep5 (T3 scene). It is the input of scene_build/build_rl2_ep5.sh, the verified rebuild of rl2_ep5; it is not on HF yet.",
+    "hf_subdir": "parent/",
+    "items": [
+     {
+      "what": "parent_scene_tgz",
+      "source": "C:\\v2d_demo\\handoff\\ep1_ep5_20261104\\episode_000005\\scene\\w7_attcom_ep5.tgz",
+      "also": "babel-s5-16:/tmp/haisenk_v2d/archive/o_ep5_attcom_s42/scene.tgz (re-hashed by this step: same sha256)",
+      "hf_path": "parent/w7_attcom_ep5.tgz",
+      "sha256": "ae61a76fed40d2521783e37110f82bcacb0143e28eb110868c697cefe2fa8713",
+      "bytes": 8167488,
+      "check": "processed parquet da451d2a065625477637cbbaafe2f1607470b746387bbf00047b173117ffc760"
+     }
+    ]
+   },
+   "optional": [
+    {
+     "what": "T8 swap-test file (evidence: bob1 + these ep5 rows, submitted AUC-only)",
+     "source": "babel:~/v2d_ops/kenc/tests/r_ep5_rl_K_s43/track3_submission.parquet",
+     "local_copy": "C:\\v2d_demo\\archive\\r_ep5_rl_K_s43\\babel\\track3_submission.parquet",
+     "hf_path": "evidence/T8_track3_submission.parquet",
+     "sha256": "562a4a492dc7289c2e3d4dab8639103e05b9de30c483531daef3440035610e45",
+     "bytes": 2683866,
+     "note": "sha256 from the ep5 collector, not re-hashed by this step"
+    }
+   ]
+  },
+  {
+   "episode": 6,
+   "objects": [
+    "white_pot",
+    "wooden_spoon"
+   ],
+   "part": "ep6_bob1",
+   "part_readme": "code/tools/track3/final_ken_1104/ep6_bob1/README.md",
+   "hf_dir": null,
+   "final": {
+    "scene": "bm_scored_attach (Edmond; our relocated copy eb1_ep6)",
+    "run": "ep6_bm_s42",
+    "checkpoint_step": 100003840,
+    "policy_sha256": "837fb7d025aab257e2ff784cafc68600e39b308565e86b40bccbc8642daec321",
+    "own_ref_add_auc": 0.9685,
+    "kaggle": "bob1 (submission 57934736, AUC 0.75166); kept in every team entry. The ep6 alternative T7 was rejected on Kaggle (ep6 -0.092)."
+   },
+   "on_the_leaderboard": "bob1's ep6 rows (CD-O board only: C2 replaced its white_pot mesh rows with T8's pot)",
+   "upload": [],
+   "pointer": "HF rose-tea-cafe/v2d-t3-recon experiments/edmond/bob1_submission_20261103/episode_000006/ (scene/, policy/ with results/). Edmond's release: do NOT re-upload. Optionally put a one-line pointer README at final_ours_20261104/episode_000006/POINTER.md."
+  },
+  {
+   "episode": 8,
+   "objects": [
+    "beige_cup",
+    "white_pot"
+   ],
+   "part": "ep8_cup_despin",
+   "part_readme": "code/tools/track3/final_ken_1104/ep8_cup_despin/README.md",
+   "part_manifest": "code/tools/track3/final_ken_1104/ep8_cup_despin/bundle_manifest.json",
+   "hf_dir": "experiments/haisenk/final_ours_20261104/episode_000008/",
+   "final": {
+    "scene": "rf_ep8_ds",
+    "run": "rf_ep8_ds_K_s43",
+    "recipe": "KEN",
+    "seed": 43,
+    "checkpoint_step": 95006720,
+    "own_ref_add_auc": 0.9902,
+    "own_ref_per_body": [
+     0.984,
+     0.996
+    ],
+    "kaggle": "NOT SUBMITTED. Picked after Kaggle submissions stopped by a pre-registered judge: beats T6 under all 5 GT-free stand-in truths (ep8 add_auc +0.014..+0.024; local only)."
+   },
+   "on_the_leaderboard": "T6 = h_ep8_sc_K_s42 @100003840 on scene sc_ep8 (swap test T6: AUC 0.75505, ep8 +0.068; rows of the team's 0.76526 entry)",
+   "upload": [
+    {
+     "what": "scene",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/scenes/rf_ep8_ds/",
+     "source_kind": "directory in node /tmp of H100 job 10774619 (read it inside a step of that job)",
+     "hf_path": "scene/rf_ep8_ds/",
+     "regular_files": 38,
+     "bytes": 25355577,
+     "symlinks": "none",
+     "check": {
+      "file": "assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave/4774016f0a65458c9245084fdc462018-0.parquet",
+      "sha256": "e531ae93238c974ecb2159d131d62042a6f9ea6d0156de11e1b598abf7bfe9aa",
+      "note": "processed parquet as trained (paths relocated to /tmp/haisenk_v2d/scenes/rf_ep8_ds; original kept as *.parquet.orig)"
+     },
+     "fallback": {
+      "source": "C:\\v2d_demo\\archive\\rf_ep8_ds_K_s43\\scene.tgz",
+      "sha256": "54b4c1676f3c4f429406e198d7fbc86e87caf61f0810dd7d13f082ee835b08ec",
+      "bytes": 16300800,
+      "hf_path": "scene/rf_ep8_ds.tgz",
+      "note": "tarball of the same scene (top dir rf_ep8_ds/); its processed parquet has the same sha256 (checked by this step)"
+     },
+     "other_copies": "as built before relocation: Babel /data/user_data/haisenk/v2d/refine1104/ep8/rf_ep8_ds (38 files; merged parquet md5 b09c4578bb3ca0689320cad7085f314c; its 3 path columns still point at /tmp/haisenk_v2d/scenes/sc_ep8)",
+     "note": "the installed parquet's *.parquet.orig is bob1's original (relocation artefact), not a pre-relocation copy of rf's parquet"
+    },
+    {
+     "what": "policy",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/runs/rf_ep8_ds_K_s43/train/policy_95006720.safetensors",
+     "local_copy": "C:\\v2d_demo\\archive\\rf_ep8_ds_K_s43\\policy_95006720.safetensors",
+     "hf_path": "policy/policy_95006720.safetensors",
+     "sha256": "3d33ff6bdee2980766b84dfd239c83866de17544eff314daf24b35a4a0a5d9fc",
+     "bytes": 5138800,
+     "durable": "Babel /data/user_data/haisenk/v2d/refine1104/ep8/candidates/rf_ep8_ds_K_s43/policy_95006720.safetensors (re-hashed by this step; note: no train/ subdir there)"
+    },
+    {
+     "what": "rollout_results_dir",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/runs/rf_ep8_ds_K_s43/early_95006720/results/",
+     "local_copy": "C:\\v2d_demo\\archive\\rf_ep8_ds_K_s43\\results\\",
+     "hf_path": "results/",
+     "files": {
+      "episode_000008.parquet": {
+       "sha256": "bdcebcb2e199a080103573f831766ac9a4471613af285562a0fbab65de313067",
+       "bytes": 65535,
+       "note": "kit evaluator rollout of the packed checkpoint (the packed rows are its env-0 achieved poses)"
+      },
+      "episode_000008.json": {
+       "sha256": "4b797424cb8fbef7ff479ae9692460bcba34c911203a3b408cab07b65bd95ac6",
+       "bytes": 2382,
+       "note": "evaluator metrics (own-reference add_auc etc.) incl. checkpoint_sha256"
+      },
+      "hydra/episode_000008/": {
+       "note": "evaluate_policy.log + .hydra/{config,hydra,overrides}.yaml (hidden dir: make sure the uploader does not skip it)"
+      }
+     },
+     "bytes_approx": "about 0.1 MB",
+     "durable": "Babel /data/user_data/haisenk/v2d/refine1104/ep8/candidates/rf_ep8_ds_K_s43/early_95006720/ (directory listed by this step, files not re-hashed)"
+    },
+    {
+     "what": "packed_one_parquet",
+     "source": "babel:~/v2d_ops/kenc/final1104/rf_ep8_ds_K_s43/one.parquet",
+     "local_copy": "C:\\v2d_demo\\archive\\rf_ep8_ds_K_s43\\babel\\one.parquet",
+     "hf_path": "packed/one.parquet",
+     "sha256": "6da1e7bf92856491de3bbca8ba47f1c2dee60ef0163d429c9bcecf43e3d46611",
+     "bytes": 212296,
+     "rows": 438,
+     "checkpoint_sha256_prefix": "3d33ff6b",
+     "code_commit_url": "https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/1689cf6396bee0f6a3bf4cced610f2fe0f71ebf6",
+     "note": "rows of this episode only, as packed by pack_one.sh (kit tools/pack_submission.py, track_3)"
+    },
+    {
+     "what": "run_records",
+     "source": "C:\\v2d_demo\\archive\\rf_ep8_ds_K_s43\\ (train.log, sweep.json, best.txt, recipe.txt, manifest.json, SHA256SUMS, babel\\pack.log)",
+     "hf_path": "run/",
+     "optional": true,
+     "note": "small text records; copies of most are also in the code tree (part training/ folders)"
+    }
+   ],
+   "recommended_extra": {
+    "why": "These are the ep8 rows actually on the Kaggle boards (T6), and sc_ep8 is the parent of rf_ep8_ds (input of steps 2-3).",
+    "hf_subdir": "kaggle_rows_T6/",
+    "items": [
+     {
+      "what": "scene",
+      "source": "babel-s5-16:/tmp/haisenk_v2d/scenes/sc_ep8/",
+      "source_kind": "directory in node /tmp of H100 job 10774619 (read it inside a step of that job)",
+      "hf_path": "scene/sc_ep8/",
+      "regular_files": 38,
+      "bytes": 25349498,
+      "symlinks": "none",
+      "check": {
+       "file": "assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave/4774016f0a65458c9245084fdc462018-0.parquet",
+       "sha256": "0f27bfb730517380def4c25f04c14ee0312deb70961f83723298ea77896290f0",
+       "note": "processed parquet as trained (paths relocated to /tmp/haisenk_v2d/scenes/sc_ep8; original kept as *.parquet.orig)"
+      },
+      "fallback": {
+       "source": "C:\\v2d_demo\\archive\\h_ep8_sc_K_s42\\scene.tgz",
+       "sha256": "803318f56efcca6b3f08c4999377d981ea287bf4d3a2faf38f1854ec68513c7a",
+       "bytes": 16300552,
+       "hf_path": "scene/sc_ep8.tgz",
+       "note": "tarball of the same scene (top dir sc_ep8/); its processed parquet has the same sha256 (checked by this step)"
+      },
+      "other_copies": "babel-s5-16:/tmp/haisenk_v2d/archive/h_ep8_sc_K_s42/scene.tgz (same sha256); Babel /data/user_data/haisenk/v2d/refine1104/ep8/src_sc_ep8"
+     },
+     {
+      "what": "policy",
+      "name": "h_ep8_sc_K_s42 @100003840 (orchard, kq.sh KEN, seed 42)",
+      "source": "babel-s5-16:/tmp/haisenk_v2d/runs/h_ep8_sc_K_s42/train/policy_100003840.safetensors",
+      "local_copy": "C:\\v2d_demo\\archive\\h_ep8_sc_K_s42\\policy_100003840.safetensors",
+      "hf_path": "kaggle_rows_T6/policy/policy_100003840.safetensors",
+      "sha256": "0ff463d1314e315c4106c7a449c6cb88aa1001a4301d6e7ae3dea61f9035bf44",
+      "bytes": 5138792
+     },
+     {
+      "what": "rollout_results_dir",
+      "source": "babel-s5-16:/tmp/haisenk_v2d/runs/h_ep8_sc_K_s42/early_100003840/results/",
+      "local_copy": "C:\\v2d_demo\\archive\\h_ep8_sc_K_s42\\results\\",
+      "hf_path": "kaggle_rows_T6/results/",
+      "files": {
+       "episode_000008.parquet": {
+        "sha256": "5b44b3250a3c219f206fb1e7074cec3afc81d0fe5f5a7537a72c39ed32a1126b",
+        "bytes": 65600
+       },
+       "episode_000008.json": {
+        "sha256": "180bb6ed2a136058cb5fc41ad77ebc5fdc715afbc6a897f643a21a12e11dd072",
+        "bytes": 2379
+       }
+      }
+     },
+     {
+      "what": "packed_one_parquet",
+      "source": "babel:~/v2d_ops/kenc/tests/h_ep8_sc_K_s42/one.parquet",
+      "local_copy": "C:\\v2d_demo\\archive\\h_ep8_sc_K_s42\\babel\\one.parquet",
+      "hf_path": "kaggle_rows_T6/packed/one.parquet",
+      "sha256": "2e5696d49a0dfcfe537610f95e034f188785d6741e86aa2a5ee405fc33e9c2ad",
+      "bytes": 212300,
+      "rows": 438
+     }
+    ]
+   },
+   "parent_pointer": "bob1 ep8 scene: Babel /data/user_data/haisenk/v2d/edmond_bob1/relocated/eb1_ep8; HF experiments/edmond/bob1_submission_20261103 (Edmond's release)"
+  },
+  {
+   "episode": 10,
+   "objects": [
+    "blue_cup",
+    "beige_cup"
+   ],
+   "part": "ep10_seat_nest",
+   "part_readme": "code/tools/track3/final_ken_1104/ep10_seat_nest/README.md",
+   "part_manifest": "code/tools/track3/final_ken_1104/ep10_seat_nest/bundle_manifest.json",
+   "hf_dir": "experiments/haisenk/final_ours_20261104/episode_000010/",
+   "final": {
+    "scene": "k10_ep10_nest_b",
+    "run": "n_ep10_nb_K_s42",
+    "recipe": "KEN",
+    "seed": 42,
+    "checkpoint_step": 100003840,
+    "own_ref_add_auc": 0.9804,
+    "own_ref_per_body": [
+     0.9926,
+     0.9682
+    ],
+    "kaggle": "N1 (MPPE board only, submission 57988348): team base + these rows, MPPE 3.42999 -> 3.33289 (ep10 -1.94 cm). Never on the AUC board (no submissions left)."
+   },
+   "on_the_leaderboard": "MPPE: these rows (N1). AUC/SP-SR/MP-SR/RPE: bob1's ep10 (our hand_fixes_v1 respinf build, already on HF hand_fixes_v1_20261102). CD-O: C1/C2 replaced the beige_cup mesh rows with T6's ep8 cup.",
+   "upload": [
+    {
+     "what": "scene",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/scenes/k10_ep10_nest_b/",
+     "source_kind": "directory in node /tmp of H100 job 10774619 (read it inside a step of that job)",
+     "hf_path": "scene/k10_ep10_nest_b/",
+     "regular_files": 227,
+     "bytes": 23509579,
+     "symlinks": "7 symlinks in bundle_cleaned/ -> /data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b/bundle_merged/* (they resolve only on Babel nodes that mount /data; the scene also has its own bundle_merged/ dir); not needed for training",
+     "check": {
+      "file": "assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave/1dec0481b92e473982df6ee3c2c8e502-0.parquet",
+      "sha256": "b9078905f2d7ce0d340fbafd3b99e6e9c1bab1a6106fe414d3e57d326eaf9926",
+      "note": "processed parquet as trained (paths relocated to /tmp/haisenk_v2d/scenes/k10_ep10_nest_b; original kept as *.parquet.orig)"
+     },
+     "fallback": {
+      "source": "C:\\v2d_demo\\archive\\n_ep10_nb_K_s42\\scene.tgz",
+      "sha256": "b88240038d4b2931e852e2a2bcf8d020b726bfc00b5679746fdeca2581a86470",
+      "bytes": 13503893,
+      "hf_path": "scene/k10_ep10_nest_b.tgz",
+      "note": "tarball of the same scene (top dir k10_ep10_nest_b/); its processed parquet has the same sha256 (checked by this step)"
+     },
+     "other_copies": "build master (before relocation): Babel /data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b; pre-relocation tarball C:\\v2d_demo\\archive\\k10_ep10_nest_b\\scene.tgz (e06b42823f4c9f19d4c96b43ce8f6253a2865e98f823032f6399a6288de11c65, not re-hashed here; upload only one of the two tarballs)"
+    },
+    {
+     "what": "policy",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/runs/n_ep10_nb_K_s42/train/policy_100003840.safetensors",
+     "local_copy": "C:\\v2d_demo\\archive\\n_ep10_nb_K_s42\\policy_100003840.safetensors",
+     "hf_path": "policy/policy_100003840.safetensors",
+     "sha256": "2bd79300d999a0d7522113befaa875d2caf07d0702dfaade8b2bbd203f045dba",
+     "bytes": 5138816
+    },
+    {
+     "what": "rollout_results_dir",
+     "source": "babel-s5-16:/tmp/haisenk_v2d/runs/n_ep10_nb_K_s42/early_100003840/results/",
+     "local_copy": "C:\\v2d_demo\\archive\\n_ep10_nb_K_s42\\results\\",
+     "hf_path": "results/",
+     "files": {
+      "episode_000010.parquet": {
+       "sha256": "d73753cec80183da2a2183964610d314ee4e2dd34d2297a2234f8f8c63442c32",
+       "bytes": 53088,
+       "note": "kit evaluator rollout of the packed checkpoint (the packed rows are its env-0 achieved poses)"
+      },
+      "episode_000010.json": {
+       "sha256": "812ab9d5f51ecec1b97efcae5ebea08c86d2057d50fa4842fe224a4f8d84dac5",
+       "bytes": 2385,
+       "note": "evaluator metrics (own-reference add_auc etc.) incl. checkpoint_sha256"
+      },
+      "hydra/episode_000010/": {
+       "note": "evaluate_policy.log + .hydra/{config,hydra,overrides}.yaml (hidden dir: make sure the uploader does not skip it)"
+      }
+     },
+     "bytes_approx": "about 0.1 MB"
+    },
+    {
+     "what": "packed_one_parquet",
+     "source": "babel:~/v2d_ops/kenc/tests/n_ep10_nb_K_s42/one.parquet",
+     "local_copy": "C:\\v2d_demo\\archive\\n_ep10_nb_K_s42\\babel\\one.parquet",
+     "hf_path": "packed/one.parquet",
+     "sha256": "5b3eb64056b8e09af1956e6de2e57378ffad7fa88dca69af057c400f7662ba42",
+     "bytes": 206571,
+     "rows": 322,
+     "checkpoint_sha256_prefix": "2bd79300",
+     "code_commit_url": "https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/1689cf6396bee0f6a3bf4cced610f2fe0f71ebf6",
+     "note": "rows of this episode only, as packed by pack_one.sh (kit tools/pack_submission.py, track_3)"
+    },
+    {
+     "what": "run_records",
+     "source": "C:\\v2d_demo\\archive\\n_ep10_nb_K_s42\\ (train.log, sweep.json, best.txt, recipe.txt, manifest.json, babel\\pack.log)",
+     "hf_path": "run/",
+     "optional": true,
+     "note": "small text records; copies of most are also in the code tree (part training/ folders)"
+    }
+   ],
+   "optional": [
+    {
+     "what": "exact CoACD training hulls (CoACD is not bit-deterministic; only needed for a bit-exact rebuild of the collision proxy)",
+     "source": "C:\\v2d_demo\\diag\\ep10_fix\\nestcol_nest_b\\orch_out\\out_beige.npz and out_blue.npz",
+     "hf_path": "extra/coacd_hulls/",
+     "files": {
+      "out_beige.npz": {
+       "sha256": "d72d5b75d9dbb20f57f972d60e50b10e43c1d9cd6acaeeb6c314f0b0033f9ffd"
+      },
+      "out_blue.npz": {
+       "sha256": "398b77633a8a327e3aa61470cdd555f4e6edba690b3c6858f314775bbe7852cd"
+      }
+     },
+     "note": "sha256 from the ep10 collector, not re-hashed by this step"
+    }
+   ],
+   "parent_pointer": "bob1's ep10 = h5_ep10_respinf_v4, HF experiments/haisenk/hand_fixes_v1_20261102/episode_000010/scene (already released)"
+  }
+ ],
+ "combined_local_best": {
+  "what": "final local-best combined submission file (NOT SUBMITTED; kit --dry-run only)",
+  "source": "babel:~/v2d_ops/kenc/final1104/local_best/track3_submission.parquet",
+  "local_copy": "C:\\v2d_demo\\diag\\refine1104\\wrapup\\pack_final\\babel_final1104\\local_best\\track3_submission.parquet",
+  "hf_path": "experiments/haisenk/final_ours_20261104/local_best/track3_submission.parquet",
+  "sha256": "5d1d534f4b3e6ba5dcd165203aebc001faa4f2823c78238b83e9df287e529edd",
+  "bytes": 2862283,
+  "rows": 9120,
+  "episodes": 20,
+  "built_by": "packing/final1104/combine_final.sh local_best 1:b_ep1_wh_K_s48 3:h_ep3_sc_K_s42 5:r_ep5_rl_K_s43 8:rf_ep8_ds_K_s43 10:n_ep10_nb_K_s42 (one.parquet each) on top of bob1 (candidate_bob1.parquet); 4 Nov 13:48 EST",
+  "differs_from_N1_file": "only the ep1 and ep8 rows (pose columns and checkpoint_sha256), per the 13:5x completeness check",
+  "code_commit_url": "https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/1689cf6396bee0f6a3bf4cced610f2fe0f71ebf6",
+  "cd_o_derived": {
+   "source": "babel:~/v2d_ops/kenc/final1104/local_best/track3_submission.cd-o.parquet",
+   "local_copy": "C:\\v2d_demo\\diag\\refine1104\\wrapup\\pack_final\\babel_final1104\\local_best\\track3_submission.cd-o.parquet",
+   "hf_path": "experiments/haisenk/final_ours_20261104/local_best/track3_submission.cd-o.parquet",
+   "sha256": "bcf967d11d967a8b79b8d8d5e488836c4a2ae0d70f2cc984323787e73cc200e3",
+   "bytes": 3591663,
+   "optional": true,
+   "note": "derived by the kit from the pose file; byte-identical to base4_n10's"
+  },
+  "records": "code/tools/track3/final_ken_1104/packing/final1104/records/ (manifest.txt with input sha256s, swap.log, sha256.txt, split dry-run logs)"
+ },
+ "pointers_not_uploaded": [
+  {
+   "what": "bob1 base file (Edmond)",
+   "source": "babel:~/v2d_ops/kenc/bob1/candidate_bob1.parquet",
+   "sha256": "46fe967a5aafc4e5078731a480e64105efdab9c48b466687c5632592a7f00fa4",
+   "bytes": 2588341,
+   "note": "Kaggle submission 57934736 (AUC 0.75166); base of every swap/combine; teammate's file, pointer only (re-hashed by this step)"
+  },
+  {
+   "what": "ep6 = bob1 (Edmond)",
+   "hf": "experiments/edmond/bob1_submission_20261103/episode_000006/",
+   "policy_sha256": "837fb7d025aab257e2ff784cafc68600e39b308565e86b40bccbc8642daec321"
+  },
+  {
+   "what": "Wentao's upstream bundles",
+   "hf": "experiments/wentacc/scored20_contactshape_proxy_mix_v1_20261103/ @ fb11a3ce (ep1); experiments/wentacc/scored20_lead_sprint_v2_20261103/ (ep5)"
+  },
+  {
+   "what": "our earlier releases",
+   "hf": "experiments/haisenk/hand_fixes_v1_20261102/ (ep3, ep10 parents); experiments/haisenk/hand_fixes_wentao_v1_20261103/ (ep1 prepared bundle and as-built scene)"
+  },
+  {
+   "what": "submission kit (organisers' code)",
+   "location": "team repo assets/data/v2d_submission_kit at 1a6bae7b"
+  }
+ ],
+ "optional_cdo_entries": [
+  {
+   "what": "C1 (CD-O board only, submission 57983875, CD-O 0.38183)",
+   "source": "babel:~/v2d_ops/kenc/cdo/final/cdo_w33_ep10beigeT6.parquet",
+   "sha256": "bb2b98096433f4516c7ce1c52fd837519b9515e9c0843c2a48b3aa162ff775cb",
+   "hf_path": "experiments/haisenk/final_ours_20261104/cdo_only/C1_cdo_w33_ep10beigeT6.parquet",
+   "note": "mesh rows differ from the pose-board files: never mix; base is a teammate's entry (57979229). sha256 from the shared_tooling collector, not re-hashed by this step"
+  },
+  {
+   "what": "C2 (CD-O board only, submission 57984124, CD-O 0.36781)",
+   "source": "babel:~/v2d_ops/kenc/cdo/final/cdo_c2_pots.parquet",
+   "sha256": "a86e4f38e7f4c7e6ac9c8409906decd1bcb371336e7078f024f5ef0f9f04b4d4",
+   "hf_path": "experiments/haisenk/final_ours_20261104/cdo_only/C2_cdo_c2_pots.parquet",
+   "note": "as C1 + the white_pot rows of ep1/3/6/8 from ep5's T8 pot. sha256 from the shared_tooling collector, not re-hashed by this step"
+  }
+ ],
+ "size": {
+  "required_bytes_approx": 118674393,
+  "required_human": "about 119 MB (5 scene dirs, 5 policies, 5 results dirs, 5 one.parquet, combined file)",
+  "with_recommended_extras": "about +45 MB (T2 policy/rollout/rows, T6 scene/policy/rollout/rows, ep5 parent tgz)"
+ }
+}

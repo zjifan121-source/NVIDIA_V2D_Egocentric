@@ -1,0 +1,41 @@
+# The despin build as it sits on babel-t9-28 /scratch/haisenk-v2d/diag/ep8_plan (node-local), read 4 Nov 14:21 EST,
+# plus the home-dir copies of the ep8_plan scripts (~/v2d_ops/kenc/diag/ep8_plan) and the two files the merge used.
+# META <md5> <size> <mtime> <path>. despin/ has no report.json and no score_input/: rlr_h5.py's final check_output step
+# crashed after every scene file was written (see despin.log). The merge used only the parquet columns and
+# bundle_cleaned/result.npz of this build (copied to /data/user_data/haisenk/v2d/refine1104/ep8/despin_src/, same md5s).
+META c8883562043db4e83d3f88e897d579af 4161 2026-11-04 01:56:40.896339871 -0500 /scratch/haisenk-v2d/diag/ep8_plan/ctl.log
+META MISSING /scratch/haisenk-v2d/diag/ep8_plan/ctl/report.json
+META a9cf789877807cd546c8d0cb9a190719 238 2026-11-04 01:56:47.558367108 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup.mtl
+META 38e2c4142bbd8cc18625a93d099bd866 2210305 2026-11-04 01:56:47.556367100 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup.obj
+META 527913d13ae71ec124453618d58f37fa 1089568 2026-11-04 01:56:47.558367108 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup_mesh_material_0.png
+META b5d31add4d2912ca1408169268d3d229 825 2026-11-04 01:57:10.818462205 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup_rigid.urdf
+META 65e8a5984ad6794429684d93d29041e9 1535084 2026-11-04 01:57:10.817462201 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup_visual.stl
+META 0474e51c37dc44aa9d744c6db5b357ce 240 2026-11-04 01:56:47.586367222 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot.mtl
+META db96dd07636168e73f80ec81c79a93ce 614743 2026-11-04 01:56:47.585367218 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot.obj
+META 08ae9941b704f55ce7f18f40f97584ac 1213012 2026-11-04 01:56:47.586367222 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot_mesh_1_material_0.png
+META 77ae2e5f9eae22763bffac157043bf06 825 2026-11-04 01:57:10.873462430 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot_rigid.urdf
+META 105f8713bf33f7bc234b796991c48649 447284 2026-11-04 01:57:10.872462426 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot_visual.stl
+META 2ae8488e19c5bce2cfbbcc758347bd27 1352340 2026-11-04 01:57:09.641457393 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave/bc8b4b4ad53a4c988abefa75d022f13d-0.parquet
+META ba16e7e2a25b99ee16bd7e85d57bcebe 575 2026-11-04 01:57:13.195471809 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/reconstructed_stage/ep8_ken_c_scored_attach_sharpa_wave_support.usda
+META 266a5213cf9968ce68237d953a5bd642 212761 2026-11-04 01:56:45.006356674 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/bundle_cleaned/result.npz
+META d924428f3bd3337708ff7558afd9e8d2 782518 2026-11-04 01:56:54.860396962 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/intermediate/ego_recon/loaded/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave/61d1facd049747dbb63a472585ceb57b-0.parquet
+META 47b7b751b0ebbf06ceec0139eb51e01e 4126 2026-11-04 01:57:13.195471809 -0500 /scratch/haisenk-v2d/diag/ep8_plan/despin/pipeline.log
+META c75cb24c63d3555f1ad5a013900f274f 212761 2026-10-25 00:04:17.541157713 -0400 /scratch/haisenk-v2d/diag/ep8_plan/bundle_base/result.npz
+META 7d3685271fab292324212f1608ec9529 1312 2026-11-04 01:55:43.235499107 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/chk_attach.py
+META 69c870e99ab6da62c6647e0d071e2108 1995 2026-11-04 01:58:10.391980337 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/chk_contacts.py
+META 8c925d8d71bd1fb622e4aa84f063a338 4135 2026-11-04 01:50:51.955520281 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/chk_scene.py
+META bacd967ed78a6436a6f768f2781c27dc 2115 2026-11-04 01:46:42.563639962 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/disk_clear.out
+META 0ba017bc0182cc3594d1fc7604101b2a 3386 2026-11-04 01:45:01.965272676 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/disk_clear.py
+META 95288bd6682215a4151e106c259773dd 8745 2026-11-04 01:28:20.608583000 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/early.out
+META 1d39975002ded88b2b5a832cd448e38a 2405 2026-11-04 01:28:12.680552770 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/early.py
+META 9f0ac8690c81612a927f86eca941c19c 3972 2026-11-04 01:29:05.858755543 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/early2.out
+META 5b2b8584ef296fe9ed6330cea4bcfcef 1814 2026-11-04 01:29:03.728747421 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/early2.py
+META 8b5ad240bfd0ff462e7adb045090fcb2 12496 2026-11-04 01:57:16.208811536 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/feas.out
+META fd69040e800e291fdb6823025b88ab5f 3001 2026-11-04 01:50:52.074520681 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/feas.sh
+META 18b3b00506b616aad0eeadfdb7201140 6117 2026-11-04 01:53:17.411009072 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/seatrest.py
+META c7b8c32b5240480308853c52b7fc9f71 5073 2026-11-04 01:58:23.100016318 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/test2.out
+META afe1dc7b133e3bb42deb2288f890b32f 1562 2026-11-04 01:58:10.272980000 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/test2.sh
+META d05e27d7c65bca6e6502c8d2d015e839 1851 2026-11-04 01:59:20.384178510 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/test3.out
+META 208d0296bfe12685988b07266c0b67b6 1364 2026-11-04 01:59:14.735162516 -0500 /home/haisenk/v2d_ops/kenc/diag/ep8_plan/test3.sh
+META 2ae8488e19c5bce2cfbbcc758347bd27 1352340 2026-11-04 10:44:36 /data/user_data/haisenk/v2d/refine1104/ep8/despin_src/despin.parquet
+META 266a5213cf9968ce68237d953a5bd642 212761 2026-11-04 10:44:36 /data/user_data/haisenk/v2d/refine1104/ep8/despin_src/bundle_cleaned_result.npz

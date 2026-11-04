@@ -1,0 +1,15 @@
+# ep10 lines of the orchard kq queue (snapshot C:\v2d_demo\orchard\queues_1104.txt, 4 Nov 10:04 EST; the n_ep10_nb_K_s42 line was checked identical to line 92 of babel-s5-16 /tmp/haisenk_v2d/kq.txt)
+# NAME EP PARQUET_DIR SEED RECIPE PRIO   (NEST = k10_ep10_nest_b, SEAT = k10_ep10_seat_b)
+s_ep10_sb_K_s42 10 /tmp/haisenk_v2d/scenes/k10_ep10_seat_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_seat_b/robot_name=sharpa_wave 42 KEN 1
+s_ep10_sb_K_s43 10 /tmp/haisenk_v2d/scenes/k10_ep10_seat_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_seat_b/robot_name=sharpa_wave 43 KEN 1
+s_ep10_sb_K_s44 10 /tmp/haisenk_v2d/scenes/k10_ep10_seat_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_seat_b/robot_name=sharpa_wave 44 KEN 1
+n_ep10_nb_K_s42 10 /tmp/haisenk_v2d/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave 42 KEN 1
+n_ep10_nb_K_s43 10 /tmp/haisenk_v2d/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave 43 KEN 1
+n_ep10_nb_D_s42 10 /tmp/haisenk_v2d/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave 42 DEF 1
+n_ep10_nb_K_s44 10 /tmp/haisenk_v2d/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave 44 KEN 1
+n_ep10_nb_K_s45 10 /tmp/haisenk_v2d/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave 45 KEN 1
+n_ep10_nb_D_s43 10 /tmp/haisenk_v2d/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave 43 DEF 1
+n_ep10_nb_K_s46 10 /tmp/haisenk_v2d/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave 46 KEN 2
+n_ep10_nb_K_s47 10 /tmp/haisenk_v2d/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave 47 KEN 2
+n_ep10_nb_K_s48 10 /tmp/haisenk_v2d/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave 48 KEN 2
+n_ep10_nb_K_s49 10 /tmp/haisenk_v2d/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave 49 KEN 2

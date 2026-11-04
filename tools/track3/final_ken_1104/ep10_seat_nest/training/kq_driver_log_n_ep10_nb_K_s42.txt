@@ -1,0 +1,6 @@
+# Excerpt of the kq.sh driver log for the selected run (orchard /tmp/haisenk_v2d/kq.out, now on babel-s5-16 /tmp/haisenk_v2d/kq.out;
+# lines 230, 255, 258, 259 as read on 4 Nov 14:21 EST). Orchard clock = local EST.
+2026-11-04 03:43:13 gpu0 start n_ep10_nb_K_s42 (ep10 seed 42 KEN)
+  n_ep10_nb_K_s42 train exit=0 minutes=75 nefc_overflow_lines=17
+  sweep n_ep10_nb_K_s42: best 0.980 @ 100003840 [0.993, 0.968] (last 0.980 @ 100003840, 7 ckpts)
+2026-11-04 05:00:24 gpu0 done n_ep10_nb_K_s42

@@ -1,0 +1,61 @@
+{
+ "source": "C:/v2d_demo/depthtab_journal.jsonl (workflow wf_ed1d2237-bda, agent depthtab:ep3, 3-4 Nov 2026)",
+ "result": {
+  "episode": 3,
+  "depth_source": "Our own FoundationStereo depth from the ken_c_scored recon: /data/user_data/haisenk/v2d/v2d_recon/baseline/reconstruction/data/outputs/ken_c_scored/episode_000003/white_pot/depth/%06d.png. It is the ONNX small model run at 576x960 and stored at 2028x1520 as uint16 inverse depth: depth_m = 65535/raw - 1, with holes stored as 65535. This is the same decoding as kenc/measmesh_fp.py and bsdf_track_prep.py. The camera in the sim world is A @ the c2w from bob1 scene bundle_cleaned/result.npz. A comes from render_review.estimate_A: a pure translation [0.0746,-0.3209,1.5147], rotation 0.000 deg, residual 0 mm. K is the bundle K (1149.80, 1149.73, 994.80, 767.54). Masks: each object's SAM 3 mask (masks/1) and the hand masks (masks/2 and masks/3), with hands dilated by 20 px. Table pixels exclude each object's SAM mask plus its rendered silhouette, dilated by 12 px. I used 33 rest frames: pot 0-48 (step 3) and 252-312 (step 4), spoon 0-36 (step 3) and 276-312 (step 4). Caveat: at frame 0 the depth edges line up best with the SAM pot outline when shifted by (+4,+2) px. That changes table heights by about 2 mm at most and only matters at object edges; object masks were eroded by 5 px for the object depth check.",
+  "table_plane": "Global table plane from the depth: 990k points within 45 cm of the objects over 33 frames, RANSAC with an 8 mm threshold followed by least squares. In sim world coordinates it is z = 0.00292x + 0.04231y + 1.00499. It is tilted 2.43 deg from the sim horizontal and rises toward +y (gradient azimuth 86 deg). RMS is 2.4 mm with 91% inliers. Per frame, the table height under each object stays within p10-p90 of about ±0.3 cm, so camera poses agree from frame to frame. Local planes fitted on a 2-12 cm ring around each object's footprint match the global plane within 0.1 cm and show the same 2.3-2.5 deg tilt. The sim support (support_0, a horizontal cylinder with top z = 0.9878 and radius 0.30 m) sits too low: the depth table is +1.70 cm above it at the support centre and +0.44 to +2.96 cm above it around the edge, because of the tilt. Directly under the objects the gap is +1.87 cm (pot, f0-48), +2.25 cm (pot, f252-312), +1.96 cm (spoon, f0-36) and +2.17 cm (spoon, f276-312). The support height 0.9878 matches the pot's end-phase bottoms (median 0.9894). That is the one rest phase whose pose the depth shows is wrong.",
+  "objects": [
+   {
+    "object": "white_pot",
+    "phase_frames": "start 0-48 (17 frames, rest hold)",
+    "float_vs_sim_support_cm": 1.22,
+    "float_vs_depth_table_cm": -0.65,
+    "object_depth_check": "The real pot surface is 3.6 mm NEARER the camera than our mesh, i.e. a negative value (frame medians -0.4 to -9.7 mm; upper rows -2.9, lower rows -4.8). Fixing that would RAISE the pot by 0.32 cm, not lower it. IoU 0.94. The lowest visible real pot pixels (SAM, p2) back-project to z = 1.0072, which is at the depth table and 1.9 cm above the support.",
+    "verdict": "B_table_or_world_wrong",
+    "notes": "The pot is not too high. Against the real table its lowest vertex is 0.82 cm below the surface (340 vertices below; per-frame median -0.65 cm, p10-p90 -1.06 to -0.48). The cause is that the pot is tilted 2.27 deg relative to the real table: the world was levelled to this pot pose (report.json levelled_0 = world, 3.3 deg), and 2.3 deg across an 18.5 cm base is about 0.7 cm. All of the +1.22 cm float comes from the support sitting 1.87 cm below the real table."
+   },
+   {
+    "object": "white_pot",
+    "phase_frames": "end 252-312 (16 frames)",
+    "float_vs_sim_support_cm": 0.16,
+    "float_vs_depth_table_cm": -2.08,
+    "object_depth_check": "The real surface is 8.0 mm NEARER than our mesh (upper rows -9.8 mm, lower rows +5.9 mm, so the mesh is tilted relative to the real pot). Matching it would raise the pot by 0.67 cm. IoU 0.89.",
+    "verdict": "mixed",
+    "notes": "This is an object pose error in the opposite direction, not a float. The pot's lowest vertex is 2.10 cm below the real table (784 vertices below; per-frame p10-p90 -2.43 to -1.05). Its up axis is tilted 6.7 deg from the table normal and 4.3 deg from sim vertical, and 4.3 deg across 18.5 cm is about 1.4 cm, plus about 0.7 cm along the camera ray. The support is also 2.25 cm too low (B). The two errors cancel in the sim (+0.16 cm), and the support height (0.9878) matches this wrong pose."
+   },
+   {
+    "object": "wooden_spoon",
+    "phase_frames": "start 0-36 (13 frames)",
+    "float_vs_sim_support_cm": 1.95,
+    "float_vs_depth_table_cm": -0.01,
+    "object_depth_check": "The real spoon is 3.6 mm FARTHER than our mesh (upper rows -5.3, lower rows +10.3; it is a thin object and its edges pick up table depth). That implies lowering it by only 0.31 cm. IoU 0.72. The lowest visible real spoon pixels sit at z = 1.0052, at the depth table.",
+    "verdict": "B_table_or_world_wrong",
+    "notes": "The spoon sits on the real table: per-frame median -0.12 cm (p10-p90 -0.56 to +0.04) and lowest vertex -0.31 cm. All of the +1.95 cm float comes from the support sitting 1.96 cm below the real table. Pixels that SAM marks as spoon but our mesh does not cover back-project to z p10 1.006 (table level), so there is no sign of a missing mesh part."
+   },
+   {
+    "object": "wooden_spoon",
+    "phase_frames": "end 276-312 (10 frames)",
+    "float_vs_sim_support_cm": 1.65,
+    "float_vs_depth_table_cm": -0.42,
+    "object_depth_check": "The real spoon is 4.1 mm FARTHER than our mesh (upper rows -7.0, lower rows +10.2), implying a 0.35 cm lowering. IoU 0.76. The lowest visible pixels sit at z = 1.0067, at the depth table.",
+    "verdict": "B_table_or_world_wrong",
+    "notes": "The spoon is on the real table or slightly into it: per-frame median -0.26 cm, lowest vertex -0.75 cm. Its up axis is tilted 5.3 deg from the table normal. The support is 2.17 cm below the real table."
+   }
+  ],
+  "recommendation": "For ep3 the depth supports fixing the sim support and the world's up direction. It does not support moving objects along camera rays: the object depths agree with our meshes within 4-8 mm, and for the pot the residual points UP. It also does not support completing meshes: no SAM-only pixels fall below the mesh bottoms.\n\n1. Move the support to the depth table: z = 0.00292x + 0.04231y + 1.00499 in the current sim world. That is +1.7 cm at the support centre, +1.87 cm under the pot and +1.96 cm under the spoon at frame 0 (support top about 1.0065-1.0075 there), and +2.2 cm at the end-phase locations. Either tilt the support 2.43 deg (rising toward +y), or rotate the world 2.43 deg about roughly the x axis so the table normal becomes +z and place a horizontal support on the depth table. A horizontal support at about 1.007 without re-levelling would still be up to ±0.75 cm off across its 30 cm radius.\n\n2. Leave the start-phase spoon where it is: it is on the table within 0.1-0.3 cm. Seat the start-phase pot flat: it is tilted 2.3 deg from the real table and its low edge is 0.65-0.8 cm into it. Rotate it about 2.3 deg or lift it at most 0.8 cm, or it will poke through the raised support.\n\n3. Correct the end-phase pot pose before raising the support. It is tilted 6.7 deg from the table, its low edge is 2.1 cm below the real table, and its surface is 8 mm farther from the camera than the observed depth. Seat it flat on the depth table, which lifts the low edge by about 2 cm. The end-phase spoon is only 0.3-0.75 cm into the table (minor).\n\n4. Root cause: the support height (0.9878) matches the end-phase pot bottoms (median 0.9894), so the support builder inherited the wrong end pose and every other rest phase floats as a result. Take the support height and slope from the depth table instead of from object rest bottoms.",
+  "files": [
+   "C:\\v2d_demo\\depthtab\\ep3\\depthtab.py",
+   "C:\\v2d_demo\\depthtab\\ep3\\followup.py",
+   "C:\\v2d_demo\\depthtab\\ep3\\ep3_depthtab.json",
+   "C:\\v2d_demo\\depthtab\\ep3\\ep3_followup.json",
+   "C:\\v2d_demo\\depthtab\\ep3\\run.log",
+   "C:\\v2d_demo\\depthtab\\ep3\\followup.log",
+   "babel:/home/haisenk/v2d_ops/kenc/depthtab/ep3/depthtab.py",
+   "babel:/home/haisenk/v2d_ops/kenc/depthtab/ep3/followup.py",
+   "babel:/home/haisenk/v2d_ops/kenc/depthtab/ep3/out/ep3_depthtab.json",
+   "babel:/home/haisenk/v2d_ops/kenc/depthtab/ep3/out/ep3_followup.json",
+   "babel:/home/haisenk/v2d_ops/kenc/depthtab/ep3/out/ep3_table_points.npz",
+   "babel:/home/haisenk/v2d_ops/kenc/depthtab/ep3/out/run.log"
+  ]
+ }
+}

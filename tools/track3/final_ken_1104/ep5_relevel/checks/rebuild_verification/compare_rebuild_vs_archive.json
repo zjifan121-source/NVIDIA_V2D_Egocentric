@@ -1,0 +1,67 @@
+C:\Users\Haisen\AppData\Local\Temp\claude\670C48~1\3081C1~1\SCRATC~1\repro\tools\cmp_scene.py:49: RuntimeWarning: All-NaN slice encountered
+  d = float(np.nanmax(np.abs(xa - xb))) if xa.size else 0.0
+{
+ "only_in_A": [
+  "bundle_cleaned/mesh.obj",
+  "scenefix_report.json"
+ ],
+ "only_in_B": [],
+ "files": {
+  "SUPPORT_V1_COPIED_FROM_CONTROL": "identical",
+  "W7EDIT.json": "identical",
+  "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot.mtl": "identical",
+  "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot.obj": {
+   "bytes_differ": true,
+   "same_shape": true,
+   "vertex_max_abs_diff_m": 0.0,
+   "faces_equal": true
+  },
+  "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot_material_0.png": "identical",
+  "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot_rigid.urdf": "identical",
+  "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot_visual.stl": "identical",
+  "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon.mtl": "identical",
+  "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon.obj": "identical",
+  "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon_material_0.png": "identical",
+  "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon_rigid.urdf": "identical",
+  "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon_visual.stl": "identical",
+  "assets/human_motion_data/ego_recon/processed/sequence_id=ep5_hw_w7_attcom_ep5/robot_name=sharpa_wave/e973bf284334409f9630493afab742f1-0.parquet": {
+   "columns_equal": true,
+   "numeric_max_abs_diff": {
+    "mano_center_idx": NaN,
+    "mano_to_robot_scale": NaN
+   },
+   "string_cols_differ": [
+    "raw_motion_file"
+   ],
+   "max_numeric_diff_overall": NaN
+  },
+  "assets/human_motion_data/ego_recon/processed/sequence_id=ep5_hw_w7_attcom_ep5/robot_name=sharpa_wave/e973bf284334409f9630493afab742f1-0.parquet.orig": "identical",
+  "assets/human_motion_data/ego_recon/reconstructed_stage/ep5_hw_w7_attcom_ep5_sharpa_wave_support.usda": {
+   "bytes_differ": true,
+   "text_equal_after_path_strip": true,
+   "A_head": "#usda 1.0\n(\n    metersPerUnit = 1\n    upAxis = \"Z\"\n)\n\ndef Cylinder \"support_0\" (\n    prepend apiSchemas = [\"PhysicsCollisionAPI\"]\n)\n{\n    uniform token axis = \"Z\"\n    double height = 0.01\n    double radius = 0.29972318463319875\n    double3 xformOp:translate = (0.10026413237265833, -0.037574307062152534, 1.0047000000000001)\n    uniform token[] xformOpOrder = [\"xformOp:translate\"]\n}\n\n\n",
+   "B_head": "#usda 1.0\n(\n    metersPerUnit = 1\n    upAxis = \"Z\"\n)\n\ndef Cylinder \"support_0\" (\n    prepend apiSchemas = [\"PhysicsCollisionAPI\"]\n)\n{\n    uniform token axis = \"Z\"\n    double height = 0.01\n    double radius = 0.29972318463319875\n    double3 xformOp:translate = (0.10026413237265833, -0.037574307062152534, 1.0047000000000001)\n    uniform token[] xformOpOrder = [\"xformOp:translate\"]\n}\n\n\n"
+  },
+  "assets/human_motion_data/ego_recon/reconstructed_stage/ep5_hw_w7_attcom_ep5_sharpa_wave_support.usda.generated_by_loader": "identical",
+  "bundle_cleaned/result.npz": "identical",
+  "intermediate/ego_recon/loaded/sequence_id=ep5_hw_w7_attcom_ep5/robot_name=sharpa_wave/c1c77b5021e84dda81cf3cc732de2e20-0.parquet": "identical",
+  "pipeline.log": "identical",
+  "relevel_report.json": {
+   "bytes_differ": true,
+   "text_equal_after_path_strip": false,
+   "A_head": "{\n \"scene\": \"C:\\\\Users\\\\Haisen\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\670C48~1\\\\3081C1~1\\\\SCRATC~1\\\\repro\\\\in\\\\w7_attcom_ep5\",\n \"out\": \"C:\\\\Users\\\\Haisen\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\670C48~1\\\\3081C1~1\\\\SCRATC~1\\\\repro\\\\work\\\\rl_ep5\",\n \"tilt_deg\": 5.478626169740843,\n \"pivot\": [\n  0.02091900594718291,\n  0.019899181950688186,\n  1.0176935260577498\n ],\n \"table_z_after\": 1.0176935260577498,\n \"support_top\": 0",
+   "B_head": "{\n \"scene\": \"/tmp/haisenk_v2d/scenes/w7_attcom_ep5\",\n \"out\": \"/tmp/haisenk_v2d/scenes/rl_ep5\",\n \"tilt_deg\": 5.478626169740843,\n \"pivot\": [\n  0.02091900594718291,\n  0.019899181950688186,\n  1.0176935260577498\n ],\n \"table_z_after\": 1.0176935260577498,\n \"support_top\": 0.9996677266454285,\n \"frame0_bottoms\": {\n  \"ep5_hw_w7_attcom_ep5_white_pot\": 1.0006677266454285,\n  \"ep5_hw_w7_attcom_ep5_wooden_spoon\":"
+  },
+  "report.json": "identical",
+  "score_input/meshes/episode_000005/material.mtl": "identical",
+  "score_input/meshes/episode_000005/white_pot.obj": {
+   "bytes_differ": true,
+   "same_shape": true,
+   "vertex_max_abs_diff_m": 0.0,
+   "faces_equal": true
+  },
+  "score_input/meshes/episode_000005/wooden_spoon.obj": "identical",
+  "score_input/results/episode_000005.npy": "identical",
+  "w7_backup/ep5_hw_w7_attcom_ep5_white_pot_rigid.urdf": "identical"
+ }
+}

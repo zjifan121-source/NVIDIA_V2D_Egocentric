@@ -1,0 +1,507 @@
+{
+ "scene": "/data/user_data/haisenk/v2d/hand6/scenes/w7_attcom_ep5",
+ "camera": {
+  "0": {
+   "pitch_deg": -39.958705703745835,
+   "heading_az_deg": 87.89399331784492,
+   "right_axis_elev_deg": -2.9289041523420023,
+   "pos": [
+    0.079,
+    -0.3557,
+    1.5118
+   ]
+  },
+  "12": {
+   "pitch_deg": -41.02401404902367,
+   "heading_az_deg": 88.26849400753886,
+   "right_axis_elev_deg": -2.1498584809942094,
+   "pos": [
+    0.0776,
+    -0.348,
+    1.5124
+   ]
+  },
+  "280": {
+   "pitch_deg": -46.31983539184879,
+   "heading_az_deg": 89.06846705823453,
+   "right_axis_elev_deg": -2.772616751078991,
+   "pos": [
+    0.0749,
+    -0.3276,
+    1.4937
+   ]
+  }
+ },
+ "planes_start": {
+  "table": {
+   "a": 0.02009444498692425,
+   "b": 0.09378396816444945,
+   "c": 1.0154069459706199,
+   "normal": [
+    -0.02000265122275223,
+    -0.0933555520791878,
+    0.9954318835761947
+   ],
+   "tilt_deg": 5.478626280741563,
+   "ascent_az_deg": 77.90648102436097,
+   "n": 260000,
+   "inlier_frac": 0.9479653846153846,
+   "resid_std_mm": 1.6391673124549266
+  },
+  "floor": {
+   "a": 0.03798240704432575,
+   "b": 0.09952982618994,
+   "c": 0.391958061755563,
+   "normal": [
+    -0.037768696052636185,
+    -0.0989698138180827,
+    0.9943734215833093
+   ],
+   "tilt_deg": 6.080841188958746,
+   "ascent_az_deg": 69.1122283986724,
+   "n": 260000,
+   "inlier_frac": 0.7651884615384615,
+   "resid_std_mm": 7.103262343970522
+  },
+  "n_floor_pts": 260000,
+  "floor_z_p5_p95": [
+   0.39017712350087785,
+   0.5514828716023655
+  ],
+  "angle_table_vs_floor_deg": 1.0692730101692653,
+  "table_minus_floor_height_m": 0.6218507781372735,
+  "floor_resid_by_dist_cm": [
+   [
+    1.06,
+    1.46,
+    0.21
+   ],
+   [
+    1.46,
+    1.59,
+    -0.03
+   ],
+   [
+    1.59,
+    1.72,
+    -0.31
+   ],
+   [
+    1.72,
+    1.88,
+    -0.42
+   ],
+   [
+    1.88,
+    3.36,
+    0.24
+   ]
+  ],
+  "table_resid_by_dist_cm": [
+   [
+    0.49,
+    0.55,
+    -0.01
+   ],
+   [
+    0.55,
+    0.57,
+    -0.02
+   ],
+   [
+    0.57,
+    0.59,
+    -0.03
+   ],
+   [
+    0.59,
+    0.63,
+    -0.0
+   ],
+   [
+    0.63,
+    0.81,
+    0.0
+   ]
+  ],
+  "table_height_vs_sim_by_dist_cm": [
+   [
+    0.49,
+    0.55,
+    0.25
+   ],
+   [
+    0.55,
+    0.57,
+    0.64
+   ],
+   [
+    0.57,
+    0.59,
+    1.14
+   ],
+   [
+    0.59,
+    0.63,
+    1.72
+   ],
+   [
+    0.63,
+    0.81,
+    2.78
+   ]
+  ]
+ },
+ "planes_end": {
+  "table": {
+   "a": 0.01978278392726364,
+   "b": 0.09293840262100361,
+   "c": 1.0157476479199072,
+   "normal": [
+    -0.01969407574012877,
+    -0.09252165656331869,
+    0.9955158896007242
+   ],
+   "tilt_deg": 5.427979482783443,
+   "ascent_az_deg": 77.98341663796847,
+   "n": 320000,
+   "inlier_frac": 0.8421625,
+   "resid_std_mm": 2.2231710764026196
+  },
+  "floor": {
+   "a": 0.040228647085423744,
+   "b": 0.09669832471472017,
+   "c": 0.39252669377087485,
+   "normal": [
+    -0.04000981351745668,
+    -0.0961723105196908,
+    0.9945602553448446
+   ],
+   "tilt_deg": 5.978936691301284,
+   "ascent_az_deg": 67.41160652180552,
+   "n": 320000,
+   "inlier_frac": 0.71311875,
+   "resid_std_mm": 7.3621918641608275
+  },
+  "n_floor_pts": 320000,
+  "floor_z_p5_p95": [
+   0.38402955294511354,
+   0.5589793730082045
+  ],
+  "angle_table_vs_floor_deg": 1.183937818767806,
+  "table_minus_floor_height_m": 0.6212948367451572,
+  "floor_resid_by_dist_cm": [
+   [
+    1.01,
+    1.4,
+    0.3
+   ],
+   [
+    1.4,
+    1.54,
+    0.35
+   ],
+   [
+    1.54,
+    1.7,
+    -0.23
+   ],
+   [
+    1.7,
+    1.89,
+    -0.42
+   ],
+   [
+    1.89,
+    3.43,
+    -0.08
+   ]
+  ],
+  "table_resid_by_dist_cm": [
+   [
+    0.47,
+    0.52,
+    -0.0
+   ],
+   [
+    0.52,
+    0.54,
+    -0.03
+   ],
+   [
+    0.54,
+    0.56,
+    -0.12
+   ],
+   [
+    0.56,
+    0.59,
+    -0.18
+   ],
+   [
+    0.59,
+    0.82,
+    -0.08
+   ]
+  ],
+  "table_height_vs_sim_by_dist_cm": [
+   [
+    0.47,
+    0.52,
+    0.16
+   ],
+   [
+    0.52,
+    0.54,
+    0.64
+   ],
+   [
+    0.54,
+    0.56,
+    1.06
+   ],
+   [
+    0.56,
+    0.59,
+    1.38
+   ],
+   [
+    0.59,
+    0.82,
+    2.5
+   ]
+  ]
+ },
+ "icp": {
+  "white_pot_start": {
+   "frames": [
+    0,
+    24
+   ],
+   "ref_drift_m": 0.006720297824701679,
+   "n_pts": 52000,
+   "rot_deg": 5.9838117307469165,
+   "rot_axis_world": [
+    0.8678037742412845,
+    -0.38681225760453686,
+    -0.31191807703219626
+   ],
+   "tilt_change_deg": 5.68502175889234,
+   "trans_cm": [
+    0.29,
+    -0.25,
+    1.69
+   ],
+   "resid_med_before_mm": 6.074597424788828,
+   "resid_med_after_mm": 1.7644583688137785,
+   "iters": 30,
+   "bottom_z_before": 0.9999999494187705,
+   "bottom_z_after": 1.0137240914664907,
+   "centroid_shift_cm": [
+    0.14,
+    -0.35,
+    1.41
+   ]
+  },
+  "wooden_spoon_start": {
+   "frames": [
+    0,
+    24
+   ],
+   "ref_drift_m": 0.006353037190925619,
+   "n_pts": 52000,
+   "rot_deg": 17.759194839750155,
+   "rot_axis_world": [
+    0.38253609295363483,
+    -0.9200926509410225,
+    -0.08423568882658586
+   ],
+   "tilt_change_deg": 17.695568667048256,
+   "trans_cm": [
+    0.29,
+    0.81,
+    0.41
+   ],
+   "resid_med_before_mm": 4.139790061773726,
+   "resid_med_after_mm": 2.1083429888769594,
+   "iters": 40,
+   "bottom_z_before": 1.0107167503856977,
+   "bottom_z_after": 1.0025078795882973,
+   "centroid_shift_cm": [
+    0.27,
+    0.81,
+    0.29
+   ]
+  },
+  "white_pot_end": {
+   "frames": [
+    272,
+    287
+   ],
+   "ref_drift_m": 0.0031346741669687553,
+   "n_pts": 64000,
+   "rot_deg": 6.1498165108007985,
+   "rot_axis_world": [
+    0.9162022498795127,
+    -0.39252329684993326,
+    -0.08061574750492723
+   ],
+   "tilt_change_deg": 6.129781274947619,
+   "trans_cm": [
+    0.39,
+    -0.2,
+    1.36
+   ],
+   "resid_med_before_mm": 5.672462371537314,
+   "resid_med_after_mm": 1.6499496372275917,
+   "iters": 26,
+   "bottom_z_before": 1.0024956160453953,
+   "bottom_z_after": 1.0127291825319684,
+   "centroid_shift_cm": [
+    0.31,
+    -0.33,
+    1.05
+   ]
+  },
+  "wooden_spoon_end": {
+   "frames": [
+    272,
+    287
+   ],
+   "ref_drift_m": 0.004816744474109327,
+   "n_pts": 64000,
+   "rot_deg": 11.624276972605449,
+   "rot_axis_world": [
+    -0.20524407746090584,
+    0.9739655236599638,
+    0.09626020667437873
+   ],
+   "tilt_change_deg": 11.570111577231264,
+   "trans_cm": [
+    -0.64,
+    0.13,
+    0.61
+   ],
+   "resid_med_before_mm": 3.8103470798616947,
+   "resid_med_after_mm": 1.863634101530213,
+   "iters": 40,
+   "bottom_z_before": 1.0112263631644043,
+   "bottom_z_after": 1.0167108186553886,
+   "centroid_shift_cm": [
+    -0.61,
+    0.13,
+    0.62
+   ]
+  }
+ },
+ "axes": {
+  "white_pot_start": {
+   "long_axis_elev_deg": 8.270458898593446,
+   "long_axis_az_deg": -100.21632926351214,
+   "depth_table_slope_along_long_axis_deg": -5.475703975610265,
+   "short_axis_angle_to_world_z_deg": 8.72520487293104,
+   "short_axis_angle_to_depth_table_normal_deg": 14.058124641809764,
+   "ends": {
+    "end_neg": {
+     "min_height_above_depth_table_cm": -1.409737950327572,
+     "min_height_above_sim_cm": 1.3968777487943562,
+     "xy": [
+      0.023,
+      0.122
+     ],
+     "along_axis_cm": -12.383351116911346
+    },
+    "end_pos": {
+     "min_height_above_depth_table_cm": 9.770200188131195,
+     "min_height_above_sim_cm": 9.755143310136404,
+     "xy": [
+      -0.035,
+      -0.208
+     ],
+     "along_axis_cm": 21.301703682167382
+    }
+   }
+  },
+  "wooden_spoon_start": {
+   "long_axis_elev_deg": 3.790088299724641,
+   "long_axis_az_deg": 97.98119745461922,
+   "depth_table_slope_along_long_axis_deg": 5.147622323144994,
+   "short_axis_angle_to_world_z_deg": 12.631438104715615,
+   "short_axis_angle_to_depth_table_normal_deg": 10.268809564145084,
+   "ends": {
+    "end_neg": {
+     "min_height_above_depth_table_cm": 0.6245805029135632,
+     "min_height_above_sim_cm": 1.410831476805674,
+     "xy": [
+      0.272,
+      -0.163
+     ],
+     "along_axis_cm": -16.267549747441393
+    },
+    "end_pos": {
+     "min_height_above_depth_table_cm": 0.6926338159794376,
+     "min_height_above_sim_cm": 4.077299565124415,
+     "xy": [
+      0.227,
+      0.136
+     ],
+     "along_axis_cm": 14.073420016539822
+    }
+   }
+  },
+  "white_pot_end": {
+   "long_axis_elev_deg": 8.384889317637821,
+   "long_axis_az_deg": -99.8090809166812,
+   "depth_table_slope_along_long_axis_deg": -5.423975309553379,
+   "short_axis_angle_to_world_z_deg": 8.989495360510576,
+   "short_axis_angle_to_depth_table_normal_deg": 14.229316487678792,
+   "ends": {
+    "end_neg": {
+     "min_height_above_depth_table_cm": -1.3401033025677744,
+     "min_height_above_sim_cm": 1.6393166802526338,
+     "xy": [
+      0.031,
+      0.137
+     ],
+     "along_axis_cm": -12.383351116911218
+    },
+    "end_pos": {
+     "min_height_above_depth_table_cm": 9.866135888903704,
+     "min_height_above_sim_cm": 10.063606835240169,
+     "xy": [
+      -0.024,
+      -0.194
+     ],
+     "along_axis_cm": 21.30170368216751
+    }
+   }
+  },
+  "wooden_spoon_end": {
+   "long_axis_elev_deg": 3.89801085066604,
+   "long_axis_az_deg": 102.24947469049016,
+   "depth_table_slope_along_long_axis_deg": 4.950898806212657,
+   "short_axis_angle_to_world_z_deg": 12.75465108779416,
+   "short_axis_angle_to_depth_table_normal_deg": 9.98050454649238,
+   "ends": {
+    "end_neg": {
+     "min_height_above_depth_table_cm": 0.5664911888244806,
+     "min_height_above_sim_cm": 1.4597885388896614,
+     "xy": [
+      0.273,
+      -0.156
+     ],
+     "along_axis_cm": -16.26754974744138
+    },
+    "end_pos": {
+     "min_height_above_depth_table_cm": 0.7892821569981168,
+     "min_height_above_sim_cm": 4.180563526930747,
+     "xy": [
+      0.205,
+      0.139
+     ],
+     "along_axis_cm": 14.073420016539837
+    }
+   }
+  }
+ }
+}

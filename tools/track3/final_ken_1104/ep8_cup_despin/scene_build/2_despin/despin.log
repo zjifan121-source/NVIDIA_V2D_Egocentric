@@ -1,0 +1,36 @@
+== check bundle /scratch/haisenk-v2d/diag/ep8_plan/bundle_base
+  ! left hand scale 0.84: world may be off by that factor
+== hand5: patch /scratch/haisenk-v2d/diag/ep8_plan/patch_despin_ep8.py applied
+/data/user_data/haisenk/v2d/v2d_train/.venv_retarget/lib/python3.11/site-packages/manotorch/axislayer.py:47: UserWarning: Using torch.cross without specifying the dim arg is deprecated.
+Please either pass the dim explicitly or simply use torch.linalg.cross.
+The default value of dim will change to agree with that of linalg.cross in a future release. (Triggered internally at /pytorch/aten/src/ATen/native/Cross.cpp:62.)
+  l_axis = torch.cross(b_axis, self.up_axis_base.expand(bs, 16, 3))
+== cleaned bundle: {'hand_left_refilled_frames': 0, 'hand_right_refilled_frames': 12, 'hand_smooth_sigma_frames': 2.0, 'object_refilled_frames_beige_cup': 0, 'rest_hold_until_frame_beige_cup': 32, 'object_refilled_frames_white_pot': 0, 'rest_hold_until_frame_white_pot': 10, 'tilt_deg_0': 3.1, 'levelled_0': 'world', 'tilt_deg_1': 2.9, 'levelled_1': 'object', 'h5_sym_mode': 'despin', 'h5_sym_axis_0': [-0.012, -0.7737, -0.6334], 'h5_sym_center_cm_0': [-0.09, 0.04, -0.16], 'h5_despin_max_deg_0': 164.3, 'attach_rule': 'nearest within reach', 'attached_1': [['left', 99, 160, 2.1]], 'h5_spin_removed_deg_0': [['right', 13.3]], 'attached_0': [['right', 46, 181, 4.0]], 'hand_left_attached_frames': 61, 'hand_right_attached_frames': 135, 'h5_diag': '/scratch/haisenk-v2d/diag/ep8_plan/diag/ep8_ken_c_scored_attach.npz'}
+== load (MANO FK -> ManoSharpaData)
+  $ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python -m v2d.task_library_loader.lib.run_loader --dataset ego_recon --dataset_root /scratch/haisenk-v2d/diag/ep8_plan/despin/bundle_cleaned --result_subpath . --output_dir /scratch/haisenk-v2d/diag/ep8_plan/despin/intermediate/ego_recon/loaded --mano_model_dir /data/user_data/haisenk/v2d/v2d_train/baseline/reconstruction/data/weights/hand --no_ground_align --ground_z_offset 1.0 --sequence_name ep8_ken_c_scored_attach --object_name ep8_ken_c_scored_attach --sequence_id ep8_ken_c_scored_attach --device cpu --save
+== retarget (IK onto the Sharpa hands)
+  $ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/retarget/ego_recon_to_sharpa.py --input_dir /scratch/haisenk-v2d/diag/ep8_plan/despin/intermediate/ego_recon/loaded --output_dir /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed --sequence_id ep8_ken_c_scored_attach --device cpu --save
+== object URDF
+  $ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/generate_rigid_urdfs.py --dataset ego_recon
+== support surface
+  $ /data/user_data/haisenk/v2d/v2d_train/.venv_retarget/bin/python scripts/reconstruct_support_surfaces.py --dataset ego_recon --input_dir /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed --sequence_id ep8_ken_c_scored_attach --robot_name sharpa_wave --output /scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/reconstructed_stage/ep8_ken_c_scored_attach_sharpa_wave_support.usda
+== check output
+Traceback (most recent call last):
+  File "/home/haisenk/v2d_ops/kenc/hand5/rlr_h5.py", line 1091, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/haisenk/v2d_ops/kenc/hand5/rlr_h5.py", line 1075, in main
+    report["output_check"] = check_output(partition(processed, seq), [processed / f"{body}.obj" for body in bodies],
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/haisenk/v2d_ops/kenc/hand5/rlr_h5.py", line 878, in check_output
+    mesh = trimesh.load(mesh_path, force="mesh", process=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data/user_data/haisenk/v2d/v2d_train/.venv_retarget/lib/python3.11/site-packages/trimesh/exchange/load.py", line 111, in load
+    loaded = load_scene(
+             ^^^^^^^^^^^
+  File "/data/user_data/haisenk/v2d/v2d_train/.venv_retarget/lib/python3.11/site-packages/trimesh/exchange/load.py", line 193, in load_scene
+    arg = _parse_file_args(
+          ^^^^^^^^^^^^^^^^^
+  File "/data/user_data/haisenk/v2d/v2d_train/.venv_retarget/lib/python3.11/site-packages/trimesh/exchange/load.py", line 624, in _parse_file_args
+    raise ValueError(f"string is not a file: `{file_obj}`")
+ValueError: string is not a file: `/scratch/haisenk-v2d/diag/ep8_plan/despin/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach.obj`

@@ -1,0 +1,929 @@
+{
+ "rf_ep8_ds_K_s42": {
+  "own_ref": 0.9880136986301369,
+  "step": "85004288",
+  "REF|t6cup": {
+   "add_auc": 0.97817,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 0.92,
+      "lost": 0.0011
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 0.71,
+      "lost": 0.0013
+     },
+     "burst f62-69": {
+      "med_cm": 0.89,
+      "lost": 0.0006
+     },
+     "carry f73-127": {
+      "med_cm": 0.72,
+      "lost": 0.002
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 1.28,
+      "lost": 0.0039
+     },
+     "f147-152": {
+      "med_cm": 1.06,
+      "lost": 0.0006
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 0.98,
+      "lost": 0.0024
+     },
+     "rest f0-31": {
+      "med_cm": 0.59,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 0.86,
+      "lost": 0.004
+     },
+     "lift f95-127": {
+      "med_cm": 1.0,
+      "lost": 0.0029
+     },
+     "lifted f128-164": {
+      "med_cm": 0.97,
+      "lost": 0.0023
+     },
+     "end f165-218": {
+      "med_cm": 0.65,
+      "lost": 0.0013
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 0.96725,
+   "mppe_cm": 0.8643
+  },
+  "REF_DS|t6cup": {
+   "add_auc": 0.97817,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 0.92,
+      "lost": 0.0011
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 0.71,
+      "lost": 0.0013
+     },
+     "burst f62-69": {
+      "med_cm": 0.88,
+      "lost": 0.0006
+     },
+     "carry f73-127": {
+      "med_cm": 0.69,
+      "lost": 0.002
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 1.28,
+      "lost": 0.0039
+     },
+     "f147-152": {
+      "med_cm": 1.07,
+      "lost": 0.0006
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 0.97,
+      "lost": 0.0024
+     },
+     "rest f0-31": {
+      "med_cm": 0.59,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 0.86,
+      "lost": 0.004
+     },
+     "lift f95-127": {
+      "med_cm": 1.0,
+      "lost": 0.0029
+     },
+     "lifted f128-164": {
+      "med_cm": 0.97,
+      "lost": 0.0023
+     },
+     "end f165-218": {
+      "med_cm": 0.65,
+      "lost": 0.0013
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 0.8989,
+   "mppe_cm": 0.86217
+  },
+  "REF|b1cup": {
+   "add_auc": 0.98031,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 0.78,
+      "lost": 0.0009
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 1.25,
+      "lost": 0.0021
+     },
+     "burst f62-69": {
+      "med_cm": 1.43,
+      "lost": 0.0011
+     },
+     "carry f73-127": {
+      "med_cm": 0.88,
+      "lost": 0.0029
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 1.48,
+      "lost": 0.004
+     },
+     "f147-152": {
+      "med_cm": 1.31,
+      "lost": 0.0009
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 0.99,
+      "lost": 0.003
+     },
+     "rest f0-31": {
+      "med_cm": 0.6,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 0.65,
+      "lost": 0.0014
+     },
+     "lift f95-127": {
+      "med_cm": 0.76,
+      "lost": 0.0013
+     },
+     "lifted f128-164": {
+      "med_cm": 0.54,
+      "lost": 0.0004
+     },
+     "end f165-218": {
+      "med_cm": 0.66,
+      "lost": 0.003
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 1.00349,
+   "mppe_cm": 0.82245
+  },
+  "SEAT|t6cup": {
+   "add_auc": 0.95933,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 0.92,
+      "lost": 0.0011
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 0.71,
+      "lost": 0.0013
+     },
+     "burst f62-69": {
+      "med_cm": 0.89,
+      "lost": 0.0006
+     },
+     "carry f73-127": {
+      "med_cm": 0.72,
+      "lost": 0.002
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 1.28,
+      "lost": 0.0039
+     },
+     "f147-152": {
+      "med_cm": 1.06,
+      "lost": 0.0006
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 0.98,
+      "lost": 0.0024
+     },
+     "rest f0-31": {
+      "med_cm": 0.59,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 1.33,
+      "lost": 0.0104
+     },
+     "lift f95-127": {
+      "med_cm": 1.43,
+      "lost": 0.0057
+     },
+     "lifted f128-164": {
+      "med_cm": 1.4,
+      "lost": 0.005
+     },
+     "end f165-218": {
+      "med_cm": 1.3,
+      "lost": 0.0061
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 1.31722,
+   "mppe_cm": 1.12113
+  },
+  "RAY|t6cup": {
+   "add_auc": 0.96846,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 0.92,
+      "lost": 0.0011
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 0.71,
+      "lost": 0.0013
+     },
+     "burst f62-69": {
+      "med_cm": 0.89,
+      "lost": 0.0006
+     },
+     "carry f73-127": {
+      "med_cm": 0.72,
+      "lost": 0.002
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 1.28,
+      "lost": 0.0039
+     },
+     "f147-152": {
+      "med_cm": 1.06,
+      "lost": 0.0006
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 0.98,
+      "lost": 0.0024
+     },
+     "rest f0-31": {
+      "med_cm": 0.59,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 1.08,
+      "lost": 0.0073
+     },
+     "lift f95-127": {
+      "med_cm": 1.21,
+      "lost": 0.0041
+     },
+     "lifted f128-164": {
+      "med_cm": 1.14,
+      "lost": 0.004
+     },
+     "end f165-218": {
+      "med_cm": 0.87,
+      "lost": 0.0027
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 1.11496,
+   "mppe_cm": 0.99587
+  }
+ },
+ "rf_ep8_ds_K_s43": {
+  "own_ref": 0.9901541095890412,
+  "step": "95006720",
+  "REF|t6cup": {
+   "add_auc": 0.98102,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 1.05,
+      "lost": 0.0007
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 1.09,
+      "lost": 0.0017
+     },
+     "burst f62-69": {
+      "med_cm": 0.81,
+      "lost": 0.0004
+     },
+     "carry f73-127": {
+      "med_cm": 0.59,
+      "lost": 0.0007
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 0.94,
+      "lost": 0.0026
+     },
+     "f147-152": {
+      "med_cm": 1.04,
+      "lost": 0.0004
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 1.21,
+      "lost": 0.0051
+     },
+     "rest f0-31": {
+      "med_cm": 0.61,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 0.78,
+      "lost": 0.0011
+     },
+     "lift f95-127": {
+      "med_cm": 1.08,
+      "lost": 0.003
+     },
+     "lifted f128-164": {
+      "med_cm": 0.79,
+      "lost": 0.0013
+     },
+     "end f165-218": {
+      "med_cm": 0.77,
+      "lost": 0.0017
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 0.78615,
+   "mppe_cm": 0.83345
+  },
+  "REF_DS|t6cup": {
+   "add_auc": 0.98145,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 1.05,
+      "lost": 0.0007
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 1.09,
+      "lost": 0.0017
+     },
+     "burst f62-69": {
+      "med_cm": 0.83,
+      "lost": 0.0004
+     },
+     "carry f73-127": {
+      "med_cm": 0.56,
+      "lost": 0.0007
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 0.96,
+      "lost": 0.0026
+     },
+     "f147-152": {
+      "med_cm": 1.1,
+      "lost": 0.0004
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 1.17,
+      "lost": 0.005
+     },
+     "rest f0-31": {
+      "med_cm": 0.61,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 0.78,
+      "lost": 0.0011
+     },
+     "lift f95-127": {
+      "med_cm": 1.08,
+      "lost": 0.003
+     },
+     "lifted f128-164": {
+      "med_cm": 0.79,
+      "lost": 0.0013
+     },
+     "end f165-218": {
+      "med_cm": 0.77,
+      "lost": 0.0017
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 0.80326,
+   "mppe_cm": 0.83125
+  },
+  "REF|b1cup": {
+   "add_auc": 0.9766,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 1.15,
+      "lost": 0.0009
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 1.72,
+      "lost": 0.0031
+     },
+     "burst f62-69": {
+      "med_cm": 1.66,
+      "lost": 0.0011
+     },
+     "carry f73-127": {
+      "med_cm": 0.6,
+      "lost": 0.003
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 1.59,
+      "lost": 0.0054
+     },
+     "f147-152": {
+      "med_cm": 0.81,
+      "lost": 0.0003
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 1.23,
+      "lost": 0.0051
+     },
+     "rest f0-31": {
+      "med_cm": 0.61,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 0.54,
+      "lost": 0.0004
+     },
+     "lift f95-127": {
+      "med_cm": 0.65,
+      "lost": 0.0013
+     },
+     "lifted f128-164": {
+      "med_cm": 0.73,
+      "lost": 0.0003
+     },
+     "end f165-218": {
+      "med_cm": 0.86,
+      "lost": 0.0029
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 0.98776,
+   "mppe_cm": 0.86413
+  },
+  "SEAT|t6cup": {
+   "add_auc": 0.96076,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 1.05,
+      "lost": 0.0007
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 1.09,
+      "lost": 0.0017
+     },
+     "burst f62-69": {
+      "med_cm": 0.81,
+      "lost": 0.0004
+     },
+     "carry f73-127": {
+      "med_cm": 0.59,
+      "lost": 0.0007
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 0.94,
+      "lost": 0.0026
+     },
+     "f147-152": {
+      "med_cm": 1.04,
+      "lost": 0.0004
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 1.21,
+      "lost": 0.0051
+     },
+     "rest f0-31": {
+      "med_cm": 0.61,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 1.24,
+      "lost": 0.0101
+     },
+     "lift f95-127": {
+      "med_cm": 1.48,
+      "lost": 0.0047
+     },
+     "lifted f128-164": {
+      "med_cm": 1.18,
+      "lost": 0.0041
+     },
+     "end f165-218": {
+      "med_cm": 1.33,
+      "lost": 0.0064
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 1.04194,
+   "mppe_cm": 1.09659
+  },
+  "RAY|t6cup": {
+   "add_auc": 0.96789,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 1.05,
+      "lost": 0.0007
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 1.09,
+      "lost": 0.0017
+     },
+     "burst f62-69": {
+      "med_cm": 0.81,
+      "lost": 0.0004
+     },
+     "carry f73-127": {
+      "med_cm": 0.59,
+      "lost": 0.0007
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 0.94,
+      "lost": 0.0026
+     },
+     "f147-152": {
+      "med_cm": 1.04,
+      "lost": 0.0004
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 1.21,
+      "lost": 0.0051
+     },
+     "rest f0-31": {
+      "med_cm": 0.61,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 0.99,
+      "lost": 0.0056
+     },
+     "lift f95-127": {
+      "med_cm": 1.35,
+      "lost": 0.0046
+     },
+     "lifted f128-164": {
+      "med_cm": 1.07,
+      "lost": 0.0031
+     },
+     "end f165-218": {
+      "med_cm": 1.05,
+      "lost": 0.005
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 0.87006,
+   "mppe_cm": 0.99337
+  }
+ },
+ "rf_ep8_ds_K_s44": {
+  "own_ref": 0.9868721461187215,
+  "step": "90005504",
+  "REF|t6cup": {
+   "add_auc": 0.97874,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 0.58,
+      "lost": 0.0011
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 0.64,
+      "lost": 0.0019
+     },
+     "burst f62-69": {
+      "med_cm": 0.32,
+      "lost": 0.0
+     },
+     "carry f73-127": {
+      "med_cm": 0.72,
+      "lost": 0.0019
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 1.05,
+      "lost": 0.004
+     },
+     "f147-152": {
+      "med_cm": 0.83,
+      "lost": 0.0003
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 0.88,
+      "lost": 0.0023
+     },
+     "rest f0-31": {
+      "med_cm": 0.56,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 0.89,
+      "lost": 0.003
+     },
+     "lift f95-127": {
+      "med_cm": 1.04,
+      "lost": 0.0027
+     },
+     "lifted f128-164": {
+      "med_cm": 0.91,
+      "lost": 0.0021
+     },
+     "end f165-218": {
+      "med_cm": 0.69,
+      "lost": 0.002
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 0.81706,
+   "mppe_cm": 0.85399
+  },
+  "REF_DS|t6cup": {
+   "add_auc": 0.9786,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 0.58,
+      "lost": 0.0011
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 0.66,
+      "lost": 0.0019
+     },
+     "burst f62-69": {
+      "med_cm": 0.35,
+      "lost": 0.0
+     },
+     "carry f73-127": {
+      "med_cm": 0.73,
+      "lost": 0.0021
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 1.06,
+      "lost": 0.004
+     },
+     "f147-152": {
+      "med_cm": 0.85,
+      "lost": 0.0003
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 0.86,
+      "lost": 0.0023
+     },
+     "rest f0-31": {
+      "med_cm": 0.56,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 0.89,
+      "lost": 0.003
+     },
+     "lift f95-127": {
+      "med_cm": 1.04,
+      "lost": 0.0027
+     },
+     "lifted f128-164": {
+      "med_cm": 0.91,
+      "lost": 0.0021
+     },
+     "end f165-218": {
+      "med_cm": 0.69,
+      "lost": 0.002
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 0.80144,
+   "mppe_cm": 0.85682
+  },
+  "REF|b1cup": {
+   "add_auc": 0.98159,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 0.51,
+      "lost": 0.0007
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 1.41,
+      "lost": 0.0031
+     },
+     "burst f62-69": {
+      "med_cm": 1.35,
+      "lost": 0.0011
+     },
+     "carry f73-127": {
+      "med_cm": 0.73,
+      "lost": 0.0014
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 1.23,
+      "lost": 0.0041
+     },
+     "f147-152": {
+      "med_cm": 0.99,
+      "lost": 0.0004
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 0.92,
+      "lost": 0.0024
+     },
+     "rest f0-31": {
+      "med_cm": 0.57,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 0.5,
+      "lost": 0.0016
+     },
+     "lift f95-127": {
+      "med_cm": 0.74,
+      "lost": 0.001
+     },
+     "lifted f128-164": {
+      "med_cm": 0.49,
+      "lost": 0.0004
+     },
+     "end f165-218": {
+      "med_cm": 0.9,
+      "lost": 0.0033
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 0.9225,
+   "mppe_cm": 0.79222
+  },
+  "SEAT|t6cup": {
+   "add_auc": 0.9589,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 0.58,
+      "lost": 0.0011
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 0.64,
+      "lost": 0.0019
+     },
+     "burst f62-69": {
+      "med_cm": 0.32,
+      "lost": 0.0
+     },
+     "carry f73-127": {
+      "med_cm": 0.72,
+      "lost": 0.0019
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 1.05,
+      "lost": 0.004
+     },
+     "f147-152": {
+      "med_cm": 0.83,
+      "lost": 0.0003
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 0.88,
+      "lost": 0.0023
+     },
+     "rest f0-31": {
+      "med_cm": 0.56,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 1.33,
+      "lost": 0.0118
+     },
+     "lift f95-127": {
+      "med_cm": 1.46,
+      "lost": 0.0056
+     },
+     "lifted f128-164": {
+      "med_cm": 1.35,
+      "lost": 0.0039
+     },
+     "end f165-218": {
+      "med_cm": 1.39,
+      "lost": 0.0064
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 1.1309,
+   "mppe_cm": 1.11354
+  },
+  "RAY|t6cup": {
+   "add_auc": 0.9639,
+   "win": {
+    "cup": {
+     "blend-in f46-54": {
+      "med_cm": 0.58,
+      "lost": 0.0011
+     },
+     "spin1+pour f55-72": {
+      "med_cm": 0.64,
+      "lost": 0.0019
+     },
+     "burst f62-69": {
+      "med_cm": 0.32,
+      "lost": 0.0
+     },
+     "carry f73-127": {
+      "med_cm": 0.72,
+      "lost": 0.0019
+     },
+     "pour2+spin2 f128-155": {
+      "med_cm": 1.05,
+      "lost": 0.004
+     },
+     "f147-152": {
+      "med_cm": 0.83,
+      "lost": 0.0003
+     },
+     "blend-out+setdown+rest f176-218": {
+      "med_cm": 0.88,
+      "lost": 0.0023
+     },
+     "rest f0-31": {
+      "med_cm": 0.56,
+      "lost": 0.0
+     }
+    },
+    "pot": {
+     "held f14-94": {
+      "med_cm": 1.13,
+      "lost": 0.0088
+     },
+     "lift f95-127": {
+      "med_cm": 1.28,
+      "lost": 0.0051
+     },
+     "lifted f128-164": {
+      "med_cm": 1.19,
+      "lost": 0.0039
+     },
+     "end f165-218": {
+      "med_cm": 1.06,
+      "lost": 0.0049
+     }
+    }
+   },
+   "spider_sr": 1.0,
+   "maniptrans_sr": 1.0,
+   "rpe_cm": 0.93899,
+   "mppe_cm": 1.01194
+  }
+ }
+}

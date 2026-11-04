@@ -1,0 +1,42 @@
+Packing / Kaggle test of the ep3 candidate (T5), 4 Nov 2026 01:28-01:30 EST, verbatim from the session log (06:28:46Z).
+
+1) local Git Bash: copy the selected rollout + the scene's score meshes from orchard to Babel (ship.sh)
+   bash /c/v2d_demo/tests/ship.sh h_ep3_sc_K_s42 sc_ep3 3 95006720
+   -> RES=/home/haisenk/v2d_ops/kenc/tests/h_ep3_sc_K_s42/in/runs/h_ep3_sc_K_s42/early_95006720/results
+      MESH=/home/haisenk/v2d_ops/kenc/tests/h_ep3_sc_K_s42/in/scenes/sc_ep3/score_input/meshes
+      (sc_ep3/score_input/meshes = bob1's ep3 meshes, md5 white_pot.obj aaf91ae0..., wooden_spoon.obj 05dfba95...: the fix
+       changed no mesh, so this episode's CD-O rows are bob1's)
+
+2) Babel, CPU step of job 11035728: pack ONE episode with the team relabel + kit packer, splice it into bob1's exact Kaggle
+   file (other 19 episodes byte-identical), dry-run, then submit to the AUC board only (kit --only add_auc)
+   srun --jobid=11035728 --overlap -n1 -c2 --mem=8G bash -c 'ONLY=add_auc bash ~/v2d_ops/swap_submit.sh 3 h_ep3_sc_K_s42 \
+     /home/haisenk/v2d_ops/kenc/tests/h_ep3_sc_K_s42/in/runs/h_ep3_sc_K_s42/early_95006720/results \
+     /home/haisenk/v2d_ops/kenc/tests/h_ep3_sc_K_s42/in/scenes/sc_ep3/score_input/meshes \
+     "Ken swap test T5 (AUC only): bob1 + ep3 <- h_ep3_sc_K_s42@95M (support at depth-measured table + pot COM at centroid; own-ref 0.947)" 1'
+   swap_submit.sh runs:
+     bash ~/v2d_ops/pack_one.sh 3 $RES $MESH https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/1689cf6396bee0f6a3bf4cced610f2fe0f71ebf6 $T/one.parquet
+       (pack_one.sh: kit config/sample narrowed to episode 3, team_pack_submission.relabel() for the roster names
+        ['white_pot', 'wooden_spoon'], then the kit's tools/pack_submission.py)
+     python ~/v2d_ops/swap_episode.py ~/v2d_ops/kenc/bob1/candidate_bob1.parquet $T/one.parquet 3 $T/track3_submission.parquet --adopt-commit-url
+     python submit/v2d_submit.py $T/track3_submission.parquet --track track_3 --only add_auc --dry-run -m "<msg>"   (kit dir)
+     python submit/v2d_submit.py $T/track3_submission.parquet --track track_3 --only add_auc -m "<msg>"
+   output:
+     wrote .../h_ep3_sc_K_s42/track3_submission.parquet: 9120 rows; episode 3: 626 rows replaced; other 8494 rows identical to base
+     add_auc  v2d-challenge-track3-auc  9 left today
+     add_auc  ACCEPTED Successfully submitted to Track 3 - Egocentric - AUC (submission 57974215)
+   files: records/pack.log, records/dryrun.log, records/submit.log, records/SUBMITTED, records/kaggle_receipt_T5_final.json
+   one.parquet          sha256 4a3d974d5ebce4ce529174b4f2828b7fe4789c4c250fdcd2d423bac6002cc98d (626 rows, 171,792 B)
+   track3_submission.parquet sha256 7fd980f052e89e71b181aa1ca88fedb691ec79fe8f665c817c9df7b8818e3c97 (9,120 rows, 2,589,569 B)
+   Kaggle result (receipt, polled): COMPLETE, public AUC 0.75305 vs bob1 0.75166 -> +0.00139 board = +0.028 on ep3 (x20).
+   NOTE: swap_submit.sh in this folder is the current version (md5 816dc28d). At T5 time its submit guard read
+   `[ "$LEFT" -le 8 ]` (Ken's stop line then); it was lowered to 3 at ~01:38 EST. The guard only decides whether to submit;
+   it does not touch the packed file.
+
+3) local: archive the candidate (archive.sh)
+   bash archive.sh h_ep3_sc_K_s42 sc_ep3 3 95006720 "T5 (AUC only) sc_ep3 - score pending"
+   -> C:\v2d_demo\archive\h_ep3_sc_K_s42\ (scene.tgz, policy_95006720.safetensors, results/, sweep.json, best.txt, recipe.txt,
+      train.log, manifest.json, babel/{one.parquet, track3_submission.parquet, pack.log, dryrun.log, submit.log, receipt})
+
+4) Later use of the same rows (no re-pack): the team's AUC entry 0.76526 (bob1 + ep1 T2 + ep3 T5 + ep5 T8 + ep8 T6, row-level
+   merge, submitted by a teammate) and the final local-best file ~/v2d_ops/kenc/final1104/local_best/track3_submission.parquet
+   (sha256 5d1d534f...) both take ep3's rows from tests/h_ep3_sc_K_s42/one.parquet (sha256 4a3d974d...).

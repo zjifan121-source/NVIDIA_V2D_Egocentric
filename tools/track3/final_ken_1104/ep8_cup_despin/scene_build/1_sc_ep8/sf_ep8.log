@@ -1,0 +1,40 @@
+{
+ "scene": "/tmp/haisenk_v2d/scenes/b1_ep8",
+ "out": "/tmp/haisenk_v2d/scenes/sf_ep8",
+ "sequence": "ep8_ken_c_scored_attach",
+ "objects": {
+  "beige_cup": {
+   "delta_cm": 2.8,
+   "height_before_cm": 13.95,
+   "cap": false,
+   "bottom_z_f0_before": 1.0,
+   "bottom_z_f0_after": 0.972,
+   "bottom_z_last_after": 0.972,
+   "files": {
+    "processed_obj": 18811,
+    "visual_stl": 92100,
+    "score_obj": 18811,
+    "bundle_obj": [
+     "mesh.obj",
+     18811
+    ]
+   }
+  }
+ },
+ "support": [
+  {
+   "prim": "cupdisk",
+   "added": true,
+   "center": [
+    -0.003,
+    0.008
+   ],
+   "radius": 0.085,
+   "top": 0.971
+  }
+ ],
+ "relocate": [
+  "changed 5 paths",
+  "  /tmp/haisenk_v2d/scenes/b1_ep8/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup.obj"
+ ]
+}

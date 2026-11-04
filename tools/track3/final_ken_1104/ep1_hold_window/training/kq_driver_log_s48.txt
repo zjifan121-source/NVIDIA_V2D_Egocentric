@@ -1,0 +1,5 @@
+# Lines about b_ep1_wh_K_s48 in Babel ~/v2d_ops/logs/kq_babel.out (kq.sh driver log; read 4 Nov 2026 14:20 EST).
+2026-11-04 10:21:27 gpu3 start b_ep1_wh_K_s48 (ep1 seed 48 KEN)
+  b_ep1_wh_K_s48 train exit=0 minutes=49 nefc_overflow_lines=0
+  sweep b_ep1_wh_K_s48: best 0.830 @ 100003840 [0.913, 0.747] (last 0.830 @ 100003840, 7 ckpts)
+2026-11-04 11:12:50 gpu3 done b_ep1_wh_K_s48

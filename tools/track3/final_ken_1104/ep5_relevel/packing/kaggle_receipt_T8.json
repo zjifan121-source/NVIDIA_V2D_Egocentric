@@ -1,0 +1,16 @@
+{
+  "track": "track_3",
+  "file": "/home/haisenk/v2d_ops/kenc/tests/r_ep5_rl_K_s43/track3_submission.parquet",
+  "message": "Ken swap test T8 (AUC only): bob1 + ep5 <- r_ep5_rl_K_s43@95M (rl2_ep5 = adopted w7_attcom_ep5 world re-levelled 5.48 deg to the depth table + partial spoon disk dropped + pot mesh -1.0 cm rim-fixed; own-ref 0.909, anchored 0.909 vs adopted 0.870)",
+  "submissions": {
+    "add_auc": {
+      "slug": "v2d-challenge-track3-auc",
+      "state": "COMPLETE",
+      "file": "/home/haisenk/v2d_ops/kenc/tests/r_ep5_rl_K_s43/track3_submission.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - AUC",
+      "ref": 57976828,
+      "public_score": "0.75799",
+      "error": ""
+    }
+  }
+}

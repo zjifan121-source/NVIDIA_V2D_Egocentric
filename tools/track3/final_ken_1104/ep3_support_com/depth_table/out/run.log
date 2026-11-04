@@ -1,0 +1,45 @@
+[   0.5s] A t=[ 0.0746 -0.3209  1.5147] rot=0.000 deg res max 0.000 mm; support support_0 top 0.9878 area 0.279
+[   1.2s] white_pot start: frames 0..48 bottom z [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] max centroid step 0.00 mm
+[   1.2s] white_pot end: frames 252..312 bottom z [1.0011, 0.9987, 0.9889, 0.9882, 0.9865, 0.9878, 0.99, 0.9913, 0.9899, 0.9881, 0.9905, 0.991, 0.9848, 0.9875, 0.9943, 0.9842] max centroid step 2.80 mm
+[   1.2s] wooden_spoon start: frames 0..36 bottom z [1.0073, 1.0073, 1.0073, 1.0073, 1.0073, 1.0073, 1.0073, 1.006, 1.0039, 1.0058, 1.0056, 1.0066, 1.0068] max centroid step 1.43 mm
+[   1.2s] wooden_spoon end: frames 276..312 bottom z [1.013, 1.0102, 1.0065, 1.0045, 1.0029, 1.0042, 0.9973, 1.0018, 1.0091, 1.0013] max centroid step 3.61 mm
+[   6.1s] depth/SAM-boundary registration at f0: {'best_shift_px': [4, 2], 'grad_at_best': 93.85, 'grad_at_zero': 32.43}
+[   6.1s] frame 0: table pts 87284; white_pot ann 40758 obj 142392 dz50 -0.8 iou 0.949; wooden_spoon ann 43569 obj 22192 dz50 6.1 iou 0.719
+[  10.5s] frame 3: table pts 88057; white_pot ann 41076 obj 142324 dz50 -1.9 iou 0.952; wooden_spoon ann 43900 obj 22611 dz50 3.3 iou 0.74
+[  14.7s] frame 6: table pts 92210; white_pot ann 42857 obj 142127 dz50 -3.9 iou 0.94; wooden_spoon ann 45806 obj 22749 dz50 2.2 iou 0.737
+[  19.2s] frame 9: table pts 89082; white_pot ann 42505 obj 144494 dz50 -4.4 iou 0.934; wooden_spoon ann 44157 obj 21960 dz50 3.6 iou 0.679
+[  24.1s] frame 12: table pts 85172; white_pot ann 41045 obj 145570 dz50 -4.3 iou 0.943; wooden_spoon ann 43411 obj 23007 dz50 2.9 iou 0.708
+[  29.2s] frame 15: table pts 91852; white_pot ann 44760 obj 150581 dz50 -9.7 iou 0.939; wooden_spoon ann 46705 obj 24440 dz50 -2.3 iou 0.729
+[  34.1s] frame 18: table pts 94578; white_pot ann 47007 obj 159001 dz50 -4.6 iou 0.947; wooden_spoon ann 47211 obj 25944 dz50 1.7 iou 0.738
+[  39.2s] frame 21: table pts 95082; white_pot ann 45208 obj 162625 dz50 0.7 iou 0.936; wooden_spoon ann 48082 obj 23006 dz50 4.0 iou 0.664
+[  45.6s] frame 24: table pts 95441; white_pot ann 44849 obj 161196 dz50 -0.4 iou 0.935; wooden_spoon ann 48667 obj 23709 dz50 3.9 iou 0.697
+[  52.9s] frame 27: table pts 96040; white_pot ann 45115 obj 160758 dz50 -2.6 iou 0.939; wooden_spoon ann 48638 obj 23963 dz50 4.6 iou 0.719
+[  59.5s] frame 30: table pts 94523; white_pot ann 46154 obj 161690 dz50 -5.7 iou 0.938; wooden_spoon ann 46156 obj 24604 dz50 6.5 iou 0.733
+[  66.4s] frame 33: table pts 95890; white_pot ann 46918 obj 163297 dz50 -3.7 iou 0.937; wooden_spoon ann 46486 obj 21343 dz50 1.7 iou 0.694
+[  74.3s] frame 36: table pts 97112; white_pot ann 47222 obj 164048 dz50 -1.9 iou 0.935; wooden_spoon ann 47168 obj 21595 dz50 5.0 iou 0.743
+[  83.0s] frame 39: table pts 94633; white_pot ann 46187 obj 162738 dz50 -4.3 iou 0.937; wooden_spoon ann 46536 obj 20533 dz50 11.6 iou 0.641
+[  91.8s] frame 42: table pts 93262; white_pot ann 44963 obj 160730 dz50 -2.8 iou 0.939; wooden_spoon ann 45207 obj 20045 dz50 8.3 iou 0.661
+[ 100.7s] frame 45: table pts 89755; white_pot ann 43814 obj 159255 dz50 -2.3 iou 0.939; wooden_spoon ann 43851 obj 17535 dz50 6.9 iou 0.548
+[ 109.4s] frame 48: table pts 86143; white_pot ann 41163 obj 157722 dz50 -3.6 iou 0.94; wooden_spoon ann 42146 obj 17376 dz50 12.0 iou 0.568
+[ 118.6s] frame 252: table pts 113200; white_pot ann 48756 obj 138417 dz50 -3.1 iou 0.835; wooden_spoon ann 48829 obj 24032 dz50 8.7 iou 0.64
+[ 126.8s] frame 256: table pts 111191; white_pot ann 47315 obj 138322 dz50 -6.9 iou 0.856; wooden_spoon ann 52276 obj 20773 dz50 6.6 iou 0.603
+[ 133.9s] frame 260: table pts 110318; white_pot ann 47062 obj 142816 dz50 -10.4 iou 0.896; wooden_spoon ann 55139 obj 20337 dz50 8.0 iou 0.648
+[ 140.8s] frame 264: table pts 111114; white_pot ann 47390 obj 141886 dz50 -11.4 iou 0.888; wooden_spoon ann 57416 obj 19364 dz50 5.1 iou 0.672
+[ 147.7s] frame 268: table pts 110471; white_pot ann 45182 obj 148454 dz50 -12.2 iou 0.921; wooden_spoon ann 59250 obj 22756 dz50 6.3 iou 0.772
+[ 155.6s] frame 272: table pts 113229; white_pot ann 48198 obj 150839 dz50 -10.3 iou 0.901; wooden_spoon ann 60255 obj 22560 dz50 7.7 iou 0.719
+[ 163.4s] frame 276: table pts 115620; white_pot ann 49503 obj 151261 dz50 -8.0 iou 0.908; wooden_spoon ann 63008 obj 22282 dz50 7.5 iou 0.727
+[ 171.2s] frame 280: table pts 117082; white_pot ann 50103 obj 151889 dz50 -8.0 iou 0.921; wooden_spoon ann 62677 obj 23340 dz50 4.9 iou 0.778
+[ 179.2s] frame 284: table pts 119064; white_pot ann 52120 obj 149277 dz50 -7.9 iou 0.891; wooden_spoon ann 62565 obj 22016 dz50 0.0 iou 0.718
+[ 187.3s] frame 288: table pts 121495; white_pot ann 51545 obj 149371 dz50 -6.8 iou 0.892; wooden_spoon ann 64990 obj 23425 dz50 1.4 iou 0.774
+[ 195.3s] frame 292: table pts 120281; white_pot ann 51034 obj 148388 dz50 -9.3 iou 0.904; wooden_spoon ann 65143 obj 25903 dz50 4.2 iou 0.782
+[ 203.4s] frame 296: table pts 126498; white_pot ann 51555 obj 146185 dz50 -10.7 iou 0.893; wooden_spoon ann 71077 obj 26966 dz50 4.0 iou 0.798
+[ 211.5s] frame 300: table pts 136002; white_pot ann 53032 obj 140650 dz50 -7.6 iou 0.834; wooden_spoon ann 76365 obj 21204 dz50 -0.9 iou 0.599
+[ 219.5s] frame 304: table pts 128216; white_pot ann 51266 obj 139787 dz50 -0.7 iou 0.85; wooden_spoon ann 67902 obj 24177 dz50 11.3 iou 0.739
+[ 227.8s] frame 308: table pts 122179; white_pot ann 49198 obj 139838 dz50 -5.4 iou 0.877; wooden_spoon ann 67298 obj 20674 dz50 9.7 iou 0.66
+[ 235.9s] frame 312: table pts 130337; white_pot ann 51069 obj 142778 dz50 -4.6 iou 0.887; wooden_spoon ann 71889 obj 24296 dz50 0.4 iou 0.814
+[ 277.1s] GLOBAL depth table plane: tilt 2.43 deg (gradient azimuth 86), rms 2.4 mm, inliers 903142/990000
+[ 310.0s] white_pot start: mesh bottom 1.0000 | depth table local 1.0065 global 1.0071 | support 0.9878 || float vs depth table -0.65 cm (global -0.71), vs support +1.22 cm, depth table - support +1.87 cm; local tilt 2.27 deg rms 2.2 mm; obj depth dz50 -3.6 mm -> implied world dz 0.32 cm
+[ 337.9s] white_pot end: mesh bottom 0.9894 | depth table local 1.0103 global 1.0101 | support 0.9878 || float vs depth table -2.08 cm (global -2.06), vs support +0.16 cm, depth table - support +2.25 cm; local tilt 2.46 deg rms 1.5 mm; obj depth dz50 -8.0 mm -> implied world dz 0.67 cm
+[ 357.0s] wooden_spoon start: mesh bottom 1.0073 | depth table local 1.0074 global 1.0081 | support 0.9878 || float vs depth table -0.01 cm (global -0.08), vs support +1.95 cm, depth table - support +1.96 cm; local tilt 2.48 deg rms 2.4 mm; obj depth dz50 3.6 mm -> implied world dz -0.31 cm
+[ 370.6s] wooden_spoon end: mesh bottom 1.0043 | depth table local 1.0095 global 1.0084 | support 0.9878 || float vs depth table -0.42 cm (global -0.30), vs support +1.65 cm, depth table - support +2.17 cm; local tilt 2.39 deg rms 1.7 mm; obj depth dz50 4.1 mm -> implied world dz -0.35 cm
+[ 377.9s] DONE

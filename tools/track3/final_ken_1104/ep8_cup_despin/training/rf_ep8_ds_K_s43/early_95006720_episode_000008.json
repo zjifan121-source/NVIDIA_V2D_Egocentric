@@ -1,0 +1,75 @@
+{
+  "checkpoint": "/tmp/haisenk_v2d/runs/rf_ep8_ds_K_s43/train/policy_95006720.safetensors",
+  "checkpoint_sha256": "3d33ff6bdee2980766b84dfd239c83866de17544eff314daf24b35a4a0a5d9fc",
+  "environment_steps": 95006720,
+  "metrics": {
+    "add_auc": 0.9901541095890412,
+    "add_auc_per_body": [
+      0.9840182648401826,
+      0.9962899543378996
+    ],
+    "add_std_m": 0.003455750096435418,
+    "add_std_per_body_m": [
+      0.0040063510040071445,
+      0.0025948497867201684
+    ],
+    "chord_sr": 1.0,
+    "gated_causes": [
+      "wrist",
+      "object"
+    ],
+    "maniptrans_sr": 1.0,
+    "mean_add_m": 0.006625840877270971,
+    "mean_per_point_error_cm": 0.646599757865088,
+    "mppe_cm": 0.8310059021059857,
+    "object_body_names": [
+      "ep8_ken_c_scored_attach_beige_cup",
+      "ep8_ken_c_scored_attach_white_pot"
+    ],
+    "object_orientation_error_deg": 1.0513309542876643,
+    "object_orientation_error_per_body_rad": [
+      0.020948145692797036,
+      0.015750227668110444
+    ],
+    "object_orientation_error_rad": 0.01834918668045374,
+    "object_orientation_error_std_deg": 0.0,
+    "object_orientation_error_std_rad": 0.0,
+    "object_position_error_m": 0.006422022533004647,
+    "object_position_error_per_body_m": [
+      0.007259748473026021,
+      0.0055842965929832735
+    ],
+    "object_position_error_std_m": 0.0,
+    "position_mean_centered": false,
+    "relative_position_error_cm": 0.9496570311849873,
+    "spider_position_error_centered_m": 0.006020941349296373,
+    "spider_sr_uncentered": 1.0,
+    "step_count": 219,
+    "termination_cause_fraction": {
+      "object": 0.0,
+      "wrist": 0.0
+    },
+    "world_count": 1
+  },
+  "motion_end_frame": -1,
+  "motion_start_frame": 0,
+  "non_finite_worlds": [],
+  "object_orientation_threshold_rad": 0.5,
+  "object_position_threshold_m": 0.1,
+  "parquet": "/tmp/haisenk_v2d/scenes/rf_ep8_ds/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave/4774016f0a65458c9245084fdc462018-0.parquet",
+  "reference_tracking": {
+    "failure_cause_fraction": {
+      "object": 0.0,
+      "wrist": 0.0
+    },
+    "reference_end_fraction": 1.0,
+    "success_rate": 1.0
+  },
+  "reset_mode": "explicit",
+  "settling_steps": 0,
+  "sim_control_fps": 20.254119873046875,
+  "sim_physics_fps": 101.27059936523438,
+  "start_frame": 0,
+  "step_count": 219,
+  "world_count": 1
+}

@@ -1,0 +1,3566 @@
+{
+ "scene": "/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene",
+ "parquet": "/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave/cffb49c402f842de966872b0e5685642-0.parquet",
+ "support": {
+  "r": 0.29815092397859855,
+  "h": 0.01,
+  "c": [
+   0.0751038498241909,
+   -0.009501558456765827,
+   0.9828071156409292
+  ],
+  "top": 0.9878071156409292
+ },
+ "objects": {
+  "white_pot": {
+   "urdf_inertial_origin": "0 0 0",
+   "collision_mesh": "/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot_visual.stl",
+   "n_vertices": 4465,
+   "area_cm2": 1658.9,
+   "signed_volume_cm3": 355.9,
+   "watertight": false,
+   "shell_centroid_local_m": [
+    -0.00845,
+    -0.06289,
+    0.04939
+   ],
+   "vol_centroid_local_m": [
+    -0.00601,
+    -0.04678,
+    0.03522
+   ],
+   "origin_to_shell_cm": 8.04,
+   "origin_to_volc_cm": 5.89,
+   "obj_vs_stl": {
+    "obj_bbox_min": [
+     -0.11529,
+     -0.18947,
+     -0.15219
+    ],
+    "obj_bbox_max": [
+     0.08889,
+     0.13577,
+     0.13955
+    ],
+    "stl_bbox_min": [
+     -0.11529,
+     -0.18947,
+     -0.15219
+    ],
+    "stl_bbox_max": [
+     0.08889,
+     0.13577,
+     0.13955
+    ]
+   },
+   "hull_cache_best": [
+    "aa8d6a038fa03df5.npz",
+    52,
+    3.228
+   ],
+   "hull_cache_next": [
+    [
+     "0569e5d67d88e954.npz",
+     53,
+     6.315
+    ],
+    [
+     "d5cad6a7bb72b0ae.npz",
+     55,
+     15.094
+    ],
+    [
+     "4a6dcc9d0f7fc264.npz",
+     53,
+     15.216
+    ]
+   ],
+   "tilt_vs_f0_deg": {
+    "0": 0.0,
+    "50": 0.22,
+    "100": 8.57,
+    "258": 3.21,
+    "266": 5.55,
+    "288": 4.26,
+    "300": 4.92,
+    "312": 4.37
+   },
+   "flatbase_hulls": {
+    "n_base_pts": 767,
+    "extent_cm": [
+     13.1,
+     12.9
+    ],
+    "margin_origin_cm": -3.28,
+    "margin_shell_cm": 4.7,
+    "margin_volc_cm": 2.57,
+    "origin_height_above_base_cm": 5.97,
+    "shell_height_above_base_cm": 5.49
+   },
+   "flatbase_stl": {
+    "n_base_pts": 166,
+    "extent_cm": [
+     13.2,
+     12.9
+    ],
+    "margin_origin_cm": -3.35,
+    "margin_shell_cm": 4.67,
+    "margin_volc_cm": 2.53,
+    "origin_height_above_base_cm": 5.79,
+    "shell_height_above_base_cm": 5.31
+   },
+   "world_f0_hulls": {
+    "zmin_minus_support_top_cm": 1.04,
+    "extent_cm": [
+     12.9,
+     13.3
+    ],
+    "margin_origin_cm": -3.28,
+    "margin_shell_cm": 4.7,
+    "margin_volc_cm": 2.57
+   },
+   "world_f312_hulls": {
+    "zmin_minus_support_top_cm": -0.53,
+    "extent_cm": [
+     10.1,
+     4.8
+    ],
+    "margin_origin_cm": -12.85,
+    "margin_shell_cm": -4.9,
+    "margin_volc_cm": -7.01
+   }
+  },
+  "wooden_spoon": {
+   "urdf_inertial_origin": "0 0 0",
+   "collision_mesh": "/scratch/haisenk-v2d/hand6/bob1_scenes/experiments/haisenk/hand_fixes_v1_20261102/episode_000003/scene/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon_visual.stl",
+   "n_vertices": 860,
+   "area_cm2": 237.3,
+   "signed_volume_cm3": 88.9,
+   "watertight": true,
+   "shell_centroid_local_m": [
+    -0.00784,
+    -0.01624,
+    0.01549
+   ],
+   "vol_centroid_local_m": [
+    0.00014,
+    -0.00513,
+    0.00564
+   ],
+   "origin_to_shell_cm": 2.38,
+   "origin_to_volc_cm": 0.76,
+   "obj_vs_stl": {
+    "obj_bbox_min": [
+     -0.08423,
+     -0.11346,
+     -0.10121
+    ],
+    "obj_bbox_max": [
+     0.07823,
+     0.10207,
+     0.08336
+    ],
+    "stl_bbox_min": [
+     -0.08423,
+     -0.11346,
+     -0.10121
+    ],
+    "stl_bbox_max": [
+     0.07823,
+     0.10207,
+     0.08336
+    ]
+   },
+   "hull_cache_best": [
+    "0d541df4e58b5f03.npz",
+    9,
+    0.004
+   ],
+   "hull_cache_next": [
+    [
+     "8107a4af5f533558.npz",
+     9,
+     4.073
+    ],
+    [
+     "d9d7e8fb283aa87d.npz",
+     17,
+     27.446
+    ],
+    [
+     "62d7ed6ef7240b2d.npz",
+     29,
+     32.143
+    ]
+   ],
+   "tilt_vs_f0_deg": {
+    "0": 0.0,
+    "50": 16.47,
+    "100": 62.9,
+    "258": 11.87,
+    "266": 10.26,
+    "288": 3.35,
+    "300": 4.34,
+    "312": 3.14
+   },
+   "flatbase_hulls": {
+    "n_base_pts": 101,
+    "extent_cm": [
+     23.5,
+     14.2
+    ],
+    "margin_origin_cm": 0.98,
+    "margin_shell_cm": 1.41,
+    "margin_volc_cm": 1.32,
+    "origin_height_above_base_cm": 1.44,
+    "shell_height_above_base_cm": 1.27
+   },
+   "flatbase_stl": {
+    "n_base_pts": 47,
+    "extent_cm": [
+     23.5,
+     14.2
+    ],
+    "margin_origin_cm": 0.94,
+    "margin_shell_cm": 1.38,
+    "margin_volc_cm": 1.29,
+    "origin_height_above_base_cm": 1.44,
+    "shell_height_above_base_cm": 1.27
+   },
+   "world_f0_hulls": {
+    "zmin_minus_support_top_cm": 1.95,
+    "extent_cm": [
+     11.4,
+     24.8
+    ],
+    "margin_origin_cm": 0.98,
+    "margin_shell_cm": 1.41,
+    "margin_volc_cm": 1.32
+   },
+   "world_f312_hulls": {
+    "zmin_minus_support_top_cm": 1.35,
+    "extent_cm": [
+     4.5,
+     26.2
+    ],
+    "margin_origin_cm": 0.47,
+    "margin_shell_cm": 0.83,
+    "margin_volc_cm": 0.78
+   }
+  }
+ },
+ "settle": {
+  "f0 | pot COM origin | pot alone | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.16,
+     "ADD_vs_start_cm": 1.15
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 11.2,
+     "tilt_vs_upright_deg": 11.2,
+     "dz_cm": -2.12,
+     "ADD_vs_start_cm": 2.25
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 25.7,
+     "tilt_vs_upright_deg": 25.7,
+     "dz_cm": -3.32,
+     "ADD_vs_start_cm": 4.98
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 23.6,
+     "tilt_vs_upright_deg": 23.6,
+     "dz_cm": -3.07,
+     "ADD_vs_start_cm": 4.55
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 23.1,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.47
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 23.3,
+     "tilt_vs_upright_deg": 23.3,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.51
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 23.0,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.46
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 23.0,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.46
+    }
+   }
+  ],
+  "f0 | pot COM origin | pot alone | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 9.7,
+     "tilt_vs_upright_deg": 9.7,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.98
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 23.8,
+     "tilt_vs_upright_deg": 23.8,
+     "dz_cm": -3.17,
+     "ADD_vs_start_cm": 4.6
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 23.2,
+     "tilt_vs_upright_deg": 23.2,
+     "dz_cm": -3.07,
+     "ADD_vs_start_cm": 4.46
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 23.1,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.45
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 23.3,
+     "tilt_vs_upright_deg": 23.3,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.48
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 23.1,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.45
+    }
+   }
+  ],
+  "f0 | pot COM origin | pot+spoon | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.16,
+     "ADD_vs_start_cm": 1.15
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -1.18,
+     "ADD_vs_start_cm": 1.18
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 11.2,
+     "tilt_vs_upright_deg": 11.2,
+     "dz_cm": -2.12,
+     "ADD_vs_start_cm": 2.25
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.8,
+     "tilt_vs_upright_deg": 0.8,
+     "dz_cm": -2.3,
+     "ADD_vs_start_cm": 2.3
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 25.7,
+     "tilt_vs_upright_deg": 25.7,
+     "dz_cm": -3.32,
+     "ADD_vs_start_cm": 4.98
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.4,
+     "tilt_vs_upright_deg": 2.4,
+     "dz_cm": -2.04,
+     "ADD_vs_start_cm": 2.03
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 23.6,
+     "tilt_vs_upright_deg": 23.6,
+     "dz_cm": -3.07,
+     "ADD_vs_start_cm": 4.55
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.9,
+     "tilt_vs_upright_deg": 6.9,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 23.1,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.47
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 8.1,
+     "tilt_vs_upright_deg": 8.1,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.95
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 23.3,
+     "tilt_vs_upright_deg": 23.3,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.51
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 7.5,
+     "tilt_vs_upright_deg": 7.5,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 23.0,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.46
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.1,
+     "tilt_vs_upright_deg": 5.1,
+     "dz_cm": -1.99,
+     "ADD_vs_start_cm": 1.97
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 23.0,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.46
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.6,
+     "tilt_vs_upright_deg": 5.6,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   }
+  ],
+  "f0 | pot COM origin | pot+spoon | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 9.7,
+     "tilt_vs_upright_deg": 9.7,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.98
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.7,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.98
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 23.8,
+     "tilt_vs_upright_deg": 23.8,
+     "dz_cm": -3.17,
+     "ADD_vs_start_cm": 4.6
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.2,
+     "tilt_vs_upright_deg": 2.2,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.97
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 23.2,
+     "tilt_vs_upright_deg": 23.2,
+     "dz_cm": -3.07,
+     "ADD_vs_start_cm": 4.46
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.7,
+     "tilt_vs_upright_deg": 6.7,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 23.1,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.45
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 8.5,
+     "tilt_vs_upright_deg": 8.5,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.95
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 23.3,
+     "tilt_vs_upright_deg": 23.3,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.48
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.3,
+     "tilt_vs_upright_deg": 6.3,
+     "dz_cm": -1.99,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 23.1,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -3.06,
+     "ADD_vs_start_cm": 4.45
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.6,
+     "tilt_vs_upright_deg": 6.6,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   }
+  ],
+  "f0 | pot COM volc | pot alone | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -1.15,
+     "ADD_vs_start_cm": 1.15
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.17,
+     "ADD_vs_start_cm": 1.18
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.07,
+     "ADD_vs_start_cm": 1.07
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.05
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.05
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.05
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.06,
+     "ADD_vs_start_cm": 1.06
+    }
+   }
+  ],
+  "f0 | pot COM volc | pot alone | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.16,
+     "ADD_vs_start_cm": 1.17
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.08,
+     "ADD_vs_start_cm": 1.08
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.05
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.06,
+     "ADD_vs_start_cm": 1.06
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.06,
+     "ADD_vs_start_cm": 1.06
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.06,
+     "ADD_vs_start_cm": 1.06
+    }
+   }
+  ],
+  "f0 | pot COM volc | pot+spoon | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -1.15,
+     "ADD_vs_start_cm": 1.15
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -1.18,
+     "ADD_vs_start_cm": 1.18
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.17,
+     "ADD_vs_start_cm": 1.18
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.8,
+     "tilt_vs_upright_deg": 0.8,
+     "dz_cm": -2.3,
+     "ADD_vs_start_cm": 2.3
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.07,
+     "ADD_vs_start_cm": 1.07
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.4,
+     "tilt_vs_upright_deg": 2.4,
+     "dz_cm": -2.04,
+     "ADD_vs_start_cm": 2.03
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.05
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.9,
+     "tilt_vs_upright_deg": 6.9,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.05
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 8.1,
+     "tilt_vs_upright_deg": 8.1,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.95
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.05
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 7.5,
+     "tilt_vs_upright_deg": 7.5,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.1,
+     "tilt_vs_upright_deg": 5.1,
+     "dz_cm": -1.99,
+     "ADD_vs_start_cm": 1.97
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.06,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.6,
+     "tilt_vs_upright_deg": 5.6,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   }
+  ],
+  "f0 | pot COM volc | pot+spoon | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.16,
+     "ADD_vs_start_cm": 1.17
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.7,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.98
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.08,
+     "ADD_vs_start_cm": 1.08
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.2,
+     "tilt_vs_upright_deg": 2.2,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.97
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.05
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.7,
+     "tilt_vs_upright_deg": 6.7,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.06,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 8.5,
+     "tilt_vs_upright_deg": 8.5,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.95
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.06,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.3,
+     "tilt_vs_upright_deg": 6.3,
+     "dz_cm": -1.99,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -1.06,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.6,
+     "tilt_vs_upright_deg": 6.6,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   }
+  ],
+  "f0 | pot COM shell | pot alone | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -1.15,
+     "ADD_vs_start_cm": 1.15
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.17,
+     "ADD_vs_start_cm": 1.18
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.07,
+     "ADD_vs_start_cm": 1.07
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    }
+   }
+  ],
+  "f0 | pot COM shell | pot alone | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 0.6,
+     "tilt_vs_upright_deg": 0.6,
+     "dz_cm": -1.15,
+     "ADD_vs_start_cm": 1.17
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 0.6,
+     "tilt_vs_upright_deg": 0.6,
+     "dz_cm": -1.06,
+     "ADD_vs_start_cm": 1.08
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    }
+   }
+  ],
+  "f0 | pot COM shell | pot+spoon | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -1.15,
+     "ADD_vs_start_cm": 1.15
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -1.18,
+     "ADD_vs_start_cm": 1.18
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.17,
+     "ADD_vs_start_cm": 1.18
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.8,
+     "tilt_vs_upright_deg": 0.8,
+     "dz_cm": -2.3,
+     "ADD_vs_start_cm": 2.3
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.07,
+     "ADD_vs_start_cm": 1.07
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.4,
+     "tilt_vs_upright_deg": 2.4,
+     "dz_cm": -2.04,
+     "ADD_vs_start_cm": 2.03
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.9,
+     "tilt_vs_upright_deg": 6.9,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 8.1,
+     "tilt_vs_upright_deg": 8.1,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.95
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 7.5,
+     "tilt_vs_upright_deg": 7.5,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.1,
+     "tilt_vs_upright_deg": 5.1,
+     "dz_cm": -1.99,
+     "ADD_vs_start_cm": 1.97
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.6,
+     "tilt_vs_upright_deg": 5.6,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   }
+  ],
+  "f0 | pot COM shell | pot+spoon | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 0.6,
+     "tilt_vs_upright_deg": 0.6,
+     "dz_cm": -1.15,
+     "ADD_vs_start_cm": 1.17
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.7,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.98
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 0.6,
+     "tilt_vs_upright_deg": 0.6,
+     "dz_cm": -1.06,
+     "ADD_vs_start_cm": 1.08
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.2,
+     "tilt_vs_upright_deg": 2.2,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.97
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.7,
+     "tilt_vs_upright_deg": 6.7,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 8.5,
+     "tilt_vs_upright_deg": 8.5,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.95
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.3,
+     "tilt_vs_upright_deg": 6.3,
+     "dz_cm": -1.99,
+     "ADD_vs_start_cm": 1.96
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 0.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.05,
+     "ADD_vs_start_cm": 1.06
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.6,
+     "tilt_vs_upright_deg": 6.6,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 1.96
+    }
+   }
+  ],
+  "f289 | pot COM origin | pot alone | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 3.9,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.93,
+     "ADD_vs_start_cm": 0.75
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 17.8,
+     "tilt_vs_upright_deg": 13.8,
+     "dz_cm": -2.24,
+     "ADD_vs_start_cm": 3.22
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 29.4,
+     "tilt_vs_upright_deg": 25.4,
+     "dz_cm": -3.22,
+     "ADD_vs_start_cm": 5.46
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 27.7,
+     "tilt_vs_upright_deg": 23.6,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.09
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 27.0,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.0
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.3,
+     "tilt_vs_upright_deg": 23.3,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.04
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.1,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.01
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.0,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -2.98,
+     "ADD_vs_start_cm": 5.0
+    }
+   }
+  ],
+  "f289 | pot COM origin | pot alone | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 3.3,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -0.74,
+     "ADD_vs_start_cm": 0.62
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 16.0,
+     "tilt_vs_upright_deg": 12.0,
+     "dz_cm": -2.02,
+     "ADD_vs_start_cm": 2.88
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 27.5,
+     "tilt_vs_upright_deg": 23.5,
+     "dz_cm": -3.05,
+     "ADD_vs_start_cm": 5.1
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 27.6,
+     "tilt_vs_upright_deg": 23.6,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.08
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 27.0,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.0
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.3,
+     "tilt_vs_upright_deg": 23.3,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.04
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.1,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.02
+    }
+   }
+  ],
+  "f289 | pot COM origin | pot+spoon | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 3.9,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.93,
+     "ADD_vs_start_cm": 0.75
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 2.5,
+     "dz_cm": -1.18,
+     "ADD_vs_start_cm": 1.18
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 17.8,
+     "tilt_vs_upright_deg": 13.8,
+     "dz_cm": -2.24,
+     "ADD_vs_start_cm": 3.22
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.0,
+     "tilt_vs_upright_deg": 0.5,
+     "dz_cm": -1.88,
+     "ADD_vs_start_cm": 1.88
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 29.4,
+     "tilt_vs_upright_deg": 25.4,
+     "dz_cm": -3.22,
+     "ADD_vs_start_cm": 5.46
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.8,
+     "tilt_vs_upright_deg": 3.4,
+     "dz_cm": -1.68,
+     "ADD_vs_start_cm": 1.67
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 27.7,
+     "tilt_vs_upright_deg": 23.6,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.09
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.2,
+     "tilt_vs_upright_deg": 10.8,
+     "dz_cm": -1.63,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 27.0,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.0
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.6,
+     "tilt_vs_upright_deg": 3.2,
+     "dz_cm": -1.65,
+     "ADD_vs_start_cm": 1.63
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.3,
+     "tilt_vs_upright_deg": 23.3,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.04
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 12.9,
+     "tilt_vs_upright_deg": 10.4,
+     "dz_cm": -1.63,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.1,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.01
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 4.3,
+     "tilt_vs_upright_deg": 1.8,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.63
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.0,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -2.98,
+     "ADD_vs_start_cm": 5.0
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.8,
+     "tilt_vs_upright_deg": 4.4,
+     "dz_cm": -1.65,
+     "ADD_vs_start_cm": 1.63
+    }
+   }
+  ],
+  "f289 | pot COM origin | pot+spoon | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 3.3,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -0.74,
+     "ADD_vs_start_cm": 0.62
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 2.5,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 16.0,
+     "tilt_vs_upright_deg": 12.0,
+     "dz_cm": -2.02,
+     "ADD_vs_start_cm": 2.88
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 1.8,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -1.78,
+     "ADD_vs_start_cm": 1.78
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 27.5,
+     "tilt_vs_upright_deg": 23.5,
+     "dz_cm": -3.05,
+     "ADD_vs_start_cm": 5.1
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.4,
+     "tilt_vs_upright_deg": 3.0,
+     "dz_cm": -1.67,
+     "ADD_vs_start_cm": 1.66
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 27.6,
+     "tilt_vs_upright_deg": 23.6,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.08
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 12.9,
+     "tilt_vs_upright_deg": 10.4,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 27.0,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.0
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.7,
+     "tilt_vs_upright_deg": 3.2,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.63
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.3,
+     "tilt_vs_upright_deg": 23.3,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.04
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.1,
+     "tilt_vs_upright_deg": 10.7,
+     "dz_cm": -1.63,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.1,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -2.99,
+     "ADD_vs_start_cm": 5.02
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 4.8,
+     "tilt_vs_upright_deg": 2.3,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.63
+    }
+   }
+  ],
+  "f289 | pot COM volc | pot alone | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.03,
+     "ADD_vs_start_cm": 0.92
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 9.9,
+     "tilt_vs_upright_deg": 5.9,
+     "dz_cm": -1.56,
+     "ADD_vs_start_cm": 1.91
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 13.4,
+     "tilt_vs_upright_deg": 9.4,
+     "dz_cm": -1.79,
+     "ADD_vs_start_cm": 2.55
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 15.5,
+     "tilt_vs_upright_deg": 11.5,
+     "dz_cm": -1.97,
+     "ADD_vs_start_cm": 2.96
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.9,
+     "dz_cm": -0.97,
+     "ADD_vs_start_cm": 0.9
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.91
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.99,
+     "ADD_vs_start_cm": 0.91
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.91
+    }
+   }
+  ],
+  "f289 | pot COM volc | pot alone | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 3.4,
+     "tilt_vs_upright_deg": 0.6,
+     "dz_cm": -0.84,
+     "ADD_vs_start_cm": 0.75
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 9.6,
+     "tilt_vs_upright_deg": 5.5,
+     "dz_cm": -1.5,
+     "ADD_vs_start_cm": 1.83
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 13.3,
+     "tilt_vs_upright_deg": 9.3,
+     "dz_cm": -1.78,
+     "ADD_vs_start_cm": 2.53
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 16.0,
+     "tilt_vs_upright_deg": 12.1,
+     "dz_cm": -2.02,
+     "ADD_vs_start_cm": 3.05
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.8,
+     "dz_cm": -0.97,
+     "ADD_vs_start_cm": 0.89
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.9
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.99,
+     "ADD_vs_start_cm": 0.9
+    }
+   }
+  ],
+  "f289 | pot COM volc | pot+spoon | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.2,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -1.03,
+     "ADD_vs_start_cm": 0.92
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 2.5,
+     "dz_cm": -1.18,
+     "ADD_vs_start_cm": 1.18
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 9.9,
+     "tilt_vs_upright_deg": 5.9,
+     "dz_cm": -1.56,
+     "ADD_vs_start_cm": 1.91
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.0,
+     "tilt_vs_upright_deg": 0.5,
+     "dz_cm": -1.88,
+     "ADD_vs_start_cm": 1.88
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 13.4,
+     "tilt_vs_upright_deg": 9.4,
+     "dz_cm": -1.79,
+     "ADD_vs_start_cm": 2.55
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.8,
+     "tilt_vs_upright_deg": 3.4,
+     "dz_cm": -1.68,
+     "ADD_vs_start_cm": 1.67
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 15.5,
+     "tilt_vs_upright_deg": 11.5,
+     "dz_cm": -1.97,
+     "ADD_vs_start_cm": 2.96
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.2,
+     "tilt_vs_upright_deg": 10.8,
+     "dz_cm": -1.63,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.9,
+     "dz_cm": -0.97,
+     "ADD_vs_start_cm": 0.9
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.6,
+     "tilt_vs_upright_deg": 3.2,
+     "dz_cm": -1.65,
+     "ADD_vs_start_cm": 1.63
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.91
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 12.9,
+     "tilt_vs_upright_deg": 10.4,
+     "dz_cm": -1.63,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.99,
+     "ADD_vs_start_cm": 0.91
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 4.3,
+     "tilt_vs_upright_deg": 1.8,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.63
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.91
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.8,
+     "tilt_vs_upright_deg": 4.4,
+     "dz_cm": -1.65,
+     "ADD_vs_start_cm": 1.63
+    }
+   }
+  ],
+  "f289 | pot COM volc | pot+spoon | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 3.4,
+     "tilt_vs_upright_deg": 0.6,
+     "dz_cm": -0.84,
+     "ADD_vs_start_cm": 0.75
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 2.5,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 9.6,
+     "tilt_vs_upright_deg": 5.5,
+     "dz_cm": -1.5,
+     "ADD_vs_start_cm": 1.83
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 1.8,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -1.78,
+     "ADD_vs_start_cm": 1.78
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 13.3,
+     "tilt_vs_upright_deg": 9.3,
+     "dz_cm": -1.78,
+     "ADD_vs_start_cm": 2.53
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.4,
+     "tilt_vs_upright_deg": 3.0,
+     "dz_cm": -1.67,
+     "ADD_vs_start_cm": 1.66
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 16.0,
+     "tilt_vs_upright_deg": 12.1,
+     "dz_cm": -2.02,
+     "ADD_vs_start_cm": 3.05
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 12.9,
+     "tilt_vs_upright_deg": 10.4,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.8,
+     "dz_cm": -0.97,
+     "ADD_vs_start_cm": 0.89
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.7,
+     "tilt_vs_upright_deg": 3.2,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.63
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.9
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.1,
+     "tilt_vs_upright_deg": 10.7,
+     "dz_cm": -1.63,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.99,
+     "ADD_vs_start_cm": 0.9
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 4.8,
+     "tilt_vs_upright_deg": 2.3,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.63
+    }
+   }
+  ],
+  "f289 | pot COM shell | pot alone | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.2,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.03,
+     "ADD_vs_start_cm": 0.92
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 5.4,
+     "tilt_vs_upright_deg": 1.5,
+     "dz_cm": -1.15,
+     "ADD_vs_start_cm": 1.12
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 3.7,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -0.95,
+     "ADD_vs_start_cm": 0.85
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    }
+   }
+  ],
+  "f289 | pot COM shell | pot alone | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 3.5,
+     "tilt_vs_upright_deg": 0.6,
+     "dz_cm": -0.85,
+     "ADD_vs_start_cm": 0.77
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 6.3,
+     "tilt_vs_upright_deg": 2.3,
+     "dz_cm": -1.21,
+     "ADD_vs_start_cm": 1.25
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 3.9,
+     "tilt_vs_upright_deg": 1.0,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.87
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.97,
+     "ADD_vs_start_cm": 0.88
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    }
+   }
+  ],
+  "f289 | pot COM shell | pot+spoon | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.2,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -1.03,
+     "ADD_vs_start_cm": 0.92
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 2.5,
+     "dz_cm": -1.18,
+     "ADD_vs_start_cm": 1.18
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 5.4,
+     "tilt_vs_upright_deg": 1.5,
+     "dz_cm": -1.15,
+     "ADD_vs_start_cm": 1.12
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.0,
+     "tilt_vs_upright_deg": 0.5,
+     "dz_cm": -1.88,
+     "ADD_vs_start_cm": 1.88
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 3.7,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -0.95,
+     "ADD_vs_start_cm": 0.85
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.8,
+     "tilt_vs_upright_deg": 3.4,
+     "dz_cm": -1.68,
+     "ADD_vs_start_cm": 1.67
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.2,
+     "tilt_vs_upright_deg": 10.8,
+     "dz_cm": -1.63,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.6,
+     "tilt_vs_upright_deg": 3.2,
+     "dz_cm": -1.65,
+     "ADD_vs_start_cm": 1.63
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 12.9,
+     "tilt_vs_upright_deg": 10.4,
+     "dz_cm": -1.63,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 4.3,
+     "tilt_vs_upright_deg": 1.8,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.63
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.8,
+     "tilt_vs_upright_deg": 4.4,
+     "dz_cm": -1.65,
+     "ADD_vs_start_cm": 1.63
+    }
+   }
+  ],
+  "f289 | pot COM shell | pot+spoon | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 3.5,
+     "tilt_vs_upright_deg": 0.6,
+     "dz_cm": -0.85,
+     "ADD_vs_start_cm": 0.77
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 2.5,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 6.3,
+     "tilt_vs_upright_deg": 2.3,
+     "dz_cm": -1.21,
+     "ADD_vs_start_cm": 1.25
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 1.8,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -1.78,
+     "ADD_vs_start_cm": 1.78
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 3.9,
+     "tilt_vs_upright_deg": 1.0,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.87
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.4,
+     "tilt_vs_upright_deg": 3.0,
+     "dz_cm": -1.67,
+     "ADD_vs_start_cm": 1.66
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.97,
+     "ADD_vs_start_cm": 0.88
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 12.9,
+     "tilt_vs_upright_deg": 10.4,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.7,
+     "tilt_vs_upright_deg": 3.2,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.63
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.1,
+     "tilt_vs_upright_deg": 10.7,
+     "dz_cm": -1.63,
+     "ADD_vs_start_cm": 1.61
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.0,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.98,
+     "ADD_vs_start_cm": 0.89
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 4.8,
+     "tilt_vs_upright_deg": 2.3,
+     "dz_cm": -1.64,
+     "ADD_vs_start_cm": 1.63
+    }
+   }
+  ],
+  "f312 | pot COM origin | pot alone | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 5.4,
+     "tilt_vs_upright_deg": 1.0,
+     "dz_cm": -0.77,
+     "ADD_vs_start_cm": 0.89
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 20.0,
+     "tilt_vs_upright_deg": 15.6,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 3.64
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 29.6,
+     "tilt_vs_upright_deg": 25.2,
+     "dz_cm": -2.83,
+     "ADD_vs_start_cm": 5.51
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 28.1,
+     "tilt_vs_upright_deg": 23.7,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.18
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 27.3,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.08
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.7,
+     "tilt_vs_upright_deg": 23.3,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.12
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.5,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.1
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.3,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -2.61,
+     "ADD_vs_start_cm": 5.08
+    }
+   }
+  ],
+  "f312 | pot COM origin | pot alone | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.6,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.66,
+     "ADD_vs_start_cm": 0.74
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 17.7,
+     "tilt_vs_upright_deg": 13.4,
+     "dz_cm": -1.76,
+     "ADD_vs_start_cm": 3.23
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 28.7,
+     "tilt_vs_upright_deg": 24.3,
+     "dz_cm": -2.76,
+     "ADD_vs_start_cm": 5.34
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 28.2,
+     "tilt_vs_upright_deg": 23.8,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.2
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 27.2,
+     "tilt_vs_upright_deg": 22.8,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.07
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.6,
+     "tilt_vs_upright_deg": 23.2,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.12
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.5,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.1
+    }
+   }
+  ],
+  "f312 | pot COM origin | pot+spoon | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 5.4,
+     "tilt_vs_upright_deg": 1.0,
+     "dz_cm": -0.77,
+     "ADD_vs_start_cm": 0.89
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 3.1,
+     "dz_cm": -1.18,
+     "ADD_vs_start_cm": 1.18
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 20.0,
+     "tilt_vs_upright_deg": 15.6,
+     "dz_cm": -1.98,
+     "ADD_vs_start_cm": 3.64
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.3,
+     "tilt_vs_upright_deg": 0.9,
+     "dz_cm": -1.62,
+     "ADD_vs_start_cm": 1.6
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 29.6,
+     "tilt_vs_upright_deg": 25.2,
+     "dz_cm": -2.83,
+     "ADD_vs_start_cm": 5.51
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.1,
+     "tilt_vs_upright_deg": 2.9,
+     "dz_cm": -1.48,
+     "ADD_vs_start_cm": 1.45
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 28.1,
+     "tilt_vs_upright_deg": 23.7,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.18
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.8,
+     "tilt_vs_upright_deg": 10.7,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 27.3,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.08
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.6,
+     "tilt_vs_upright_deg": 3.5,
+     "dz_cm": -1.45,
+     "ADD_vs_start_cm": 1.43
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.7,
+     "tilt_vs_upright_deg": 23.3,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.12
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.7,
+     "tilt_vs_upright_deg": 10.5,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.5,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.1
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.0,
+     "tilt_vs_upright_deg": 1.8,
+     "dz_cm": -1.45,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.3,
+     "tilt_vs_upright_deg": 23.0,
+     "dz_cm": -2.61,
+     "ADD_vs_start_cm": 5.08
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 7.5,
+     "tilt_vs_upright_deg": 4.4,
+     "dz_cm": -1.46,
+     "ADD_vs_start_cm": 1.43
+    }
+   }
+  ],
+  "f312 | pot COM origin | pot+spoon | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.6,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.66,
+     "ADD_vs_start_cm": 0.74
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 3.1,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 17.7,
+     "tilt_vs_upright_deg": 13.4,
+     "dz_cm": -1.76,
+     "ADD_vs_start_cm": 3.23
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.6,
+     "tilt_vs_upright_deg": 1.3,
+     "dz_cm": -1.6,
+     "ADD_vs_start_cm": 1.55
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 28.7,
+     "tilt_vs_upright_deg": 24.3,
+     "dz_cm": -2.76,
+     "ADD_vs_start_cm": 5.34
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.4,
+     "tilt_vs_upright_deg": 3.3,
+     "dz_cm": -1.49,
+     "ADD_vs_start_cm": 1.45
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 28.2,
+     "tilt_vs_upright_deg": 23.8,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.2
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 14.3,
+     "tilt_vs_upright_deg": 11.2,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.41
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 27.2,
+     "tilt_vs_upright_deg": 22.8,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.07
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.3,
+     "tilt_vs_upright_deg": 2.2,
+     "dz_cm": -1.45,
+     "ADD_vs_start_cm": 1.43
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.6,
+     "tilt_vs_upright_deg": 23.2,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.12
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.8,
+     "tilt_vs_upright_deg": 10.7,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 27.5,
+     "tilt_vs_upright_deg": 23.1,
+     "dz_cm": -2.62,
+     "ADD_vs_start_cm": 5.1
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 3.2,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   }
+  ],
+  "f312 | pot COM volc | pot alone | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.8,
+     "tilt_vs_upright_deg": 0.4,
+     "dz_cm": -0.73,
+     "ADD_vs_start_cm": 0.91
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 9.2,
+     "tilt_vs_upright_deg": 4.8,
+     "dz_cm": -1.03,
+     "ADD_vs_start_cm": 1.73
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 11.3,
+     "tilt_vs_upright_deg": 6.9,
+     "dz_cm": -1.19,
+     "ADD_vs_start_cm": 2.14
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 9.5,
+     "tilt_vs_upright_deg": 5.3,
+     "dz_cm": -1.04,
+     "ADD_vs_start_cm": 1.81
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.5,
+     "tilt_vs_upright_deg": 0.4,
+     "dz_cm": -0.62,
+     "ADD_vs_start_cm": 0.86
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.62,
+     "ADD_vs_start_cm": 0.85
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.62,
+     "ADD_vs_start_cm": 0.85
+    }
+   }
+  ],
+  "f312 | pot COM volc | pot alone | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.5,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.79,
+     "ADD_vs_start_cm": 0.87
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 9.4,
+     "tilt_vs_upright_deg": 5.1,
+     "dz_cm": -1.07,
+     "ADD_vs_start_cm": 1.77
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 12.2,
+     "tilt_vs_upright_deg": 7.8,
+     "dz_cm": -1.28,
+     "ADD_vs_start_cm": 2.31
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 12.5,
+     "tilt_vs_upright_deg": 8.2,
+     "dz_cm": -1.31,
+     "ADD_vs_start_cm": 2.38
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.5,
+     "dz_cm": -0.58,
+     "ADD_vs_start_cm": 0.77
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    }
+   }
+  ],
+  "f312 | pot COM volc | pot+spoon | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.8,
+     "tilt_vs_upright_deg": 0.4,
+     "dz_cm": -0.73,
+     "ADD_vs_start_cm": 0.91
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 3.1,
+     "dz_cm": -1.18,
+     "ADD_vs_start_cm": 1.18
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 9.2,
+     "tilt_vs_upright_deg": 4.8,
+     "dz_cm": -1.03,
+     "ADD_vs_start_cm": 1.73
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.3,
+     "tilt_vs_upright_deg": 0.9,
+     "dz_cm": -1.62,
+     "ADD_vs_start_cm": 1.6
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 11.3,
+     "tilt_vs_upright_deg": 6.9,
+     "dz_cm": -1.19,
+     "ADD_vs_start_cm": 2.14
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.1,
+     "tilt_vs_upright_deg": 2.9,
+     "dz_cm": -1.48,
+     "ADD_vs_start_cm": 1.45
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 9.5,
+     "tilt_vs_upright_deg": 5.3,
+     "dz_cm": -1.04,
+     "ADD_vs_start_cm": 1.81
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.8,
+     "tilt_vs_upright_deg": 10.7,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.5,
+     "tilt_vs_upright_deg": 0.4,
+     "dz_cm": -0.62,
+     "ADD_vs_start_cm": 0.86
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.6,
+     "tilt_vs_upright_deg": 3.5,
+     "dz_cm": -1.45,
+     "ADD_vs_start_cm": 1.43
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.7,
+     "tilt_vs_upright_deg": 10.5,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.62,
+     "ADD_vs_start_cm": 0.85
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.0,
+     "tilt_vs_upright_deg": 1.8,
+     "dz_cm": -1.45,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.62,
+     "ADD_vs_start_cm": 0.85
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 7.5,
+     "tilt_vs_upright_deg": 4.4,
+     "dz_cm": -1.46,
+     "ADD_vs_start_cm": 1.43
+    }
+   }
+  ],
+  "f312 | pot COM volc | pot+spoon | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.5,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.79,
+     "ADD_vs_start_cm": 0.87
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 3.1,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 9.4,
+     "tilt_vs_upright_deg": 5.1,
+     "dz_cm": -1.07,
+     "ADD_vs_start_cm": 1.77
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.6,
+     "tilt_vs_upright_deg": 1.3,
+     "dz_cm": -1.6,
+     "ADD_vs_start_cm": 1.55
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 12.2,
+     "tilt_vs_upright_deg": 7.8,
+     "dz_cm": -1.28,
+     "ADD_vs_start_cm": 2.31
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.4,
+     "tilt_vs_upright_deg": 3.3,
+     "dz_cm": -1.49,
+     "ADD_vs_start_cm": 1.45
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 12.5,
+     "tilt_vs_upright_deg": 8.2,
+     "dz_cm": -1.31,
+     "ADD_vs_start_cm": 2.38
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 14.3,
+     "tilt_vs_upright_deg": 11.2,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.41
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.1,
+     "tilt_vs_upright_deg": 0.5,
+     "dz_cm": -0.58,
+     "ADD_vs_start_cm": 0.77
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.3,
+     "tilt_vs_upright_deg": 2.2,
+     "dz_cm": -1.45,
+     "ADD_vs_start_cm": 1.43
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.8,
+     "tilt_vs_upright_deg": 10.7,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 3.2,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   }
+  ],
+  "f312 | pot COM shell | pot alone | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.7,
+     "ADD_vs_start_cm": 0.84
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 4.6,
+     "tilt_vs_upright_deg": 1.0,
+     "dz_cm": -0.63,
+     "ADD_vs_start_cm": 0.86
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -0.6,
+     "ADD_vs_start_cm": 0.83
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.83
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    }
+   }
+  ],
+  "f312 | pot COM shell | pot alone | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.5,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.8,
+     "ADD_vs_start_cm": 0.88
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 5.4,
+     "tilt_vs_upright_deg": 1.0,
+     "dz_cm": -0.73,
+     "ADD_vs_start_cm": 1.02
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 4.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.6,
+     "ADD_vs_start_cm": 0.81
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.83
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.83
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.83
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.83
+    }
+   }
+  ],
+  "f312 | pot COM shell | pot+spoon | dt 0.0020": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.7,
+     "ADD_vs_start_cm": 0.84
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 3.1,
+     "dz_cm": -1.18,
+     "ADD_vs_start_cm": 1.18
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 4.6,
+     "tilt_vs_upright_deg": 1.0,
+     "dz_cm": -0.63,
+     "ADD_vs_start_cm": 0.86
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.3,
+     "tilt_vs_upright_deg": 0.9,
+     "dz_cm": -1.62,
+     "ADD_vs_start_cm": 1.6
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.7,
+     "dz_cm": -0.6,
+     "ADD_vs_start_cm": 0.83
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.1,
+     "tilt_vs_upright_deg": 2.9,
+     "dz_cm": -1.48,
+     "ADD_vs_start_cm": 1.45
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.2,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.83
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.8,
+     "tilt_vs_upright_deg": 10.7,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.6,
+     "tilt_vs_upright_deg": 3.5,
+     "dz_cm": -1.45,
+     "ADD_vs_start_cm": 1.43
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.7,
+     "tilt_vs_upright_deg": 10.5,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.0,
+     "tilt_vs_upright_deg": 1.8,
+     "dz_cm": -1.45,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 3.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.84
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 7.5,
+     "tilt_vs_upright_deg": 4.4,
+     "dz_cm": -1.46,
+     "ADD_vs_start_cm": 1.43
+    }
+   }
+  ],
+  "f312 | pot COM shell | pot+spoon | dt 0.0099": [
+   {
+    "t": 0.05,
+    "white_pot": {
+     "rot_from_start_deg": 4.5,
+     "tilt_vs_upright_deg": 0.1,
+     "dz_cm": -0.8,
+     "ADD_vs_start_cm": 0.88
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 0.0,
+     "tilt_vs_upright_deg": 3.1,
+     "dz_cm": -0.96,
+     "ADD_vs_start_cm": 0.96
+    }
+   },
+   {
+    "t": 0.1,
+    "white_pot": {
+     "rot_from_start_deg": 5.4,
+     "tilt_vs_upright_deg": 1.0,
+     "dz_cm": -0.73,
+     "ADD_vs_start_cm": 1.02
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 2.6,
+     "tilt_vs_upright_deg": 1.3,
+     "dz_cm": -1.6,
+     "ADD_vs_start_cm": 1.55
+    }
+   },
+   {
+    "t": 0.15,
+    "white_pot": {
+     "rot_from_start_deg": 4.3,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.6,
+     "ADD_vs_start_cm": 0.81
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 6.4,
+     "tilt_vs_upright_deg": 3.3,
+     "dz_cm": -1.49,
+     "ADD_vs_start_cm": 1.45
+    }
+   },
+   {
+    "t": 0.25,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.83
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 14.3,
+     "tilt_vs_upright_deg": 11.2,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.41
+    }
+   },
+   {
+    "t": 0.5,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.83
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 5.3,
+     "tilt_vs_upright_deg": 2.2,
+     "dz_cm": -1.45,
+     "ADD_vs_start_cm": 1.43
+    }
+   },
+   {
+    "t": 1.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.83
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 13.8,
+     "tilt_vs_upright_deg": 10.7,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   },
+   {
+    "t": 2.0,
+    "white_pot": {
+     "rot_from_start_deg": 4.4,
+     "tilt_vs_upright_deg": 0.3,
+     "dz_cm": -0.61,
+     "ADD_vs_start_cm": 0.83
+    },
+    "wooden_spoon": {
+     "rot_from_start_deg": 3.2,
+     "tilt_vs_upright_deg": 0.0,
+     "dz_cm": -1.44,
+     "ADD_vs_start_cm": 1.42
+    }
+   }
+  ]
+ }
+}

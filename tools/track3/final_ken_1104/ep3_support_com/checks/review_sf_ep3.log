@@ -1,0 +1,19 @@
+[render_review +   0.2s] parquet /data/user_data/haisenk/v2d/cupfix/sf_ep3/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave/cffb49c402f842de966872b0e5685642-0.parquet: 313 frames, 2 bodies ['ep3_h5_h5_ep3_A1_white_pot', 'ep3_h5_h5_ep3_A1_wooden_spoon']
+[render_review +   0.3s] bundle /data/user_data/haisenk/v2d/cupfix/sf_ep3/bundle_cleaned/result.npz objects ['white_pot', 'wooden_spoon']
+[render_review +   0.3s] loader transform A: t=[ 0.0746 -0.3209  1.5147] rot=0.000 deg; residual max 0.000 mm
+[render_review +   0.3s] support USD /data/user_data/haisenk/v2d/cupfix/sf_ep3/assets/human_motion_data/ego_recon/reconstructed_stage/ep3_h5_h5_ep3_A1_sharpa_wave_support.usda: 1 prims [('support_0', 0.999)]
+[render_review +   1.0s] table plane z=0.9990 (top of largest support near the f0 bottoms (support_0))
+[render_review +   1.0s] left hand: is_valid 313/313, filled (not observed) 0 frames
+[render_review +   1.0s] right hand: is_valid 313/313, filled (not observed) 0 frames
+[render_review +   1.2s] key frames [0, 36, 39, 51, 56, 108, 156, 205, 259, 266, 288, 312]
+[render_review +   6.6s] frames: sibling of the manifest frames_dir: anycalib/undistorted.mp4 (undistorted_intrinsics.json == bundle K, max diff 0 px): /data/user_data/haisenk/v2d/v2d_recon/baseline/reconstruction/data/outputs/ken_c_scored/episode_000003/white_pot/anycalib/undistorted.mp4 -> 313 frames 2028x1520
+[render_review +  22.7s] mask check white_pot: masks loaded in 2.6 s, silhouettes 13.4 s
+[render_review +  22.9s] mask check white_pot: best offset +0 (IoU 0.817; offset 0 0.817, -1 0.773, +1 0.784) on 8 moving frames; mean IoU 0.8206
+[render_review +  29.1s] mask check wooden_spoon: masks loaded in 2.7 s, silhouettes 3.6 s
+[render_review +  29.3s] mask check wooden_spoon: best offset +0 (IoU 0.428; offset 0 0.428, -1 0.328, +1 0.312) on 8 moving frames; mean IoU 0.5866
+[render_review +  29.4s] side view A azimuth 120 deg (camera ray 31 deg out of the view direction); view B 179 deg
+[render_review +  33.1s] overlay written
+[render_review +  37.7s] side written
+[render_review +  39.9s] frame0 written
+[render_review +  40.4s] plots written
+[render_review +  40.4s] done in 40.4 s -> /data/user_data/haisenk/v2d/cupfix/review

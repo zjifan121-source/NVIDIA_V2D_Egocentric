@@ -1,0 +1,10 @@
+wrote /home/haisenk/v2d_ops/kenc/final1104/local_best/step1.parquet: 9120 rows; episode 1: 670 rows replaced; other 8450 rows identical to base
+checkpoint_sha256 old -> new: 7a0129ce3ba4 -> 6aaab5d64f31
+wrote /home/haisenk/v2d_ops/kenc/final1104/local_best/step2.parquet: 9120 rows; episode 3: 626 rows replaced; other 8494 rows identical to base
+checkpoint_sha256 old -> new: db9b6f227a6d -> 45c4736b1fea
+wrote /home/haisenk/v2d_ops/kenc/final1104/local_best/step3.parquet: 9120 rows; episode 5: 576 rows replaced; other 8544 rows identical to base
+checkpoint_sha256 old -> new: 884b6c3fdcab -> d351dbaed5a1
+wrote /home/haisenk/v2d_ops/kenc/final1104/local_best/step4.parquet: 9120 rows; episode 8: 438 rows replaced; other 8682 rows identical to base
+checkpoint_sha256 old -> new: dfb3665955a2 -> 3d33ff6bdee2
+wrote /home/haisenk/v2d_ops/kenc/final1104/local_best/step5.parquet: 9120 rows; episode 10: 322 rows replaced; other 8798 rows identical to base
+checkpoint_sha256 old -> new: 856e813798e3 -> 2bd79300d999

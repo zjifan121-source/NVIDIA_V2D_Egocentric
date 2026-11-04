@@ -1,0 +1,8 @@
+/home/haisenk/v2d_ops/kenc/tests/r_ep5_rl_K_s43/track3_submission.parquet: 9,120 rows over 20 episodes, 2,683,866 B - looks valid
+Track 3 - Egocentric: 1 leaderboard(s)
+  add_auc          v2d-challenge-track3-auc                 4 left today
+Receipt: /home/haisenk/v2d_ops/kenc/tests/r_ep5_rl_K_s43/track3_submission.parquet.e6d6deec91e1.kaggle-receipt.json
+
+  add_auc          ACCEPTED Successfully submitted to Track 3 - Egocentric - AUC (submission 57976828)
+
+Poll without uploading: python3 submit/v2d_submit.py --track track_3 --poll-receipt '/home/haisenk/v2d_ops/kenc/tests/r_ep5_rl_K_s43/track3_submission.parquet.e6d6deec91e1.kaggle-receipt.json'

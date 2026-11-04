@@ -1,0 +1,5 @@
+    -> /tmp/haisenk_v2d/scenes/rf_ep8_ds/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot_rigid.urdf
+  /tmp/haisenk_v2d/scenes/sc_ep8/bundle_cleaned/result.npz
+    -> /tmp/haisenk_v2d/scenes/rf_ep8_ds/bundle_cleaned/result.npz
+missing paths: none
+PARQUET_DIR /tmp/haisenk_v2d/scenes/rf_ep8_ds/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave

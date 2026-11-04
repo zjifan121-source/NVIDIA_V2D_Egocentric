@@ -1,0 +1,30 @@
+{
+ "scene": "C:\\Users\\Haisen\\AppData\\Local\\Temp\\claude\\670C48~1\\3081C1~1\\SCRATC~1\\repro\\work\\rl_ep5",
+ "out": "C:\\Users\\Haisen\\AppData\\Local\\Temp\\claude\\670C48~1\\3081C1~1\\SCRATC~1\\repro\\work\\rl2_ep5",
+ "sequence": "ep5_hw_w7_attcom_ep5",
+ "objects": {
+  "white_pot": {
+   "delta_cm": -1.0,
+   "height_before_cm": 13.34,
+   "cap": false,
+   "bottom_z_f0_before": 1.0007,
+   "bottom_z_f0_after": 1.0107,
+   "bottom_z_last_after": 1.0139,
+   "files": {
+    "processed_obj": 5520,
+    "visual_stl": 26832,
+    "score_obj": 5520
+   }
+  }
+ },
+ "support": [
+  {
+   "prim": "support_0",
+   "top_before": 0.9997,
+   "top_after": 1.0097
+  }
+ ],
+ "relocate": [
+  "changed 0 paths"
+ ]
+}

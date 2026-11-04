@@ -1,0 +1,46 @@
+===== ctl: T=335 objects ['ep1_hw_w_ctl_ep1_white_pot', 'ep1_hw_w_ctl_ep1_white_pot_lid']
+ obj0: step cm max 2.61@f172 p99 2.37; rot step deg max 6.9@f266 p99 5.6; frames rot step>10deg []
+   tilt from f0 up: max 10.9@f270 | axial twist range -6..12 deg | dz range 0.0..13.6 cm; lifted>2cm runs [(48, 49), (127, 221), (270, 275), (322, 329)]; >1cm [(17, 18), (21, 24), (29, 30), (33, 56), (57, 295), (297, 301), (302, 303), (304, 306), (307, 335)]
+   per 10 f (dz cm / tilt / twist): 0:0.0/0/0 10:0.4/1/-0 20:0.6/1/-1 30:0.7/1/-0 40:1.3/4/2 50:1.5/2/-1 60:1.1/5/-1 70:1.3/4/-1 80:1.4/4/-1 90:1.3/4/-1 100:1.4/4/-3 110:1.6/4/-1 120:1.6/4/1 130:4.9/8/1 140:10.6/3/3 150:12.8/7/-1 160:9.7/7/6 170:11.8/6/2 180:8.0/4/3 190:10.0/7/6 200:8.0/10/-3 210:5.0/5/1 220:2.1/1/1 230:1.3/2/1 240:1.6/4/0 250:1.4/3/1 260:1.6/2/2 270:2.1/11/-0 280:1.5/3/1 290:1.5/2/1 300:1.1/1/1 310:1.0/3/0 320:1.9/4/0 330:1.5/4/0
+ obj1: step cm max 3.09@f254 p99 2.58; rot step deg max 10.1@f270 p99 5.0; frames rot step>10deg [270]
+   tilt from f0 up: max 20.0@f256 | axial twist range -43..1 deg | dz range -10.0..6.3 cm; lifted>2cm runs [(47, 59), (255, 272)]; >1cm [(46, 60), (255, 277), (317, 330)]
+   per 10 f (dz cm / tilt / twist): 0:0.0/0/0 10:0.0/1/0 20:0.1/0/1 30:-0.0/0/-1 40:0.0/0/-2 50:5.0/7/0 60:-0.1/5/-10 70:-7.6/0/-8 80:-7.7/3/-14 90:-8.3/2/-28 100:-8.4/2/-27 110:-8.2/1/-26 120:-8.2/1/-26 130:-8.8/2/-26 140:-9.0/2/-26 150:-9.3/2/-27 160:-9.3/2/-26 170:-9.5/2/-27 180:-9.4/2/-26 190:-8.9/2/-26 200:-8.7/2/-26 210:-8.9/2/-27 220:-9.1/2/-26 230:-8.8/1/-25 240:-8.6/2/-25 250:-8.4/3/-33 260:5.6/13/-29 270:2.2/10/-42 280:0.8/5/-33 290:0.3/2/-34 300:0.4/2/-35 310:0.6/2/-32 320:1.4/2/-32 330:1.0/3/-32
+ left: MANO wrist step mm max 26.1@f310 p99 24.7 frames>30mm []; robot wrist step max 25.1@f309 p99 23.6
+   contact labels part 1: frame runs [(28, 308)]
+   contact labels part 2: frame runs []
+ right: MANO wrist step mm max 35.4@f308 p99 32.8 frames>30mm [306 307 308 309 310]; robot wrist step max 35.6@f309 p99 33.7
+   contact labels part 1: frame runs []
+   contact labels part 2: frame runs [(34, 97), (238, 304)]
+===== raw: T=335 objects ['ep1_hw_w_raw_ep1_white_pot', 'ep1_hw_w_raw_ep1_white_pot_lid']
+ obj0: step cm max 2.61@f172 p99 2.37; rot step deg max 6.9@f266 p99 5.6; frames rot step>10deg []
+   tilt from f0 up: max 10.9@f270 | axial twist range -6..12 deg | dz range 0.0..13.6 cm; lifted>2cm runs [(48, 49), (127, 221), (270, 275), (322, 329)]; >1cm [(17, 18), (21, 24), (29, 30), (33, 56), (57, 295), (297, 301), (302, 303), (304, 306), (307, 335)]
+   per 10 f (dz cm / tilt / twist): 0:0.0/0/0 10:0.4/1/-0 20:0.6/1/-1 30:0.7/1/-0 40:1.3/4/2 50:1.5/2/-1 60:1.1/5/-1 70:1.3/4/-1 80:1.4/4/-1 90:1.3/4/-1 100:1.4/4/-3 110:1.6/4/-1 120:1.6/4/1 130:4.9/8/1 140:10.6/3/3 150:12.8/7/-1 160:9.7/7/6 170:11.8/6/2 180:8.0/4/3 190:10.0/7/6 200:8.0/10/-3 210:5.0/5/1 220:2.1/1/1 230:1.3/2/1 240:1.6/4/0 250:1.4/3/1 260:1.6/2/2 270:2.1/11/-0 280:1.5/3/1 290:1.5/2/1 300:1.1/1/1 310:1.0/3/0 320:1.9/4/0 330:1.5/4/0
+ obj1: step cm max 3.09@f254 p99 2.58; rot step deg max 10.1@f270 p99 5.0; frames rot step>10deg [270]
+   tilt from f0 up: max 20.0@f256 | axial twist range -43..1 deg | dz range -10.0..6.3 cm; lifted>2cm runs [(47, 59), (255, 272)]; >1cm [(46, 60), (255, 277), (317, 330)]
+   per 10 f (dz cm / tilt / twist): 0:0.0/0/0 10:0.0/1/0 20:0.1/0/1 30:-0.0/0/-1 40:0.0/0/-2 50:5.0/7/0 60:-0.1/5/-10 70:-7.6/0/-8 80:-7.7/3/-14 90:-8.3/2/-28 100:-8.4/2/-27 110:-8.2/1/-26 120:-8.2/1/-26 130:-8.8/2/-26 140:-9.0/2/-26 150:-9.3/2/-27 160:-9.3/2/-26 170:-9.5/2/-27 180:-9.4/2/-26 190:-8.9/2/-26 200:-8.7/2/-26 210:-8.9/2/-27 220:-9.1/2/-26 230:-8.8/1/-25 240:-8.6/2/-25 250:-8.4/3/-33 260:5.6/13/-29 270:2.2/10/-42 280:0.8/5/-33 290:0.3/2/-34 300:0.4/2/-35 310:0.6/2/-32 320:1.4/2/-32 330:1.0/3/-32
+ left: MANO wrist step mm max 26.5@f174 p99 25.4 frames>30mm []; robot wrist step max 25.5@f174 p99 24.0
+   contact labels part 1: frame runs [(28, 308)]
+   contact labels part 2: frame runs []
+ right: MANO wrist step mm max 35.4@f308 p99 32.8 frames>30mm [306 307 308 309 310]; robot wrist step max 35.6@f309 p99 33.7
+   contact labels part 1: frame runs []
+   contact labels part 2: frame runs [(34, 97), (238, 304)]
+ctl vs raw left: wrist diff cm median 0.00 p90 3.34 max 4.89@f172; frames any joint >1cm: [(112, 222)]
+ctl vs raw right: wrist diff cm median 0.00 p90 0.00 max 1.55@f259; frames any joint >1cm: [(50, 55), (257, 261)]
+ctl pot: moving frames 126 runs [(17, 19), (20, 21), (22, 23), (24, 25), (26, 31), (35, 36), (48, 49), (56, 58), (107, 109), (110, 111), (127, 221), (270, 275), (295, 296), (310, 311), (315, 316), (322, 329)]; phantom (no hand point within 2 cm) 16 runs [(17, 19), (20, 21), (22, 23), (24, 25), (26, 28), (310, 311), (315, 316), (322, 329)]
+   left on pot while moving (111 f): tip sd mm median th 49 ix 44 mi 22 ri 10 pi 2; wrist 18
+   right on pot while moving (8 f): tip sd mm median th 83 ix 76 mi 69 ri 48 pi 41; wrist 24
+ctl lid: moving frames 55 runs [(17, 18), (22, 23), (24, 25), (26, 32), (44, 45), (46, 67), (157, 158), (173, 174), (250, 272)]; phantom (no hand point within 2 cm) 11 runs [(17, 18), (22, 23), (24, 25), (26, 32), (157, 158), (173, 174)]
+   right on lid while moving (47 f): tip sd mm median th 18 ix 22 mi 16 ri 13 pi 3; wrist 24
+raw pot: moving frames 126 runs [(17, 19), (20, 21), (22, 23), (24, 25), (26, 31), (35, 36), (48, 49), (56, 58), (107, 109), (110, 111), (127, 221), (270, 275), (295, 296), (310, 311), (315, 316), (322, 329)]; phantom (no hand point within 2 cm) 16 runs [(17, 19), (20, 21), (22, 23), (24, 25), (26, 28), (310, 311), (315, 316), (322, 329)]
+   left on pot while moving (111 f): tip sd mm median th 55 ix 51 mi 25 ri 10 pi -2; wrist 16
+   right on pot while moving (8 f): tip sd mm median th 83 ix 76 mi 68 ri 48 pi 41; wrist 24
+raw lid: moving frames 55 runs [(17, 18), (22, 23), (24, 25), (26, 32), (44, 45), (46, 67), (157, 158), (173, 174), (250, 272)]; phantom (no hand point within 2 cm) 11 runs [(17, 18), (22, 23), (24, 25), (26, 32), (157, 158), (173, 174)]
+   right on lid while moving (47 f): tip sd mm median th 20 ix 31 mi 21 ri 16 pi 3; wrist 24
+== /scratch/haisenk-v2d/hand5w/bundles/w_raw_ep1/result.npz
+  left valid 1.000; invalid runs []
+  right valid 0.952; invalid runs [(314, 330)]
+  keys: ['camera_is_valid', 'object_to_camera_transform', 'object_to_world_transform', 'object_scale', 'object_is_valid', 'hand_left_is_valid', 'hand_right_is_valid', 'object_1_to_world_transform', 'object_1_scale', 'object_names', 'object_1_to_camera_transform', 'object_1_is_valid']
+== /scratch/haisenk-v2d/wentao_mix_20261103/experiments/wentacc/scored20_contactshape_proxy_mix_v1_20261103/scenes/episode_000001/bundle/result.npz
+  left valid 1.000; invalid runs []
+  right valid 0.952; invalid runs [(314, 330)]
+  keys: ['camera_is_valid', 'object_to_camera_transform', 'object_to_world_transform', 'object_scale', 'object_is_valid', 'hand_left_is_valid', 'hand_right_is_valid', 'object_1_to_world_transform', 'object_1_scale', 'object_names', 'object_1_to_camera_transform', 'object_1_is_valid']

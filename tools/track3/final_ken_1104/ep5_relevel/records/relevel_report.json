@@ -1,0 +1,47 @@
+{
+ "scene": "/tmp/haisenk_v2d/scenes/w7_attcom_ep5",
+ "out": "/tmp/haisenk_v2d/scenes/rl_ep5",
+ "tilt_deg": 5.478626169740843,
+ "pivot": [
+  0.02091900594718291,
+  0.019899181950688186,
+  1.0176935260577498
+ ],
+ "table_z_after": 1.0176935260577498,
+ "support_top": 0.9996677266454285,
+ "frame0_bottoms": {
+  "ep5_hw_w7_attcom_ep5_white_pot": 1.0006677266454285,
+  "ep5_hw_w7_attcom_ep5_wooden_spoon": 1.0107392831738509
+ },
+ "checks": {
+  "object_relative_pose_max_change": 8.250841776469287e-08,
+  "right_hand_to_anchor_dist_max_change_m": 8.951832639048085e-08,
+  "robot_right_wrist_to_anchor_dist_max_change_m": 7.347677855040757e-08,
+  "left_hand_to_anchor_dist_max_change_m": 6.399061308615117e-08,
+  "robot_left_wrist_to_anchor_dist_max_change_m": 4.048308233084441e-08,
+  "measured_normal_after": [
+   0.0,
+   0.0,
+   1.0
+  ],
+  "support_0": {
+   "old_center": [
+    0.1007222871562036,
+    -0.03543602579427049,
+    0.9929999501213719
+   ],
+   "new_center": [
+    0.10026413237265833,
+    -0.037574307062152534,
+    0.9946677266454285
+   ],
+   "top": 0.9996677266454285
+  },
+  "dropped": [
+   "support_1"
+  ]
+ },
+ "relocate": [
+  "changed 5 paths"
+ ]
+}

@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/tmp/haisenk_v2d/tools/scenefix.py", line 108, in <module>
+    body = m.group(1); hgt = float(re.search(r"double height = ([-\d.e]+)", body).group(1))
+           ^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'group'

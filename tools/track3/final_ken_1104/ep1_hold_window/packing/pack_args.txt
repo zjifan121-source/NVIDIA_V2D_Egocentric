@@ -1,0 +1,1 @@
+1 b_ep1_wh_K_s48 step=100003840 scene=w_hold_ep1 RES=/tmp/haisenk_v2d/runs/b_ep1_wh_K_s48/early_100003840/results MESH=/tmp/haisenk_v2d/scenes/w_hold_ep1/score_input/meshes URL=https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/1689cf6396bee0f6a3bf4cced610f2fe0f71ebf6

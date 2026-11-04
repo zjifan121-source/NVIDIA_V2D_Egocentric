@@ -1,0 +1,17 @@
+{
+ "scene": "/tmp/haisenk_v2d/scenes/b1_ep3",
+ "out": "/tmp/haisenk_v2d/scenes/sf_ep3",
+ "sequence": "ep3_h5_h5_ep3_A1",
+ "objects": {},
+ "support": [
+  {
+   "prim": "support_0",
+   "top_before": 0.9878,
+   "top_after": 0.999
+  }
+ ],
+ "relocate": [
+  "changed 5 paths",
+  "  /tmp/haisenk_v2d/scenes/b1_ep3/assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot.obj"
+ ]
+}

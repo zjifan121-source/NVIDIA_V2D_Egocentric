@@ -1,0 +1,28 @@
+#usda 1.0
+(
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Cylinder "support_0" (
+    prepend apiSchemas = ["PhysicsCollisionAPI"]
+)
+{
+    uniform token axis = "Z"
+    double height = 0.01
+    double radius = 0.29972318463319875
+    double3 xformOp:translate = (0.1007222871562036, -0.03543602579427049, 0.9929999501213719)
+    uniform token[] xformOpOrder = ["xformOp:translate"]
+}
+
+def Cylinder "support_1" (
+    prepend apiSchemas = ["PhysicsCollisionAPI"]
+)
+{
+    uniform token axis = "Z"
+    double height = 0.01
+    double radius = 0.09108318795746895
+    double3 xformOp:translate = (0.25869257005268553, -0.07499059263944398, 1.0037166821407106)
+    uniform token[] xformOpOrder = ["xformOp:translate"]
+}
+

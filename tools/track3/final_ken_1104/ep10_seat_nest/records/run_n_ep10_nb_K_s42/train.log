@@ -1,0 +1,205 @@
+/tmp/haisenk_v2d/fc_src_de66/flash_chord/embodiments/binding.py:371: UserWarning: Inertia validation corrected 6 bodies. Set validate_inertia_detailed=True for detailed per-body warnings.
+  model = builder.finalize(device=device, skip_all_validations=True)
+/tmp/haisenk_v2d/fc_src_de66/flash_chord/scene/builder.py:508: UserWarning: Inertia validation corrected 24576 bodies. Set validate_inertia_detailed=True for detailed per-body warnings.
+  model = builder.finalize()
+/tmp/haisenk_v2d/v2d_train/baseline/robotic_grounding/flash_chord/.venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'repr' attribute with value False was provided to the `Field()` function, which has no effect in the context it was used. 'repr' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
+  warnings.warn(
+/tmp/haisenk_v2d/v2d_train/baseline/robotic_grounding/flash_chord/.venv/lib/python3.12/site-packages/pydantic/_internal/_generate_schema.py:2274: UnsupportedFieldAttributeWarning: The 'frozen' attribute with value True was provided to the `Field()` function, which has no effect in the context it was used. 'frozen' is field-specific metadata, and can only be attached to a model field using `Annotated` metadata or by assignment. This may have happened because an `Annotated` type alias using the `type` statement was used, or if the `Field()` function was attached to a single member of a union type.
+  warnings.warn(
+Warp 1.14.0 initialized:
+   CUDA Toolkit 12.9, Driver 13.0
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA H100 80GB HBM3" (79 GiB, sm_90, mempool enabled)
+   Kernel cache:
+     /home/haisenk/.cache/warp/1.14.0
+Module newton._src.geometry.inertia 3654b45 load on device 'cuda:0' took 4.04 ms  (cached)
+Module validate_and_correct_inertia_kernel_2d598dcb 90f14cb load on device 'cpu' took 1.97 ms  (cached)
+Module newton._src.sim.articulation a705557 load on device 'cpu' took 0.48 ms  (cached)
+Module validate_and_correct_inertia_kernel_2d598dcb 2d598dc load on device 'cuda:0' took 3.07 ms  (cached)
+Module newton._src.sim.graph_coloring 8071a9f load on device 'cpu' took 3.63 ms  (cached)
+Module newton._src.solvers.mujoco.kernels 618b13f load on device 'cuda:0' took 15.02 ms  (cached)
+Module repeat_array_kernel_2767062b bae2300 load on device 'cuda:0' took 6.40 ms  (cached)
+Module repeat_array_kernel_2767062b 122cd4b load on device 'cuda:0' took 4.34 ms  (cached)
+Module repeat_array_kernel_2767062b 70fd208 load on device 'cuda:0' took 3.53 ms  (cached)
+Module repeat_array_kernel_2767062b ad5e920 load on device 'cuda:0' took 4.18 ms  (cached)
+Module repeat_array_kernel_2767062b 4770c98 load on device 'cuda:0' took 3.65 ms  (cached)
+Module repeat_array_kernel_2767062b 4d9e605 load on device 'cuda:0' took 4.54 ms  (cached)
+Module repeat_array_kernel_2767062b beb7dd7 load on device 'cuda:0' took 3.81 ms  (cached)
+Module mujoco_warp._src.io 2f253d2 load on device 'cuda:0' took 6.69 ms  (cached)
+Module mujoco_warp._src.smooth cf7a289 load on device 'cuda:0' took 7.55 ms  (cached)
+Module _solve_LD_sparse_fused__locals__kernel_15d81c78 6df44b4 load on device 'cuda:0' took 5.15 ms  (cached)
+Module flash_chord.objectives.wrench 8e5d34b load on device 'cuda:0' took 5.22 ms  (cached)
+Module flash_chord.lifecycle.reset 202d49b load on device 'cuda:0' took 6.57 ms  (cached)
+Module newton._src.sim.articulation 24ff67e load on device 'cuda:0' took 8.71 ms  (cached)
+Module flash_chord.runtime.actions.hand_pose 36434de load on device 'cuda:0' took 4.84 ms  (cached)
+Module flash_chord.envs.base 7bb0f78 load on device 'cuda:0' took 3.97 ms  (cached)
+Module flash_chord.envs.rl 4c4513a load on device 'cuda:0' took 3.88 ms  (cached)
+Module flash_chord.envs.observation 335be85 load on device 'cuda:0' took 4.88 ms  (cached)
+Module flash_chord.runtime.command 768bb56 load on device 'cuda:0' took 3.60 ms  (cached)
+Module flash_chord.runtime.control a7feac7 load on device 'cuda:0' took 4.11 ms  (cached)
+Module flash_chord.runtime.object_control c5f9b6d load on device 'cuda:0' took 4.11 ms  (cached)
+Module mujoco_warp._src.collision_driver 621a3f9 load on device 'cuda:0' took 4.34 ms  (cached)
+Module _nxn_broadphase__locals__kernel_f31ad1e4 f31ad1e load on device 'cuda:0' took 4.19 ms  (cached)
+Module ccd_kernel_builder__locals__ccd_kernel_f48963bf f48963b load on device 'cuda:0' took 5.25 ms  (cached)
+Module ccd_kernel_builder__locals__ccd_kernel_6090cf8f 6090cf8 load on device 'cuda:0' took 5.79 ms  (cached)
+Module _primitive_narrowphase__locals__primitive_narrowphase_e85b0d64 e85b0d6 load on device 'cuda:0' took 4.49 ms  (cached)
+Module mujoco_warp._src.constraint e56f243 load on device 'cuda:0' took 6.00 ms  (cached)
+Module _efc_contact_init__locals__kernel_7561548c 7561548 load on device 'cuda:0' took 3.88 ms  (cached)
+Module _efc_contact_jac_sparse__locals__kernel_a4c07dfc a4c07df load on device 'cuda:0' took 4.35 ms  (cached)
+Module _efc_contact_update__locals__kernel_c8073923 c807392 load on device 'cuda:0' took 3.89 ms  (cached)
+Module mujoco_warp._src.forward f5bfed4 load on device 'cuda:0' took 5.56 ms  (cached)
+Module mujoco_warp._src.passive cc48b2a load on device 'cuda:0' took 4.46 ms  (cached)
+Module mujoco_warp._src.forward 46b3f78 load on device 'cuda:0' took 4.85 ms  (cached)
+Module mujoco_warp._src.support d1e71d9 load on device 'cuda:0' took 4.08 ms  (cached)
+Module mujoco_warp._src.solver d53b47b load on device 'cuda:0' took 4.52 ms  (cached)
+Module solve_init_jaref__locals__kernel_564c9326 564c932 load on device 'cuda:0' took 4.00 ms  (cached)
+Module mul_m_sparse__locals___mul_m_sparse_57bd8101 57bd810 load on device 'cuda:0' took 4.18 ms  (cached)
+Module update_constraint_efc__locals__kernel_e7fd7693 e7fd769 load on device 'cuda:0' took 3.94 ms  (cached)
+Module update_constraint_gauss_cost__locals__kernel_edc2026f edc2026 load on device 'cuda:0' took 3.49 ms  (cached)
+Module update_gradient_cholesky_blocked__locals__kernel_3cc6cc8b 40b76a7 load on device 'cuda:0' took 191.35 ms  (cached)
+Module linesearch_jv_fused__locals__kernel_809114b4 809114b load on device 'cuda:0' took 3.77 ms  (cached)
+Module linesearch_iterative__locals__kernel_6637ae6e d82a261 load on device 'cuda:0' took 4.55 ms  (cached)
+Module update_constraint_efc__locals__kernel_565f38f0 565f38f load on device 'cuda:0' took 3.95 ms  (cached)
+Module update_gradient_cholesky_blocked_skip_unchanged__locals__kernel_d277e382 40da1ba load on device 'cuda:0' took 194.19 ms  (cached)
+Module mujoco_warp._src.sensor a993087 load on device 'cuda:0' took 6.39 ms  (cached)
+Module mujoco_warp._src.derivative 212adeb load on device 'cuda:0' took 4.58 ms  (cached)
+Module flash_chord.runtime.contact 6b5b079 load on device 'cuda:0' took 4.58 ms  (cached)
+Module flash_chord.lifecycle.termination 3e3f704 load on device 'cuda:0' took 4.87 ms  (cached)
+Module flash_chord.objectives.tracking cfa9b68 load on device 'cuda:0' took 3.87 ms  (cached)
+Module flash_chord.objectives.keypoints af286eb load on device 'cuda:0' took 4.51 ms  (cached)
+Module flash_chord.objectives.joints 1436c14 load on device 'cuda:0' took 4.23 ms  (cached)
+Module flash_chord.objectives.contact e351a4c load on device 'cuda:0' took 4.99 ms  (cached)
+Module flash_chord.objectives.composition ecb0826 load on device 'cuda:0' took 3.74 ms  (cached)
+[2026-11-04 00:52:39,604][jax._src.xla_bridge][INFO] - Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+training progress: 0/100,003,840 environment steps (0.0%); checkpoints: /tmp/haisenk_v2d/runs/n_ep10_nb_K_s42/train
+compiled FlashSAC JAX executables on cuda:0 in 10.12s
+training progress: 1,003,520/100,003,840 environment steps (1.0%); 23,733 env steps/s; elapsed 00:00:42; ETA 01:09:31
+training progress: 2,002,944/100,003,840 environment steps (2.0%); 26,217 env steps/s; elapsed 00:01:16; ETA 01:02:18
+training progress: 3,002,368/100,003,840 environment steps (3.0%); 27,468 env steps/s; elapsed 00:01:49; ETA 00:58:51
+training progress: 4,001,792/100,003,840 environment steps (4.0%); 28,360 env steps/s; elapsed 00:02:21; ETA 00:56:25
+training progress: 5,001,216/100,003,840 environment steps (5.0%); 29,017 env steps/s; elapsed 00:02:52; ETA 00:54:34
+training progress: 6,000,640/100,003,840 environment steps (6.0%); 29,440 env steps/s; elapsed 00:03:24; ETA 00:53:13
+training progress: 7,004,160/100,003,840 environment steps (7.0%); 29,841 env steps/s; elapsed 00:03:55; ETA 00:51:57
+training progress: 8,003,584/100,003,840 environment steps (8.0%); 30,179 env steps/s; elapsed 00:04:25; ETA 00:50:49
+training progress: 9,003,008/100,003,840 environment steps (9.0%); 30,220 env steps/s; elapsed 00:04:58; ETA 00:50:11
+training progress: 10,002,432/100,003,840 environment steps (10.0%); 30,245 env steps/s; elapsed 00:05:31; ETA 00:49:36
+training progress: 11,001,856/100,003,840 environment steps (11.0%); 30,234 env steps/s; elapsed 00:06:04; ETA 00:49:04
+training progress: 12,001,280/100,003,840 environment steps (12.0%); 30,245 env steps/s; elapsed 00:06:37; ETA 00:48:30
+training progress: 13,000,704/100,003,840 environment steps (13.0%); 30,248 env steps/s; elapsed 00:07:10; ETA 00:47:56
+training progress: 14,004,224/100,003,840 environment steps (14.0%); 30,239 env steps/s; elapsed 00:07:43; ETA 00:47:24
+training progress: 15,003,648/100,003,840 environment steps (15.0%); 30,153 env steps/s; elapsed 00:08:18; ETA 00:46:59
+training progress: 16,003,072/100,003,840 environment steps (16.0%); 30,037 env steps/s; elapsed 00:08:53; ETA 00:46:37
+training progress: 17,002,496/100,003,840 environment steps (17.0%); 29,932 env steps/s; elapsed 00:09:28; ETA 00:46:13
+training progress: 18,001,920/100,003,840 environment steps (18.0%); 29,859 env steps/s; elapsed 00:10:03; ETA 00:45:46
+training progress: 19,001,344/100,003,840 environment steps (19.0%); 29,766 env steps/s; elapsed 00:10:38; ETA 00:45:21
+training progress: 20,000,768/100,003,840 environment steps (20.0%); 29,664 env steps/s; elapsed 00:11:14; ETA 00:44:57
+training progress: 21,004,288/100,003,840 environment steps (21.0%); 29,544 env steps/s; elapsed 00:11:51; ETA 00:44:34
+training progress: 22,003,712/100,003,840 environment steps (22.0%); 29,453 env steps/s; elapsed 00:12:27; ETA 00:44:08
+training progress: 23,003,136/100,003,840 environment steps (23.0%); 29,365 env steps/s; elapsed 00:13:03; ETA 00:43:42
+training progress: 24,002,560/100,003,840 environment steps (24.0%); 29,273 env steps/s; elapsed 00:13:40; ETA 00:43:16
+training progress: 25,001,984/100,003,840 environment steps (25.0%); 29,166 env steps/s; elapsed 00:14:17; ETA 00:42:52
+training progress: 26,001,408/100,003,840 environment steps (26.0%); 29,046 env steps/s; elapsed 00:14:55; ETA 00:42:28
+training progress: 27,004,928/100,003,840 environment steps (27.0%); 28,932 env steps/s; elapsed 00:15:33; ETA 00:42:03
+Warning: EPA horizon = 24 isn't large enough.
+training progress: 28,004,352/100,003,840 environment steps (28.0%); 28,812 env steps/s; elapsed 00:16:12; ETA 00:41:39
+training progress: 29,003,776/100,003,840 environment steps (29.0%); 28,694 env steps/s; elapsed 00:16:51; ETA 00:41:14
+Warning: EPA horizon = 24 isn't large enough.
+training progress: 30,003,200/100,003,840 environment steps (30.0%); 28,576 env steps/s; elapsed 00:17:30; ETA 00:40:50
+Warning: EPA horizon = 24 isn't large enough.
+Warning: EPA horizon = 24 isn't large enough.
+training progress: 31,002,624/100,003,840 environment steps (31.0%); 28,460 env steps/s; elapsed 00:18:09; ETA 00:40:24
+training progress: 32,002,048/100,003,840 environment steps (32.0%); 28,355 env steps/s; elapsed 00:18:49; ETA 00:39:58
+training progress: 33,001,472/100,003,840 environment steps (33.0%); 28,267 env steps/s; elapsed 00:19:27; ETA 00:39:30
+training progress: 34,004,992/100,003,840 environment steps (34.0%); 28,187 env steps/s; elapsed 00:20:06; ETA 00:39:01
+Warning: EPA horizon = 24 isn't large enough.
+training progress: 35,004,416/100,003,840 environment steps (35.0%); 28,114 env steps/s; elapsed 00:20:45; ETA 00:38:32
+training progress: 36,003,840/100,003,840 environment steps (36.0%); 28,040 env steps/s; elapsed 00:21:24; ETA 00:38:02
+training progress: 37,003,264/100,003,840 environment steps (37.0%); 27,972 env steps/s; elapsed 00:22:03; ETA 00:37:32
+training progress: 38,002,688/100,003,840 environment steps (38.0%); 27,902 env steps/s; elapsed 00:22:42; ETA 00:37:02
+training progress: 39,002,112/100,003,840 environment steps (39.0%); 27,830 env steps/s; elapsed 00:23:21; ETA 00:36:32
+training progress: 40,001,536/100,003,840 environment steps (40.0%); 27,769 env steps/s; elapsed 00:24:01; ETA 00:36:01
+training progress: 41,005,056/100,003,840 environment steps (41.0%); 27,705 env steps/s; elapsed 00:24:40; ETA 00:35:30
+training progress: 42,004,480/100,003,840 environment steps (42.0%); 27,645 env steps/s; elapsed 00:25:19; ETA 00:34:58
+training progress: 43,003,904/100,003,840 environment steps (43.0%); 27,593 env steps/s; elapsed 00:25:59; ETA 00:34:26
+training progress: 44,003,328/100,003,840 environment steps (44.0%); 27,539 env steps/s; elapsed 00:26:38; ETA 00:33:53
+nefc overflow - please increase njmax to 1028
+nefc overflow - please increase njmax to 1027
+training progress: 45,002,752/100,003,840 environment steps (45.0%); 27,491 env steps/s; elapsed 00:27:17; ETA 00:33:21
+training progress: 46,002,176/100,003,840 environment steps (46.0%); 27,439 env steps/s; elapsed 00:27:56; ETA 00:32:48
+Warning: EPA horizon = 24 isn't large enough.
+training progress: 47,005,696/100,003,840 environment steps (47.0%); 27,391 env steps/s; elapsed 00:28:36; ETA 00:32:15
+training progress: 48,005,120/100,003,840 environment steps (48.0%); 27,355 env steps/s; elapsed 00:29:15; ETA 00:31:41
+nefc overflow - please increase njmax to 1037
+training progress: 49,004,544/100,003,840 environment steps (49.0%); 27,316 env steps/s; elapsed 00:29:54; ETA 00:31:07
+training progress: 50,003,968/100,003,840 environment steps (50.0%); 27,279 env steps/s; elapsed 00:30:33; ETA 00:30:33
+training progress: 51,003,392/100,003,840 environment steps (51.0%); 27,238 env steps/s; elapsed 00:31:13; ETA 00:29:59
+training progress: 52,002,816/100,003,840 environment steps (52.0%); 27,209 env steps/s; elapsed 00:31:51; ETA 00:29:24
+training progress: 53,002,240/100,003,840 environment steps (53.0%); 27,177 env steps/s; elapsed 00:32:30; ETA 00:28:49
+Warning: EPA horizon = 24 isn't large enough.
+training progress: 54,005,760/100,003,840 environment steps (54.0%); 27,146 env steps/s; elapsed 00:33:09; ETA 00:28:14
+training progress: 55,005,184/100,003,840 environment steps (55.0%); 27,118 env steps/s; elapsed 00:33:48; ETA 00:27:39
+training progress: 56,004,608/100,003,840 environment steps (56.0%); 27,090 env steps/s; elapsed 00:34:27; ETA 00:27:04
+training progress: 57,004,032/100,003,840 environment steps (57.0%); 27,062 env steps/s; elapsed 00:35:06; ETA 00:26:29
+training progress: 58,003,456/100,003,840 environment steps (58.0%); 27,034 env steps/s; elapsed 00:35:46; ETA 00:25:54
+training progress: 59,002,880/100,003,840 environment steps (59.0%); 27,009 env steps/s; elapsed 00:36:25; ETA 00:25:18
+training progress: 60,002,304/100,003,840 environment steps (60.0%); 26,981 env steps/s; elapsed 00:37:04; ETA 00:24:43
+training progress: 61,005,824/100,003,840 environment steps (61.0%); 26,954 env steps/s; elapsed 00:37:43; ETA 00:24:07
+training progress: 62,005,248/100,003,840 environment steps (62.0%); 26,928 env steps/s; elapsed 00:38:23; ETA 00:23:31
+training progress: 63,004,672/100,003,840 environment steps (63.0%); 26,904 env steps/s; elapsed 00:39:02; ETA 00:22:55
+training progress: 64,004,096/100,003,840 environment steps (64.0%); 26,875 env steps/s; elapsed 00:39:42; ETA 00:22:20
+training progress: 65,003,520/100,003,840 environment steps (65.0%); 26,855 env steps/s; elapsed 00:40:21; ETA 00:21:43
+Warning: EPA horizon = 24 isn't large enough.
+training progress: 66,002,944/100,003,840 environment steps (66.0%); 26,831 env steps/s; elapsed 00:41:00; ETA 00:21:07
+training progress: 67,006,464/100,003,840 environment steps (67.0%); 26,808 env steps/s; elapsed 00:41:39; ETA 00:20:31
+training progress: 68,005,888/100,003,840 environment steps (68.0%); 26,785 env steps/s; elapsed 00:42:19; ETA 00:19:55
+training progress: 69,005,312/100,003,840 environment steps (69.0%); 26,766 env steps/s; elapsed 00:42:58; ETA 00:19:18
+training progress: 70,004,736/100,003,840 environment steps (70.0%); 26,742 env steps/s; elapsed 00:43:38; ETA 00:18:42
+training progress: 71,004,160/100,003,840 environment steps (71.0%); 26,719 env steps/s; elapsed 00:44:17; ETA 00:18:05
+training progress: 72,003,584/100,003,840 environment steps (72.0%); 26,699 env steps/s; elapsed 00:44:57; ETA 00:17:29
+nefc overflow - please increase njmax to 1096
+nefc overflow - please increase njmax to 1075
+nefc overflow - please increase njmax to 1042
+nefc overflow - please increase njmax to 1030
+training progress: 73,003,008/100,003,840 environment steps (73.0%); 26,680 env steps/s; elapsed 00:45:36; ETA 00:16:52
+training progress: 74,006,528/100,003,840 environment steps (74.0%); 26,661 env steps/s; elapsed 00:46:16; ETA 00:16:15
+training progress: 75,005,952/100,003,840 environment steps (75.0%); 26,643 env steps/s; elapsed 00:46:55; ETA 00:15:38
+Warning: EPA horizon = 24 isn't large enough.
+training progress: 76,005,376/100,003,840 environment steps (76.0%); 26,622 env steps/s; elapsed 00:47:35; ETA 00:15:01
+training progress: 77,004,800/100,003,840 environment steps (77.0%); 26,604 env steps/s; elapsed 00:48:15; ETA 00:14:25
+training progress: 78,004,224/100,003,840 environment steps (78.0%); 26,588 env steps/s; elapsed 00:48:54; ETA 00:13:47
+nefc overflow - please increase njmax to 1052
+nefc overflow - please increase njmax to 1093
+nefc overflow - please increase njmax to 1064
+nefc overflow - please increase njmax to 1054
+nefc overflow - please increase njmax to 1039
+nefc overflow - please increase njmax to 1032
+nefc overflow - please increase njmax to 1027
+nefc overflow - please increase njmax to 1028
+training progress: 79,003,648/100,003,840 environment steps (79.0%); 26,572 env steps/s; elapsed 00:49:33; ETA 00:13:10
+training progress: 80,003,072/100,003,840 environment steps (80.0%); 26,557 env steps/s; elapsed 00:50:13; ETA 00:12:33
+training progress: 81,006,592/100,003,840 environment steps (81.0%); 26,554 env steps/s; elapsed 00:50:51; ETA 00:11:55
+Warning: EPA horizon = 24 isn't large enough.
+training progress: 82,006,016/100,003,840 environment steps (82.0%); 26,554 env steps/s; elapsed 00:51:28; ETA 00:11:18
+training progress: 83,005,440/100,003,840 environment steps (83.0%); 26,554 env steps/s; elapsed 00:52:06; ETA 00:10:40
+training progress: 84,004,864/100,003,840 environment steps (84.0%); 26,553 env steps/s; elapsed 00:52:44; ETA 00:10:03
+training progress: 85,004,288/100,003,840 environment steps (85.0%); 26,550 env steps/s; elapsed 00:53:22; ETA 00:09:25
+training progress: 86,003,712/100,003,840 environment steps (86.0%); 26,548 env steps/s; elapsed 00:54:00; ETA 00:08:47
+training progress: 87,007,232/100,003,840 environment steps (87.0%); 26,546 env steps/s; elapsed 00:54:38; ETA 00:08:10
+training progress: 88,006,656/100,003,840 environment steps (88.0%); 26,545 env steps/s; elapsed 00:55:15; ETA 00:07:32
+training progress: 89,006,080/100,003,840 environment steps (89.0%); 26,543 env steps/s; elapsed 00:55:53; ETA 00:06:54
+training progress: 90,005,504/100,003,840 environment steps (90.0%); 26,540 env steps/s; elapsed 00:56:31; ETA 00:06:17
+training progress: 91,004,928/100,003,840 environment steps (91.0%); 26,537 env steps/s; elapsed 00:57:09; ETA 00:05:39
+nefc overflow - please increase njmax to 1029
+training progress: 92,004,352/100,003,840 environment steps (92.0%); 26,534 env steps/s; elapsed 00:57:47; ETA 00:05:01
+training progress: 93,003,776/100,003,840 environment steps (93.0%); 26,532 env steps/s; elapsed 00:58:25; ETA 00:04:24
+training progress: 94,007,296/100,003,840 environment steps (94.0%); 26,527 env steps/s; elapsed 00:59:04; ETA 00:03:46
+training progress: 95,006,720/100,003,840 environment steps (95.0%); 26,529 env steps/s; elapsed 00:59:41; ETA 00:03:08
+Warning: EPA horizon = 24 isn't large enough.
+training progress: 96,006,144/100,003,840 environment steps (96.0%); 26,525 env steps/s; elapsed 01:00:20; ETA 00:02:31
+training progress: 97,005,568/100,003,840 environment steps (97.0%); 26,524 env steps/s; elapsed 01:00:57; ETA 00:01:53
+training progress: 98,004,992/100,003,840 environment steps (98.0%); 26,521 env steps/s; elapsed 01:01:35; ETA 00:01:15
+nefc overflow - please increase njmax to 1028
+training progress: 99,004,416/100,003,840 environment steps (99.0%); 26,520 env steps/s; elapsed 01:02:13; ETA 00:00:38
+training progress: 100,003,840/100,003,840 environment steps (100.0%); 26,518 env steps/s; elapsed 01:02:51; ETA 00:00:00
+completed 100003840 environment steps; checkpoints: /tmp/haisenk_v2d/runs/n_ep10_nb_K_s42/train

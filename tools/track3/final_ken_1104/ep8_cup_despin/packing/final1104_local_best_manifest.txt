@@ -1,0 +1,6 @@
+base /home/haisenk/v2d_ops/kenc/bob1/candidate_bob1.parquet 46fe967a5aafc4e5078731a480e64105efdab9c48b466687c5632592a7f00fa4
+1 /home/haisenk/v2d_ops/kenc/final1104/b_ep1_wh_K_s48/one.parquet 7150f4e5764d15ad30824bda8720054288a63055eb32ea4cd21a1e82529d3276
+3 /home/haisenk/v2d_ops/kenc/tests/h_ep3_sc_K_s42/one.parquet 4a3d974d5ebce4ce529174b4f2828b7fe4789c4c250fdcd2d423bac6002cc98d
+5 /home/haisenk/v2d_ops/kenc/tests/r_ep5_rl_K_s43/one.parquet 11183810af8d275adac7e6575d38f6d4c6ead952e5b9c392d35ec630b8068066
+8 /home/haisenk/v2d_ops/kenc/final1104/rf_ep8_ds_K_s43/one.parquet 6da1e7bf92856491de3bbca8ba47f1c2dee60ef0163d429c9bcecf43e3d46611
+10 /home/haisenk/v2d_ops/kenc/tests/n_ep10_nb_K_s42/one.parquet 5b3eb64056b8e09af1956e6de2e57378ffad7fa88dca69af057c400f7662ba42

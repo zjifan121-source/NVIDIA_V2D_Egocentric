@@ -1,0 +1,14 @@
+{
+ "scene": "/scratch/haisenk-v2d/hand5w/scenes/w7_attcom_ep5",
+ "com": {
+  "urdf": "/scratch/haisenk-v2d/hand5w/scenes/w7_attcom_ep5/assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot_rigid.urdf",
+  "mesh": "/scratch/haisenk-v2d/hand5w/scenes/w7_attcom_ep5/assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot_visual.stl",
+  "old_origin": "0 0 0",
+  "new_origin_m": [
+   -0.008729,
+   -0.063857,
+   0.048846
+  ],
+  "shift_cm": 8.09
+ }
+}

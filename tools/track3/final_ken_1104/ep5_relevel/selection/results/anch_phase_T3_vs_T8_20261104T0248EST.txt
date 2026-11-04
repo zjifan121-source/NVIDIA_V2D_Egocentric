@@ -1,0 +1,11 @@
+# No-regression check before the T8 swap test, 4 Nov 2026 02:48 EST (07:48:36Z), local Windows (selection/anch_phase.py):
+#   python anch_phase.py scenes/w7_attcom_ep5/score_input/meshes/episode_000005 white_pot 6 \
+#     runs/o_ep5_attcom_s42/early_95006720/results/episode_000005.parquet runs/<run>/results/episode_000005.parquet \
+#     scenes/rl2_ep5/score_input/meshes/episode_000005
+# Copied verbatim from the session log. Anchored per-object AUC in 6 equal frame segments, adopted T3 run (A) -> re-level run (B).
+== adopted -> r_ep5_rl_K_s43/early_95006720
+white_pot      mean ADD 1.70->1.41 cm | f0-47: 0.952->0.993 (+0.042) | f48-95: 0.788->0.840 (+0.052) | f96-143: 0.852->0.885 (+0.034) | f144-191: 0.854->0.865 (+0.010) | f192-239: 0.965->0.948 (-0.017) | f240-287: 0.967->0.992 (+0.025)
+wooden_spoon   mean ADD 2.21->1.66 cm | f0-47: 0.932->0.973 (+0.040) | f48-95: 0.835->0.839 (+0.004) | f96-143: 0.792->0.859 (+0.068) | f144-191: 0.763->0.840 (+0.077) | f192-239: 0.893->0.915 (+0.022) | f240-287: 0.844->0.962 (+0.118)
+== adopted -> r_ep5_rl_K_s42/early_95006720
+white_pot      mean ADD 1.70->1.59 cm | f0-47: 0.952->0.980 (+0.029) | f48-95: 0.788->0.822 (+0.034) | f96-143: 0.852->0.848 (-0.004) | f144-191: 0.854->0.874 (+0.020) | f192-239: 0.965->0.953 (-0.012) | f240-287: 0.967->0.962 (-0.005)
+wooden_spoon   mean ADD 2.21->1.74 cm | f0-47: 0.932->0.966 (+0.034) | f48-95: 0.835->0.820 (-0.014) | f96-143: 0.792->0.841 (+0.049) | f144-191: 0.763->0.846 (+0.083) | f192-239: 0.893->0.913 (+0.020) | f240-287: 0.844->0.969 (+0.125)

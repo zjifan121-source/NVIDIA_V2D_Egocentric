@@ -1,0 +1,6 @@
+- evaluation.checkpoint=/tmp/haisenk_v2d/runs/n_ep10_nb_K_s42/train/policy_100003840.safetensors
+- evaluation.world_count=1
+- evaluation.reset_mode=explicit
+- evaluation.metrics_output=/tmp/haisenk_v2d/runs/n_ep10_nb_K_s42/early_100003840/results/episode_000010.json
+- evaluation.object_trajectories_output=/tmp/haisenk_v2d/runs/n_ep10_nb_K_s42/early_100003840/results/episode_000010.parquet
+- logging.mode=disabled

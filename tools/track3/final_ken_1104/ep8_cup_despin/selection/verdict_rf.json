@@ -1,0 +1,354 @@
+{
+ "rule": "decision_rule_retry.json (= notes.md Judge plan item 4, pre-registered 10:51 EST)",
+ "checks": {
+  "a_mechanism": {
+   "burst_med_cm_REF": {
+    "rf_ep8_ds_K_s42": 0.89,
+    "rf_ep8_ds_K_s43": 0.81,
+    "rf_ep8_ds_K_s44": 0.32
+   },
+   "n_below_2cm": 3,
+   "T6": 4.76,
+   "pass": true
+  },
+  "b_family": {
+   "mean_rf_REF": 0.97931,
+   "mean_KEN_REF": 0.95826,
+   "delta": 0.02105,
+   "threshold": 0.96226,
+   "pass": true
+  },
+  "c_candidate": {
+   "chosen": "rf_ep8_ds_K_s43",
+   "REF": 0.98102,
+   "T6_REF": 0.95691,
+   "delta_REF": 0.02411,
+   "delta_REF_DS|t6cup": 0.02412,
+   "delta_REF|b1cup": 0.01441,
+   "delta_SEAT|t6cup": 0.0214,
+   "delta_RAY|t6cup": 0.02383,
+   "pass": true
+  },
+  "d_no_new_failure": {
+   "REF|t6cup": {
+    "sp": 1.0,
+    "mp": 1.0,
+    "cup_end_lost": 0.0051,
+    "T6_cup_end_lost": 0.0043,
+    "cup_rest0_lost": 0.0,
+    "T6_cup_rest0_lost": 0.0,
+    "pot_tot_lost": 0.0071,
+    "T6_pot_tot_lost": 0.012,
+    "pass": true
+   },
+   "REF_DS|t6cup": {
+    "sp": 1.0,
+    "mp": 1.0,
+    "cup_end_lost": 0.005,
+    "T6_cup_end_lost": 0.0043,
+    "cup_rest0_lost": 0.0,
+    "T6_cup_rest0_lost": 0.0,
+    "pot_tot_lost": 0.0071,
+    "T6_pot_tot_lost": 0.012,
+    "pass": true
+   },
+   "REF|b1cup": {
+    "sp": 1.0,
+    "mp": 1.0,
+    "cup_end_lost": 0.0051,
+    "T6_cup_end_lost": 0.0047,
+    "cup_rest0_lost": 0.0,
+    "T6_cup_rest0_lost": 0.0,
+    "pot_tot_lost": 0.0049,
+    "T6_pot_tot_lost": 0.007,
+    "pass": true
+   },
+   "SEAT|t6cup": {
+    "sp": 1.0,
+    "mp": 1.0,
+    "cup_end_lost": 0.0051,
+    "T6_cup_end_lost": 0.0043,
+    "cup_rest0_lost": 0.0,
+    "T6_cup_rest0_lost": 0.0,
+    "pot_tot_lost": 0.0253,
+    "T6_pot_tot_lost": 0.0276,
+    "pass": true
+   },
+   "RAY|t6cup": {
+    "sp": 1.0,
+    "mp": 1.0,
+    "cup_end_lost": 0.0051,
+    "T6_cup_end_lost": 0.0043,
+    "cup_rest0_lost": 0.0,
+    "T6_cup_rest0_lost": 0.0,
+    "pot_tot_lost": 0.0183,
+    "T6_pot_tot_lost": 0.0228,
+    "pass": true
+   },
+   "pass": true
+  },
+  "e_training_stability": {
+   "best": 0.9902,
+   "late_90_100M": {
+    "95006720": 0.9902,
+    "100003840": 0.9877,
+    "90005504": 0.9783
+   },
+   "pass": true
+  }
+ },
+ "all_pass": true,
+ "verdict": "ADOPT-LOCALLY rf_ep8_ds (rf_ep8_ds_K_s43) over T6 - nothing submitted (Ken's stop)",
+ "table_add_auc": {
+  "h_ep8_sc_K_s42": {
+   "REF|t6cup": 0.95691,
+   "REF_DS|t6cup": 0.95733,
+   "REF|b1cup": 0.96219,
+   "SEAT|t6cup": 0.93936,
+   "RAY|t6cup": 0.94406,
+   "step": "100003840",
+   "burst_REF": 4.76
+  },
+  "h_ep8_sc_K_s43": {
+   "REF|t6cup": 0.96119,
+   "REF_DS|t6cup": 0.9609,
+   "REF|b1cup": 0.95776,
+   "SEAT|t6cup": 0.94449,
+   "RAY|t6cup": 0.95434,
+   "step": "90005504",
+   "burst_REF": 4.25
+  },
+  "h_ep8_sc_K_s44": {
+   "REF|t6cup": 0.95662,
+   "REF_DS|t6cup": 0.95662,
+   "REF|b1cup": 0.95348,
+   "SEAT|t6cup": 0.93721,
+   "RAY|t6cup": 0.94763,
+   "step": "100003840",
+   "burst_REF": 4.72
+  },
+  "h_ep8_sc_K_s45": {
+   "REF|t6cup": 0.95833,
+   "REF_DS|t6cup": 0.95819,
+   "REF|b1cup": 0.9609,
+   "SEAT|t6cup": 0.93978,
+   "RAY|t6cup": 0.94877,
+   "step": "100003840",
+   "burst_REF": 3.36
+  },
+  "h_ep8_sc_W_s42": {
+   "REF|t6cup": 0.96276,
+   "REF_DS|t6cup": 0.96219,
+   "REF|b1cup": 0.94007,
+   "SEAT|t6cup": 0.95291,
+   "RAY|t6cup": 0.96176,
+   "step": "90005504",
+   "burst_REF": 2.29
+  },
+  "rf_ep8_ds_K_s42": {
+   "REF|t6cup": 0.97817,
+   "REF_DS|t6cup": 0.97817,
+   "REF|b1cup": 0.98031,
+   "SEAT|t6cup": 0.95933,
+   "RAY|t6cup": 0.96846,
+   "step": "85004288",
+   "burst_REF": 0.89
+  },
+  "rf_ep8_ds_K_s43": {
+   "REF|t6cup": 0.98102,
+   "REF_DS|t6cup": 0.98145,
+   "REF|b1cup": 0.9766,
+   "SEAT|t6cup": 0.96076,
+   "RAY|t6cup": 0.96789,
+   "step": "95006720",
+   "burst_REF": 0.81
+  },
+  "rf_ep8_ds_K_s44": {
+   "REF|t6cup": 0.97874,
+   "REF_DS|t6cup": 0.9786,
+   "REF|b1cup": 0.98159,
+   "SEAT|t6cup": 0.9589,
+   "RAY|t6cup": 0.9639,
+   "step": "90005504",
+   "burst_REF": 0.32
+  }
+ },
+ "family_means": {
+  "REF|t6cup": {
+   "KEN4": 0.95826,
+   "RF3": 0.97931
+  },
+  "REF_DS|t6cup": {
+   "KEN4": 0.95826,
+   "RF3": 0.97941
+  },
+  "REF|b1cup": {
+   "KEN4": 0.95858,
+   "RF3": 0.9795
+  },
+  "SEAT|t6cup": {
+   "KEN4": 0.94021,
+   "RF3": 0.95966
+  },
+  "RAY|t6cup": {
+   "KEN4": 0.9487,
+   "RF3": 0.96675
+  }
+ },
+ "family_means_other": {
+  "rpe_cm": {
+   "REF|t6cup": {
+    "KEN4": 0.9958,
+    "RF3": 0.8568,
+    "T6": 0.91721
+   },
+   "REF_DS|t6cup": {
+    "KEN4": 1.0222,
+    "RF3": 0.8345,
+    "T6": 0.91151
+   },
+   "REF|b1cup": {
+    "KEN4": 1.6135,
+    "RF3": 0.9712,
+    "T6": 1.46435
+   },
+   "SEAT|t6cup": {
+    "KEN4": 1.114,
+    "RF3": 1.1634,
+    "T6": 1.05016
+   },
+   "RAY|t6cup": {
+    "KEN4": 0.9813,
+    "RF3": 0.9747,
+    "T6": 0.9094
+   }
+  },
+  "mppe_cm": {
+   "REF|t6cup": {
+    "KEN4": 1.0596,
+    "RF3": 0.8506,
+    "T6": 1.06691
+   },
+   "REF_DS|t6cup": {
+    "KEN4": 1.0603,
+    "RF3": 0.8501,
+    "T6": 1.06706
+   },
+   "REF|b1cup": {
+    "KEN4": 1.055,
+    "RF3": 0.8263,
+    "T6": 1.00978
+   },
+   "SEAT|t6cup": {
+    "KEN4": 1.3049,
+    "RF3": 1.1104,
+    "T6": 1.3184
+   },
+   "RAY|t6cup": {
+    "KEN4": 1.186,
+    "RF3": 1.0004,
+    "T6": 1.22818
+   }
+  }
+ },
+ "windows_REF_mean_lost": {
+  "cup blend-in f46-54": {
+   "T6": 0.0024,
+   "KEN4": 0.0027,
+   "RF3": 0.001,
+   "KEN4_med_cm": 1.8,
+   "RF3_med_cm": 0.85
+  },
+  "cup spin1+pour f55-72": {
+   "T6": 0.0116,
+   "KEN4": 0.0109,
+   "RF3": 0.0016,
+   "KEN4_med_cm": 2.87,
+   "RF3_med_cm": 0.81
+  },
+  "cup burst f62-69": {
+   "T6": 0.0083,
+   "KEN4": 0.0069,
+   "RF3": 0.0003,
+   "KEN4_med_cm": 4.27,
+   "RF3_med_cm": 0.67
+  },
+  "cup carry f73-127": {
+   "T6": 0.0036,
+   "KEN4": 0.0034,
+   "RF3": 0.0015,
+   "KEN4_med_cm": 0.89,
+   "RF3_med_cm": 0.68
+  },
+  "cup pour2+spin2 f128-155": {
+   "T6": 0.0078,
+   "KEN4": 0.0069,
+   "RF3": 0.0035,
+   "KEN4_med_cm": 1.67,
+   "RF3_med_cm": 1.09
+  },
+  "cup f147-152": {
+   "T6": 0.0014,
+   "KEN4": 0.0014,
+   "RF3": 0.0004,
+   "KEN4_med_cm": 1.72,
+   "RF3_med_cm": 0.98
+  },
+  "cup blend-out+setdown+rest f176-218": {
+   "T6": 0.0043,
+   "KEN4": 0.0049,
+   "RF3": 0.0033,
+   "KEN4_med_cm": 1.14,
+   "RF3_med_cm": 1.02
+  },
+  "cup rest f0-31": {
+   "T6": 0.0,
+   "KEN4": 0.0,
+   "RF3": 0.0,
+   "KEN4_med_cm": 0.59,
+   "RF3_med_cm": 0.59
+  },
+  "pot held f14-94": {
+   "T6": 0.0047,
+   "KEN4": 0.0033,
+   "RF3": 0.0027,
+   "KEN4_med_cm": 0.85,
+   "RF3_med_cm": 0.84
+  },
+  "pot lift f95-127": {
+   "T6": 0.0044,
+   "KEN4": 0.0041,
+   "RF3": 0.0029,
+   "KEN4_med_cm": 1.15,
+   "RF3_med_cm": 1.04
+  },
+  "pot lifted f128-164": {
+   "T6": 0.0013,
+   "KEN4": 0.0019,
+   "RF3": 0.0019,
+   "KEN4_med_cm": 0.85,
+   "RF3_med_cm": 0.89
+  },
+  "pot end f165-218": {
+   "T6": 0.0016,
+   "KEN4": 0.0017,
+   "RF3": 0.0017,
+   "KEN4_med_cm": 0.7,
+   "RF3_med_cm": 0.7
+  }
+ },
+ "supplementary_100M_REF": {
+  "rf_ep8_ds_K_s42_100M": {
+   "add_auc": 0.98273,
+   "burst": 0.5
+  },
+  "rf_ep8_ds_K_s43_100M": {
+   "add_auc": 0.98701,
+   "burst": 0.63
+  },
+  "rf_ep8_ds_K_s44_100M": {
+   "add_auc": 0.97688,
+   "burst": 0.82
+  }
+ }
+}

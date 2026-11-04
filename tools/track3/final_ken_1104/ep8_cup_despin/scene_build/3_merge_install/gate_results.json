@@ -1,0 +1,125 @@
+{
+ "gates": {
+  "G8_shape": {
+   "pass": true,
+   "n_cols": 68,
+   "frames": 219
+  },
+  "G2_untouched_columns": {
+   "pass": true,
+   "unexpected_diffs": [],
+   "changed": [
+    "mano_right_scale_center",
+    "mano_right_trans",
+    "mano_right_global_orient",
+    "mano_right_joints",
+    "mano_right_joints_wxyz",
+    "mano_right_tips_distance",
+    "mano_right_link_contact_positions",
+    "mano_right_link_contact_normals",
+    "mano_right_object_contact_positions",
+    "mano_right_object_contact_normals",
+    "mano_right_object_contact_part_ids",
+    "robot_right_wrist_position",
+    "robot_right_wrist_wxyz",
+    "robot_right_finger_joints",
+    "robot_right_frames",
+    "robot_right_frame_task_errors",
+    "robot_right_num_optimization_iterations",
+    "object_root_axis_angle",
+    "object_root_position",
+    "object_body_position",
+    "object_body_wxyz"
+   ],
+   "pot_identical": true,
+   "replaced_equal_despin": true
+  },
+  "G1_untouched_files": {
+   "pass": true,
+   "n_files": 38,
+   "differing": [],
+   "same_file_list": true
+  },
+  "G3_pure_spin": {
+   "pass": true,
+   "centroid_max_cm": 0.0,
+   "axis_max_deg": 0.0,
+   "twist_vs_f0_maxabs_deg": 0.0,
+   "base_axis": [
+    -0.012,
+    -0.7737,
+    -0.6334
+   ],
+   "base_centroid": [
+    -0.00089,
+    0.00041,
+    -0.00164
+   ]
+  },
+  "G4_hand_plausible": {
+   "pass": true,
+   "frames_gt15cm": 0,
+   "frames_gt15cm_adopted": 8,
+   "max_dist_cm": 6.51,
+   "wrist_rotstep_max_f55_72": 7.0,
+   "adopted_rotstep_max_f55_72": 27.1,
+   "wrist_rotstep_max_all": 13.6
+  },
+  "G5_contacts": {
+   "pass": true,
+   "merged": [
+    32,
+    199,
+    2567,
+    [
+     1
+    ]
+   ],
+   "adopted": [
+    32,
+    199,
+    2530,
+    [
+     1
+    ]
+   ]
+  },
+  "G6_rest_seating": {
+   "pass": true,
+   "max_abs_diff_cm": 0.061,
+   "merged_lowest_end_min": 0.9619,
+   "adopted_lowest_end_min": 0.962
+  },
+  "G7_side_effect_budget": {
+   "pass": true,
+   "cost": 0.00155,
+   "gain_model": 0.01027,
+   "limit": 0.00513,
+   "tilt_merged_med": 2.23,
+   "tilt_adopted_med": 1.8,
+   "tilt_merged_max": 4.43
+  }
+ },
+ "info": {
+  "root_eq_cup_adopted_max_cm": 0.0,
+  "root_eq_cup_merged_max_cm": 0.0,
+  "bundle_cleaned_diff_keys": [
+   "object_to_camera_transform",
+   "object_to_world_transform",
+   "hand_right_wrist_orient_in_camera",
+   "hand_right_wrist_trans_in_camera",
+   "hand_right_wrist_to_camera_transform",
+   "hand_right_wrist_to_world_transform"
+  ],
+  "bundle_cleaned_extra_keys": [],
+  "bundle_cleaned_replaced": true,
+  "stretch_dir_babel": [
+   0.0293,
+   0.7586,
+   0.6509
+  ]
+ },
+ "all_pass": true,
+ "merged_parquet": "/data/user_data/haisenk/v2d/refine1104/ep8/rf_ep8_ds/assets/human_motion_data/ego_recon/processed/sequence_id=ep8_ken_c_scored_attach/robot_name=sharpa_wave/4774016f0a65458c9245084fdc462018-0.parquet",
+ "merged_md5": "b09c4578bb3ca0689320cad7085f314c"
+}

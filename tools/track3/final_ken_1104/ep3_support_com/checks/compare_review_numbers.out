@@ -1,0 +1,2 @@
+white_pot      IoU all 0.821->0.821  f0-20 0.945->0.945  | h_support at rest (median|max) +1.22|+5.99 -> +0.10|+4.87 cm; min -1.48
+wooden_spoon   IoU all 0.587->0.587  f0-20 0.712->0.712  | h_support at rest (median|max) +1.95|+5.71 -> +0.83|+4.59 cm; min -0.23

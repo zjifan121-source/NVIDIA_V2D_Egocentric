@@ -1,0 +1,25 @@
+{
+ "candidate": "rf_ep8_ds_K_s43",
+ "episode": 8,
+ "scene": "rf_ep8_ds",
+ "scene_tgz": "scene.tgz",
+ "checkpoint_step": 95006720,
+ "step_arg": "95006720",
+ "results_source": "/tmp/haisenk_v2d/runs/rf_ep8_ds_K_s43/early_95006720/results",
+ "own_ref": 0.9901541095890412,
+ "own_ref_per_body": [
+  0.9840182648401826,
+  0.9962899543378996
+ ],
+ "policy_file": "policy_95006720.safetensors",
+ "policy_sha256": "3d33ff6bdee2980766b84dfd239c83866de17544eff314daf24b35a4a0a5d9fc",
+ "rollout_sha256": "bdcebcb2e199a080103573f831766ac9a4471613af285562a0fbab65de313067",
+ "recipe": "KEN task.motion_speed=1.0 sim.fps=20.254119873046875 termination.wrist_position.threshold=0.3 training.checkpoint.save_interval_environment_steps=5000192 termination.object_position.threshold=0.1 termination.object_orientation.threshold=0.5 training.replay.capacity=4194304 training.replay.observation_storage_dtype=float32 sim.njmax=1024 sim.nconmax=512",
+ "scene_tgz_sha256": "54b4c1676f3c4f429406e198d7fbc86e87caf61f0810dd7d13f082ee835b08ec",
+ "packed_one_parquet": "/home/haisenk/v2d_ops/kenc/final1104/rf_ep8_ds_K_s43/one.parquet",
+ "packed_one_sha256": "6da1e7bf92856491de3bbca8ba47f1c2dee60ef0163d429c9bcecf43e3d46611",
+ "packed_commit_url": "https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/1689cf6396bee0f6a3bf4cced610f2fe0f71ebf6",
+ "source_host": "babel-s5-16 /tmp/haisenk_v2d (job 10774619)",
+ "status": "NOT SUBMITTED (local best, 4 Nov final1104)",
+ "note": "ep8 local best (despin scene rf_ep8_ds; beats T6 h_ep8_sc_K_s42@100M under all 5 GT-free stand-ins, ep8/JUDGED.json; review approve_with_caveats); NOT SUBMITTED"
+}

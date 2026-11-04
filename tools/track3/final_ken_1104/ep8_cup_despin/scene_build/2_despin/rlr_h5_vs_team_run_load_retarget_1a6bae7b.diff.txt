@@ -1,0 +1,27 @@
+# Output of `diff $T/tools/track3/run_load_retarget.py ~/v2d_ops/kenc/hand5/rlr_h5.py` on Babel, 4 Nov 2026 14:21 EST
+# ($T = /data/user_data/haisenk/v2d/v2d_train, team repo edm_training @ 1a6bae7b2682a40087cd70e5d68c6aa3e5f21b77;
+#  repo file md5 812d1be99cf1f60816db514684204912, rlr_h5.py md5 0f2cef753271746addea0416806e1b21). Normal diff format.
+# rlr_h5.py = the team's run_load_retarget.py + the two opt-in env hooks H5_MERGED_NPZ / H5_PATCH (same hooks as the
+# pushed branch haisen/hand-fixes-ep3-10-20, commit 5294c6b) + REPO taken from $V2D_REPO so it can run from ~/v2d_ops.
+35c35
+< REPO = Path(__file__).resolve().parents[2]
+---
+> REPO = Path(os.environ["V2D_REPO"]).resolve()  # hand5 private copy: repo given by env
+41c41
+< MANIFEST = Path(__file__).with_name("episodes.json")
+---
+> MANIFEST = REPO / "tools/track3/episodes.json"
+1001a1002,1005
+>         if os.environ.get("H5_MERGED_NPZ"):  # hand5: replace the merged bundle arrays with a prepared result.npz
+>             shutil.copyfile(os.environ["H5_MERGED_NPZ"], Path(args.bundle) / "result.npz")
+>             merge_info["h5_merged_npz"] = os.environ["H5_MERGED_NPZ"]
+>             print(f"== hand5: merged result.npz replaced by {os.environ['H5_MERGED_NPZ']}", flush=True)
+1026a1031,1034
+>         if os.environ.get("H5_PATCH"):  # hand5: redefine cleanup functions (e.g. attach_hands) from a patch file
+>             exec(compile(Path(os.environ["H5_PATCH"]).read_text(), os.environ["H5_PATCH"], "exec"), globals())
+>             report["h5_patch"] = os.environ["H5_PATCH"]
+>             print(f"== hand5: patch {os.environ['H5_PATCH']} applied", flush=True)
+1056c1064
+<         support = str(Path(__file__).with_name("support_stacked.py")) if args.seat else "scripts/reconstruct_support_surfaces.py"
+---
+>         support = str(REPO / "tools/track3/support_stacked.py") if args.seat else "scripts/reconstruct_support_surfaces.py"

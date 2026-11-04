@@ -1,0 +1,8 @@
+white_pot start {"local_coef": [0.002227, 0.039599, 1.004479], "local_tilt_vs_sim_z_deg": 2.27, "clearance_min_cm_median": -0.82, "clearance_p1pct_cm_median": -0.58, "verts_below_table_median": 340, "up_tilt_vs_table_deg_median": 2.27, "up_tilt_vs_sim_z_deg_median": 0.0, "xy_first": [-0.0104, -0.052], "xy_last": [-0.0104, -0.052]}
+white_pot end {"local_coef": [0.006783, 0.042357, 1.005194], "local_tilt_vs_sim_z_deg": 2.46, "clearance_min_cm_median": -2.1, "clearance_p1pct_cm_median": -1.77, "verts_below_table_median": 784, "up_tilt_vs_table_deg_median": 6.73, "up_tilt_vs_sim_z_deg_median": 4.27, "xy_first": [-0.0202, -0.0276], "xy_last": [-0.0236, -0.0171]}
+white_pot start->end xy shift cm 2.6
+wooden_spoon start {"local_coef": [0.00585, 0.042839, 1.003623], "local_tilt_vs_sim_z_deg": 2.48, "clearance_min_cm_median": -0.31, "clearance_p1pct_cm_median": -0.2, "verts_below_table_median": 39, "up_tilt_vs_table_deg_median": 2.48, "up_tilt_vs_sim_z_deg_median": 0.0, "xy_first": [0.2234, 0.038], "xy_last": [0.2207, 0.0323]}
+wooden_spoon end {"local_coef": [0.006747, 0.041204, 1.005388], "local_tilt_vs_sim_z_deg": 2.39, "clearance_min_cm_median": -0.75, "clearance_p1pct_cm_median": -0.65, "verts_below_table_median": 114, "up_tilt_vs_table_deg_median": 5.3, "up_tilt_vs_sim_z_deg_median": 4.16, "xy_first": [0.2033, 0.0293], "xy_last": [0.2073, 0.0281]}
+wooden_spoon start->end xy shift cm 1.8
+support {'top_z': 0.9878071156409292, 'centre_xy': [0.0751, -0.0095], 'radius_m': 0.298, 'depth_plane_minus_support_cm_at_centre': 1.7, 'depth_plane_minus_support_cm_min_max_over_rim': [0.44, 2.96]}
+FOLLOWUP_DONE

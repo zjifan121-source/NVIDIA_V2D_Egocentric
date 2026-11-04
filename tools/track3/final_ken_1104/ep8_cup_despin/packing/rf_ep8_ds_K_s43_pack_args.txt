@@ -1,0 +1,1 @@
+8 rf_ep8_ds_K_s43 step=95006720 scene=rf_ep8_ds RES=/tmp/haisenk_v2d/runs/rf_ep8_ds_K_s43/early_95006720/results MESH=/tmp/haisenk_v2d/scenes/rf_ep8_ds/score_input/meshes URL=https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/1689cf6396bee0f6a3bf4cced610f2fe0f71ebf6

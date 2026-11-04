@@ -1,0 +1,17 @@
+mano_center_idx A: [None]
+mano_center_idx B: [None]
+  equal incl. NaN: True
+mano_to_robot_scale A: [None]
+mano_to_robot_scale B: [None]
+  equal incl. NaN: True
+raw_motion_file A: ['C:\\Users\\Haisen\\AppData\\Local\\Temp\\claude\\670C48~1\\3081C1~1\\SCRATC~1\\repro\\work\\rl_ep5\\bundle_cleaned\\result.npz']
+raw_motion_file B: ['/tmp/haisenk_v2d/scenes/rl2_ep5/bundle_cleaned/result.npz']
+  non-numeric ValueError
+object_mesh_paths A: [['C:\\Users\\Haisen\\AppData\\Local\\Temp\\claude\\670C48~1\\3081C1~1\\SCRATC~1\\repro\\work\\rl_ep5\\assets\\human_motion_data\\ego_recon\\processed\\ep5_hw_w7_attcom_ep5_white_pot.obj', 'C:\\Users\\Haisen\\AppData\\Local\\Temp\\claude\\670C48~1\\3081C1~1\\SCRATC~1\\repro\\work\\rl_ep5\\assets\\hu
+object_mesh_paths B: [['/tmp/haisenk_v2d/scenes/rl2_ep5/assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot.obj', '/tmp/haisenk_v2d/scenes/rl2_ep5/assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon.obj']]
+  non-numeric ValueError
+object_urdf_paths A: [['C:\\Users\\Haisen\\AppData\\Local\\Temp\\claude\\670C48~1\\3081C1~1\\SCRATC~1\\repro\\work\\rl_ep5\\assets\\human_motion_data\\ego_recon\\processed\\ep5_hw_w7_attcom_ep5_white_pot_rigid.urdf', 'C:\\Users\\Haisen\\AppData\\Local\\Temp\\claude\\670C48~1\\3081C1~1\\SCRATC~1\\repro\\work\\rl_ep5\\ass
+object_urdf_paths B: [['/tmp/haisenk_v2d/scenes/rl2_ep5/assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot_rigid.urdf', '/tmp/haisenk_v2d/scenes/rl2_ep5/assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon_rigid.urdf']]
+  non-numeric ValueError
+numeric columns not bit-equal (NaN-aware): []
+n columns 68

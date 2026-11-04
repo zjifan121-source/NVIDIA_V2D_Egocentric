@@ -1,0 +1,38 @@
+SAME  assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot.mtl  83214f37a7e58fc1d7218a75261c2a6b (text, LF-normalised)
+SAME  assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot.obj  418c407de75dac7ec8093d393d46a589 (text, LF-normalised)
+SAME  assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot_mesh_material_0.png  08ae9941b704f55ce7f18f40f97584ac
+SAME  assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot_rigid.urdf  b1577693c7a1fff05442dc2c06149a8f (text, LF-normalised)
+SAME  assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_white_pot_visual.stl  105f8713bf33f7bc234b796991c48649
+SAME  assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon.mtl  3b211256cb12b93cd706e72bacd63900 (text, LF-normalised)
+SAME  assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon.obj  f46345a6bbf7ecee912daa58782568e2 (text, LF-normalised)
+SAME  assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon_mesh_1_material_0.png  a87435449589d2a198bceeb6f8481b62
+SAME  assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon_rigid.urdf  b2f60dc6373311d504fab7b47255360d (text, LF-normalised)
+SAME  assets/human_motion_data/ego_recon/processed/ep3_h5_h5_ep3_A1_wooden_spoon_visual.stl  e086cc7bddfa2d8a4d158774d2fb1af2
+PARQUET_NUMERIC_IDENTICAL  assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave/cffb49c402f842de966872b0e5685642-0.parquet  (non-string cols identical 54; differing non-string []; differing string cols ['raw_motion_file', 'object_mesh_paths', 'object_urdf_paths'])
+SAME  assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave/cffb49c402f842de966872b0e5685642-0.parquet.orig  ba19004b30ef08dd5e8dd12426c2904c
+SAME  assets/human_motion_data/ego_recon/reconstructed_stage/ep3_h5_h5_ep3_A1_sharpa_wave_support.usda  bc823a849edfb0339d7ec8730973ec9f (text, LF-normalised)
+SAME  bundle_cleaned/manifest.json  0b24e893bab4ff81da86e99b79cd3942 (text, LF-normalised)
+SAME  bundle_cleaned/mesh.mtl  516c715f1a2915df001bf501fea545c8 (text, LF-normalised)
+SAME  bundle_cleaned/mesh.obj  648d2dd5ba06ffa53a026d05b23a917b (text, LF-normalised)
+SAME  bundle_cleaned/mesh_1.mtl  ef290e2b006fd97af170f08f98cf2de5 (text, LF-normalised)
+SAME  bundle_cleaned/mesh_1.obj  98125af6e0459c7ee2e144eb9d6296dc (text, LF-normalised)
+SAME  bundle_cleaned/mesh_1_material_0.png  a87435449589d2a198bceeb6f8481b62
+SAME  bundle_cleaned/mesh_material_0.png  08ae9941b704f55ce7f18f40f97584ac
+SAME  bundle_cleaned/result.npz  483c820a7e5be4d6418b5c43ed384eed
+SAME  bundle_merged/manifest.json  0b24e893bab4ff81da86e99b79cd3942 (text, LF-normalised)
+SAME  bundle_merged/mesh.mtl  516c715f1a2915df001bf501fea545c8 (text, LF-normalised)
+SAME  bundle_merged/mesh.obj  648d2dd5ba06ffa53a026d05b23a917b (text, LF-normalised)
+SAME  bundle_merged/mesh_1.mtl  ef290e2b006fd97af170f08f98cf2de5 (text, LF-normalised)
+SAME  bundle_merged/mesh_1.obj  98125af6e0459c7ee2e144eb9d6296dc (text, LF-normalised)
+SAME  bundle_merged/mesh_1_material_0.png  a87435449589d2a198bceeb6f8481b62
+SAME  bundle_merged/mesh_material_0.png  08ae9941b704f55ce7f18f40f97584ac
+SAME  bundle_merged/result.npz  a996e2b1ddf5b93573690e1b0a265e9e
+PARQUET_NUMERIC_IDENTICAL  intermediate/ego_recon/loaded/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave/68d5d5ece2be406e824a0abad8962a0e-0.parquet  (non-string cols identical 52; differing non-string []; differing string cols [])
+SAME  pipeline.log  0b7d8ca74eacacfc68b2f8e045504d00 (text, LF-normalised)
+SAME  report.json  3cd8ff581191c771b556b8939b30a3bc (text, LF-normalised)
+DIFF  scenefix_report.json  4e3025d702f46fd22f927daa8d1f2a24 vs 40c8ae01d857d6c9feb2b4b13199916d (text, LF-normalised)
+SAME  score_input/meshes/episode_000003/material.mtl  d4964b449ac982a62ce89b724c07afd4 (text, LF-normalised)
+SAME  score_input/meshes/episode_000003/material_0.png  a87435449589d2a198bceeb6f8481b62
+SAME  score_input/meshes/episode_000003/white_pot.obj  aaf91ae05c8da3b5d1fb43adf25fc8db (text, LF-normalised)
+SAME  score_input/meshes/episode_000003/wooden_spoon.obj  05dfba95a48f15fdc62285cdb283cf1b (text, LF-normalised)
+SAME  score_input/results/episode_000003.npy  27d58cbf203eb3fa05b9f34bdf607290

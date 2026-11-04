@@ -1,0 +1,7 @@
+/home/haisenk/v2d_ops/kenc/final1104/local_best/track3_submission.parquet: 9,120 rows over 20 episodes, 2,862,283 B - looks valid
+Track 3 - Egocentric: 2 leaderboard(s)
+CD-O meshes extracted to /home/haisenk/v2d_ops/kenc/final1104/local_best/track3_submission.cd-o.parquet
+  mppe_cm          v2d-challenge-track3-mppe                3 left today
+  cd_o_cm          v2d-challenge-track3-cd-o                3 left today
+
+--dry-run: nothing submitted.

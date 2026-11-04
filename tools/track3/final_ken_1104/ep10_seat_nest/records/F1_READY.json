@@ -1,0 +1,1185 @@
+{
+ "status": "READY",
+ "supersedes": "F1_FAILED.json (left in place). F1_FAILED reported the plain-F1 scenes k10_ep10_seat / k10_ep10_nest, whose unchanged attach re-picked the beige for the left hand. The coordinator approved F1-b (~03:07 EST): the same F1 seat rule plus a hold-preserving attach. This file names k10_ep10_seat_b (train) and k10_ep10_nest_b (F2 base).",
+ "written_local_time": "2026-11-04T03:17:33",
+ "episode": 10,
+ "fix": "F1-b = F1 depth visible-top seat of the blue cup (plan.fixes[0], unchanged) + respinf attach whose hold ownership is decided on the tracked (pre-seat) trajectory and whose grips are applied on the seated trajectory. Patch ~/v2d_ops/kenc/diag/ep10_fix/p10seat_b.py (execs p10seat.py, which execs bob1's patch_respinf.py).",
+ "build_command": "NS=ken_c_scored SEAT=0 H5_PATCH=~/v2d_ops/kenc/diag/ep10_fix/p10seat_b.py bash ~/v2d_ops/kenc/hand5/h5_build.sh <name> 10",
+ "scenes": {
+  "k10_ep10_seat_b": {
+   "scene": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_seat_b",
+   "parquet_dir": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_seat_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_seat_b/robot_name=sharpa_wave",
+   "parquet_file": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_seat_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_seat_b/robot_name=sharpa_wave/6060c9b25cfb4b818af4534ef0e66804-0.parquet",
+   "parquet_md5": "773d8ff13f8d373a1fb508cefe89b5fe",
+   "report": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_seat_b/report.json",
+   "support_usd": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_seat_b/assets/human_motion_data/ego_recon/reconstructed_stage/ep10_h5_k10_ep10_seat_b_sharpa_wave_support.usda"
+  },
+  "k10_ep10_nest_b": {
+   "scene": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b",
+   "parquet_dir": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave",
+   "parquet_file": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave/1dec0481b92e473982df6ee3c2c8e502-0.parquet",
+   "parquet_md5": "0a1264d04e440febbee7d60623e4637b",
+   "report": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b/report.json",
+   "support_usd": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/reconstructed_stage/ep10_h5_k10_ep10_nest_b_sharpa_wave_support.usda"
+  },
+  "k10_ep10_ctl (control)": {
+   "scene": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_ctl",
+   "parquet_dir": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_ctl/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_ctl/robot_name=sharpa_wave",
+   "parquet_file": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_ctl/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_ctl/robot_name=sharpa_wave/62d99ab4d8fb4629aaf80c210a941adf-0.parquet",
+   "parquet_md5": "45de9d2f870813728ff89cc499c31ed3",
+   "report": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_ctl/report.json",
+   "support_usd": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_ctl/assets/human_motion_data/ego_recon/reconstructed_stage/ep10_h5_k10_ep10_ctl_sharpa_wave_support.usda"
+  }
+ },
+ "k10_ep10_nest_b": {
+  "state": "base, pre-collision-edit; archived right after its build, before this file was written",
+  "same_patch_as_seat_b": true,
+  "parquet_vs_seat_b_beyond_1e-5": {
+   "raw_motion_file": "differs only by scene name",
+   "mano_right_tips_distance": {
+    "maxabs": 0.0018779278034344316,
+    "shape": [
+     161,
+     5
+    ],
+    "frames_changed": [
+     0,
+     160,
+     161
+    ]
+   },
+   "mano_right_link_contact_positions": {
+    "maxabs": 1.2812180519104004,
+    "shape": [
+     161,
+     16,
+     3
+    ],
+    "frames_changed": [
+     18,
+     102,
+     85
+    ]
+   },
+   "mano_right_link_contact_normals": {
+    "maxabs": 0.980155885219574,
+    "shape": [
+     161,
+     16,
+     3
+    ],
+    "frames_changed": [
+     18,
+     102,
+     85
+    ]
+   },
+   "mano_right_object_contact_positions": {
+    "maxabs": 1.282505989074707,
+    "shape": [
+     161,
+     16,
+     3
+    ],
+    "frames_changed": [
+     18,
+     102,
+     85
+    ]
+   },
+   "mano_right_object_contact_normals": {
+    "maxabs": 1.9940451979637146,
+    "shape": [
+     161,
+     16,
+     3
+    ],
+    "frames_changed": [
+     18,
+     102,
+     85
+    ]
+   },
+   "mano_right_object_contact_part_ids": {
+    "maxabs": 2.0,
+    "shape": [
+     161,
+     16
+    ],
+    "frames_changed": [
+     22,
+     100,
+     15
+    ]
+   },
+   "mano_left_tips_distance": {
+    "maxabs": 0.0031360849388875067,
+    "shape": [
+     161,
+     5
+    ],
+    "frames_changed": [
+     0,
+     160,
+     161
+    ]
+   },
+   "mano_left_link_contact_positions": {
+    "maxabs": 1.1225812435150146,
+    "shape": [
+     161,
+     16,
+     3
+    ],
+    "frames_changed": [
+     19,
+     123,
+     105
+    ]
+   },
+   "mano_left_link_contact_normals": {
+    "maxabs": 0.9991564154624939,
+    "shape": [
+     161,
+     16,
+     3
+    ],
+    "frames_changed": [
+     19,
+     123,
+     105
+    ]
+   },
+   "mano_left_object_contact_positions": {
+    "maxabs": 1.1237542629241943,
+    "shape": [
+     161,
+     16,
+     3
+    ],
+    "frames_changed": [
+     19,
+     123,
+     105
+    ]
+   },
+   "mano_left_object_contact_normals": {
+    "maxabs": 1.9996281266212463,
+    "shape": [
+     161,
+     16,
+     3
+    ],
+    "frames_changed": [
+     19,
+     123,
+     105
+    ]
+   },
+   "mano_left_object_contact_part_ids": {
+    "maxabs": 1.0,
+    "shape": [
+     161,
+     16
+    ],
+    "frames_changed": [
+     22,
+     121,
+     51
+    ]
+   },
+   "object_name": "differs only by scene name",
+   "safe_object_name": "differs only by scene name",
+   "object_body_names": "differs only by scene name",
+   "safe_object_body_names": "differs only by scene name",
+   "object_mesh_paths": "differs only by scene name",
+   "object_urdf_paths": "differs only by scene name",
+   "object_mesh_radius": {
+    "maxabs": 0.00026234984397888184,
+    "shape": [
+     2
+    ],
+    "frames_changed": [
+     0,
+     1,
+     2
+    ]
+   }
+  },
+  "note": "object poses, MANO joints and robot wrists equal seat_b (<1e-5); differences are loader contact-label build noise and names. I will not modify it; the F2 agent edits its URDFs."
+ },
+ "seat_b_vs_seat_parquet_beyond_1e-5": {
+  "raw_motion_file": "differs only by scene name",
+  "mano_left_scale_center": {
+   "maxabs": 0.01306486502289772,
+   "shape": [
+    161,
+    3
+   ],
+   "frames_changed": [
+    45,
+    124,
+    80
+   ]
+  },
+  "mano_right_tips_distance": {
+   "maxabs": 0.0019982238300144672,
+   "shape": [
+    161,
+    5
+   ],
+   "frames_changed": [
+    0,
+    160,
+    161
+   ]
+  },
+  "mano_right_link_contact_positions": {
+   "maxabs": 1.31960129737854,
+   "shape": [
+    161,
+    16,
+    3
+   ],
+   "frames_changed": [
+    18,
+    102,
+    85
+   ]
+  },
+  "mano_right_link_contact_normals": {
+   "maxabs": 0.9969371557235718,
+   "shape": [
+    161,
+    16,
+    3
+   ],
+   "frames_changed": [
+    18,
+    102,
+    85
+   ]
+  },
+  "mano_right_object_contact_positions": {
+   "maxabs": 1.3180174827575684,
+   "shape": [
+    161,
+    16,
+    3
+   ],
+   "frames_changed": [
+    18,
+    102,
+    85
+   ]
+  },
+  "mano_right_object_contact_normals": {
+   "maxabs": 1.9901121258735657,
+   "shape": [
+    161,
+    16,
+    3
+   ],
+   "frames_changed": [
+    18,
+    102,
+    85
+   ]
+  },
+  "mano_right_object_contact_part_ids": {
+   "maxabs": 2.0,
+   "shape": [
+    161,
+    16
+   ],
+   "frames_changed": [
+    20,
+    98,
+    18
+   ]
+  },
+  "mano_left_trans": {
+   "maxabs": 0.033919572830200195,
+   "shape": [
+    161,
+    3
+   ],
+   "frames_changed": [
+    45,
+    124,
+    80
+   ]
+  },
+  "mano_left_global_orient": {
+   "maxabs": 0.1643037274479866,
+   "shape": [
+    161,
+    3
+   ],
+   "frames_changed": [
+    45,
+    124,
+    80
+   ]
+  },
+  "mano_left_joints": {
+   "maxabs": 0.050063133239746094,
+   "shape": [
+    161,
+    21,
+    3
+   ],
+   "frames_changed": [
+    45,
+    124,
+    80
+   ]
+  },
+  "mano_left_joints_wxyz": {
+   "maxabs": 1.3501806855201721,
+   "shape": [
+    161,
+    21,
+    4
+   ],
+   "frames_changed": [
+    45,
+    124,
+    80
+   ]
+  },
+  "mano_left_tips_distance": {
+   "maxabs": 0.015405451878905296,
+   "shape": [
+    161,
+    5
+   ],
+   "frames_changed": [
+    0,
+    160,
+    161
+   ]
+  },
+  "mano_left_link_contact_positions": {
+   "maxabs": 1.1262390613555908,
+   "shape": [
+    161,
+    16,
+    3
+   ],
+   "frames_changed": [
+    19,
+    123,
+    105
+   ]
+  },
+  "mano_left_link_contact_normals": {
+   "maxabs": 1.445809692144394,
+   "shape": [
+    161,
+    16,
+    3
+   ],
+   "frames_changed": [
+    19,
+    123,
+    105
+   ]
+  },
+  "mano_left_object_contact_positions": {
+   "maxabs": 1.1251983642578125,
+   "shape": [
+    161,
+    16,
+    3
+   ],
+   "frames_changed": [
+    19,
+    123,
+    105
+   ]
+  },
+  "mano_left_object_contact_normals": {
+   "maxabs": 1.9970307350158691,
+   "shape": [
+    161,
+    16,
+    3
+   ],
+   "frames_changed": [
+    19,
+    123,
+    105
+   ]
+  },
+  "mano_left_object_contact_part_ids": {
+   "maxabs": 1.0,
+   "shape": [
+    161,
+    16
+   ],
+   "frames_changed": [
+    24,
+    122,
+    53
+   ]
+  },
+  "robot_left_wrist_position": {
+   "maxabs": 0.033298492431640625,
+   "shape": [
+    161,
+    3
+   ],
+   "frames_changed": [
+    45,
+    124,
+    80
+   ]
+  },
+  "robot_left_wrist_wxyz": {
+   "maxabs": 0.06401705741882324,
+   "shape": [
+    161,
+    4
+   ],
+   "frames_changed": [
+    45,
+    124,
+    80
+   ]
+  },
+  "robot_left_finger_joints": {
+   "maxabs": 0.00036901235580444336,
+   "shape": [
+    161,
+    22
+   ],
+   "frames_changed": [
+    45,
+    125,
+    54
+   ]
+  },
+  "robot_left_frames": {
+   "maxabs": 1.390658438205719,
+   "shape": [
+    161,
+    67,
+    7
+   ],
+   "frames_changed": [
+    45,
+    124,
+    80
+   ]
+  },
+  "robot_left_num_optimization_iterations": {
+   "maxabs": 4.0,
+   "shape": [
+    161
+   ],
+   "frames_changed": [
+    56,
+    107,
+    17
+   ]
+  },
+  "object_name": "differs only by scene name",
+  "safe_object_name": "differs only by scene name",
+  "object_body_names": "differs only by scene name",
+  "safe_object_body_names": "differs only by scene name",
+  "object_mesh_paths": "differs only by scene name",
+  "object_urdf_paths": "differs only by scene name",
+  "object_mesh_radius": {
+   "maxabs": 0.00039111077785491943,
+   "shape": [
+    2
+   ],
+   "frames_changed": [
+    0,
+    1,
+    2
+   ]
+  },
+  "object_root_axis_angle": {
+   "maxabs": 0.030045218765735626,
+   "shape": [
+    161,
+    3
+   ],
+   "frames_changed": [
+    46,
+    160,
+    115
+   ]
+  },
+  "object_root_position": {
+   "maxabs": 3.7670135498046875e-05,
+   "shape": [
+    161,
+    3
+   ],
+   "frames_changed": [
+    54,
+    160,
+    107
+   ]
+  },
+  "object_body_position": {
+   "maxabs": 3.7670135498046875e-05,
+   "shape": [
+    161,
+    2,
+    3
+   ],
+   "frames_changed": [
+    54,
+    160,
+    107
+   ]
+  },
+  "object_body_wxyz": {
+   "maxabs": 0.013229452073574066,
+   "shape": [
+    161,
+    2,
+    4
+   ],
+   "frames_changed": [
+    46,
+    160,
+    115
+   ]
+  }
+ },
+ "seat_b_bundle_cleaned_vs_dry_run": "seat_b bundle_cleaned vs dry_b differing keys: [] (empty list = bundle_cleaned bit-identical to the approved dry run)",
+ "control_build_vs_bob1": {
+  "bob1_parquet_md5": "83ad3832951bda915fb181a6b4bcb14d",
+  "ctl_parquet_md5": "45de9d2f870813728ff89cc499c31ed3",
+  "byte_identical": false,
+  "verdict": "reference content identical (object pose <=3.7e-9 m, quat <=6e-8, MANO joints <=2.4e-7 m, cleaning report and output_check identical); bytes differ by scene-name paths and the loader's per-build contact-label re-sampling"
+ },
+ "dz_table": {
+  "rule": "F1 unchanged: dz = min(0, z_support + max(rise5, 0) - z_lowest), gated n>=2000 & |dz|>=3 mm, 5-frame box, never raise; blue only",
+  "rest_top_cm_f0_35": 16.62,
+  "rest_hold_frames_detected": 13,
+  "frames_changed_first_last_count": [
+   20,
+   160,
+   141
+  ],
+  "dz_min_cm": -6.107,
+  "seat_b_dz_cm_every5": {
+   "0": 0.0,
+   "5": 0.0,
+   "10": 0.0,
+   "15": 0.0,
+   "20": -0.06,
+   "25": -0.21,
+   "30": -0.45,
+   "35": -0.49,
+   "40": -0.46,
+   "45": -0.32,
+   "50": -1.55,
+   "55": -2.87,
+   "60": -3.29,
+   "65": -4.69,
+   "70": -5.68,
+   "75": -5.89,
+   "80": -6.11,
+   "85": -5.72,
+   "90": -5.19,
+   "95": -4.78,
+   "100": -4.41,
+   "105": -4.22,
+   "110": -4.25,
+   "115": -3.86,
+   "120": -2.89,
+   "125": -2.19,
+   "130": -1.85,
+   "135": -1.64,
+   "140": -1.35,
+   "145": -1.41,
+   "150": -1.52,
+   "155": -1.53,
+   "160": -1.51
+  },
+  "dryrun_dz_cm_every5": {
+   "0": 0.0,
+   "5": 0.0,
+   "10": 0.0,
+   "15": 0.0,
+   "20": -0.06,
+   "25": -0.21,
+   "30": -0.44,
+   "35": -0.48,
+   "40": -0.46,
+   "45": -0.33,
+   "50": -1.55,
+   "55": -2.87,
+   "60": -3.28,
+   "65": -4.65,
+   "70": -5.67,
+   "75": -5.87,
+   "80": -6.04,
+   "85": -5.65,
+   "90": -5.17,
+   "95": -4.83,
+   "100": -4.52,
+   "105": -4.29,
+   "110": -4.34,
+   "115": -3.98,
+   "120": -2.88,
+   "125": -2.09,
+   "130": -1.73,
+   "135": -1.51,
+   "140": -1.21,
+   "145": -1.28,
+   "150": -1.39,
+   "155": -1.41,
+   "160": -1.39
+  },
+  "summary": "0 on f0-19; -0.06..-0.49 cm on f20-40; partial -0.16..-1.55 on f41-50 (real top rise kept); -2.87 (f55), -4.7..-6.11 (f65-85, min -6.11 at f80), -4.41 (f100), -3.86 (f115), -2.19 (f125), -1.35..-1.53 (f140-160); identical to the F1 seat build (dz is applied before the attach)."
+ },
+ "checks": {
+  "a_report_json": {
+   "result": "PASS",
+   "attached": {
+    "attached_0": [
+     [
+      "left",
+      45,
+      125,
+      6.6
+     ]
+    ],
+    "attached_1": [
+     [
+      "right",
+      35,
+      104,
+      5.1
+     ]
+    ],
+    "hand_left_attached_frames": 80,
+    "hand_right_attached_frames": 69
+   },
+   "left_wrist_shift_from_observed_cm (cleaned minus merged, camera frame)": {
+    "seat_b": {
+     "f45_81_max": 1.59,
+     "f82_124_max": 1.55,
+     "max_any_frame": 3.3,
+     "argmax": 14,
+     "every4_f40_128": {
+      "40": 0.2,
+      "44": 0.13,
+      "48": 0.5,
+      "52": 0.84,
+      "56": 0.92,
+      "60": 0.49,
+      "64": 0.54,
+      "68": 1.05,
+      "72": 1.48,
+      "76": 1.5,
+      "80": 1.59,
+      "84": 1.46,
+      "88": 1.55,
+      "92": 1.23,
+      "96": 1.14,
+      "100": 0.99,
+      "104": 0.39,
+      "108": 0.27,
+      "112": 0.77,
+      "116": 0.68,
+      "120": 0.64,
+      "124": 1.03,
+      "128": 1.73
+     }
+    },
+    "F1_seat (superseded)": {
+     "f45_81_max": 0.3,
+     "f82_124_max": 4.9
+    },
+    "bob1_ctl": {
+     "f45_81_max": 7.12,
+     "f82_124_max": 6.99
+    },
+    "note": "max_any_frame (3.3 cm at f14) is hand cleaning/smoothing outside any attach window; identical in ctl, seat and seat_b"
+   },
+   "note_on_attached_numbers": "4th number of attached_* = wrist-to-mesh-surface distance at the grip frame (not a shift)",
+   "p10_dz_build_vs_dryrun_max_abs_cm": 0.135,
+   "p10_dz_seat_b_vs_seat_max_abs_cm": 0.0,
+   "rest_hold_until_frame": {
+    "rest_hold_until_frame_blue_cup": 13,
+    "rest_hold_until_frame_beige_cup": 13
+   },
+   "p10_rest_hold_frames": 13,
+   "respin_psi_deg": {
+    "h5_respin_psi_deg_range_0": [
+     0.0,
+     2.3
+    ],
+    "h5_respin_psi_deg_range_1": [
+     -0.0,
+     27.3
+    ]
+   },
+   "p10b_hold_test": "hold ownership on the pre-seat trajectory (z - dz) of the seated object"
+  },
+  "b_parquet_vs_ctl": {
+   "result": "PASS",
+   "beige_pos_max_abs_m": 0.0,
+   "beige_rot_max_deg": 0.0,
+   "blue_z_change_cm_min_max": [
+    -6.107,
+    0.0
+   ],
+   "blue_xy_max_abs_m": 8.791685104370117e-06,
+   "blue_rot_change_twist_about_axis_max_deg": 0.547,
+   "blue_rot_change_swing_max_deg": 0.0,
+   "left_mano_joints_changed_frames_first_last_n": [
+    45,
+    124,
+    80
+   ],
+   "left_mano_joints_max_change_cm": 7.18,
+   "right_mano_joints_changed_frames": [],
+   "ctl_left_attach_window": [
+    45,
+    125
+   ],
+   "note": "blue changes in z, plus the respin twist about its own axis (psi now follows the left hold as in bob1); left hand changes only inside f45-124; right hand unchanged"
+  },
+  "c_blue_lowest_vs_support": {
+   "result": "strict FAIL accepted (numbers match the seat build); realistic bar PASS",
+   "strict": {
+    "bar": "+-3 mm on f55-160",
+    "seat_b_f55_160_min_max_cm": [
+     -0.07,
+     0.8
+    ],
+    "frames_outside_3mm": 34,
+    "frames_list": [
+     55,
+     56,
+     57,
+     58,
+     59,
+     60,
+     61,
+     64,
+     65,
+     66,
+     86,
+     87,
+     88,
+     89,
+     90,
+     91,
+     92,
+     93,
+     94,
+     95,
+     96,
+     97,
+     98,
+     99,
+     100,
+     101,
+     102,
+     103,
+     104,
+     109,
+     113,
+     114,
+     116,
+     117
+    ],
+    "never_below_minus3mm": true,
+    "all_frames_min_cm": -0.074,
+    "ctl_f55_160_min_max_cm": [
+     1.36,
+     6.23
+    ]
+   },
+   "realistic": {
+    "bar": "gap minus max(observed top rise (5-frame median), 0) within about +-5 mm on f55-160 (rule lowers only to the observed top)",
+    "seat_b_min_max_cm": [
+     -0.09,
+     0.5
+    ],
+    "frames_beyond_3mm": [
+     99,
+     100,
+     103,
+     104,
+     109,
+     113,
+     114,
+     116,
+     117
+    ],
+    "frames_beyond_5mm": [
+     103
+    ]
+   },
+   "vs_seat_build": {
+    "seat_f55_160_min_max_cm": [
+     -0.08,
+     0.8
+    ],
+    "seat_frames_outside_3mm": 34,
+    "max_abs_gap_diff_seat_b_vs_seat_cm": 0.007
+   },
+   "support_top_z_m": 0.99844,
+   "blue_f0_seating_cm": 0.156,
+   "seat_b_gap_cm_every5": {
+    "0": 0.16,
+    "5": 0.16,
+    "10": 0.16,
+    "15": 0.28,
+    "20": 0.22,
+    "25": 0.4,
+    "30": 0.21,
+    "35": 0.33,
+    "40": 1.16,
+    "45": 1.77,
+    "50": 1.42,
+    "55": 0.8,
+    "60": 0.43,
+    "65": 0.33,
+    "70": 0.26,
+    "75": 0.13,
+    "80": 0.12,
+    "85": 0.24,
+    "90": 0.44,
+    "95": 0.69,
+    "100": 0.6,
+    "105": 0.1,
+    "110": 0.29,
+    "115": 0.28,
+    "120": 0.1,
+    "125": -0.07,
+    "130": 0.12,
+    "135": 0.1,
+    "140": 0.03,
+    "145": 0.0,
+    "150": 0.04,
+    "155": 0.04,
+    "160": 0.04
+   }
+  },
+  "d_render_review": {
+   "result": "strict FAIL accepted (IoU target above the occlusion ceiling); realistic bars PASS; beige/distances/windows PASS",
+   "strict": {
+    "bar": "blue render_review IoU f63-122 >= 0.45",
+    "seat_b_mean": 0.263,
+    "seat_b_median": 0.271,
+    "ctl_mean": 0.184,
+    "seat_mean (superseded F1)": 0.263
+   },
+   "realistic": {
+    "occlusion_ceiling_mask_over_silhouette_f63_122": {
+     "mean": 0.29,
+     "median": 0.32,
+     "min": 0.188,
+     "max": 0.392
+    },
+    "iou_over_ceiling_median": {
+     "seat_b": 0.91,
+     "seat": 0.912,
+     "ctl": 0.758
+    },
+    "visible_mask_coverage_f63_122": {
+     "seat_b": {
+      "mean": 0.926,
+      "median": 0.928,
+      "min": 0.835,
+      "max": 0.988
+     },
+     "seat": {
+      "mean": 0.926,
+      "median": 0.929,
+      "min": 0.835,
+      "max": 0.988
+     },
+     "ctl": {
+      "mean": 0.768,
+      "median": 0.793,
+      "min": 0.561,
+      "max": 0.962
+     }
+    },
+    "occlusion_aware_iou_f63_122": {
+     "seat_b": {
+      "mean": 0.819,
+      "median": 0.839,
+      "min": 0.623,
+      "max": 0.946
+     },
+     "seat": {
+      "mean": 0.819,
+      "median": 0.841,
+      "min": 0.622,
+      "max": 0.946
+     },
+     "ctl": {
+      "mean": 0.661,
+      "median": 0.662,
+      "min": 0.502,
+      "max": 0.888
+     }
+    },
+    "post_f124_160": {
+     "seat_b_iou": {
+      "mean": 0.418,
+      "median": 0.419,
+      "min": 0.409,
+      "max": 0.427
+     },
+     "seat_b_ceiling": {
+      "mean": 0.44,
+      "median": 0.439,
+      "min": 0.418,
+      "max": 0.461
+     },
+     "seat_b_occl_iou": {
+      "mean": 0.859,
+      "median": 0.867,
+      "min": 0.794,
+      "max": 0.904
+     },
+     "ctl_occl_iou": {
+      "mean": 0.876,
+      "median": 0.873,
+      "min": 0.809,
+      "max": 0.947
+     }
+    }
+   },
+   "blue_iou_pre_held_post": [
+    0.715,
+    0.394,
+    0.418
+   ],
+   "beige_iou_pre_held_post": {
+    "seat_b": [
+     0.867,
+     0.758,
+     0.673
+    ],
+    "ctl": [
+     0.867,
+     0.758,
+     0.673
+    ]
+   },
+   "contact_windows": {
+    "left->blue": [
+     19,
+     123,
+     105
+    ],
+    "left->beige": [
+     90,
+     104,
+     14
+    ],
+    "right->blue": [
+     81,
+     100,
+     20
+    ],
+    "right->beige": [
+     18,
+     102,
+     85
+    ]
+   },
+   "labelled_frames_over_2cm": {
+    "left->blue": 0,
+    "left->beige": 0,
+    "right->blue": 0,
+    "right->beige": 0
+   },
+   "labelled_max_dist_cm": {
+    "left->blue": 0.99,
+    "left->beige": 1.0,
+    "right->blue": 0.53,
+    "right->beige": 0.53
+   },
+   "render_outputs": "~/v2d_ops/kenc/diag/ep10_fix/review_seat_b/ (seat_b_overlay/side/frame0/plots.jpg, seat_b_numbers.json)"
+  },
+  "e_sk10a2_rerun": {
+   "result": "strict FAIL accepted (numbers match the seat build); realistic bar PASS",
+   "strict": {
+    "bar": "ref top - observed p95 within +-1 cm on f55-160",
+    "seat_b_f55_160_min_max_cm": [
+     0.3,
+     1.52
+    ],
+    "frames_outside_1cm": 41,
+    "ctl_f55_160_min_max_cm": [
+     1.76,
+     7.44
+    ],
+    "seat_f55_160_min_max_cm (superseded F1)": [
+     0.3,
+     1.53
+    ],
+    "sk10a2_rerun_grid_frames_cm": {
+     "0": 0.17,
+     "10": 0.41,
+     "13": 0.49,
+     "16": 0.67,
+     "20": 0.62,
+     "30": 0.69,
+     "40": 1.01,
+     "46": 1.03,
+     "52": 1.34,
+     "58": 1.11,
+     "64": 0.62,
+     "70": 0.77,
+     "76": 1.37,
+     "80": 1.23,
+     "82": 1.06,
+     "88": 0.48,
+     "94": 0.73,
+     "100": 0.55,
+     "106": 0.97,
+     "112": 1.04,
+     "118": 0.71,
+     "124": 1.15,
+     "130": 0.71,
+     "140": 0.82,
+     "150": 0.53,
+     "160": 1.02
+    }
+   },
+   "realistic": {
+    "bar": "same quantity minus the resting-cup offset (median over f0-35, cup on its disk) within +-1 cm",
+    "rest_offset_cm": 0.578,
+    "seat_b_f55_160_min_max_cm": [
+     -0.28,
+     0.95
+    ],
+    "frames_outside_1cm": []
+   },
+   "observed_p95_identical_to_toprise_source": true,
+   "sk10a2_outputs": "~/v2d_ops/kenc/diag/ep10_fix/sk10a2_seat_b/ (sk10a2.json, sk10a2_rims.jpg)"
+  },
+  "f_right_joints_in_blue_envelope": {
+   "result": "PASS",
+   "plan": "right-hand joints in the blue wall envelope only on about f75-99 (bob1 f63-101)",
+   "seat_b": [
+    75,
+    100,
+    26
+   ],
+   "seat_b_cavity": [
+    75,
+    86,
+    12
+   ],
+   "ctl": [
+    63,
+    101,
+    39
+   ],
+   "seat (superseded F1)": [
+    75,
+    100,
+    26
+   ]
+  }
+ },
+ "output_check_seat_b": {
+  "frames": 161,
+  "fps": 20.254119873046875,
+  "task_error_cm": {
+   "right": {
+    "mean": 2.03,
+    "max": 4.86
+   },
+   "left": {
+    "mean": 1.99,
+    "max": 5.06
+   }
+  },
+  "penetration_frames": {
+   "any": 0.323,
+   "over_1cm": 0.0,
+   "over_2cm": 0.0
+  },
+  "support_disks": 2,
+  "frame0_seating_cm": [
+   0.16,
+   0.0
+  ],
+  "warnings": []
+ },
+ "mesh_md5": {
+  "score_input/meshes/episode_000010/beige_cup.obj": "16482fc57f5eca83c83e67de1a98f749",
+  "score_input/meshes/episode_000010/blue_cup.obj": "f96f68977d15fd37eaebd9e719f17ff6",
+  "processed/<seq>_beige_cup_visual.stl": "65e8a5984ad6794429684d93d29041e9",
+  "processed/<seq>_blue_cup_visual.stl": "d496f99543b502bff0a0d8e464e37e46",
+  "seat_b_and_nest_b_equal_to_bob1": {
+   "k10_ep10_seat_b": true,
+   "k10_ep10_nest_b": true
+  },
+  "md5_listing": {
+   "k10_ep10_seat_b": {
+    "score_input/meshes/episode_000010/beige_cup.obj": "16482fc57f5eca83c83e67de1a98f749",
+    "score_input/meshes/episode_000010/blue_cup.obj": "f96f68977d15fd37eaebd9e719f17ff6",
+    "assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_seat_b_beige_cup_visual.stl": "65e8a5984ad6794429684d93d29041e9",
+    "assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_seat_b_blue_cup_visual.stl": "d496f99543b502bff0a0d8e464e37e46",
+    "assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_seat_b_beige_cup_rigid.urdf": "0d2ea7e50f13bb26ce28b9da00cbac53",
+    "assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_seat_b_blue_cup_rigid.urdf": "2b50a492108c098d2b09fe72fb20eca4",
+    "score_input/results/episode_000010.npy": "9d3b628fb77b31351e342b966b6d140a",
+    "assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_seat_b/robot_name=sharpa_wave/6060c9b25cfb4b818af4534ef0e66804-0.parquet": "773d8ff13f8d373a1fb508cefe89b5fe"
+   },
+   "k10_ep10_nest_b": {
+    "score_input/meshes/episode_000010/beige_cup.obj": "16482fc57f5eca83c83e67de1a98f749",
+    "score_input/meshes/episode_000010/blue_cup.obj": "f96f68977d15fd37eaebd9e719f17ff6",
+    "assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_nest_b_beige_cup_visual.stl": "65e8a5984ad6794429684d93d29041e9",
+    "assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_nest_b_blue_cup_visual.stl": "d496f99543b502bff0a0d8e464e37e46",
+    "assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_nest_b_beige_cup_rigid.urdf": "b59ac87e351aced8867f8718de5bd566",
+    "assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_nest_b_blue_cup_rigid.urdf": "1433c8b04ce09a1cee8c547f8fd6f936",
+    "score_input/results/episode_000010.npy": "9d3b628fb77b31351e342b966b6d140a",
+    "assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave/1dec0481b92e473982df6ee3c2c8e502-0.parquet": "0a1264d04e440febbee7d60623e4637b"
+   }
+  }
+ },
+ "archives": {
+  "k10_ep10_seat_b": {
+   "babel": "~/v2d_ops/kenc/diag/ep10_fix/archive/k10_ep10_seat_b_scene.tgz",
+   "local": "C:\\v2d_demo\\archive\\k10_ep10_seat_b\\scene.tgz",
+   "md5": "c12b9258c66176749064bedc84582813",
+   "entries": 55,
+   "tarred": "2026-11-04 03:13:39 EST, in the build step right after SCENE_OK"
+  },
+  "k10_ep10_nest_b_base": {
+   "babel": "~/v2d_ops/kenc/diag/ep10_fix/archive/k10_ep10_nest_b_base_scene.tgz",
+   "local": "C:\\v2d_demo\\archive\\k10_ep10_nest_b_base\\scene.tgz",
+   "md5": "15dc628b0e7a915f1286cdeef31da5c7",
+   "entries": 55,
+   "tarred": "2026-11-04 03:13:38 EST, in the build step right after SCENE_OK (pre-collision-edit)"
+  },
+  "earlier F1 (superseded)": {
+   "k10_ep10_seat": "C:\\v2d_demo\\archive\\k10_ep10_seat\\scene.tgz (md5 45bed907c8450105e43ac881fd5f4d7d)",
+   "k10_ep10_nest_base": "C:\\v2d_demo\\archive\\k10_ep10_nest_base\\scene.tgz (md5 e13008972b5f099eb0902ee06abe0c24)"
+  }
+ },
+ "code_and_results": {
+  "babel": "~/v2d_ops/kenc/diag/ep10_fix/",
+  "local": "C:\\v2d_demo\\diag\\ep10_fix\\ (code\\, results\\)"
+ },
+ "side_effects": [
+  "h5_build.sh writes k10_ep10_seat_b.log / k10_ep10_nest_b.log next to the scene dirs (new files)",
+  "bob1's sym_common.py writes diag npz files to node-local babel-t9-28:/scratch/haisenk-v2d/hand5/ep10/diag/ (new files)"
+ ],
+ "training_notes": [
+  "Do not rank by own-ref against bob1's 0.7201 (reference changed); judge the rollout GT-free: blue height <=0.5 cm on f55-160 and <=2 cm on f43-54 (plan)",
+  "ep10 seeds are tight (respinf 0.711-0.721): 2 seeds should resolve the +0.03 expected gain"
+ ]
+}

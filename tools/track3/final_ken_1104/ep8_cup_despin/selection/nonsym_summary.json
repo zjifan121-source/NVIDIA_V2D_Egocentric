@@ -1,0 +1,97 @@
+{
+ "what": "SUPPLEMENTARY risk check for audit item #6 (beige_cup scored symmetric?). Not part of the decision rule.",
+ "scripts": [
+  "work/nonsym_check.py",
+  "work/nonsym_calib.py"
+ ],
+ "rollouts_nonsym": {
+  "h_ep8_sc_K_s42": {
+   "REF_nonsym": {
+    "add_auc": 0.96119,
+    "cup_med_cm": 0.99,
+    "cup_end_f186_218_med_cm": 1.03
+   },
+   "REF_DS_nonsym": {
+    "add_auc": 0.72817,
+    "cup_med_cm": 5.73,
+    "cup_end_f186_218_med_cm": 7.85
+   }
+  },
+  "rf_ep8_ds_K_s43": {
+   "REF_nonsym": {
+    "add_auc": 0.74201,
+    "cup_med_cm": 5.51,
+    "cup_end_f186_218_med_cm": 7.82
+   },
+   "REF_DS_nonsym": {
+    "add_auc": 0.98273,
+    "cup_med_cm": 0.81,
+    "cup_end_f186_218_med_cm": 1.19
+   }
+  },
+  "rf_ep8_ds_K_s42": {
+   "REF_nonsym": {
+    "add_auc": 0.73944,
+    "cup_med_cm": 5.49,
+    "cup_end_f186_218_med_cm": 7.82
+   },
+   "REF_DS_nonsym": {
+    "add_auc": 0.98288,
+    "cup_med_cm": 0.72,
+    "cup_end_f186_218_med_cm": 0.97
+   }
+  },
+  "rf_ep8_ds_K_s44": {
+   "REF_nonsym": {
+    "add_auc": 0.73858,
+    "cup_med_cm": 5.56,
+    "cup_end_f186_218_med_cm": 7.79
+   },
+   "REF_DS_nonsym": {
+    "add_auc": 0.98231,
+    "cup_med_cm": 0.71,
+    "cup_end_f186_218_med_cm": 0.86
+   }
+  }
+ },
+ "packed_nonsym": {
+  "bob1": {
+   "REF_nonsym": 0.88699,
+   "REF_DS_nonsym": 0.67708
+  },
+  "T4": {
+   "REF_nonsym": 0.94535,
+   "REF_DS_nonsym": 0.72389
+  },
+  "T6": {
+   "REF_nonsym": 0.96119,
+   "REF_DS_nonsym": 0.72817
+  }
+ },
+ "kaggle_measured_deltas": {
+  "T4-bob1": 0.047,
+  "T6-bob1": 0.068,
+  "T6-T4": 0.021
+ },
+ "predicted_deltas": {
+  "symmetric (emu8_out.json REF t6cup centroid)": {
+   "T4-bob1": 0.035,
+   "T6-bob1": 0.058,
+   "T6-T4": 0.023,
+   "max_abs_err_vs_kaggle": 0.012
+  },
+  "nonsym, truth = FP-spun REF": {
+   "T4-bob1": 0.0584,
+   "T6-bob1": 0.0742,
+   "T6-T4": 0.0158,
+   "max_abs_err_vs_kaggle": 0.0114
+  },
+  "nonsym, truth = spin-free REF_DS": {
+   "T4-bob1": 0.0468,
+   "T6-bob1": 0.0511,
+   "T6-T4": 0.0043,
+   "max_abs_err_vs_kaggle": 0.0169
+  }
+ },
+ "reading": "Kaggle deltas do not discriminate the three scoring scenarios (all within 0.017). Under a symmetric cup the rf candidate wins +0.024; under a non-symmetric cup it wins +0.25 if the real cup did not spin and loses -0.22 if the real cup spun like FoundationPose. The losing case needs a real -110 deg spin in ~7 frames inside a hand that does not orbit in the video (G4)."
+}

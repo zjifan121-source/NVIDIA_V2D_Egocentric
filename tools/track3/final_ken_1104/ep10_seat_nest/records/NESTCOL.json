@@ -1,0 +1,439 @@
+{
+ "fix": "F2 ep10 nest collision proxy (plan.fixes[1], C:/v2d_demo/diag/ep10_fix/ep10_diagnosis_plan.json)",
+ "rule": "beige collision = visual mesh minus the 4 Vicon marker spheres (vertices > 6 mm beyond the per-height median radius, grown while > 1 mm beyond the marker-free wall, holes closed flat on the wall), cavity kept, CoACD as usual; blue collision = 192 explicit convex wall slabs on the outer surface (8 bands x 24 azimuths, t = 1.5 mm) with a monotone rim flare (>= 1 mm clearance from the beige CoACD hulls, coaxial end-nest pose, worst twist) + a 3 mm floor slab whose top is at the median end-rest nest depth (f124-160) minus 2 mm. Visual, score_input meshes and the parquet unchanged.",
+ "d_end_cm": 5.748,
+ "d_end_min_cm": 5.572,
+ "floor": {
+  "top_cm": 5.548,
+  "bottom_cm": 5.248,
+  "radius_cm": 3.807,
+  "n_sides": 48
+ },
+ "flare_mm_at_band_edges": {
+  "0.0": 0.0,
+  "2.13": 0.0,
+  "4.26": 0.0,
+  "6.39": 0.0,
+  "8.52": 0.0,
+  "10.66": 1.21,
+  "12.79": 2.58,
+  "14.92": 4.4,
+  "17.05": 6.52
+ },
+ "flare_fine": [
+  [
+   5.5,
+   3.19,
+   3.85,
+   -5.64,
+   0.0
+  ],
+  [
+   6.0,
+   3.51,
+   3.87,
+   -2.61,
+   0.0
+  ],
+  [
+   6.5,
+   3.57,
+   3.88,
+   -2.2,
+   0.0
+  ],
+  [
+   7.0,
+   3.64,
+   3.9,
+   -1.68,
+   0.0
+  ],
+  [
+   7.5,
+   3.71,
+   3.92,
+   -1.07,
+   0.0
+  ],
+  [
+   8.0,
+   3.79,
+   3.94,
+   -0.46,
+   0.0
+  ],
+  [
+   8.5,
+   3.85,
+   3.95,
+   -0.02,
+   0.0
+  ],
+  [
+   9.0,
+   3.89,
+   3.97,
+   0.27,
+   0.27
+  ],
+  [
+   9.5,
+   3.94,
+   3.98,
+   0.55,
+   0.55
+  ],
+  [
+   10.0,
+   3.98,
+   4.0,
+   0.83,
+   0.83
+  ],
+  [
+   10.5,
+   4.02,
+   4.01,
+   1.14,
+   1.14
+  ],
+  [
+   11.0,
+   4.07,
+   4.02,
+   1.46,
+   1.46
+  ],
+  [
+   11.5,
+   4.11,
+   4.03,
+   1.78,
+   1.78
+  ],
+  [
+   12.0,
+   4.15,
+   4.04,
+   2.11,
+   2.11
+  ],
+  [
+   12.5,
+   4.2,
+   4.05,
+   2.43,
+   2.43
+  ],
+  [
+   13.0,
+   4.24,
+   4.07,
+   2.78,
+   2.78
+  ],
+  [
+   13.5,
+   4.29,
+   4.08,
+   3.2,
+   3.2
+  ],
+  [
+   14.0,
+   4.34,
+   4.08,
+   3.64,
+   3.64
+  ],
+  [
+   14.5,
+   4.39,
+   4.09,
+   4.08,
+   4.08
+  ],
+  [
+   15.0,
+   4.44,
+   4.1,
+   4.51,
+   4.51
+  ],
+  [
+   15.5,
+   4.49,
+   4.1,
+   4.95,
+   4.95
+  ],
+  [
+   16.0,
+   4.54,
+   4.1,
+   5.43,
+   5.43
+  ],
+  [
+   16.5,
+   4.59,
+   4.1,
+   5.97,
+   5.97
+  ],
+  [
+   17.0,
+   4.64,
+   4.1,
+   6.52,
+   6.52
+  ]
+ ],
+ "flare_at_rim_mm": 6.52,
+ "pieces": {
+  "beige": 1,
+  "blue": 193,
+  "blue_slabs": 192,
+  "blue_floor": 1
+ },
+ "beige_col": {
+  "md5": "cc42e6f65edc8058ea9725e0af6f5679",
+  "info": {
+   "method": "cut sphere + overhang, chart ear-clip fill refined x3, lifted to the per-height median outer radius",
+   "dilation_mm": 2.0,
+   "markers": 4,
+   "core_vertices": 1238,
+   "region_vertices": 2490,
+   "cut_vertices": 3756,
+   "faces_removed": 8167,
+   "islands_dropped": 298,
+   "bowtie_dilations": 0,
+   "fill_faces": 8475,
+   "holes": [
+    {
+     "n_boundary": 59,
+     "az_deg": -87.4,
+     "h_cm": [
+      12.03,
+      14.02
+     ],
+     "r_boundary_cm": [
+      4.54,
+      4.73
+     ],
+     "fill_faces": 2409,
+     "interior_vertices": 1176
+    },
+    {
+     "n_boundary": 43,
+     "az_deg": -173.3,
+     "h_cm": [
+      11.78,
+      13.93
+     ],
+     "r_boundary_cm": [
+      4.57,
+      4.75
+     ],
+     "fill_faces": 1721,
+     "interior_vertices": 840
+    },
+    {
+     "n_boundary": 41,
+     "az_deg": 4.7,
+     "h_cm": [
+      11.75,
+      14.03
+     ],
+     "r_boundary_cm": [
+      4.64,
+      4.84
+     ],
+     "fill_faces": 1635,
+     "interior_vertices": 798
+    },
+    {
+     "n_boundary": 66,
+     "az_deg": 90.2,
+     "h_cm": [
+      11.94,
+      13.96
+     ],
+     "r_boundary_cm": [
+      4.5,
+      4.68
+     ],
+     "fill_faces": 2710,
+     "interior_vertices": 1323
+    }
+   ],
+   "marker_bins": 40,
+   "region_h_cm": [
+    12.13,
+    14.02
+   ],
+   "region_rmax_cm": 6.27,
+   "watertight": true,
+   "winding_consistent": true,
+   "euler": 2,
+   "volume_cm3": 80.615,
+   "orig_volume_cm3": 86.998,
+   "n_vertices": 15506,
+   "n_faces": 31008,
+   "failed_attempts": null,
+   "reload": {
+    "watertight": true,
+    "n_vertices": 15506,
+    "n_faces": 31008
+   },
+   "outer_r_cm_by_band_nomarker_median": [
+    3.43,
+    3.49,
+    3.55,
+    3.6,
+    3.69,
+    3.77,
+    3.81,
+    3.86,
+    3.9,
+    3.95,
+    3.99,
+    4.04,
+    4.08,
+    4.12,
+    4.17,
+    4.22,
+    4.26,
+    4.31,
+    4.35,
+    4.4,
+    4.44,
+    4.48,
+    4.53,
+    4.59,
+    4.65,
+    4.7,
+    4.75,
+    4.78,
+    4.75,
+    4.75
+   ]
+  }
+ },
+ "backup_dir": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b/col_backup",
+ "urdf_backup_md5": {
+  "ep10_h5_k10_ep10_nest_b_blue_cup_rigid.urdf": "1433c8b04ce09a1cee8c547f8fd6f936",
+  "ep10_h5_k10_ep10_nest_b_beige_cup_rigid.urdf": "b59ac87e351aced8867f8718de5bd566"
+ },
+ "urdf_new_md5": {
+  "ep10_h5_k10_ep10_nest_b_blue_cup_rigid.urdf": "205d6dcf4260556a1f9b3033d11d601f",
+  "ep10_h5_k10_ep10_nest_b_beige_cup_rigid.urdf": "3a7a7b33481b1ad5c507da16752e106e"
+ },
+ "files_changed": [
+  "assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_nest_b_beige_cup_rigid.urdf",
+  "assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_nest_b_blue_cup_rigid.urdf"
+ ],
+ "files_added": 194,
+ "parquet": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/sequence_id=ep10_h5_k10_ep10_nest_b/robot_name=sharpa_wave/1dec0481b92e473982df6ee3c2c8e502-0.parquet",
+ "parquet_md5": "0a1264d04e440febbee7d60623e4637b",
+ "parquet_object_urdf_paths": [
+  "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_nest_b_blue_cup_rigid.urdf",
+  "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b/assets/human_motion_data/ego_recon/processed/ep10_h5_k10_ep10_nest_b_beige_cup_rigid.urdf"
+ ],
+ "parquet_urdf_paths_point_at_edited": true,
+ "written": "2026-11-04 03:21:51 EST",
+ "tool": "~/v2d_ops/kenc/diag/ep10_fix/nestcol.py",
+ "rules_note": "The collision proxy differs from the submitted mesh (thin walls, flare, floor, no markers) - rules question for Ken.",
+ "gt_free_checks": {
+  "train_worthy": false,
+  "failed_checks": [
+   "b_static"
+  ],
+  "a": {
+   "pass": true,
+   "hulls_per_blue_piece": [
+    1
+   ],
+   "max_bbox_diff_mm": 0.0066,
+   "beige_hulls": 58,
+   "beige_max_radius_excess_above_10cm_mm": 0.23
+  },
+  "b": {
+   "pass": false,
+   "max_through_wall_pen_mm_f105_160": 9.22,
+   "max_plan_metric_pen_mm": 2.66,
+   "coax_stop_cm": [
+    5.498
+   ],
+   "upward_shift_to_be_free_cm": {
+    "105": 0.0,
+    "110": 0.0,
+    "115": 0.0,
+    "120": 2.84,
+    "125": 4.76,
+    "130": 2.53,
+    "140": 3.58,
+    "150": 4.6,
+    "160": 4.66
+   }
+  },
+  "c": {
+   "pass": true,
+   "final_nest_cm": [
+    5.5,
+    5.5
+   ],
+   "contacts_max": [
+    58,
+    52
+   ]
+  },
+  "d": {
+   "pass": true,
+   "left_new_vs_visual": [
+    62,
+    109
+   ],
+   "right_new_vs_bob1": [
+    138,
+    151
+   ]
+  },
+  "e": {
+   "pass": true,
+   "vs": "/data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_seat_b"
+  },
+  "result_file": "C:\\v2d_demo\\diag\\ep10_fix\\F2_FAILED.json"
+ },
+ "train_worthy": false,
+ "verdict": "DO NOT TRAIN per plan (check b failed: reference end poses tilted 5-7 deg / up to 0.9 cm off-axis still cross the blue wall by up to 9.2 mm); a, c, d, e pass. Coordinator decides.",
+ "end_to_end_newton_load": {
+  "urdfs": [
+   "ep10_h5_k10_ep10_nest_b_blue_cup_rigid.urdf",
+   "ep10_h5_k10_ep10_nest_b_beige_cup_rigid.urdf"
+  ],
+  "cache_dir": "/tmp/haisenk_v2d/fc_src_de66/flash_chord/assets/.cache/convex",
+  "FLASH_CHORD_CACHE_DIR_env": null,
+  "newton": "1.2.0",
+  "body_mass": {
+   "ep10_h5_k10_ep10_nest_b_blue_cup_rigid.urdf": [
+    0.3
+   ],
+   "ep10_h5_k10_ep10_nest_b_beige_cup_rigid.urdf": [
+    0.3
+   ]
+  },
+  "colliding_mesh_shapes": {
+   "ep10_h5_k10_ep10_nest_b_blue_cup_rigid.urdf": 193,
+   "ep10_h5_k10_ep10_nest_b_beige_cup_rigid.urdf": 1
+  },
+  "cache_hits": 194,
+  "hulls": {
+   "1": 193,
+   "58": 1
+  },
+  "note": "orchard flash_chord venv + PYTHONPATH fc_src_de66: newton ModelBuilder + flash_chord _object_builder + add_urdf exactly as _spawn_component, on the edited scene files"
+ },
+ "updated": "2026-11-04 local, after checks"
+}

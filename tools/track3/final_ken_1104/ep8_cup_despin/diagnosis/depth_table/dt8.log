@@ -1,0 +1,67 @@
+[dt8    3.6s] loader A t [-0.1629 -0.3447  1.4618] rot deg 0.000 residual max mm 0.0001
+[dt8    3.7s] support support_0 top z 0.95378 centre [-0.1614 -0.0477] radius 0.224 n prims 1
+[dt8    4.4s] beige_cup mesh /data/user_data/haisenk/v2d/edmond_bob1/relocated/eb1_ep8/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_beige_cup.obj verts 18811 area m2 0.0798 samples 497719
+[dt8    5.2s] white_pot mesh /data/user_data/haisenk/v2d/edmond_bob1/relocated/eb1_ep8/assets/human_motion_data/ego_recon/processed/ep8_ken_c_scored_attach_white_pot.obj verts 5520 area m2 0.1659 samples 1000867
+[dt8    8.6s] f  0 table px 104565 plane tilt 4.60 deg z@cup 0.9728 z@pot 0.9663 | cup bot 1.0000 dz 0.22 cm | pot bot 0.9543 dz -0.95 cm
+[dt8   12.1s] f  2 table px 106061 plane tilt 4.67 deg z@cup 0.9727 z@pot 0.9665 | cup bot 1.0000 dz 0.24 cm | pot bot 0.9543 dz -1.09 cm
+[dt8   15.4s] f  4 table px 106648 plane tilt 4.36 deg z@cup 0.9725 z@pot 0.9662 | cup bot 1.0000 dz 0.06 cm | pot bot 0.9543 dz -1.12 cm
+[dt8   18.8s] f  6 table px 108234 plane tilt 4.70 deg z@cup 0.9735 z@pot 0.9667 | cup bot 1.0000 dz 0.31 cm | pot bot 0.9543 dz -0.71 cm
+[dt8   22.4s] f  8 table px 111384 plane tilt 4.61 deg z@cup 0.9745 z@pot 0.9679 | cup bot 1.0000 dz 0.13 cm | pot bot 0.9543 dz -0.87 cm
+[dt8   25.9s] f 10 table px 114667 plane tilt 4.54 deg z@cup 0.9728 z@pot 0.9660 | cup bot 1.0000 dz 0.26 cm | pot bot 0.9535 dz -1.05 cm
+[dt8   29.3s] f 12 table px 115522 plane tilt 4.57 deg z@cup 0.9725 z@pot 0.9666 | cup bot 1.0000 dz 0.35 cm | pot bot 0.9514 dz -1.22 cm
+[dt8   32.6s] f 14 table px 113155 plane tilt 4.38 deg z@cup 0.9720 z@pot 0.9651 | cup bot 1.0000 dz 0.33 cm | pot bot 0.9497 dz -1.38 cm
+[dt8   36.1s] f 16 table px 109868 plane tilt 4.29 deg z@cup 0.9715 z@pot 0.9654 | cup bot 1.0000 dz -0.01 cm | pot bot 0.9504 dz -1.19 cm
+[dt8   39.5s] f 18 table px 107432 plane tilt 4.48 deg z@cup 0.9724 z@pot 0.9650 | cup bot 1.0000 dz 0.27 cm | pot bot 0.9502 dz -1.51 cm
+[dt8   43.0s] f 20 table px 107673 plane tilt 4.30 deg z@cup 0.9712 z@pot 0.9647 | cup bot 1.0000 dz 0.04 cm | pot bot 0.9472 dz -1.17 cm
+[dt8   46.3s] f 22 table px 101314 plane tilt 3.97 deg z@cup 0.9682 z@pot 0.9611 | cup bot 1.0000 dz -0.04 cm | pot bot 0.9500 dz -1.16 cm
+[dt8   49.6s] f 24 table px  99838 plane tilt 3.74 deg z@cup 0.9676 z@pot 0.9613 | cup bot 1.0000 dz 0.08 cm | pot bot 0.9522 dz -0.83 cm
+[dt8   52.8s] f 26 table px  97806 plane tilt 4.04 deg z@cup 0.9692 z@pot 0.9606 | cup bot 1.0000 dz 0.04 cm | pot bot 0.9548 dz -0.76 cm
+[dt8   55.4s] f 28 table px  99510 plane tilt 4.51 deg z@cup 0.9731 z@pot 0.9627 | cup bot 1.0000 dz 0.17 cm | pot bot 0.9559 dz -0.88 cm
+[dt8   58.2s] f 30 table px 104511 plane tilt 4.46 deg z@cup 0.9722 z@pot 0.9621 | cup bot 1.0000 dz 0.16 cm | pot bot 0.9547 dz -0.46 cm
+[dt8   60.9s] f 34 table px  97832 plane tilt 4.10 deg z@cup 0.9705 z@pot 0.9615 | cup bot 1.0013 dz 0.17 cm | pot bot 0.9557 dz -0.43 cm
+[dt8   63.5s] f 40 table px  95006 plane tilt 3.90 deg z@cup 0.9691 z@pot 0.9611 | cup bot 1.0038 dz 0.33 cm | pot bot 0.9540 dz -0.53 cm
+[dt8   66.2s] f 46 table px  85315 plane tilt 3.98 deg z@cup 0.9677 z@pot 0.9597 | cup bot 1.0192 dz 1.27 cm | pot bot 0.9545 dz -0.37 cm
+[dt8   68.9s] f 52 table px 100521 plane tilt 4.16 deg z@cup 0.9708 z@pot 0.9601 | cup bot 1.0896 dz 0.94 cm | pot bot 0.9573 dz -0.28 cm
+[dt8   71.6s] f 58 table px 104285 plane tilt 3.89 deg z@cup 0.9738 z@pot 0.9618 | cup bot 1.1624 dz -2.33 cm | pot bot 0.9576 dz 0.07 cm
+[dt8   74.4s] f 64 table px 105044 plane tilt 4.35 deg z@cup 0.9726 z@pot 0.9623 | cup bot 1.1593 dz 1.06 cm | pot bot 0.9572 dz 0.18 cm
+[dt8   77.4s] f 70 table px 106299 plane tilt 4.52 deg z@cup 0.9671 z@pot 0.9620 | cup bot 1.1031 dz 2.76 cm | pot bot 0.9551 dz -0.34 cm
+[dt8   80.5s] f 76 table px 106814 plane tilt 4.51 deg z@cup 0.9676 z@pot 0.9626 | cup bot 1.0999 dz 1.74 cm | pot bot 0.9538 dz -0.30 cm
+[dt8   83.5s] f 82 table px 105328 plane tilt 4.59 deg z@cup 0.9745 z@pot 0.9619 | cup bot 1.1274 dz -0.47 cm | pot bot 0.9564 dz -0.01 cm
+[dt8   86.5s] f 88 table px 100675 plane tilt 4.63 deg z@cup 0.9719 z@pot 0.9615 | cup bot 1.0821 dz 0.59 cm | pot bot 0.9593 dz 0.14 cm
+[dt8   89.4s] f 94 table px  98900 plane tilt 4.52 deg z@cup 0.9728 z@pot 0.9613 | cup bot 1.0480 dz 0.62 cm | pot bot 0.9626 dz 0.68 cm
+[dt8   92.4s] f166 table px 123344 plane tilt 4.28 deg z@cup 0.9699 z@pot 0.9579 | cup bot 1.1118 dz -0.42 cm | pot bot 0.9619 dz 0.48 cm
+[dt8   95.3s] f172 table px 120380 plane tilt 4.29 deg z@cup 0.9712 z@pot 0.9591 | cup bot 1.0826 dz -0.10 cm | pot bot 0.9575 dz -0.13 cm
+[dt8   98.3s] f178 table px 115770 plane tilt 4.42 deg z@cup 0.9733 z@pot 0.9600 | cup bot 1.0324 dz 1.01 cm | pot bot 0.9562 dz -0.30 cm
+[dt8  101.4s] f184 table px 112860 plane tilt 4.35 deg z@cup 0.9706 z@pot 0.9574 | cup bot 1.0131 dz 0.68 cm | pot bot 0.9530 dz -0.37 cm
+[dt8  104.4s] f190 table px 111888 plane tilt 4.04 deg z@cup 0.9689 z@pot 0.9566 | cup bot 1.0025 dz 0.36 cm | pot bot 0.9501 dz -0.67 cm
+[dt8  107.3s] f196 table px 100957 plane tilt 4.41 deg z@cup 0.9736 z@pot 0.9649 | cup bot 1.0065 dz 0.07 cm | pot bot 0.9532 dz -1.05 cm
+[dt8  110.3s] f200 table px 124309 plane tilt 4.48 deg z@cup 0.9705 z@pot 0.9614 | cup bot 0.9958 dz 0.09 cm | pot bot 0.9422 dz -0.97 cm
+[dt8  113.2s] f202 table px 124401 plane tilt 4.41 deg z@cup 0.9627 z@pot 0.9521 | cup bot 0.9900 dz -0.17 cm | pot bot 0.9368 dz -0.87 cm
+[dt8  116.2s] f204 table px 123417 plane tilt 4.35 deg z@cup 0.9678 z@pot 0.9570 | cup bot 0.9962 dz -0.09 cm | pot bot 0.9443 dz -0.69 cm
+[dt8  119.3s] f206 table px 123745 plane tilt 4.28 deg z@cup 0.9688 z@pot 0.9598 | cup bot 0.9978 dz 0.02 cm | pot bot 0.9455 dz -1.05 cm
+[dt8  122.2s] f208 table px 123637 plane tilt 4.34 deg z@cup 0.9695 z@pot 0.9600 | cup bot 0.9978 dz 0.24 cm | pot bot 0.9446 dz -0.69 cm
+[dt8  125.2s] f210 table px 123097 plane tilt 4.30 deg z@cup 0.9703 z@pot 0.9599 | cup bot 0.9998 dz 0.09 cm | pot bot 0.9463 dz -1.36 cm
+[dt8  128.2s] f212 table px 122354 plane tilt 4.33 deg z@cup 0.9718 z@pot 0.9628 | cup bot 1.0014 dz 0.09 cm | pot bot 0.9486 dz -0.98 cm
+[dt8  131.3s] f214 table px 123313 plane tilt 4.48 deg z@cup 0.9719 z@pot 0.9638 | cup bot 0.9992 dz 0.43 cm | pot bot 0.9466 dz -0.59 cm
+[dt8  134.3s] f216 table px 123339 plane tilt 4.25 deg z@cup 0.9706 z@pot 0.9629 | cup bot 0.9981 dz 0.16 cm | pot bot 0.9449 dz -1.13 cm
+[dt8  137.3s] f218 table px 120769 plane tilt 4.33 deg z@cup 0.9710 z@pot 0.9622 | cup bot 0.9999 dz 0.05 cm | pot bot 0.9464 dz -1.25 cm
+==== SUMMARY ====
+support top z 0.95378 centre [-0.1614 -0.0477] radius 0.224
+[start_0_30] global depth-table plane: tilt 4.39 deg (ascent az 48), n 480000, inliers 0.82 (above 0.01 below 0.17), resid std 1.7 mm, z@support-centre minus sim +0.72 cm
+   beige_cup: mesh bottom 1.0000 xy [-0.001 -0.002] | float vs sim +4.62 cm | depth table z 0.9718473043749944 (minus sim 1.8068107819239954) | float vs depth table 2.81526896147547 | annulus 2.7907498719998425 (n 163101) | ring2d 2.8310650509969726
+      object depth: real - mesh dz med +0.17 cm [p25 -0.28, p75 +0.80], along ray +0.17 cm, ratio 1.004, dworld [ 0.06  0.11 -0.12] cm; real lowest visible minus table 2.3010531110494448, mesh lowest visible minus table 3.741729720693865; ray elev 50.8 deg, cam dist 0.592 m; along-ray shift to seat 3.6341998652145047; px 12069, sil IoU 0.878
+   white_pot: mesh bottom 0.9539 xy [-0.179  0.047] | float vs sim +0.01 cm | depth table z 0.9655012317914055 (minus sim 1.1722035235650963) | float vs depth table -1.1592124503805756 | annulus -1.1624066247070353 (n 171577) | ring2d -1.1704130102483057
+      object depth: real - mesh dz med -1.07 cm [p25 -1.99, p75 +0.07], along ray -1.07 cm, ratio 0.983, dworld [-0.01 -0.75  0.76] cm; real lowest visible minus table 0.7078121528872994, mesh lowest visible minus table -0.6439910731503073; ray elev 53.2 deg, cam dist 0.632 m; along-ray shift to seat -1.4474547837712255; px 26912, sil IoU 0.850
+[pot_contact_16_94] global depth-table plane: tilt 4.33 deg (ascent az 47), n 420000, inliers 0.84 (above 0.02 below 0.15), resid std 1.9 mm, z@support-centre minus sim +0.73 cm
+   white_pot: mesh bottom 0.9558 xy [-0.203 -0.004] | float vs sim +0.21 cm | depth table z 0.9613233025554956 (minus sim 0.7544105999741091) | float vs depth table -0.5493147103696971 | annulus -0.46968582719389973 (n 215666) | ring2d -0.5783859357706533
+      object depth: real - mesh dz med -0.32 cm [p25 -0.72, p75 +0.38], along ray -0.32 cm, ratio 0.995, dworld [-0.   -0.19  0.25] cm; real lowest visible minus table 0.8403060584154409, mesh lowest visible minus table 0.32183422759167746; ray elev 56.9 deg, cam dist 0.597 m; along-ray shift to seat -0.6553841832243509; px 24890, sil IoU 0.753
+[pot_late_166_196] global depth-table plane: tilt 4.30 deg (ascent az 49), n 180000, inliers 0.79 (above 0.02 below 0.18), resid std 1.7 mm, z@support-centre minus sim +0.64 cm
+   white_pot: mesh bottom 0.9547 xy [-0.242  0.   ] | float vs sim +0.09 cm | depth table z 0.9588651691608262 (minus sim 0.5085972605071709) | float vs depth table -0.41673027853689204 | annulus -0.38456863318636625 (n 76599) | ring2d -0.43089681272747704
+      object depth: real - mesh dz med -0.33 cm [p25 -1.04, p75 +0.26], along ray -0.34 cm, ratio 0.994, dworld [ 0.03 -0.2   0.25] cm; real lowest visible minus table 1.2173399480735259, mesh lowest visible minus table 0.446403752939617; ray elev 55.8 deg, cam dist 0.604 m; along-ray shift to seat -0.5038834112911835; px 23280, sil IoU 0.749
+[end_200_218] global depth-table plane: tilt 4.33 deg (ascent az 47), n 300000, inliers 0.74 (above 0.00 below 0.26), resid std 1.6 mm, z@support-centre minus sim +0.46 cm
+   beige_cup: mesh bottom 0.9980 xy [-0.009  0.025] | float vs sim +4.42 cm | depth table z 0.9701785379102666 (minus sim 1.6399341354512154) | float vs depth table 2.778187063548765 | annulus 2.779892890312319 (n 97373) | ring2d 2.803742942347165
+      object depth: real - mesh dz med +0.09 cm [p25 -0.32, p75 +0.82], along ray +0.10 cm, ratio 1.002, dworld [ 0.03  0.06 -0.06] cm; real lowest visible minus table 2.758088440347961, mesh lowest visible minus table 3.8699065635856233; ray elev 49.5 deg, cam dist 0.601 m; along-ray shift to seat 3.6556832126806196; px 11214, sil IoU 0.872
+   white_pot: mesh bottom 0.9452 xy [-0.24  0.07] | float vs sim -0.86 cm | depth table z 0.9609097617339885 (minus sim 0.7130565178233961) | float vs depth table -1.5718613972314222 | annulus -1.5966661869310617 (n 89040) | ring2d -1.633678106910308
+      object depth: real - mesh dz med -0.98 cm [p25 -2.25, p75 +0.21], along ray -1.00 cm, ratio 0.984, dworld [ 0.06 -0.66  0.71] cm; real lowest visible minus table 0.7820399809770673, mesh lowest visible minus table -1.0431048611412308; ray elev 51.5 deg, cam dist 0.650 m; along-ray shift to seat -2.0073627437574295; px 26100, sil IoU 0.860
+alignment {"f10_beige_cup": {"best_shift_halfpx": [4, -4], "best": 0.013287189934957281, "at0": 0.0042490392089474215}, "f10_white_pot": {"best_shift_halfpx": [4, -4], "best": 0.028869535126407747, "at0": 0.007989180778609746}, "f210_beige_cup": {"best_shift_halfpx": [0, 0], "best": 0.026749743792875064, "at0": 0.026749743792875064}, "f210_white_pot": {"best_shift_halfpx": [0, 1], "best": 0.02929781498346755, "at0": 0.025906086139513895}}
+[dt8  155.1s] done

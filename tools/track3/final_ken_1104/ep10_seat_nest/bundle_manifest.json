@@ -1,0 +1,124 @@
+{
+ "part": "ep10_seat_nest",
+ "episode": 10,
+ "written": "2026-11-04 ~14:50 EST (staging only; nothing uploaded or committed by this step)",
+ "final_candidate": {
+  "scene": "k10_ep10_nest_b",
+  "run": "n_ep10_nb_K_s42",
+  "checkpoint_step": 100003840,
+  "own_ref_add_auc": 0.9803959627329193,
+  "own_ref_per_body": [0.9926242236024845, 0.9681677018633541],
+  "policy_sha256": "2bd79300d999a0d7522113befaa875d2caf07d0702dfaade8b2bbd203f045dba",
+  "rollout_sha256": "d73753cec80183da2a2183964610d314ee4e2dd34d2297a2234f8f8c63442c32",
+  "packed_one_parquet_sha256": "5b3eb64056b8e09af1956e6de2e57378ffad7fa88dca69af057c400f7662ba42",
+  "kaggle_status": "Submitted only inside N1 (MPPE board only, 4 Nov 09:50 EST, submission 57988348: team base + these ep10 rows, MPPE 3.33289 vs 3.42999). Not on the AUC board, which had no submissions left from 04:35 EST. Team AUC/SP-SR/MP-SR/RPE entries carry bob1's ep10 poses."
+ },
+ "items": [
+  {
+   "role": "final",
+   "kind": "scene",
+   "name": "k10_ep10_nest_b (as trained: paths relocated to /tmp/haisenk_v2d/scenes/k10_ep10_nest_b, original parquet kept as *.parquet.orig)",
+   "location": "C:\\v2d_demo\\archive\\n_ep10_nb_K_s42\\scene.tgz",
+   "other_copies": [
+    "babel-s5-16:/tmp/haisenk_v2d/archive/n_ep10_nb_K_s42/scene.tgz (node /tmp of H100 job 10774619; gone when the job ends ~6 Nov 00:03 EST)",
+    "babel-s5-16:/tmp/haisenk_v2d/scenes/k10_ep10_nest_b (installed copy)",
+    "Babel /data/user_data/haisenk/v2d/hand5/scenes/k10_ep10_nest_b (build master, Babel paths, parquet md5 0a1264d04e440febbee7d60623e4637b)"
+   ],
+   "size_bytes": 13503893,
+   "sha256": "b88240038d4b2931e852e2a2bcf8d020b726bfc00b5679746fdeca2581a86470",
+   "inner_md5": {
+    "NESTCOL.json": "34273f847751fecd2aa46e3bd6ddb4e6",
+    "report.json": "0f0489a44a7aaee5cda7a56685d4d8fb",
+    "processed/ep10_h5_k10_ep10_nest_b_blue_cup_rigid.urdf": "205d6dcf4260556a1f9b3033d11d601f",
+    "processed/ep10_h5_k10_ep10_nest_b_beige_cup_rigid.urdf": "3a7a7b33481b1ad5c507da16752e106e",
+    "processed parquet (relocated)": "76044244b9dd8e03530806726d086bda",
+    "processed parquet .orig (Babel build)": "0a1264d04e440febbee7d60623e4637b",
+    "score_input/meshes/episode_000010/blue_cup.obj": "f96f68977d15fd37eaebd9e719f17ff6",
+    "score_input/meshes/episode_000010/beige_cup.obj": "16482fc57f5eca83c83e67de1a98f749"
+   },
+   "note": "227 files. Identical to the F2 build archive (C:\\v2d_demo\\archive\\k10_ep10_nest_b\\scene.tgz) except the relocated parquet and its .orig. bundle_cleaned/ holds absolute symlinks into /data/.../bundle_merged/ that do not extract off Babel; they are not needed for training."
+  },
+  {
+   "role": "alternative",
+   "kind": "scene",
+   "name": "k10_ep10_nest_b (F2 build output, Babel /data paths, before relocation)",
+   "location": "C:\\v2d_demo\\archive\\k10_ep10_nest_b\\scene.tgz",
+   "size_bytes": 12532860,
+   "sha256": "e06b42823f4c9f19d4c96b43ce8f6253a2865e98f823032f6399a6288de11c65",
+   "md5": "a9099dd3d69411442b29d9a6081abd06",
+   "note": "Optional; the same scene as the final item before relocate_scene.py. Upload only one of the two."
+  },
+  {
+   "role": "final",
+   "kind": "policy",
+   "name": "n_ep10_nb_K_s42 policy_100003840.safetensors",
+   "location": "C:\\v2d_demo\\archive\\n_ep10_nb_K_s42\\policy_100003840.safetensors",
+   "other_copies": [
+    "babel-s5-16:/tmp/haisenk_v2d/runs/n_ep10_nb_K_s42/train/policy_100003840.safetensors",
+    "babel-s5-16:/tmp/haisenk_v2d/archive/n_ep10_nb_K_s42/policy_100003840.safetensors"
+   ],
+   "size_bytes": 5138816,
+   "sha256": "2bd79300d999a0d7522113befaa875d2caf07d0702dfaade8b2bbd203f045dba"
+  },
+  {
+   "role": "final",
+   "kind": "rollout",
+   "name": "evaluator output for the selected checkpoint (early_100003840/results)",
+   "location": "C:\\v2d_demo\\archive\\n_ep10_nb_K_s42\\results\\ (episode_000010.parquet, episode_000010.json, hydra/)",
+   "files": [
+    {"path": "episode_000010.parquet", "size_bytes": 53088, "sha256": "d73753cec80183da2a2183964610d314ee4e2dd34d2297a2234f8f8c63442c32"},
+    {"path": "episode_000010.json", "size_bytes": 2385, "sha256": "812ab9d5f51ecec1b97efcae5ebea08c86d2057d50fa4842fe224a4f8d84dac5"}
+   ]
+  },
+  {
+   "role": "final",
+   "kind": "packed_one_parquet",
+   "name": "n_ep10_nb_K_s42 one.parquet (ep10 rows only, 322 rows; code_commit_url = bob1's commit 1689cf63)",
+   "location": "Babel ~/v2d_ops/kenc/tests/n_ep10_nb_K_s42/one.parquet",
+   "other_copies": ["C:\\v2d_demo\\archive\\n_ep10_nb_K_s42\\babel\\one.parquet"],
+   "size_bytes": 206571,
+   "sha256": "5b3eb64056b8e09af1956e6de2e57378ffad7fa88dca69af057c400f7662ba42"
+  },
+  {
+   "role": "final",
+   "kind": "run_records",
+   "name": "archive manifest, checkpoint sweep, best, recipe, train.log",
+   "location": "C:\\v2d_demo\\archive\\n_ep10_nb_K_s42\\ (manifest.json, sweep.json, best.txt, recipe.txt, train.log)",
+   "files": [
+    {"path": "manifest.json", "sha256": "0e9aef0fb87473cf0431b57689f8f5ec001d61d6d270c925b4296b47751aa765"},
+    {"path": "sweep.json", "sha256": "af7f64decb8afed6b717bf11fe10c342ee0911a823f5897f4de81c4912c67118"},
+    {"path": "train.log", "sha256": "ceb54472d884a30f4f1d754467eeb0af65b2ac0df542b24684e891a872d7622e"}
+   ],
+   "note": "Also staged as text in this folder under records/run_n_ep10_nb_K_s42/."
+  },
+  {
+   "role": "optional",
+   "kind": "coacd_hulls",
+   "name": "CoACD hulls of the F2 collision pieces as the training cache holds them (beige key da18f55941a89175, 58 hulls; 193 blue pieces x 1 hull)",
+   "location": "C:\\v2d_demo\\diag\\ep10_fix\\nestcol_nest_b\\orch_out\\ (out_beige.npz, out_blue.npz)",
+   "files": [
+    {"path": "out_beige.npz", "size_bytes": 256984, "sha256": "d72d5b75d9dbb20f57f972d60e50b10e43c1d9cd6acaeeb6c314f0b0033f9ffd"},
+    {"path": "out_blue.npz", "size_bytes": 205036, "sha256": "398b77633a8a327e3aa61470cdd555f4e6edba690b3c6858f314775bbe7852cd"}
+   ],
+   "note": "Only needed for bit-exact reproduction of the flare and checks (CoACD is not bit-deterministic). Not in the code tree (binary npz)."
+  },
+  {
+   "role": "not_used",
+   "kind": "scene",
+   "name": "k10_ep10_seat_b (F1-b only sibling; its policy s_ep10_sb_K_s44 @95M was packed but never submitted)",
+   "location": "C:\\v2d_demo\\archive\\k10_ep10_seat_b\\scene.tgz",
+   "size_bytes": 11756423,
+   "sha256": "bfa0ac5260ab1b69fc56d050c360f59db008c7a4eec45894dfac626bbc80740c",
+   "note": "Do not upload as a final; listed only so the README's sibling section can be traced."
+  },
+  {
+   "role": "not_used",
+   "kind": "full_submission_file",
+   "name": "bob1 with ep10 replaced by NEST (dry-run valid, never submitted)",
+   "location": "Babel ~/v2d_ops/kenc/tests/n_ep10_nb_K_s42/track3_submission.parquet",
+   "size_bytes": 2588303,
+   "sha256": "ecfab7553f0669ef1bf7710e9688e3429322626acf6dbb46b366d64e2a4440df",
+   "note": "Contains Edmond's bob1 rows for the 19 other episodes; not needed in our bundle."
+  }
+ ]
+}

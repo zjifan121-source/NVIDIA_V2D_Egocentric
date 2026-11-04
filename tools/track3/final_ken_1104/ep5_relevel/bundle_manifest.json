@@ -1,0 +1,272 @@
+{
+ "part": "ep5_relevel",
+ "episode": 5,
+ "written": "2026-11-04 ~14:45 EST (staging only; nothing uploaded or committed by this step)",
+ "final_candidate": {
+  "scene": "rl2_ep5",
+  "parent_scene": "w7_attcom_ep5",
+  "run": "r_ep5_rl_K_s43",
+  "recipe": "KEN, seed 43, 100,003,840 steps, curriculum tracking_100m_object2x, flash_chord de66fea3 (kq.sh)",
+  "checkpoint_step": 95006720,
+  "policy_sha256": "d351dbaed5a14cca0d50f05876ad60ae68b2970e1bb3960026d1c9411a875840",
+  "rollout_sha256": "f4a352dd6ccdc06a2d754bc6a891f243171a03ff6a2d69c196ae4bd1cff214fc",
+  "packed_one_parquet_sha256": "11183810af8d275adac7e6575d38f6d4c6ead952e5b9c392d35ec630b8068066",
+  "own_ref_add_auc": {
+   "plain": 0.9088541666666667,
+   "per_body_plain": [
+    0.9194878472222222,
+    0.8982204861111112
+   ],
+   "anchored": 0.9093
+  },
+  "kaggle_status": "SUBMITTED as swap test T8 (AUC board only, submission 57976828): AUC 0.75799 = bob1 0.75166 + 0.00633 (ep5 +0.127). Same ep5 rows are in the team's combined entry (AUC 0.76526) and in the final local-best file (final1104/local_best, not submitted)."
+ },
+ "items": [
+  {
+   "role": "final",
+   "kind": "scene",
+   "name": "rl2_ep5",
+   "location": "C:\\v2d_demo\\archive\\r_ep5_rl_K_s43\\scene.tgz (= babel-s5-16:/tmp/haisenk_v2d/archive/r_ep5_rl_K_s43/scene.tgz); unpacked scene dir babel-s5-16:/tmp/haisenk_v2d/scenes/rl2_ep5 (node /tmp inside H100 job 10774619 on babel-s5-16; it disappears when that job ends (about 6 Nov 00:03 EST))",
+   "bytes": 8150928,
+   "sha256": "c0159b0db5e8ceede65306ff3668840479adf1ccf40b5de90adb16ef5e3fd30f",
+   "sha256_of": "scene.tgz",
+   "note": "Absolute paths in the parquet point at /tmp/haisenk_v2d/scenes/rl2_ep5; after extracting elsewhere run relocate_scene.py <dir>. bundle_cleaned/* except result.npz are dangling symlinks to Babel /scratch (not needed for training or evaluation). Processed parquet sha256 f3badc29... is identical on babel-s5-16.",
+   "files": [
+    {
+     "path": "SUPPORT_V1_COPIED_FROM_CONTROL",
+     "bytes": 146,
+     "sha256": "a822de4301033026eadfdd48fc8ac31c0396b50950f7570852388724b635626f"
+    },
+    {
+     "path": "W7EDIT.json",
+     "bytes": 485,
+     "sha256": "19a4017884993db6ae2b0089781644bc8f68bd4c559f5e35c232963caca5855b"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot.mtl",
+     "bytes": 230,
+     "sha256": "cd268ab56902b162537b3ab7f6ab0c1aaf70e2e26f2c7beb2d84e3ee5b7cf1c2"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot.obj",
+     "bytes": 598369,
+     "sha256": "b5d410c3795edaa9d06eae4f1d077b440380a4994747f4ace0b12dfc8ef84722"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot_material_0.png",
+     "bytes": 1213012,
+     "sha256": "41b61cdafce30f2964bf51d61de335a047d33aacc83e9f4b5bc7b3f132403048"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot_rigid.urdf",
+     "bytes": 839,
+     "sha256": "5e266977bc25962d4553c7d4c2b55810397327c04738c8e3bd073156381d4dd7"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_white_pot_visual.stl",
+     "bytes": 447284,
+     "sha256": "8ae8f3ddeb3a5d5b192d6a8e912dadbd34ecdb3e592557dde8d4adb9338369f7"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon.mtl",
+     "bytes": 233,
+     "sha256": "a474aa6c52f348f577b7280376dcbb6e09b0f1d699639613c51cae55b05ce8ce"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon.obj",
+     "bytes": 144138,
+     "sha256": "1888390f4e162344cd12a587003020e9e04a606a13fe94d0581702a91963ecf4"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon_material_0.png",
+     "bytes": 1563276,
+     "sha256": "9c292ac6818fd2651747068103abf3ae15962b711c905291da013f4b1904a786"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon_rigid.urdf",
+     "bytes": 825,
+     "sha256": "3ed9123e1390a8de7193131827bfbb95ede0c77c384bb1d24f623a09af25c196"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/ep5_hw_w7_attcom_ep5_wooden_spoon_visual.stl",
+     "bytes": 107384,
+     "sha256": "41db7f8023f8cdf7b7da7ac12d958652f750d1d2218e21e1f8be7ed6744a2a91"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/sequence_id=ep5_hw_w7_attcom_ep5/robot_name=sharpa_wave/e973bf284334409f9630493afab742f1-0.parquet",
+     "bytes": 1905667,
+     "sha256": "f3badc29e9703ddfee4f4affcb673a481203efb0202b23b79535050daaa400d8"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/processed/sequence_id=ep5_hw_w7_attcom_ep5/robot_name=sharpa_wave/e973bf284334409f9630493afab742f1-0.parquet.orig",
+     "bytes": 1729401,
+     "sha256": "bb65527b5f3d0cb6c3f9ed79cd950025f4cec49ac49cfade5bb570c6386ca4cb"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/reconstructed_stage/ep5_hw_w7_attcom_ep5_sharpa_wave_support.usda",
+     "bytes": 386,
+     "sha256": "c0e0e217d37d7164def5ad1ab3c3b4897939a06aab9e13e1fc9d15b282a45960"
+    },
+    {
+     "path": "assets/human_motion_data/ego_recon/reconstructed_stage/ep5_hw_w7_attcom_ep5_sharpa_wave_support.usda.generated_by_loader",
+     "bytes": 573,
+     "sha256": "97eb31c6e77774f908ec9b644e55929d868dc6694127ec8994335df465afc042"
+    },
+    {
+     "path": "bundle_cleaned/result.npz",
+     "bytes": 370095,
+     "sha256": "0c09e454364d86e28bb03ebd082f8e129f52680a4fbfc37758060156055462b4"
+    },
+    {
+     "path": "intermediate/ego_recon/loaded/sequence_id=ep5_hw_w7_attcom_ep5/robot_name=sharpa_wave/c1c77b5021e84dda81cf3cc732de2e20-0.parquet",
+     "bytes": 968487,
+     "sha256": "401d83191010bfd4ef25be5f5693b1189b5975ccd9619dd3c871dcd606942412"
+    },
+    {
+     "path": "pipeline.log",
+     "bytes": 4159,
+     "sha256": "c3fc98737130b7eb0526d37ed901dd840b992f95dafc5576bb8a725494026ac5"
+    },
+    {
+     "path": "relevel_report.json",
+     "bytes": 1160,
+     "sha256": "a119be7242663246efcf66b9de4bb7a45ae478995777a5951d99e2bfcfc06dd8"
+    },
+    {
+     "path": "report.json",
+     "bytes": 2074,
+     "sha256": "f30846e76703fa8a2e16de5570c0954ff30ba12966e5acd1b0785c4fd5dbe4d7"
+    },
+    {
+     "path": "score_input/meshes/episode_000005/material.mtl",
+     "bytes": 176,
+     "sha256": "18580aa4c98c6818ab59daad76affe89bf4c991fe6c9c24a99b36a75894b91e2"
+    },
+    {
+     "path": "score_input/meshes/episode_000005/white_pot.obj",
+     "bytes": 598359,
+     "sha256": "cf7e2cfba516d8ed5fc38f895d7810672c61403d827ecd675ec118e21159517d"
+    },
+    {
+     "path": "score_input/meshes/episode_000005/wooden_spoon.obj",
+     "bytes": 144127,
+     "sha256": "57e7d5007857c5c279d74040c1b58b8f8c050a7e927ce058f72eecc196182c25"
+    },
+    {
+     "path": "score_input/results/episode_000005.npy",
+     "bytes": 32384,
+     "sha256": "8c558efc69861593ccbe8b05052243b1612bda80d522bbbff7399e78d19cfe86"
+    },
+    {
+     "path": "w7_backup/ep5_hw_w7_attcom_ep5_white_pot_rigid.urdf",
+     "bytes": 816,
+     "sha256": "ad8107cb43ef208533a765b3b72f55801d1325ce8c33e8034a56d92758e2afec"
+    }
+   ],
+   "symlinks_in_tgz": [
+    "bundle_cleaned/HANDFIX_PREP.json",
+    "bundle_cleaned/obj1_mesh_1.mtl",
+    "bundle_cleaned/obj1_mesh_1_material_0.png",
+    "bundle_cleaned/MESH_POSE_PAIR.json",
+    "bundle_cleaned/mesh_1.obj",
+    "bundle_cleaned/optimized_assets",
+    "bundle_cleaned/mesh.obj"
+   ]
+  },
+  {
+   "role": "final",
+   "kind": "policy",
+   "name": "r_ep5_rl_K_s43 @ 95006720 (policy_95006720.safetensors)",
+   "location": "C:\\v2d_demo\\archive\\r_ep5_rl_K_s43\\policy_95006720.safetensors (= babel-s5-16:/tmp/haisenk_v2d/runs/r_ep5_rl_K_s43/train/policy_95006720.safetensors = babel-s5-16:/tmp/haisenk_v2d/archive/r_ep5_rl_K_s43/policy_95006720.safetensors)",
+   "bytes": 5138792,
+   "sha256": "d351dbaed5a14cca0d50f05876ad60ae68b2970e1bb3960026d1c9411a875840",
+   "note": "Equals checkpoint_sha256 in the evaluator json and in the packed parquet (pack.log)."
+  },
+  {
+   "role": "final",
+   "kind": "rollout",
+   "name": "evaluation of r_ep5_rl_K_s43 @ 95006720 (results/episode_000005.parquet)",
+   "location": "C:\\v2d_demo\\archive\\r_ep5_rl_K_s43\\results\\episode_000005.parquet (= babel-s5-16:/tmp/haisenk_v2d/runs/r_ep5_rl_K_s43/early_95006720/results/episode_000005.parquet)",
+   "bytes": 85509,
+   "sha256": "f4a352dd6ccdc06a2d754bc6a891f243171a03ff6a2d69c196ae4bd1cff214fc",
+   "note": "Metrics json (staged as training/eval_episode_000005.json) sha256 b8680074611ab40bf1d348fef9f15023fb6af4eb1722f34cfb4069e0cd3fdb9f."
+  },
+  {
+   "role": "final",
+   "kind": "packed_rows",
+   "name": "one.parquet (ep5, 576 rows)",
+   "location": "Babel ~/v2d_ops/kenc/tests/r_ep5_rl_K_s43/one.parquet (= C:\\v2d_demo\\archive\\r_ep5_rl_K_s43\\babel\\one.parquet)",
+   "bytes": 178101,
+   "sha256": "11183810af8d275adac7e6575d38f6d4c6ead952e5b9c392d35ec630b8068066",
+   "note": "pack_one.sh with commit URL .../commit/1689cf63...; reused unchanged by final1104/combine_final.sh."
+  },
+  {
+   "role": "submitted_T8",
+   "kind": "submission_file",
+   "name": "T8 track3_submission.parquet (bob1 + ep5 rows)",
+   "location": "Babel ~/v2d_ops/kenc/tests/r_ep5_rl_K_s43/track3_submission.parquet (= C:\\v2d_demo\\archive\\r_ep5_rl_K_s43\\babel\\track3_submission.parquet)",
+   "bytes": 2683866,
+   "sha256": "562a4a492dc7289c2e3d4dab8639103e05b9de30c483531daef3440035610e45",
+   "note": "Kaggle AUC board submission 57976828, public score 0.75799 (packing/kaggle_receipt_T8.json). Evidence only; other 19 episodes are bob1's rows."
+  },
+  {
+   "role": "parent",
+   "kind": "scene",
+   "name": "w7_attcom_ep5 (T3 scene; parent of rl2_ep5)",
+   "location": "C:\\v2d_demo\\handoff\\ep1_ep5_20261104\\episode_000005\\scene\\w7_attcom_ep5.tgz (= babel-s5-16:/tmp/haisenk_v2d/archive/o_ep5_attcom_s42/scene.tgz); unpacked babel-s5-16:/tmp/haisenk_v2d/scenes/w7_attcom_ep5 (node /tmp inside H100 job 10774619 on babel-s5-16; it disappears when that job ends (about 6 Nov 00:03 EST))",
+   "bytes": 8167488,
+   "sha256": "ae61a76fed40d2521783e37110f82bcacb0143e28eb110868c697cefe2fa8713",
+   "sha256_of": "scene.tgz",
+   "note": "Input of scene_build/build_rl2_ep5.sh. Processed parquet sha256 da451d2a065625477637cbbaafe2f1607470b746387bbf00047b173117ffc760 (same in the tgz and on babel-s5-16, i.e. the exact copy the re-level ran on). Verified rebuild: checks/rebuild_verification/."
+  },
+  {
+   "role": "measurement_input",
+   "kind": "depth",
+   "name": "FoundationStereo depth PNGs + object/hand masks of our own ep5 reconstruction (ken_c_scored/episode_000005)",
+   "location": "Babel /data/user_data/haisenk/v2d/v2d_recon/baseline/reconstruction/data/outputs/ken_c_scored/episode_000005/{white_pot,wooden_spoon}",
+   "sha256": null,
+   "note": "Read by depth_table/dt5b.py to measure the table plane (output depth_table/out/ep5_depthB.json, sha256 2b6225d9...). Not hashed or copied here (large, per-frame PNGs); only needed to re-measure the plane."
+  }
+ ],
+ "evidence": {
+  "kaggle": {
+   "bob1_auc": 0.75166,
+   "T3_auc": 0.75434,
+   "T8_auc": 0.75799,
+   "T8_submission": 57976828,
+   "ep5_change_vs_bob1": "+0.127 (x20 rule)",
+   "ep5_change_vs_T3": "+0.073",
+   "team_combined_with_T8": {
+    "auc": 0.76526,
+    "sp_sr": 0.95,
+    "mp_sr": 0.55,
+    "rpe_cm": 4.1052,
+    "mppe_cm": 3.42999,
+    "cd_o_cm": 0.39579
+   },
+   "team_combined_with_T3_instead": {
+    "auc": 0.76161,
+    "rpe_cm": 4.11736
+   },
+   "C2_cdo_only_T8_pot_transfer": {
+    "before": 0.38183,
+    "after": 0.36781
+   }
+  },
+  "local": {
+   "T8_plain": 0.9089,
+   "T8_anchored": 0.9093,
+   "T3_plain": 0.8861,
+   "T3_anchored": 0.8697,
+   "anchor_f0_reseat_deg": {
+    "T3": 3.05,
+    "T8": 1.21
+   },
+   "spoon_rest_f0_35_mean_add_cm": {
+    "T3": 2.1,
+    "T8": 0.6
+   }
+  },
+  "source": "C:\\v2d_demo\\tests\\ledger.md (excerpt in notes/ep5_relevel/ledger_ep5_excerpt.md); notes/ep5_relevel/ep5_status_audit_1104.md"
+ }
+}

@@ -1,0 +1,29 @@
+{
+ "episode": 8,
+ "written": "2026-11-04 ~12:30 EST (retry agent)",
+ "status": "JUDGED - rf_ep8_ds passes every clause of the pre-registered decision rule. Nothing submitted (Ken's stop), nothing rebuilt or re-queued.",
+ "verdict": "rf_ep8_ds_K_s43 @95006720 (policy md5 d8676d5f14b265c0f2a0d1f1b0b43e18) is locally better than T6 (h_ep8_sc_K_s42 @100M) under all five GT-free stand-ins and is the ep8 replacement candidate if submissions re-open.",
+ "decision_rule": "decision_rule_retry.json (12:14 EST, before scoring) = notes.md judge plan item 4 (pre-registered 10:51 EST)",
+ "rule_checks": {
+  "a_mechanism": "PASS - burst f62-69 cup ADD median 0.89 / 0.81 / 0.32 cm (T6 4.76); 3 of 3 < 2.0",
+  "b_family": "PASS - mean REF add_auc RF3 0.97931 vs KEN4 0.95826 (+0.02105; threshold +0.004)",
+  "c_candidate": "PASS - K_s43 vs T6: REF +0.02411, REF_DS +0.02412, REF_B1 +0.01441, SEAT +0.02140, RAY +0.02383",
+  "d_no_new_failure": "PASS - SR 1/1 everywhere; cup end-rest lost 0.0050-0.0051 vs T6 0.0043-0.0047; rest f0-31 0 vs 0; pot total lost lower than T6 under every stand-in",
+  "e_training_stability": "PASS - sweep best 0.990, 90/95/100M 0.978/0.990/0.988"
+ },
+ "scores_add_auc": {
+  "T6_h_ep8_sc_K_s42_100M": {"REF": 0.95691, "REF_DS": 0.95733, "REF_B1": 0.96219, "SEAT": 0.93936, "RAY": 0.94406},
+  "rf_ep8_ds_K_s42_85M": {"REF": 0.97817, "REF_DS": 0.97817, "REF_B1": 0.98031, "SEAT": 0.95933, "RAY": 0.96846},
+  "rf_ep8_ds_K_s43_95M": {"REF": 0.98102, "REF_DS": 0.98145, "REF_B1": 0.9766, "SEAT": 0.96076, "RAY": 0.96789},
+  "rf_ep8_ds_K_s44_90M": {"REF": 0.97874, "REF_DS": 0.9786, "REF_B1": 0.98159, "SEAT": 0.9589, "RAY": 0.9639},
+  "family_mean_KEN4_vs_RF3": {"REF": [0.95826, 0.97931], "REF_DS": [0.95826, 0.97941], "REF_B1": [0.95858, 0.9795], "SEAT": [0.94021, 0.95966], "RAY": [0.9487, 0.96675]}
+ },
+ "measured_vs_expected_gain": "expected +0.004..+0.009 (READY.json); measured +0.021 family / +0.024 candidate under REF (+0.014..+0.024 across stand-ins). MPPE -0.19..-0.23 cm (family means, every stand-in); RPE better under REF/REF_DS/REF_B1, flat under SEAT/RAY.",
+ "risk": "audit item #6: if beige_cup is scored NON-symmetric and the real cup spun like FoundationPose, K_s43 would score 0.742 vs T6 0.961; if non-symmetric and the real cup did not spin, 0.983 vs 0.728. Kaggle's ep8 deltas cannot separate the scenarios (work/nonsym_summary.json). The video wrist (G4) contradicts a real spin. Lesson T7: still a GT-free win, unproven on Kaggle.",
+ "preserved": {
+  "babel": "/data/user_data/haisenk/v2d/refine1104/ep8/candidates/rf_ep8_ds_K_s4{2,3,4}/ (best + 100M policies, sweep, logs, rollouts); judge files in /data/user_data/haisenk/v2d/refine1104/ep8/judge_retry/",
+  "local": "C:/v2d_demo/diag/refine1104/ep8/candidate/rf_ep8_ds_K_s43/",
+  "scene": "/data/user_data/haisenk/v2d/refine1104/ep8/rf_ep8_ds ; installed babel-s5-16 /tmp/haisenk_v2d/scenes/rf_ep8_ds"
+ },
+ "files": ["notes.md (RETRY section)", "verdict_rf.json", "judge_rf.json", "judge_rf_100M_REF.json", "anch_rf_family.txt", "work/perframe_rf.json", "work/nonsym_summary.json"]
+}

@@ -1,0 +1,41 @@
+Training and checkpoint selection of the final ep3 policy h_ep3_sc_K_s42 @ 95006720 (Edmond's protocol, run by kq.sh).
+
+Queue line (kq.txt, appended 4 Nov 2026 05:20:19Z = 00:20 EST; format NAME EP PARQUET SEED RECIPE PRIO):
+  h_ep3_sc_K_s42 3 /tmp/haisenk_v2d/scenes/sc_ep3/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave 42 KEN 2
+
+Driver: kq.sh (this folder, md5 9d5a6253fdee63942a1b309c4ed23ae2; the orchard copy was last written 3 Nov 22:33 EST and
+never changed afterwards), started as  bash kq.sh /tmp/haisenk_v2d/kq.txt 0 1 2 3 4 5 6  inside an srun --overlap step of
+orchard job 157612 (orchard-flame-21, H100). Driver log header (kq.out line 1):
+  == Tue Nov  3 22:34:02 EST 2026 kq queue /tmp/haisenk_v2d/kq.txt runs /tmp/haisenk_v2d/runs GPUs 0 1 2 3 4 5 6 PYTHONPATH=/tmp/haisenk_v2d/fc_src_de66
+Environment of every task (kq.sh task()):
+  B=/tmp/haisenk_v2d   FC=$B/v2d_train/baseline/robotic_grounding/flash_chord   FC_PY=$FC/.venv/bin/python
+  KIT=$B/v2d_train/assets/data/v2d_submission_kit
+  v2d_train = team repo zjifan121-source/NVIDIA_V2D_Egocentric, origin/edm_training @ 1a6bae7b (sparse checkout:
+              flash_chord, tools/track3, assets/data/v2d_submission_kit), uv sync --frozen --extra train
+  PYTHONPATH=$B/fc_src_de66  (Edmond's flash_chord source at de66fea3, "non-finite replay guard")
+  CUDA_VISIBLE_DEVICES=1 XLA_PYTHON_CLIENT_PREALLOCATE=false WANDB_MODE=offline WANDB_DIR=$B/runs/h_ep3_sc_K_s42 WANDB_SILENT=true
+
+Training command as expanded by kq.sh (recipe KEN, from recipe.txt):
+  cd $FC && $FC_PY scripts/train_flash_sac.py experiment=sharpa_flash_sac \
+    "task.parquet='/tmp/haisenk_v2d/scenes/sc_ep3/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave'" \
+    reset.seed=42 curriculum=tracking_100m_object2x training.checkpoint.save_replay=false logging.mode=offline \
+    logging.upload_checkpoints=false logging.run_name=h_ep3_sc_K_s42 output_dir="/tmp/haisenk_v2d/runs/h_ep3_sc_K_s42/train" \
+    training.total_environment_steps=100003840 \
+    task.motion_speed=1.0 sim.fps=20.254119873046875 termination.wrist_position.threshold=0.3 \
+    training.checkpoint.save_interval_environment_steps=5000192 \
+    termination.object_position.threshold=0.1 termination.object_orientation.threshold=0.5 \
+    training.replay.capacity=4194304 training.replay.observation_storage_dtype=float32 sim.njmax=1024 sim.nconmax=512 \
+    >> /tmp/haisenk_v2d/runs/h_ep3_sc_K_s42/train.log 2>&1
+  Ran 00:48:21-01:21:51 EST on gpu1, ~52k env steps/s, one uninterrupted run (no resume), exit 0, 0 "nefc overflow" lines.
+
+Checkpoint sweep (kq.sh sweep(), every policy_<S>.safetensors with S >= 70,000,000; official kit evaluator, own reference):
+  echo '{"3": "/tmp/haisenk_v2d/runs/h_ep3_sc_K_s42/train/policy_<S>.safetensors"}' > early_<S>/checkpoints.json
+  $FC_PY $KIT/examples/run_policy_evaluation.py --checkpoints early_<S>/checkpoints.json --results early_<S>/results --runtime-root $FC
+  (hydra overrides recorded in eval_95006720/hydra/overrides.yaml: world_count=1, reset_mode=explicit, deterministic policy)
+  -> sweep.json sorted by add_auc, best.txt. Result (sweep.json):
+     95006720 0.9468 [pot 0.988, spoon 0.905]  <- selected (highest own-reference add_auc)
+     80003072 0.9452, 90005504 0.9374, 85004288 0.9372, 70004736 0.9360, 75005952 0.9302, 100003840 0.7830 (collapsed)
+  Selected policy: train/policy_95006720.safetensors sha256 45c4736b1feab1e88189530c4cccbf672f19d6d8d50a7bfca4e321ed4828b531
+  Its rollout:     early_95006720/results/episode_000003.parquet sha256 77a60882e148f23a95bf43a1959c70c81b00296cc1b323863cc680d68e78a62f
+                   (eval_95006720/episode_000003.json: add_auc 0.94679 [0.98822, 0.90535], chord_sr 1, maniptrans_sr 1,
+                    spider_sr_uncentered 1, mppe 1.62 cm, rpe 1.71 cm, 313 steps)
