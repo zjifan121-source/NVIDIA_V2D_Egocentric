@@ -44,3 +44,7 @@ Seven entries printed as bare numbers because `references.bib` had `% CHECK ...`
 A.1 then gained one factual statement: the Path A' reconstruction code (absent from `main_buffer`) is in PR #24 (head 7ea9ac1) and on branch `wentacc_dev`; checked with `git cat-file` on both refs. Current `main.tex`: `../overleaf_main_final_664be316.tex`, sha256 `664be31616d611befd6643db533e606edafa5eaf374a8a3ef2b5706ea5336388`. `overleaf_main_final_052f89af.tex` is kept as the version before this line.
 
 PR #24 was then merged into `main_buffer` (merge commit 7c45ecc, 23:32 UTC), and A.1 now cites that commit. Current `main.tex`: `../overleaf_main_final_7b9e1bd5.tex`, sha256 `7b9e1bd5486c7f91a4a146b9a01f46c28d4676e5c900157b12d79b3666ba7721`.
+
+## Version at the close (2026-11-05, about 00:00 UTC)
+
+Just before the deadline the teammates replaced `main.tex` with their own rewrite (`../overleaf_main_teammate_rewrite_9940c16d.tex`), which superseded this line's `overleaf_main_final_1fc6e34f.tex`; the lead kept the rewrite. On it this line applied two factual fixes to the hygiene table, the merged-commit statement in the code paragraph, and a format fix keeping `tab:kaggle` inside its column. Current file: `../overleaf_main_final_49e8d176.tex`, sha256 `49e8d1764d1e7582670f2ecf815650848486fb5f08576b8546b0bf87c312e33b`. The sections above describe earlier versions.
