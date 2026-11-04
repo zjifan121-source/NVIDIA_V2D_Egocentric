@@ -233,6 +233,9 @@ class ReferenceResetConfig:
     always_reset_to_first_frame: bool = False
     reset_to_first_frame_probability: float = 0.1
     first_frame_voc_threshold: float = 0.1
+    focus_probability: float = 0.0
+    focus_start_frame: int = 0
+    focus_end_frame: int = 0
     voc_decay_steps: int = 20
     voc_decay_mode: Literal["step", "linear"] = "step"
     seed: int = 42
@@ -246,6 +249,12 @@ class ReferenceResetConfig:
             )
         if self.first_frame_voc_threshold < 0.0:
             raise ValueError(f"first_frame_voc_threshold must be non-negative, got {self.first_frame_voc_threshold}")
+        if not 0.0 <= self.focus_probability <= 1.0:
+            raise ValueError(f"focus_probability must be in [0, 1], got {self.focus_probability}")
+        if self.focus_probability > 0.0 and not 0 <= self.focus_start_frame < self.focus_end_frame:
+            raise ValueError(
+                f"focus window must satisfy 0 <= start < end, got [{self.focus_start_frame}, {self.focus_end_frame})"
+            )
         if self.voc_decay_steps < 0:
             raise ValueError(f"voc_decay_steps must be non-negative, got {self.voc_decay_steps}")
         if self.voc_decay_mode not in ("step", "linear"):
@@ -348,6 +357,9 @@ def sample_reference_reset(
     always_first_frame: int,
     first_frame_probability: wp.array(dtype=wp.float32),
     first_frame_voc_threshold: float,
+    focus_probability: float,
+    focus_start_frame: int,
+    focus_end_frame: int,
     reset_finger_openness: float,
     seed: int,
     curriculum_voc_scale: wp.array(dtype=wp.float32),
@@ -368,6 +380,10 @@ def sample_reference_reset(
     random_frame_count = num_frames - 1
     if always_first_frame == 0 and random_frame_count > 0:
         frame = int(wp.randf(rng) * float(random_frame_count))
+        if focus_probability > 0.0:  # guarded so default runs keep their random stream
+            if wp.randf(rng) < focus_probability:
+                end = wp.min(focus_end_frame, random_frame_count)
+                frame = focus_start_frame + int(wp.randf(rng) * float(end - focus_start_frame))
         if curriculum_voc_scale[0] < first_frame_voc_threshold:
             if wp.randf(rng) < first_frame_probability[0]:
                 frame = 0
@@ -551,6 +567,9 @@ class ReferenceReset:
                 int(self.config.always_reset_to_first_frame),
                 self.first_frame_probability,
                 self.config.first_frame_voc_threshold,
+                self.config.focus_probability,
+                self.config.focus_start_frame,
+                self.config.focus_end_frame,
                 self.config.reset_finger_openness,
                 self.config.seed,
                 curriculum_voc_scale,

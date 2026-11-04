@@ -1,0 +1,61 @@
+{
+  "track": "track_3",
+  "file": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/packed/candidate_bob4.parquet",
+  "message": "bob4: bob3 + Ken 3 Nov hand fixes on Wentao fb11 for ep3 (0.927) and ep10 (0.713) + ep14 hand-hold on Ken recon (0.853)",
+  "submissions": {
+    "add_auc": {
+      "slug": "v2d-challenge-track3-auc",
+      "state": "COMPLETE",
+      "file": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/packed/candidate_bob4.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - AUC",
+      "ref": 57959330,
+      "public_score": "0.75058",
+      "error": ""
+    },
+    "spider_sr": {
+      "slug": "v2d-challenge-track3-sp-sr",
+      "state": "COMPLETE",
+      "file": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/packed/candidate_bob4.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - SP-SR",
+      "ref": 57959332,
+      "public_score": "0.90000",
+      "error": ""
+    },
+    "maniptrans_sr": {
+      "slug": "v2d-challenge-track3-mp-sr",
+      "state": "COMPLETE",
+      "file": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/packed/candidate_bob4.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - MP-SR",
+      "ref": 57959335,
+      "public_score": "0.40000",
+      "error": ""
+    },
+    "rpe_cm": {
+      "slug": "v2d-challenge-track3-rpe",
+      "state": "COMPLETE",
+      "file": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/packed/candidate_bob4.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - RPE (cm)",
+      "ref": 57959338,
+      "public_score": "4.37078",
+      "error": ""
+    },
+    "mppe_cm": {
+      "slug": "v2d-challenge-track3-mppe",
+      "state": "COMPLETE",
+      "file": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/packed/candidate_bob4.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric - MPPE (cm)",
+      "ref": 57959340,
+      "public_score": "3.63643",
+      "error": ""
+    },
+    "cd_o_cm": {
+      "slug": "v2d-challenge-track3-cd-o",
+      "state": "COMPLETE",
+      "file": "/home/edmondwa/NVIDIA_V2D_Egocentric/reports/submission_candidate_2026-10-28/packed/candidate_bob4.cd-o.parquet",
+      "message": "Successfully submitted to Track 3 - Egocentric (object reconstruction) - CD-O (cm)",
+      "ref": 57959341,
+      "public_score": "0.41025",
+      "error": ""
+    }
+  }
+}

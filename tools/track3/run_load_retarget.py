@@ -297,6 +297,21 @@ def fill_hand(data: dict, side: str, bad: np.ndarray) -> None:
     data[f"hand_{side}_wrist_to_world_transform"] = (c2w @ w2c).astype(np.float32)
 
 
+def smooth_object_rotation(data: dict, pose_key: str, sigma: float) -> None:
+    """Gaussian-smooth one object's world rotation over time (sign-aligned quaternions); its
+    positions stay as reconstructed. Per-frame object fits can wobble several degrees a frame,
+    which no rigidly held object can follow and which trips the orientation termination."""
+    from scipy.ndimage import gaussian_filter1d
+    from scipy.spatial.transform import Rotation
+    T = data[pose_key].astype(np.float64)
+    quat = Rotation.from_matrix(T[:, :3, :3]).as_quat()
+    for i in range(1, len(quat)):  # keep consecutive quaternions in one hemisphere
+        if np.dot(quat[i], quat[i - 1]) < 0:
+            quat[i] = -quat[i]
+    T[:, :3, :3] = Rotation.from_quat(gaussian_filter1d(quat, sigma, axis=0, mode="nearest")).as_matrix()
+    data[pose_key] = T.astype(data[pose_key].dtype)
+
+
 def smooth_hand(data: dict, side: str, sigma: float) -> None:
     """Gaussian-smooth one hand over time in the world (wrist position, wrist rotation via
     sign-aligned quaternions, finger pose), then write it back in camera frame like fill_hand.
@@ -714,7 +729,8 @@ def attach_hands(data: dict, bundle: Path, lift: float = 0.02, reach: float = 0.
 def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True, hand_clean: bool = True,
                    object_clean: bool = True, rescale_by_hands: bool = False, rescale_by_scan: str | None = None,
                    still: bool = False, level: bool = False, attach: bool = False, seat: bool = False,
-                   gap_scale: float = 1.0, reach_cm: float = 10.0, hand_smooth: float = 0.0) -> tuple[Path, dict]:
+                   gap_scale: float = 1.0, reach_cm: float = 10.0, hand_smooth: float = 0.0,
+                   object_rotation_smooth: float = 0.0) -> tuple[Path, dict]:
     """Copy of the bundle with the repairs reconstructions need before load:
 
     hand_clean: the loader ignores hand_*_is_valid, and hand tracks often fly off (a wrist 2 m
@@ -774,6 +790,10 @@ def cleaned_bundle(bundle: Path, dest: Path, fps: float, rest_hold: bool = True,
             if data[f"hand_{side}_is_valid"].any():
                 smooth_hand(data, side, hand_smooth)
         info["hand_smooth_sigma_frames"] = hand_smooth
+    if object_rotation_smooth > 0:
+        for pose_key, _, _ in slots:
+            smooth_object_rotation(data, pose_key, object_rotation_smooth)
+        info["object_rotation_smooth_sigma_frames"] = object_rotation_smooth
     for i, (pose_key, scale_key, mesh_file) in enumerate(slots):
         tag = "" if len(slots) == 1 else f"_{names[i]}"
         T = data[pose_key].astype(np.float64)
@@ -958,6 +978,8 @@ def main() -> int:
     parser.add_argument("--smooth-hands", type=float, default=0.0, metavar="SIGMA",
                         help="Gaussian-smooth hand tracks over time (sigma in frames; for bundles "
                              "written without the joint refinement, whose per-frame hands jitter)")
+    parser.add_argument("--smooth-object-rotation", type=float, default=0.0, metavar="SIGMA",
+                        help="Gaussian-smooth object rotations over time, positions untouched (sigma in frames)")
     parser.add_argument("--no-object-clean", action="store_true",
                         help="keep object jumps (default: interpolate frames faster than any real object)")
     parser.add_argument("--rescale-by-hands", action="store_true",
@@ -999,6 +1021,10 @@ def main() -> int:
     merge_info = None
     if args.merge:
         args.bundle, merge_info = merged_bundle(args.episode, out / "bundle_merged")
+        if os.environ.get("H5_MERGED_NPZ"):  # hand fixes: replace the merged bundle arrays with a prepared result.npz
+            shutil.copyfile(os.environ["H5_MERGED_NPZ"], Path(args.bundle) / "result.npz")
+            merge_info["h5_merged_npz"] = os.environ["H5_MERGED_NPZ"]
+            print(f"== hand fixes: merged result.npz replaced by {os.environ['H5_MERGED_NPZ']}", flush=True)
     bundle = args.bundle.resolve()
     log = out / "pipeline.log"
 
@@ -1023,13 +1049,18 @@ def main() -> int:
         print(f"  ! {w}")
     if not (args.no_rest_hold and args.no_hand_clean and args.no_object_clean) or args.rescale_by_hands \
             or args.rescale_by_scan or args.still_object or not args.no_level or args.attach_hands \
-            or args.smooth_hands > 0:
+            or args.smooth_hands > 0 or args.smooth_object_rotation > 0:
+        if os.environ.get("H5_PATCH"):  # hand fixes: redefine cleanup functions (e.g. attach_hands) from a patch file
+            exec(compile(Path(os.environ["H5_PATCH"]).read_text(), os.environ["H5_PATCH"], "exec"), globals())
+            report["h5_patch"] = os.environ["H5_PATCH"]
+            print(f"== hand fixes: patch {os.environ['H5_PATCH']} applied", flush=True)
         bundle, report["cleaning"] = cleaned_bundle(
             bundle, out / "bundle_cleaned", args.fps, rest_hold=not args.no_rest_hold,
             hand_clean=not args.no_hand_clean, object_clean=not args.no_object_clean,
             rescale_by_hands=args.rescale_by_hands, rescale_by_scan=label if args.rescale_by_scan else None,
             still=args.still_object, level=not args.no_level, attach=args.attach_hands, seat=args.seat,
-            gap_scale=args.gap_scale, hand_smooth=args.smooth_hands)
+            gap_scale=args.gap_scale, hand_smooth=args.smooth_hands,
+            object_rotation_smooth=args.smooth_object_rotation)
         print(f"== cleaned bundle: {report['cleaning']}", flush=True)
 
     print("== load (MANO FK -> ManoSharpaData)", flush=True)
