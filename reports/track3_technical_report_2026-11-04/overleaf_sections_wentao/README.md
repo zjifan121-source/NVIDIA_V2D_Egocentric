@@ -2,7 +2,7 @@
 
 The team report is written in the shared Overleaf project "V2D Technical Report - Gravity Aligned"
 (`main.tex`, NVIDIA extended-abstract class). These files are the exact text inserted there on
-2026-11-04 (main.tex sha256 after the edit: `6a880698aa0b48a3fdc330b098b35223d4cc6be97e268de16615a78ccf9d2410`):
+2026-11-04 (main.tex sha256 after the edit: `623b873db4eadad567094439c1d79879bfbe18263d40745c78f6ba18254cad8d`):
 
 - `patha_prime_section.tex` — Sec. 2.3 "Path A′: metric-size meshes and fixed-mesh tracking" (replaces the placeholder subsection), including the scene-hygiene paragraph.
 - `results_note_sec_compare.tex` — one paragraph appended to Sec. 3.4 "Comparing reconstructions through the policy" (ep28 result after the scene hygiene).
