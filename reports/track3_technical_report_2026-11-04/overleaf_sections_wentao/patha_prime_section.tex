@@ -1,0 +1,45 @@
+\subsection{Path A$'$: metric-size meshes and fixed-mesh tracking}
+\label{sec:wentao}
+Path~A$'$ consumes the same metric front end as Path~B (rectified stereo, FoundationStereo
+depth, SAM~3 masks, DROID-SLAM on the masked stereo depth, WiLoR$\rightarrow$HaMeR hands) and
+replaces mesh generation, sizing and tracking by an input-reviewed chain in which every choice
+is frozen before any score is read. \emph{Structure-gated meshes:} at most two clear,
+complementary views per object are predeclared and each is generated once with SAM~3D (seed~0);
+a candidate passes only an explicit review of its visible critical structure and of
+neighbouring-object contamination, so a low depth residual cannot excuse a missing handle or a
+merged neighbour. \emph{Shared metric size:} one uniform size multiplier per mesh is fitted
+jointly over three support frames with an independent SE(3) per frame and verified on two
+held-out frames with the size frozen; candidates are compared by Pareto dominance over silhouette
+IoU, depth residual and valid-mask coverage on untouched pixel blocks, ties going to the
+predeclared order. The size is baked into the vertices once; no scale sweep, per-frame rescaling
+or splat refinement follows. \emph{Fixed-mesh bidirectional tracking:} FoundationPose registers
+once on a reviewed anchor frame (ranked by hand-excluded depth support) and tracks forward and
+backward from it on masked stereo depth (10/5 refinement iterations, one particle, no
+re-registration or EKF). Optional CPU refinements (a 9-parameter part-shape model, a 16-node
+contact-shape deformation constrained by silhouettes, depth and the observed table contact, and a
+temporal pose solver with stereo landmarks and corrections bounded to 6\,cm / 30$^\circ$) run as
+separately frozen candidates and are recorded per bundle rather than applied by default. On
+public ep27 the chain cut inter-object RPE from 41.4 to 1.6\,cm (AUC 0.267$\rightarrow$0.913); the
+retained public reconstructions play back at 0.908 ADD-AUC (official metric, ground truth used
+for evaluation only), and on eight scored spoon and sweeper sequences the image--depth alignment
+of the model rose from 0.631 to 0.757 against the original bundles on identical observations
+(details in Appendix~\ref{app:patha-prime}).
+
+\textbf{Scene hygiene for training.} Policies trained on A$'$ bundles exposed defects that no
+reconstruction metric sees: hands copied from an older object track (spoon-in-hand angle
+21$^\circ$ off at the median); ``false grasps'' from a rule that attached a hand for a whole lift
+once it came within 12\,cm (wrist 15--47\,cm from the surface before attachment); hundreds of
+degrees of unobservable spin about a cup's axis or roll about a spoon's long axis, which made the
+attached hand orbit the object (wrist displaced 10--25\,cm); 1--6\,cm of table penetration at
+frame~0; and a pot whose mesh origin, used as the URDF inertial origin, sat 8\,cm off its axis and
+tipped it 25$^\circ$ at rest. The repairs are mechanical and ground-truth-free
+(Table~\ref{tab:hygiene}): hands are re-attached to the final object track; holding is decided
+per frame, with unheld lifted frames assigned to the last holder; cups take their spin from the
+holding hand (the hand-fix line's respin, Sec.~\ref{sec:repair}) and thin objects keep their roll
+while held; the support plane is set to the object's lowest point minus 2\,mm (only ever
+lowered); the inertial origin moves to the shell centroid. On ep28 (dish rack and pot, a two-hand
+hand-off) the repaired scene with the observed-size pot trained to 0.914 (DEF) and 0.930 (KEN,
+90M) own-reference AUC against 0.906 for the base policy on that episode, whereas a donor pot
+2\,cm shorter, chosen because it improved an observation proxy by 0.0145, left a 3.5\,cm wrist gap
+and the policy dropped the pot at the hand-off (0.22): the per-episode observed size wins.
+

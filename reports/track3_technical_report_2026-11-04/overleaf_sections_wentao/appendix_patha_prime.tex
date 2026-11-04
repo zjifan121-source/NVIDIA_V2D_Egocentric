@@ -1,0 +1,60 @@
+\subsection{Path A$'$ details}
+\label{app:patha-prime}
+\textbf{Stages.} (1)~Ingest and calibration: three-way video decode with frame-index
+bookkeeping; the 14-parameter distortion model; the 180$^\circ$ device rotation and the
+RGB-to-stereo extrinsics applied together. (2)~Metric depth: FoundationStereo on the stereo pair,
+resampled onto the RGB grid with a validity mask (the stereo stream is offset by two frames from
+RGB; the first frames share one stereo frame). (3)~Masks: SAM~3 text prompts per object and hand,
+SAM~2 propagation as fallback. (4)~Camera: DROID-SLAM with the background stereo depth as prior
+and dynamic objects and hands masked out; the table plane is fitted from depth. (5)~Hands: WiLoR
+detection and identity, HaMeR MANO fits, FoundationStereo-aligned scale, short-gap filling and one
+shape per sequence. (6)~Meshes and size: structure-gated SAM~3D candidates and the shared metric
+size of Sec.~\ref{sec:wentao}. (7)~Tracking: fixed-mesh bidirectional FoundationPose from one
+reviewed anchor. (8)~Bundle: object poses, meshes with materials, hands, camera, table plane and a
+manifest per episode; absolute paths are rewritten on the training host.
+
+\textbf{Scene hygiene.} Table~\ref{tab:hygiene} lists the defects found while training on A$'$
+scenes during the final 36 hours before the freeze, each with its symptom and repair. Each was
+found only after a 2--4.5 hour training run; none is visible to mask-and-depth proxies or to the
+public-split AUC.
+\begin{table}[h]
+  \centering\small
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{p{0.26\linewidth}p{0.36\linewidth}p{0.32\linewidth}}
+    \toprule
+    Defect & Symptom & Repair \\
+    \midrule
+    Hands copied from an older object track & spoon-in-hand angle 21$^\circ$ off (median); 74 frames over the termination threshold & re-run the hand stage on the final object track \\
+    Exclusive attach (``false grasp'') & a hand attached for the whole lift after one pass within 12\,cm; wrist 15--47\,cm from the surface (ep14/15/16/28) & per-frame hold decision; unheld lifted frames to the last holder; a net displacement $<$1\,cm is not a lift \\
+    Unobservable cup spin & $-384$..$+213^\circ$ and 0..675$^\circ$ of spin; the attached hand orbits (wrist moved 10--25\,cm); cup dropped at frame 46 & spin taken from the holding hand (ep33 cup 0.32$\rightarrow$0.57 at 70M) \\
+    Unobservable spoon roll & 250--560$^\circ$ of roll about the long axis; the hand rolls with it & roll frozen while held \\
+    Table penetration & objects 1--6\,cm below the support at frame~0 & support = lowest point $-$2\,mm, only ever lowered; shims for floating objects \\
+    Inertial origin & pot origin 8\,cm off its axis; tipped 25$^\circ$ at rest & inertial origin at the shell centroid (pot 8\,cm, rack 4.5\,cm, spoon 2--2.6\,cm) \\
+    World tilt & table 1--10$^\circ$ from gravity per episode & re-level to the depth-fitted table (priority episodes were within 2$^\circ$) \\
+    Contact overflow & nested cups with two hands exceed \texttt{njmax}=1024 (172 events in 7\,min) & \texttt{njmax}=2048, \texttt{nconmax}=1024 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Defects that appeared only when a policy was trained on the A$'$ scene, and their repairs.}
+  \label{tab:hygiene}
+\end{table}
+
+\textbf{Selection without the board.} Once the daily Kaggle quota was exhausted, A$'$ candidates
+were judged by two instruments that use neither hidden ground truth nor leaderboard probes: a
+\emph{board emulator} (the kit's registration, frame-0 alignment and metric code, with the
+incumbent's reference track and mesh standing in for the hidden solution) and a \emph{camera
+proxy} (the rollout aligned on frame~0, rendered into the scored frames and scored by mask overlap
+and depth). On 14 single-episode swaps with known board outcomes their episode deltas correlate
+with the board at Spearman 0.956 and 0.912; requiring both to beat the incumbent (``two-check'')
+accepted five winners, all correct, rejected all eight losers and missed one winner. Under this
+rule the ep28 scene of Sec.~\ref{sec:wentao} trained with the KEN thresholds (0.930 own-reference
+AUC at 90M; emulator $+0.026$, camera $+0.012$) was the strongest candidate of the final day; it
+was ready after the AUC board's quota had been used up. ep33 with the KEN thresholds (0.827
+own-reference AUC) was rejected: its emulator delta is $-0.21$ because the A$'$ cup and spoon
+differ in size from the incumbent's (18.7 vs.\ 17.1\,cm and 31.8 vs.\ 27.8\,cm).
+
+\textbf{Artefacts.} A$'$ reconstructions, scenes, rollouts and policies are on the team's
+Hugging Face dataset \texttt{rose-tea-cafe/v2d-t3-recon} under append-only per-version prefixes
+(\texttt{experiments/wentacc/scored20\_lead\_v3\_20261104} and earlier), each upload verified by
+reading back every file's SHA; the scene-consistency tools (hand re-attach, seating, spin, roll
+and centre-of-mass fixes, probe review and release builders) are in the team repository.
+
