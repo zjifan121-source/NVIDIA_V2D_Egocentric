@@ -1,0 +1,1 @@
+final/ep28 (reconstruction line): observed-size pot + per-frame hold rule + COM fix scene, KEN-termination policy 0.930 own-ref, judged, six-board pack (not uploaded)

@@ -1,0 +1,84 @@
+{
+  "episode": 3,
+  "bundle": "bundle",
+  "extra_files": [],
+  "objects": [
+    {
+      "slot": 0,
+      "name": "reviewed_target",
+      "review": {
+        "accepted": false,
+        "evidence": "Replace with input-only identity, structure, mesh/pose pairing and frame-role review"
+      },
+      "observations": {
+        "root": "objects/slot_0/observations",
+        "depth_encoding": "native_inverse_u16"
+      },
+      "contact_point": {
+        "vertex": null
+      },
+      "temporal": {
+        "inputs": {
+          "landmarks": "objects/slot_0/landmarks.npz",
+          "measurement_receipt": "objects/slot_0/measurement.json",
+          "table_plane": "bundle/table_plane.npy"
+        },
+        "parameters": {
+          "calibration_frames": [
+            15,
+            60
+          ],
+          "fit_frames": [
+            15,
+            60,
+            120
+          ],
+          "validation_frames": [
+            30,
+            90
+          ],
+          "contact_frames": [
+            15
+          ],
+          "landmark_groups": [
+            0,
+            1
+          ],
+          "maximum_seconds": 1800
+        }
+      },
+      "shape": {
+        "kind": "part_shape",
+        "inputs": {
+          "semantic_vertices": {
+            "parts": [
+              0,
+              1
+            ],
+            "center": 2
+          }
+        },
+        "parameters": {
+          "support": [
+            15,
+            60,
+            120
+          ],
+          "heldout": [
+            30,
+            90
+          ],
+          "maximum_iterations": 15,
+          "maximum_seconds": 1800
+        }
+      },
+      "tracking": {
+        "anchor_frame": 60
+      }
+    },
+    {
+      "slot": 1,
+      "preserve": "Fixed partner for this input-reviewed run"
+    }
+  ]
+}

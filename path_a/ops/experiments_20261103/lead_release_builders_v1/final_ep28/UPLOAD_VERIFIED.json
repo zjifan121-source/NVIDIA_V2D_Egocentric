@@ -1,0 +1,13 @@
+{
+  "state": "UPLOADED_ALL_FILES_SHA_READBACK_VERIFIED",
+  "commit": "986a253e8aad21b73a6f477f6c31fc82f26d9115",
+  "url": "https://huggingface.co/datasets/rose-tea-cafe/v2d-t3-recon/commit/986a253e8aad21b73a6f477f6c31fc82f26d9115",
+  "parent": "ef533d684d8c1ce652da0c298c4012fc91586530",
+  "repo": "rose-tea-cafe/v2d-t3-recon",
+  "prefix": "final/ep28_wentao_oldpot_hold_com_kenterm_v1",
+  "tree_url": "https://huggingface.co/datasets/rose-tea-cafe/v2d-t3-recon/tree/986a253e8aad21b73a6f477f6c31fc82f26d9115/final/ep28_wentao_oldpot_hold_com_kenterm_v1",
+  "files_added": 68,
+  "bytes": 26284143,
+  "existing_files_unchanged": true,
+  "verified_utc": "2026-11-04T20:19:05.971152+00:00"
+}
