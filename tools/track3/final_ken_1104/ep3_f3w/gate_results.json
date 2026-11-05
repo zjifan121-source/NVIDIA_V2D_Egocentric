@@ -1,0 +1,129 @@
+{
+ "episode": 3,
+ "scene": "rf_ep3_f3w",
+ "gates_file": "C:\\v2d_demo\\diag\\refine1104\\ep3_f3w\\gates.json",
+ "all_pass": false,
+ "failed": [
+  "G7"
+ ],
+ "gates": {
+  "G1a": {
+   "value": 0.743,
+   "thr": ">=0.65",
+   "pass_": true
+  },
+  "G1b": {
+   "value": 0.727,
+   "thr": ">=0.65",
+   "pass_": true
+  },
+  "G1c": {
+   "value": 0.719,
+   "thr": ">=0.70",
+   "pass_": true
+  },
+  "G1d": {
+   "value": [
+    0.718,
+    0.714
+   ],
+   "scene": [
+    0.718,
+    0.6
+   ],
+   "pass_": true
+  },
+  "G2": {
+   "value": 4.8,
+   "scene": 12.5,
+   "pass_": true
+  },
+  "G3": {
+   "value": 0,
+   "scene": 0,
+   "pass_": true
+  },
+  "G4": {
+   "pass_": true,
+   "cam_total": 19,
+   "cam_twist": 4,
+   "world_total": 19,
+   "world_twist": 4,
+   "scene_cam_total": 23,
+   "wentao_cam_total": 45,
+   "max_step_deg": 16.3
+  },
+  "G5": {
+   "pass_": true,
+   "non_parquet_files_identical": true,
+   "changed_columns": [
+    "mano_right_trans",
+    "mano_right_global_orient",
+    "mano_right_joints",
+    "mano_right_joints_wxyz",
+    "mano_right_link_contact_positions",
+    "mano_right_link_contact_normals",
+    "mano_right_object_contact_positions",
+    "mano_right_object_contact_normals",
+    "robot_right_wrist_position",
+    "robot_right_wrist_wxyz",
+    "robot_right_frames",
+    "object_body_position",
+    "object_body_wxyz"
+   ],
+   "changed_frames": [
+    43,
+    208,
+    158
+   ],
+   "other_bodies_identical": true,
+   "wrist_in_spoon_max_pos_m": 8.759154987436624e-08,
+   "wrist_in_spoon_max_rot_rad": 1.0185661329463618e-07,
+   "mano_joints_in_spoon_max_m": 1.0001519649971424e-07,
+   "robot_frames_in_spoon_max_m": 9.921847561600305e-08,
+   "quat_unit_max_err": 1.7907248239801277e-07,
+   "nan": false,
+   "schema_same": true
+  },
+  "G6": {
+   "pass_": true
+  },
+  "G7": {
+   "value": {
+    "median_ang": 68.6,
+    "median_abs_twist": 31.7
+   },
+   "context": {
+    "NEW": {
+     "n": 60,
+     "median_ang": 68.6,
+     "p90_ang": 174.6,
+     "median_abs_twist": 31.7,
+     "frac_ang_ge30": 0.55,
+     "median_centroid_cm": 2.93
+    },
+    "OC": {
+     "n": 60,
+     "median_ang": 77.4,
+     "p90_ang": 174.8,
+     "median_abs_twist": 55.7,
+     "frac_ang_ge30": 0.7,
+     "median_centroid_cm": 3.37
+    },
+    "W": {
+     "n": 60,
+     "median_ang": 74.5,
+     "p90_ang": 172.7,
+     "median_abs_twist": 44.2,
+     "frac_ang_ge30": 0.617,
+     "median_centroid_cm": 2.93
+    }
+   },
+   "pass_": false
+  }
+ },
+ "sources": [
+  "build_report.json (G4-G6, local build)",
+  "fromBabel\\d3.json / d3.out (G1-G3, G7; Babel /data/user_data/haisenk/v2d/refine1104/ep3_f3w/diag)"
+ ]
+}

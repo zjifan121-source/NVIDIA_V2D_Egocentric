@@ -1,0 +1,35 @@
+{
+  "episode": 3,
+  "round": 2,
+  "fix": "F3w: inside round 1's F3 windows (f43-208 incl. 8-frame ramps), spoon position + long axis from Wentao's raw track, twist from the observed right wrist through the hold's chordal-mean grip; right hand co-moved rigidly with the spoon on those frames; everything else of sc_ep3 unchanged",
+  "status": "FAILED pre-registered gate G7 (kit-registration roll consistency) -> NOT installed, NOT queued (no override)",
+  "gates_file": "C:\\v2d_demo\\diag\\refine1104\\ep3_f3w\\gates.json (written ~12:22 EST, before the F3w track existed)",
+  "gate_results": {
+    "G1a IoU f130-185 >= 0.65": [0.743, "pass"],
+    "G1b IoU f85-129 >= 0.65": [0.727, "pass"],
+    "G1c IoU episode mean >= 0.70": [0.719, "pass"],
+    "G1d P0/P1 not below scene - 0.02": ["0.718 / 0.714 vs 0.718 / 0.600", "pass"],
+    "G2 depth |median residual| switched frames <= scene + 5 mm": ["4.8 mm vs 12.5 mm", "pass"],
+    "G3 spoon-pot interpenetration frames f36-230": ["0 vs 0", "pass"],
+    "G4 twist continuity, frames > 10 deg/frame f50-255 <= 30": ["19 total (4 twist-only), scene 23, Wentao 45, max step 16.3 deg", "pass"],
+    "G5 scene diff": ["only spoon pose + 11 right-hand columns, frames f43-208 only; non-parquet files identical; hand-in-spoon kept to 1e-7", "pass"],
+    "G6 right contact part ids identical": [true, "pass"],
+    "G7 kit-registration roll consistency (median angle < 30 AND median |twist| < 30)": ["median angle 68.6 deg, median |twist| 31.7 deg (60/60 frames usable)", "FAIL"]
+  },
+  "why_it_fails": "On every 2nd switched frame the spoon mesh was registered to the masked FoundationStereo point cloud with AUC.py's own _align_rigid (PCA starts + trimmed ICP). The registration is bimodal: 23 of 60 frames land near a 180 deg flip, and the median residual is 13.9 mm. A one-sided, hand-occluded cloud of a thin spoon does not pin the roll down. The pre-registered thresholds are therefore missed.",
+  "context_not_a_gate": {
+    "same check on the adopted, Kaggle-proven track OC": "median angle 77.4, median |twist| 55.7 (it also fails)",
+    "same check on Wentao's raw track W": "median angle 74.5, median |twist| 44.2",
+    "frames under 30 deg / near-180 flips": "NEW 27/23, OC 18/20, W 23/25 of 60",
+    "non-flipped frames (< 150 deg), median angle / |twist|": "NEW 20.8/18.7, OC 36.8/31.0, W 15.6/11.1",
+    "reading": "As defined, the check cannot separate a good roll from a bad one: the adopted track fails it by more than F3w does. So the T7 risk (undoing a levelling the kit's registration relies on) stays unresolved, and the gate stands."
+  },
+  "levelling_facts": "Round-1 L = 7.93 deg, of which 6.85 deg is twist about the spoon's long axis and 3.99 deg is long-axis tilt (build_report.json). Per the pre-registered rule (round 1: L lowers IoU, W 0.746 -> WL 0.618 in the switched frames), L was not applied inside the windows. The twist part is replaced by the wrist-derived twist; the 4.0 deg tilt part is undone in the windows.",
+  "what_passed_means": "F3w has Wentao's video fit (IoU 0.748 vs 0.746 in the switched frames; depth 4.8 vs 4.9 mm) and is smoother than both source tracks (19 vs 23 / 45 frames over 10 deg/frame). It fixes round 1's G4 failure.",
+  "possible_next_needs_Ken_and_fresh_preregistration": "A well-posed roll check before any F3w training. Example: local trimmed ICP started from each track's own pose (no PCA flip starts), with a one-sided cloud->mesh distance. Require F3w's final roll offset to be no worse than the adopted track's on the same frames, plus an absolute < 30 deg on frames where the converged residual is < 5 mm.",
+  "artefacts": {
+    "local": "C:\\v2d_demo\\diag\\refine1104\\ep3_f3w\\ (gates.json, build_f3w.py, build_report.json, f3w_track.npz, gate_results.json, g7_detail.out, babel\\d3.py, babel\\d3_run.sh, fromBabel\\d3.json, d3.out, notes.md; build\\rf_ep3_f3w = the built scene copy, NOT installed, parquet md5 a026149ea0654e212492a17d97634568)",
+    "babel": "/data/user_data/haisenk/v2d/refine1104/ep3_f3w/ (gates.json, build_report.json, code/build_f3w.py, diag/{d3.py,AUC.py,f3w_track.npz,d3.out,d3.json}, FAILED.json, notes.md)"
+  },
+  "written": "2026-11-04 ~12:30 EST"
+}

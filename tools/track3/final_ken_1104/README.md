@@ -32,7 +32,7 @@
   - Teammates' episodes 15, 16, 20, 32, 35, 36 and 37 use bob1's checkpoints. The rollout is the best of 36-72 re-evaluations. For 15, 16, 32, 35, 36 and 37 the re-evaluations ran on a copy of the checkpoint whose stored scene path was updated. Its weights are byte-identical, but the file digest differs.
   - Episodes 14, 19, 25, 28, 30, 33 and 38 are unchanged from bob1.
 - **Selection.** Re-evaluations were ranked by own-reference add_auc only; no hidden data was used. The official evaluator is not deterministic. Re-running a checkpoint therefore reproduces the procedure but not the exact recorded rollout. The recorded rollouts are archived with the checkpoints.
-- **Still to add here:** the scripts of the final-day parts (ep3 spoon track F3w, ep6 de-smoothing D2, the re-evaluation driver).
+- **Final-day parts:** `ep3_f3w/` (ep3 spoon track), `ep6_d2/` (ep6 in-pot spoon de-smoothing), `redraw/` (best-of-N re-evaluation, including the teammates' episodes).
 
 # `final_ken_1104/`: final Track 3 release for scored episodes 1, 3, 5, 6, 8 and 10 (Ken / haisenk)
 

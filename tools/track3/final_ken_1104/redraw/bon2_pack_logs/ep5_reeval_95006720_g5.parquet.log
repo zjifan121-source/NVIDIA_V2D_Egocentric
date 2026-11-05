@@ -1,0 +1,24 @@
+roster ['white_pot', 'wooden_spoon'] relabel problems: []
+note: Track 3 reference poses are held out; local metric cross-check is unavailable
+
+wrote /home/haisenk/v2d_ops/kenc/push1104/bon2/ep5_reeval_95006720_g5.parquet (576 rows, 178,081 B)
+upload with: python submit/v2d_submit.py /home/haisenk/v2d_ops/kenc/push1104/bon2/ep5_reeval_95006720_g5.parquet --track track_3 -m '<message>'
+rows 576 columns 15
+  eval_script_sha256 <ArrowStringArray>
+['160d24f5fbeb70ccd569ca4192056f1892b2a9f2999066db9d8279461648fdf1']
+Length: 1, dtype: str
+  eval_code_sha256 <ArrowStringArray>
+['b1b3ebe3ae4629d1687a83f420149e3f6fdfc154d70acad55c12fc8fa69811a1']
+Length: 1, dtype: str
+  checkpoint_sha256 <ArrowStringArray>
+['d351dbaed5a14cca0d50f05876ad60ae68b2970e1bb3960026d1c9411a875840']
+Length: 1, dtype: str
+  packer_script_sha256 <ArrowStringArray>
+['49b13052e3bbdd056d0cb97761d670cbd94d1663e5463aa30db00b68529411e0']
+Length: 1, dtype: str
+  uploader_script_sha256 <ArrowStringArray>
+['d31d4a7c179b581739cfbe0c4bd4557dfdb60e6a548e4295b4f681c7b018aadf']
+Length: 1, dtype: str
+  code_commit_url <ArrowStringArray>
+['https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric/commit/1689cf6396bee0f6a3bf4cced610f2fe0f71ebf6']
+Length: 1, dtype: str

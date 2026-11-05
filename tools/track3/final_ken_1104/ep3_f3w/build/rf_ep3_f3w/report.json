@@ -1,0 +1,121 @@
+{
+ "sequence_id": "ep3_h5_h5_ep3_A1",
+ "episode": 3,
+ "object": null,
+ "bundle": "/data/user_data/haisenk/v2d/hand5/scenes/h5_ep3_A1/bundle_merged",
+ "fps": 20.25411910142744,
+ "ground_z_offset": 1.0,
+ "started_utc": "2026-11-02T22:24:30+00:00",
+ "merge": {
+  "objects": [
+   "white_pot",
+   "wooden_spoon"
+  ],
+  "world_from": "white_pot",
+  "valid_fraction": {
+   "white_pot": 1.0,
+   "wooden_spoon": 1.0
+  },
+  "camera_path_m": {
+   "white_pot": 0.48,
+   "wooden_spoon": 0.52
+  },
+  "h5_merged_npz": "/home/haisenk/v2d_ops/kenc/hand5/ep3/armA_result.npz"
+ },
+ "bundle_check": {
+  "frames": 313,
+  "nan_arrays": [],
+  "valid_fraction": {
+   "camera": 1.0,
+   "object": 1.0,
+   "hand_left": 1.0,
+   "hand_right": 1.0
+  },
+  "hand_scale_mean": {
+   "left": 0.8618704080581665,
+   "right": 0.9322490096092224
+  },
+  "gravity_alignment_applied": true,
+  "object_drift_first_30_frames_cm": 1.25,
+  "object_step_median_cm": 0.17,
+  "first_still_frame": 26,
+  "mesh_vertices": 5520,
+  "mesh_extents_cm": [
+   38.3,
+   19.8,
+   11.5
+  ],
+  "rest_footprint_cm": [
+   12.2,
+   7.2
+  ],
+  "scan_extents_cm": [
+   34.9,
+   19.0,
+   10.9
+  ],
+  "mesh_to_scan_size_ratio": 1.065,
+  "warnings": []
+ },
+ "cleaning": {
+  "hand_left_refilled_frames": 0,
+  "hand_right_refilled_frames": 0,
+  "hand_smooth_sigma_frames": 2.0,
+  "object_refilled_frames_white_pot": 0,
+  "rest_hold_until_frame_white_pot": 49,
+  "object_refilled_frames_wooden_spoon": 0,
+  "rest_hold_until_frame_wooden_spoon": 21,
+  "tilt_deg_0": 3.3,
+  "levelled_0": "world",
+  "tilt_deg_1": 7.9,
+  "levelled_1": "object",
+  "attach_rule": "nearest within reach",
+  "attached_0": [
+   [
+    "left",
+    65,
+    240,
+    3.6
+   ]
+  ],
+  "attached_1": [
+   [
+    "right",
+    43,
+    266,
+    2.6
+   ]
+  ],
+  "hand_left_attached_frames": 175,
+  "hand_right_attached_frames": 223
+ },
+ "output_check": {
+  "frames": 313,
+  "fps": 20.254119873046875,
+  "task_error_cm": {
+   "right": {
+    "mean": 1.88,
+    "max": 4.9
+   },
+   "left": {
+    "mean": 1.67,
+    "max": 4.11
+   }
+  },
+  "penetration_frames": {
+   "any": 0.674,
+   "over_1cm": 0.0,
+   "over_2cm": 0.0
+  },
+  "support_disks": 1,
+  "frame0_seating_cm": [
+   1.22,
+   1.95
+  ],
+  "warnings": []
+ },
+ "processed": "/data/user_data/haisenk/v2d/hand5/scenes/h5_ep3_A1/assets/human_motion_data/ego_recon/processed/sequence_id=ep3_h5_h5_ep3_A1/robot_name=sharpa_wave",
+ "support_usd": "/data/user_data/haisenk/v2d/hand5/scenes/h5_ep3_A1/assets/human_motion_data/ego_recon/reconstructed_stage/ep3_h5_h5_ep3_A1_sharpa_wave_support.usda",
+ "video": null,
+ "finished_utc": "2026-11-02T22:28:40+00:00"
+}
