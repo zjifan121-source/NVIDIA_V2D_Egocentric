@@ -1,0 +1,343 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% V2D Challenge Track 3 -- Technical Report (2-page main text + appendix)
+% Build: pdflatex main && bibtex main && pdflatex main && pdflatex main
+% Page limit: the class warns if acknowledgments/references start after
+% page 2. Keep the acks environment directly after the conclusion.
+% Notes for co-authors are in % comments (not printed).
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pdfoutput=1
+
+\documentclass[10pt]{nvidiaextabstract}
+
+\usepackage{microtype}
+\usepackage{multirow}
+\usepackage{xspace}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+
+\newcommand{\todo}[1]{\textcolor{red}{[TODO: #1]}}
+\newcommand{\ownauc}{\ensuremath{\mathrm{AUC}_{\text{own}}}\xspace}
+
+\venue{From Human Videos to Dexterous Robot Capability (CoRL 2026)}
+
+\submissionID{Gravity Aligned}
+
+\title{Fix the Reference, Not the Policy: Egocentric Video to Dexterous Robot Rollouts}
+\subtitle{V2D Challenge Track 3 Technical Report}
+\shorttitle{Fix the Reference, Not the Policy}
+
+\author[1*]{Edmond Wang}
+\author[1*]{Haisen Kang}
+\author[1*]{Wentao Cao}
+\author[1*]{James Zhao}
+\author[1*]{Andrew Huang}
+\author[1*]{Ryan Zhou}
+
+\author[1]{\todo{Add remaining authors or remove}}
+\affil[1]{Carnegie Mellon University}
+\affil[ ]{\texttt{\{edmondwa, haisenk, wentaoc, jameszh2\}@andrew.cmu.edu}}
+\correspondingauthor{edmondwa@andrew.cmu.edu}
+
+\begin{abstract}
+\textbf{Abstract:}
+We present our Track~3 system for the NVIDIA Video-to-Data (V2D) Challenge, which turns one egocentric video into simulated rollouts of a dexterous Sharpa-hand policy. Our key observation is that, once the scene is metric, implausible reference motions limit tracking more than the learning recipe does. The system (1)~reconstructs metric scenes from the headset's stereo pair, (2)~repairs implausible references without ground truth, and (3)~trains and selects one residual tracking policy per episode. Over more than 440 training runs, reference repairs gave the largest gains (up to $+0.50$ own-reference ADD-AUC), while no global recipe change helped on average. Our final submission scores \textbf{0.780 ADD-AUC}, 0.95 SP-SR and 0.65 MP-SR, up from 0.295 for static objects.
+\end{abstract}
+
+\definecolor{NvidiaGreen}{RGB}{118, 185, 0}
+
+\begin{document}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+\label{sec:intro}
+
+Egocentric human video is an abundant source of manipulation demonstrations if a simulated robot can reproduce its metric object motion. Track~3 of the V2D Challenge~\cite{v2d,v2ddata} tests this end to end: for 20 held-out clips (36 objects, 16 two-object scenes), a submission gives one reconstructed mesh per object and 6-DoF object poses that must come from a learned policy rolled out in simulation. Poses are scored against hidden motion capture by ADD-AUC (1--9\,cm), success rates (SP-SR, MP-SR) and pose errors (RPE, MPPE); meshes by a Chamfer distance (CD-O).
+
+Errors compound across reconstruction, reference and control. On the public split, replaying the baseline's monocular reconstruction scores 0.292 ADD-AUC, below holding every object still (0.309), mainly because monocular depth inflates the scene by a median $1.33\times$ (App.~\ref{app:data}). Even metric references can be impossible to follow: a hand opens while its cup is 9\,cm in the air, or a cup spins $43^\circ$ per frame about its axis.
+
+Should the remaining effort go into the policy or into the reference it tracks? A residual tracker corrects only small deviations, so we repair physically impossible segments before training. Based on this view, our pipeline (Fig.~\ref{fig:overview}) (1)~reconstructs metric scenes, (2)~repairs the reference, (3)~trains one residual policy per episode, and (4)~selects what to submit from own-reference scores.
+
+Our final submission reaches 0.780 ADD-AUC, 0.95 SP-SR, 0.65 MP-SR, 3.87\,cm RPE and 3.28\,cm MPPE. Three insights emerge: (i)~metric stereo depth matters most for reconstruction; (ii)~reference repairs give the largest per-episode gains, while global recipe changes do not; and (iii)~own-reference accuracy transfers only partially, so selection across reconstructions and rollouts pays.
+
+\begin{figure*}[t]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[
+    node distance=0.4cm,
+    box/.style={rectangle, rounded corners=3pt, draw=black!70, fill=gray!8, thick, minimum height=1.0cm, align=center, font=\footnotesize\sffamily, inner sep=3pt},
+    greenbox/.style={rectangle, rounded corners=3pt, draw=NvidiaGreen!80!black, fill=NvidiaGreen!12, very thick, minimum height=1.0cm, align=center, font=\footnotesize\sffamily, inner sep=3pt},
+    arrow/.style={-{Stealth[length=2.2mm, width=1.6mm]}, thick, draw=black!75}
+  ]
+    \node[box] (video) {\textbf{Egocentric video}\\RGB + 75\,mm stereo};
+    \node[box, right=of video] (recon) {\textbf{1. Metric reconstruction}\\stereo depth $\cdot$ Paths A, A$'$, B};
+    \node[greenbox, right=of recon] (repair) {\textbf{2. Reference repair}\\detectors $\cdot$ repairs, no ground truth};
+    \node[box, right=of repair] (policy) {\textbf{3. Residual tracking}\\one FlashSAC policy per episode};
+    \node[greenbox, right=of policy] (select) {\textbf{4. Selection}\\$\rho_k$-weighted \ownauc, best-of-$N$};
+    \draw[arrow] (video) -- (recon);
+    \draw[arrow] (recon) -- (repair);
+    \draw[arrow] (repair) -- (policy);
+    \draw[arrow] (policy) -- (select);
+  \end{tikzpicture}%
+  }
+  \vspace{-5mm}
+  \caption{\textbf{Pipeline.} References are made metric and physically trackable before training; green steps drive most of our gains.}
+  \label{fig:overview}
+  \vspace{-3mm}
+\end{figure*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Approach}
+\label{sec:approach}
+
+Building on the V2D baseline~\cite{v2d}, we first build metric scenes (Sec.~\ref{sec:recon}), then repair the reference (Sec.~\ref{sec:repair}), and finally train policies and select what to submit (Sec.~\ref{sec:policy}). The \emph{reference} is the reconstructed object and hand motion a policy tracks; \ownauc is the official evaluator's ADD-AUC of a rollout against its own reference.
+
+\subsection{Metric reconstruction}
+\label{sec:recon}
+The baseline uses monocular MoGe-2 depth~\cite{wang2025moge2}, one SAM~3D mesh per object~\cite{sam3dteam2025sam3d}, FoundationPose tracking~\cite{wen2024foundationpose} after a 36-scale search, and Gaussian-splatting refinement~\cite{kerbl20233dgs,ye2025gsplat}. All our streams instead use FoundationStereo~\cite{wen2025foundationstereo} stereo depth, which also anchors DROID-SLAM~\cite{teed2021droid}.
+\textbf{Path~A} segments with SAM~3~\cite{carion2025sam3}, keeps the best-fitting of 12 SAM~3D meshes (six key frames, two seeds), tracks it on stereo depth, resolves $180^\circ$ flips with a CoTracker3~\cite{karaev2025cotracker3} point-track referee, and drops the splat refinement, which can turn 0.17\,m of camera motion into 14.7\,m.
+\textbf{Path~A$'$} sizes each mesh once and tracks it forward and backward from one reviewed anchor frame.
+\textbf{Path~B} fuses all clips of an object into a TSDF mesh~\cite{curless1996volumetric} and inverts grasped poses from the wrist~\cite{rohit}; it was evaluated on the public split only.
+% VERIFY (Ken): mesh reuse across episodes -- if kept, add one sentence here and in App. A.
+
+\subsection{Reference diagnosis and repair}
+\label{sec:repair}
+Retargeted MANO hands~\cite{romero2017mano} often violate physics, and the contact reward then penalizes physically correct behaviour. We flag ghost motion, contact gaps, grasp gaps (fingertips over 4\,cm from a lifted object) and spin tremor, and repair each defect without ground truth: \textbf{grip locking} keeps the object-relative grip while a hand opens in mid-air; \textbf{de-spinning} keeps only the swing of a cup's rotation, $R'_t=\mathrm{swing}(a_0\!\to\!a_t)R_0$, since the metric ignores axial twist but the 0.5\,rad termination does not; \textbf{pinch relocation} and \textbf{hand refill} move a distant or off-screen hand onto the object; \textbf{grasp grafting} moves Path~A's hand motion onto Path~A$'$ objects; and \textbf{support and contact geometry} seats objects on the depth-measured table, re-levels the world, centres inertial origins and replaces collision hulls that block observed contact, never the submitted meshes.
+
+\subsection{Tracking policy and selection}
+\label{sec:policy}
+\textbf{Policy.} One FlashSAC~\cite{flashchord,haarnoja2018sac} policy per episode outputs residual wrist and finger targets; it trains in 4,096 worlds for 100M steps (about 45\,min on one L40S) with keypoint, contact-wrench and contact rewards (App.~\ref{app:policy}), and we keep the best checkpoint from 70M steps.
+\textbf{Selection across reconstructions.} A perfect tracker of a misplaced object still has $\ownauc\!=\!1$, so per episode $e$ we submit $c^\star_e=\arg\max_{c}\rho_{k(c)}\,\ownauc(c)$, where the transfer ratio $\rho_k$ is stream $k$'s leaderboard ADD-AUC over its mean \ownauc.
+\textbf{Selection across rollouts.} The evaluator is not deterministic, so for 12 episodes we re-ran the chosen checkpoint $N\!=\!32$--$72$ times and kept the recorded rollout with the highest \ownauc; final-day swaps were also checked with single-board leaderboard submissions.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Experiments}
+\label{sec:experiments}
+
+We ask which reconstruction changes matter (RQ1), whether repairing the reference or tuning the policy helps more (RQ2), and how \ownauc transfers to the hidden leaderboard (RQ3), measured by public-split playback ADD-AUC, scored-episode \ownauc and the leaderboard, respectively.
+
+\textbf{RQ1: metric scale matters most.} Stereo depth lifts public ep41 from 0.150 to 0.843 playback ADD-AUC (App.~\ref{app:ablations}); it agrees with SGBM~\cite{hirschmuller2008sgm} to 1.3--1.9\% median error, against 14--18\% for rescaled MoGe-2. Mesh selection, a flip referee (ep18: 0.755$\to$0.916) and fixed-mesh tracking add smaller gains; Path~A$'$ reaches 0.908 and Path~B 0.829 on the public split.
+% VERIFY (Ken/Edmond): 0.150->0.843, 0.511->0.625, 0.514->0.649, 0.755->0.916, 1.33x; (Wentao) 0.267->0.913, 0.908; (James) 0.829.
+
+\textbf{RQ2: repair beats recipe.} Each repair raised its episode by 0.02--0.50 \ownauc, e.g., grip locking 0.58$\to$0.84 (ep14), hand refill 0.38$\to$0.84 (ep20) and nesting geometry 0.72$\to$0.98 (ep10); recipe changes helped single episodes (strict termination on ep33) but none as a default: more exploration noise won 7 of 19 scenes yet lost 0.03 on average. Open-loop replay of repaired references scores only 0.11--0.30, so the residual policy is essential.
+% VERIFY (Edmond): 7/19, -0.03, 0.11-0.30, 0.042, 27 groups; recipe deltas.
+
+\begin{table}[t]
+  \centering\scriptsize
+  \setlength{\tabcolsep}{1.6pt}
+  \resizebox{\columnwidth}{!}{%
+  \begin{tabular}{@{}lccccccc@{}}
+    \toprule
+    \textbf{Submission} & \textbf{\ownauc} & \textbf{AUC}$\uparrow$ & \textbf{SP}$\uparrow$ & \textbf{MP}$\uparrow$ & \textbf{RPE}$\downarrow$ & \textbf{MPPE}$\downarrow$ & \textbf{CD-O}$\downarrow$ \\
+    \midrule
+    Static objects & -- & 0.295 & 0.25 & 0.00 & 19.78 & 14.87 & 0.473 \\
+    Selected A/A$'$ & 0.895 & 0.752 & 0.90 & 0.45 & 4.35 & 3.61 & 0.410 \\
+    + 4 repaired eps & 0.907 & 0.765 & 0.95 & 0.55 & 4.11 & 3.43 & 0.396 \\
+    + 4 more repairs & -- & 0.777 & 0.95 & 0.60 & 3.91 & 3.32 & 0.396 \\
+    \textbf{Final} & \textbf{0.927} & \textbf{0.780} & \textbf{0.95} & \textbf{0.65} & \textbf{3.87} & \textbf{3.28} & \textbf{0.396} \\
+    \bottomrule
+  \end{tabular}}
+  \vspace{-2mm}
+  \caption{\textbf{Hidden leaderboard} (RPE, MPPE, CD-O in cm). ``Final'' adds best-of-$N$ rollouts and the ep6 repair; one file on all six boards (App.~\ref{app:prov}).}
+  \label{tab:kaggle}
+  \vspace{-3mm}
+\end{table}
+
+\textbf{RQ3: transfer is partial, so selection pays.} Leaderboard ADD-AUC is 0.81--0.86 times the mean \ownauc (Table~\ref{tab:kaggle}): Path~A tracks better and Path~A$'$ places objects more accurately ($\rho_{\text{A}}\!=\!0.81$, $\rho_{\text{A}'}\!=\!0.86$), so per-episode selection (0.752) beats Path~A alone (0.654) and Path~A$'$ alone (0.589). Final-day repairs gave 0.777; best-of-$N$ rollouts and the ep6 repair gave 0.780, MP-SR 0.65 and MPPE 3.28\,cm. Remaining errors are analysed in App.~\ref{app:finalday}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion and Impact}
+\label{sec:conclusion}
+
+Making the reference metric and physically trackable before training reached 0.780 ADD-AUC. \textbf{Economic viability:} one head-mounted stereo video suffices (no motion capture, gloves, scans or teleoperation), at about one GPU-hour per object plus 45 GPU-minutes per policy. \textbf{Data flywheel:} detectors triage new clips without ground truth, and failed rollouts name the next defect. \textbf{Innovation:} we optimize the reference, not the policy. \textbf{Complexity reduction:} stereo depth removes monocular scale recovery; one recipe serves all episodes. \textbf{Limits:} repairs are chosen per episode by hand, \ownauc predicts the leaderboard only through a per-stream ratio, and part of the final gain comes from re-drawing non-deterministic rollouts.
+
+\begin{acks}
+We thank the organizers of the NVIDIA Video-to-Data Challenge for the dataset, the baseline pipeline and the evaluation kit.
+\end{acks}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
+\appendix
+\onecolumn
+
+\section{Compliance, Code and Provenance of the Final Submission}
+\label{app:prov}
+
+\textbf{Rule compliance.} Every submitted trajectory is a recorded rollout of a trained FlashSAC policy in the official FlashCHORD evaluator (\texttt{video\_to\_data} commit \texttt{8c778f9}); no reconstruction or reference trajectory is submitted. All meshes are our own reconstructions from the challenge videos; no public scan enters any submitted mesh. Public-split ground truth was used only to evaluate candidates during development. Simulation-only collision geometry (ep10, ep25) never replaces a submitted mesh. CoTracker3~\cite{karaev2025cotracker3}, used in Path~A's flip referee, is distributed under a CC-BY-NC licence.
+% VERIFY (Ken): mesh-reuse disclosure wording (objects recurring across episodes use our best reconstruction of that object, chosen by public playback ADD-AUC).
+
+\textbf{Final file.} One Parquet file was selected on all six Track~3 boards: sha256 \texttt{eecb6d3a3fb4b853\allowbreak 81bd2a6f62c397cc\allowbreak 78d0fed9f9793648\allowbreak 9c215d97213d4878}, 9{,}120 rows, 20 episodes, 36 meshes. Kaggle submissions: AUC 57998961 (0.77970), SP-SR 57998965 (0.95), MP-SR 57998964 (0.65), RPE 57999654 (3.86589\,cm), MPPE 57998873 (3.28089\,cm), CD-O 57999655 (0.39579\,cm). Every row carries the same provenance: \texttt{code\_commit\_url} = commit \texttt{1689cf63} of \url{https://github.com/zjifan121-source/NVIDIA_V2D_Egocentric}; evaluation script \texttt{160d24f5}, evaluation code \texttt{b1b3ebe3}, packer \texttt{49b13052} and uploader \texttt{d31d4a7c} (sha256 prefixes; the kit's evaluator at FlashCHORD revision \texttt{8c778f90}); the checkpoint digest is constant within each episode (Table~\ref{tab:provenance}).
+
+\textbf{Code.} The policy-training pipeline is at commit \texttt{de66fea3} of the same repository (branch \texttt{main\_buffer}) and the Path~A$'$ reconstruction code (fixed-mesh bidirectional tracking, metric scene refinement) and scene-consistency tools are on \texttt{main\_buffer} at commit \texttt{7c45ecc6} (merged pull request \#24). The scene repairs, training queue, selection and packing scripts of our final-day episodes are at commit \texttt{3040b7d2} (branch \texttt{haisen/final-ken-1104}).
+
+\begin{table}[h]
+  \centering\footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{@{}rllllrrll@{}}
+    \toprule
+    \textbf{Ep} & \textbf{Objects} & \textbf{Scene} & \textbf{Policy (seed, step)} & \textbf{Rollout} & \textbf{$N$} & \textbf{\ownauc} & \textbf{Policy} & \textbf{Rows} \\
+    \midrule
+    1  & pot, lid & A$'$ + hand hold window & STRICT (s48, 100M) & re-draw & 64 & 0.841 & \texttt{6aaab5d6} & \texttt{ee8ba8bc} \\
+    3  & pot, spoon & A + table/COM + spoon track & STRICT (s42, 100M) & re-draw & 48 & 0.955 & \texttt{27f67ce9} & \texttt{2d31867d} \\
+    5  & pot, spoon & A$'$ + attach/COM + re-level & STRICT (s43, 95M) & re-draw & 56 & 0.918 & \texttt{d351dbae} & \texttt{d6c72706} \\
+    6  & pot, spoon & A + spoon de-smoothing & STRICT (s44, 85M) & sweep & 1 & 0.945 & \texttt{8d1fb53c} & \texttt{b40fe838} \\
+    8  & cup, pot & A + table/COM + de-spin & STRICT (s43, 95M) & re-draw & 32 & 0.995 & \texttt{3d33ff6b} & \texttt{35a903b5} \\
+    10 & blue cup, beige cup & A + seat + nesting geometry & STRICT (s42, 100M) & re-draw & 64 & 0.985 & \texttt{2bd79300} & \texttt{caa59fdd} \\
+    14 & cup, rack & A + grip locking & base (s43, 75M) & base & -- & 0.845 & \texttt{4d8b3668} & \texttt{651de1d9} \\
+    15 & rack, spoon & A (stereo) & base (250M) & re-draw & 40 & 0.956 & \texttt{c4ac3894} & \texttt{826dc395} \\
+    16 & rack, spoon & A$'$ + grasp graft & base (s101, 130M) & re-draw & 40 & 0.939 & \texttt{8f75e56b} & \texttt{9f52bf0f} \\
+    19 & sweeper, dust pan & A$'$ & base (s83, 95M) & base & -- & 0.898 & \texttt{67245e59} & \texttt{8ea7952e} \\
+    20 & cup, pitcher & A + hand refill & base (s43, 100M) & re-draw & 36 & 0.921 & \texttt{960577b6} & \texttt{49d41f88} \\
+    25 & board, board & A + assembly geometry & base (140M) & base & -- & 0.870 & \texttt{570ff7d3} & \texttt{f8753609} \\
+    28 & rack, pot & A$'$ & base (s81, 75M) & base & -- & 0.906 & \texttt{392e1859} & \texttt{945f2517} \\
+    30 & sweeper, rack & A$'$ & base (s81, 95M) & base & -- & 0.922 & \texttt{fa794771} & \texttt{79db2772} \\
+    32 & cup, spoon & A & base (s42, 100M) & re-draw & 40 & 0.902 & \texttt{832c2a6d} & \texttt{58c8a11c} \\
+    33 & cup, spoon & A & base (135M) & base & -- & 0.901 & \texttt{eb920406} & \texttt{1fb84842} \\
+    35 & spoon & A & base (s42, 100M) & re-draw & 72 & 0.971 & \texttt{a7996272} & \texttt{c7eb0cdb} \\
+    36 & spoon & A (stereo) & base (250M) & re-draw & 40 & 0.925 & \texttt{522cf7ca} & \texttt{95f3f943} \\
+    37 & spoon & A (stereo) & base (s43, 100M) & re-draw & 40 & 0.992 & \texttt{32f4d799} & \texttt{db72285b} \\
+    38 & dust pan & A$'$ + rotation smoothing & base (s91, 100M) & base & -- & 0.948 & \texttt{39512cc2} & \texttt{af7bc21b} \\
+    \midrule
+    \multicolumn{6}{@{}l}{Mean over 20 episodes (leaderboard ADD-AUC 0.77970; ratio 0.84)} & 0.927 & & \\
+    \bottomrule
+  \end{tabular}
+  \caption{\textbf{Per-episode provenance of the final file.} ``base'' = the team's selected A/A$'$ ensemble of 3 November (Kaggle AUC 0.75166); ``re-draw'' = best of $N$ official re-evaluations of that checkpoint by \ownauc; ``sweep'' = the checkpoint-sweep evaluation. Policy and Rows: sha256 prefixes of the checkpoint (as recorded in the file) and of the episode's submitted rows. Re-drawn base episodes use a byte-identical copy of the base weights whose stored scene path was updated, hence a different file digest.}
+  \label{tab:provenance}
+\end{table}
+
+\section{Dataset and Metric Analysis}
+\label{app:data}
+The public split has 20 episodes (5{,}246 frames, 137--373 per clip; 13 two-object clips, 33 object instances); the scored split has 20 episodes (5{,}181 frames, 151--421 per clip at 20.254\,fps; 16 two-object clips, 36 instances). Over 69 baseline reconstructions the monocular world was a median $1.33\times$ too large (range 1.09--1.70). Table~\ref{tab:oracle} decomposes the official metric on the public split: scale and position errors while moving dominate, and anchor-only frame-0 alignment penalizes relative placement in two-object scenes.
+
+\begin{table}[h]
+  \centering\small
+  \begin{tabular}{@{}lc@{}}
+    \toprule
+    \textbf{Public-split playback condition (20 episodes, no policy)} & \textbf{ADD-AUC} \\
+    \midrule
+    Ground-truth trajectories & 1.000 \\
+    Ground truth scaled by 1.2 & 0.775 \\
+    True positions, reconstructed orientations & 0.741 \\
+    True relative motion, our frame-0 placement & 0.650 \\
+    Ground truth plus 2\,cm position noise & 0.567 \\
+    Static object at the true frame-0 pose & 0.447 \\
+    Baseline reconstruction, true frame-0 placement & 0.388 \\
+    Static object at our frame-0 placement & 0.309 \\
+    Baseline reconstruction & 0.292 \\
+    \bottomrule
+  \end{tabular}
+  \caption{\textbf{Oracle study} with the official metric code on the public split.}
+  \label{tab:oracle}
+\end{table}
+
+\section{Ablations}
+\label{app:ablations}
+\begin{table}[h]
+  \centering\footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabular}{@{}lcc@{}}
+    \toprule
+    \textbf{Change (episode)} & \textbf{Before} & \textbf{After} \\
+    \midrule
+    \multicolumn{3}{@{}l}{\emph{Reconstruction, public playback ADD-AUC}} \\
+    Stereo instead of monocular depth (ep41) & 0.150 & \textbf{0.843} \\
+    12-candidate mesh selection (11 episodes) & 0.514 & \textbf{0.649} \\
+    Fixed-mesh bidirectional tracking (ep27) & 0.267 & \textbf{0.913} \\
+    \midrule
+    \multicolumn{3}{@{}l}{\emph{Reference repair, scored \ownauc}} \\
+    Handedness fix and pinch relocation (ep3) & 0.37 & \textbf{0.87} \\
+    Off-screen hand refill (ep20) & 0.38 & \textbf{0.84} \\
+    Grip locking (ep14) & 0.58 & \textbf{0.84} \\
+    Nesting contact geometry (ep10) & 0.72 & \textbf{0.98} \\
+    De-spinning (ep8) & 0.973 & \textbf{0.990} \\
+    \midrule
+    \multicolumn{3}{@{}l}{\emph{Recipe, scored \ownauc}} \\
+    Strict vs.\ loose termination (ep33) & 0.637 & \textbf{0.827} \\
+    3$\times$ exploration noise (mean $\Delta$, 19 eps) & -- & $-0.03$ \\
+    \bottomrule
+  \end{tabular}
+    \caption{\textbf{Ablations.} One change at a time against its control; best checkpoint per run. Reconstruction rows: public playback ADD-AUC; other rows: scored-episode \ownauc.}
+  \label{tab:ablations}
+  \end{table}
+
+\section{Policy Details}
+\label{app:policy}
+The per-step reward is
+\begin{equation}
+\label{eq:reward}
+r_t = 40\,r^\text{obj-kp}_t + 0.25\,r^\text{hand-kp}_t + 0.25\,r^\text{hand-q}_t + 10\,r^\text{wrench}_t - c^\text{miss}_t - 10\,c^\text{unint}_t - 0.005\,\|\Delta a_t\|^2 - 0.002\,\|a_t\|^2 - 100\,\mathbb{1}[\text{term}],
+\end{equation}
+where the keypoint terms are Laplacian kernels on object and hand keypoint errors, $r^\text{wrench}$ rewards reference contacts that can support the object wrench (512 wrench basis vectors, 8-edge friction cones, $\mu=0.1$), and $c^\text{miss}$, $c^\text{unint}$ penalize missed and unintended contacts; we double the baseline's object-keypoint weight from 20 to 40. The actor outputs residual wrist ($\le$5\,cm, $\le$0.15\,rad) and finger ($\le$0.15\,rad) targets, smoothed by an EMA (0.3) and tracked by PD control ($k_p=25$, $k_d=6$); a virtual object helper wrench is annealed to zero by 49M steps. The learner uses a 2-block 256-unit residual actor, two 2-block 512-unit distributional critics with 101 atoms~\cite{bellemare2017c51}, discount 0.99, 3-step returns, batch 2{,}048, 8 updates per collection and Adam with learning rate $3\times10^{-4}\!\rightarrow\!1.5\times10^{-4}$; non-finite transitions and observations that overflow float16 storage are rejected from replay. Checkpoints are written every 5M steps; in 71\% of runs the best checkpoint was not the last. Over 27 seed groups with identical scene and recipe, the median spread of best-checkpoint \ownauc was 0.042 (p75 0.076, max 0.331).
+
+\begin{table}[h]
+  \centering\small
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    \textbf{Recipe} & \textbf{Object termination} & \textbf{Replay} & \textbf{Exploration} & \textbf{Completed runs} \\
+    \midrule
+    LOOSE  & 0.3\,m / 1.5\,rad & 1M, fp16 & $\sigma=0.1$, tanh & 217 \\
+    WIDE   & 0.3\,m / 1.5\,rad & 1M, fp16 & $\sigma=0.3$, linear & 156 \\
+    STRICT & 0.1\,m / 0.5\,rad & 2M, fp16 & $\sigma=0.1$, tanh & 76 \\
+    LOWLR  & \multicolumn{3}{c}{best checkpoint continued for 25M steps at learning rate $5\times10^{-5}$} & 38 \\
+    \bottomrule
+  \end{tabular}
+  \caption{\textbf{Training recipes} (100M steps unless noted). STRICT uses NVIDIA's termination thresholds.}
+  \label{tab:recipes}
+\end{table}
+
+\section{Evaluator Non-Determinism and Best-of-$N$ Rollouts}
+\label{app:redraw}
+Re-running the official evaluator on one checkpoint gives different rollouts on contact-rich episodes. In early checks, four evaluations of one ep3 checkpoint ranged from 0.275 to 0.749 \ownauc and of one ep25 checkpoint from 0.363 to 0.863, while stable episodes varied by less than 0.02. For the final file we re-ran the selected checkpoint $N=32$--$72$ times on 12 episodes and kept the rollout with the highest \ownauc (Table~\ref{tab:provenance}). On the leaderboard, adding these re-draws to an otherwise identical file improved MPPE from 3.320 to 3.287\,cm, RPE from 3.906 to 3.870\,cm, MP-SR from 0.60 to 0.65 and ADD-AUC from 0.7773 to 0.7791.
+
+\section{Final-Day Repairs}
+\label{app:finalday}
+\begin{itemize}
+  \item \textbf{ep10 (two nesting cups).} The convex collision hulls stopped the beige cup 13.5\,cm above the table instead of nesting in the blue cup. We seated the blue cup on the table and gave both cups a simulation-only nesting collision geometry; the submitted meshes are byte-identical to the base. \ownauc rose from 0.72 to 0.98, the beige cup ends 5.3--5.5\,cm above the table (5.5\,cm nest depth), and a leaderboard check lowered MPPE by 0.097\,cm and let ep10 pass MP-SR.
+  \item \textbf{ep8 (cup and pot).} The cup mesh was raised 2.8\,cm to the depth-measured table, the pot's centre of mass moved to its centroid, and the cup's axial spin and the matching spin of the right hand were removed (\ownauc 0.973$\rightarrow$0.990).
+  \item \textbf{ep1 (pot and lid).} A hold-window fix keeps the grip while the reconstructed hand releases early; a further seed gave 0.830 vs.\ 0.787 \ownauc.
+  \item \textbf{ep3 (pot and spoon).} The spoon track takes its centroid and long axis from Path~A$'$ and its twist from our tracker in the stirring windows; on the leaderboard this raised ADD-AUC by 0.0007 and lowered MPPE by 0.008\,cm.
+  \item \textbf{ep5 (pot and spoon).} The scene was re-levelled by $5.5^\circ$ to the depth-measured table so that pot and spoon rest coplanar (single-episode leaderboard change $+0.127$ ADD-AUC$\times$20).
+  \item \textbf{ep6 (pot and spoon).} Removing over-smoothing of the in-pot spoon track lowered MPPE by 0.006\,cm.
+  \item \textbf{Remaining errors.} Thin tools (spoon, mini sweeper) whose reconstructed grasps sit 4--6\,cm off the handle, $180^\circ$ twins of near-symmetric boards, and fast reaches where the PD-driven wrist lags the reference by up to 17\,cm.
+  \item \textbf{Rejected after a leaderboard check:} a Path~A$'$ rebuild of ep28 (\ownauc 0.930, RPE worse), a lid-seating variant of ep1 (RPE worse) and a spoon-mesh swap for ep6 ($-0.092$ ADD-AUC$\times$20).
+\end{itemize}
+
+\section{Per-Episode Tracking and Path B Results}
+\textbf{Scored split, best \ownauc per stream on 1 November (Path A / Path A$'$):} ep1 0.803/0.577, ep3 0.879/0.607, ep5 0.616/0.763, ep6 0.968/0.548, ep8 0.897/0.820, ep10 0.690/0.591, ep14 0.845/0.711, ep15 0.954/0.800, ep16 0.879/0.906, ep19 0.618/0.898, ep20 0.745/0.566, ep25 0.870/0.681, ep28 0.960/0.906, ep30 0.915/0.921, ep32 0.895/0.496, ep33 0.901/0.650, ep35 0.953/0.870, ep36 0.922/0.820, ep37 0.990/0.732, ep38 0.988/0.948.
+
+\textbf{Path B, public-split playback ADD-AUC (mean 0.829):} ep0 0.796, ep2 0.776, ep11 0.906, ep12 0.760, ep13 0.960, ep18 0.948, ep21 0.794, ep22 0.858, ep23 0.543, ep24 0.029, ep26 0.928, ep27 0.875, ep31 0.908, ep39 0.936, ep40 0.969, ep41 0.967, ep42 0.899, ep43 0.911, ep44 0.964, ep45 0.853.
+
+\section{Path A$'$ Pipeline and Scene Hygiene}
+\label{app:patha-prime}
+Path~A$'$ runs eight stages: (1)~synchronized decoding with the 14-parameter distortion model and the $180^\circ$ device rotation; (2)~FoundationStereo disparity resampled onto the RGB grid, accounting for the two-frame stereo offset; (3)~SAM~3 masks with SAM~2 fallback; (4)~DROID-SLAM on the static background with a depth-fitted table plane; (5)~WiLoR~\cite{potamias2025wilor} and HaMeR~\cite{pavlakos2024hamer} hands with one MANO shape per sequence; (6)~structure-gated SAM~3D meshes with one metric size; (7)~fixed-mesh bidirectional FoundationPose; (8)~bundle packaging. Table~\ref{tab:hygiene} lists the simulation defects found while training on these scenes.
+
+\begin{table}[h]
+  \centering\footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}p{0.25\linewidth}p{0.37\linewidth}p{0.33\linewidth}@{}}
+    \toprule
+    \textbf{Defect} & \textbf{Symptom in training} & \textbf{Repair} \\
+    \midrule
+    Hands bound to a stale object track & spoon-in-hand angle $21^\circ$ off (median); 74 frames beyond the orientation termination & re-run the hand stage on the final object track \\
+    Exclusive attach (false grasp) & hand stays attached for a whole lift after one pass within 12\,cm (wrist 15--47\,cm away in ep14/15/16/28) & per-frame hold decision; net displacement below 1\,cm is not a lift \\
+    Unobservable cup spin & $-384^\circ$ to $+675^\circ$ of axial spin; the attached wrist orbits 10--25\,cm and drops the cup & take the spin from the holding hand \\
+    Unobservable spoon roll & 250--560$^\circ$ of roll about the long axis; the attached hand rolls with it & freeze the roll while held \\
+    Frame-0 table penetration & objects start 1--6\,cm inside the support at frame~0 & lower the support to the lowest vertex minus 2\,mm \\
+    Off-centre inertial origin & pot origin 8\,cm off axis, $25^\circ$ tilt at rest & inertial origin at the shell centroid \\
+    Contact overflow & nested cups with two hands exceed \texttt{njmax}=1024 & \texttt{njmax}=2048, \texttt{nconmax}=1024 \\
+    \bottomrule
+  \end{tabular}
+  \caption{\textbf{Scene hygiene} for Path~A$'$ bundles.}
+  \label{tab:hygiene}
+\end{table}
+
+\end{document}
